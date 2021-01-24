@@ -1,0 +1,7 @@
+# @package model.monads._name_
+
+_target_: moai.monads.distribution.reconstruction.IsotropicGaussian
+std: 1.5 # float, in % of # pixels of the grid's diagonal
+normalize: true
+scale: false
+grid_type: ndc # ndc, coord, norm

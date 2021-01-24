@@ -154,6 +154,7 @@ dmypy.json
 
 #### Hydra
 outputs/
+actions/
 multirun/
 
 #### Examples

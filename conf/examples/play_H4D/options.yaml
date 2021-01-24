@@ -1,0 +1,35 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: H4D_dataset_vizualization
+  batch_size: 2
+  workers: 4
+
+visualization:
+  batch_interval: 1
+  visualizers:
+    feature2d:                      
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      keys: [M72j_heatmaps_gt]
+      types: [color]
+      colormaps: [turbo]
+      transforms: [minmax]
+
+    image2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      keys: [M72j_color, M72j_depth]
+      types: [color, color]
+      colormaps: [none, turbo]
+      transforms: [none, minmax]
+
+    blend2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      left: [M72j_depth]
+      right: [M72j_heatmaps_gt]
+      blending: [0.5]
+      colormaps: [turbo]
+      transforms: [sum_minmax]

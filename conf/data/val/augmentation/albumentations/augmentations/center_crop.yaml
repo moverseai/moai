@@ -1,0 +1,7 @@
+# @package data.val.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.CenterCrop
+height: ???
+width: ???
+always_apply: True
+p: 1.0

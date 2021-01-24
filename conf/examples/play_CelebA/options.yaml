@@ -1,0 +1,18 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: CelebA_dataset_vizualization
+  batch_size: 1
+  workers: 4
+
+visualization:
+  batch_interval: 1
+  visualizers:
+    image2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      keys: [color]
+      types: [color]
+      colormaps: [none]
+      transforms: [none]

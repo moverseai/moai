@@ -1,0 +1,6 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.AggMo
+lr: 1.0e-3
+betas: [0.0, 0.9, 0.999]
+weight_decay: 0.0

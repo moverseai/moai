@@ -1,0 +1,10 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.AdamAIO
+
+lr: 0.002
+betas: [0.9, 0.999]
+eps: 0.005
+weight_decay: 0.000006
+hypergrad: 0.0000001
+partial: 0.75

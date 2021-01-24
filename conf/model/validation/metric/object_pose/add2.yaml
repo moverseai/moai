@@ -1,0 +1,4 @@
+# @package model.validation.metrics.object_pose__name_
+
+_target_: moai.validation.metrics.object_pose.SixD2
+diagonal: ${diagonal}

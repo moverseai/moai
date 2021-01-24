@@ -1,0 +1,9 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.AdamT
+
+lr: 0.001
+betas: [0.9, 0.999, 0.9, 0.999]
+eps: 0.00000001
+weight_decay: 0.0
+phis: [1, 1]

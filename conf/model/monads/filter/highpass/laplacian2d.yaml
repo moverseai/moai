@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.filter.highpass.Laplacian2d
+kernel_size: 5
+border_type: reflect # one of [reflect, constant, replicate, circular]
+normalized: true

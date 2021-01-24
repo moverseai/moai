@@ -1,0 +1,3 @@
+# @package model.parameters.optimization
+
+_target_: moai.parameters.optimization.Single

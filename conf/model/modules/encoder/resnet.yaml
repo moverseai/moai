@@ -1,0 +1,42 @@
+# @package model.modules.encoder
+
+_target_: moai.modules.lightning.encoder.ResNet
+configuration:
+  in_features: 3
+  start_features: 32
+preproc:
+  block:
+    count: 2
+    type: conv2d
+  convolution: 
+    type: conv2d
+    params:
+      kernel_size: [7, 5]
+      stride: [2, 2]
+      padding: [3, 2]
+      bias: [true, true]
+  activation:
+    type: ${model.configuration.activation_type}
+    params:
+      inplace: true
+residual:
+  bottleneck_factor: 0.5
+  output_factor: 2.0
+  block:
+    setup: [4, 4]
+    type: ${model.configuration.residual_type}
+  convolution:
+    type: conv2d
+    params:
+      padding_mode: zeros # check if used
+      bias: true # check if used
+  activation:
+    type: ${model.configuration.activation_type}
+    params:
+      inplace: true
+downscale:
+  type: downsample2d # conv2d # in_block
+  params:
+    stride: 2
+    kernel_size: 3
+    padding: 1

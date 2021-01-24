@@ -1,0 +1,13 @@
+# @package model
+
+_target_: moai.networks.lightning.factory.MultiBranch
+configuration:
+  encoder:
+    # in: ???
+    out: ???
+  branch1:
+    # in: ???
+    out: ???
+  branch2:
+    # in: ???
+    out: ???

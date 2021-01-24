@@ -1,0 +1,4 @@
+# @package data.train.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.ChannelShuffle
+p: 0.5 #probability

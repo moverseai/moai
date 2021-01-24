@@ -1,0 +1,30 @@
+# @package model
+
+_target_: moai.networks.lightning.factory.StackedHourglass
+configuration:
+  stacks: 4
+  in_features: 3
+  out_features: 16
+  input: ???
+  output: heatmaps_t
+  preproc:
+    block: conv2d
+    convolution: conv2d
+    activation: relu_bn2d
+    residual: preactiv_bottleneck
+    downscale: maxpool2d_aa
+    stem:
+      kernel_size: 7
+      stride: 2
+      padding: 3
+  projection:
+    block: conv2d
+    convolution: conv2d
+    activation: relu
+  prediction:
+    block: conv2d
+    convolution: conv2d
+    activation: relu
+    dropout: 0.0
+  merge:
+    dropout: 0.0

@@ -1,0 +1,9 @@
+# @package model.supervision.losses._name_
+
+_target_: moai.supervision.losses.regression.robust.Wing
+mode: standard # 'standard', 'adaptive', 'soft'
+omega: 0.05
+epsilon: 1.0
+theta: 0.05 # variable θ as a threshold to switch between linear and nonlinear part
+alpha: 2.1 # Note α has to be slightly larger than 2 to maintain the ideal properties        
+omega2: 0.02 

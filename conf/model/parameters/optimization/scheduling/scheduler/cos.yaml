@@ -1,0 +1,6 @@
+# @package model.parameters.schedule.schedulers._name_
+
+_target_: torch.optim.lr_scheduler.CosineAnnealingLR
+T_max: 10 # max epoch
+eta_min: 0 # min lr
+last_epoch: -1

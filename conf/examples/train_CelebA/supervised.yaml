@@ -1,0 +1,61 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+  ###### ENGINE
+  - engine: engine
+  - engine/train: lightning
+  - engine/modules: manual_seed
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: image2d
+  - engine/visualization/visdom: image_grid2d
+
+  - engine/log/lightning: collection
+  - engine/log/lightning/logger: visdom
+  - engine/log/lightning/logger: tabular
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/iterator: indexed
+  - data/train/augmentation/albumentations: compose
+  - data/train/augmentation/albumentations/augmentations: horizontal_flip
+  - data/train/augmentation/albumentations/augmentations: center_crop
+  - data/train/augmentation/albumentations/augmentations: resize
+  - data/train/dataset/synthesis: CelebA
+
+  - data/test/loader: torch
+  - data/test/iterator: indexed
+  - data/test/augmentation: none
+  - data/test/dataset/synthesis: CelebA
+
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation/albumentations: compose
+  - data/val/augmentation/albumentations/augmentations: horizontal_flip
+  - data/val/augmentation/albumentations/augmentations: center_crop
+  - data/val/augmentation/albumentations/augmentations: resize
+  - data/val/dataset/synthesis: CelebA
+
+  # ###### MODEL 
+  - model/networks/lightning/factory: vae
+
+  - model/parameters/initialization: single
+  - model/parameters/initialization/scheme: xavier
+  - model/parameters/optimization: single
+  - model/parameters/optimization/optimizer: adam
+  - model/parameters/regularization: none
+
+  - model/supervision: weighted
+  - model/supervision/loss/regression:  L1
+  - model/supervision/loss/distribution:  std_kl
+
+  - model/validation: collection
+  - model/validation/metric/image: psnr
+
+  - examples/train_CelebA/data
+  - examples/train_CelebA/options
+  - examples/train_CelebA/model
+  - examples/train_CelebA/losses
+  - examples/train_celebA/metrics

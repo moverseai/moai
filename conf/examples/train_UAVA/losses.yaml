@@ -1,0 +1,8 @@
+# @package _global_
+
+model:
+  supervision:
+    L1:
+      gt: [heatmaps_gt]
+      pred: [heatmaps_t_4]
+      out: [L1]

@@ -1,0 +1,27 @@
+# @package model.modules.head
+
+_target_: moai.modules.lightning.highres.HigherHead
+deconvolution:
+  block: [deconv2d]
+  type: [deconv2d]
+  kernel_size: [4]
+  padding: [1]
+  output_padding: [0]
+  activation: [bn2d_relu]
+  deconv_out_features: [32]
+  concat: [true]
+  residual_units:
+    - 4
+residual:
+  type: preactiv_bottleneck
+  bottleneck_features: 64
+final:
+  convolution: ${model.configuration.global.convolution}
+  activation: none
+  kernel_size: 1
+  padding: 0
+aggregator:
+  mode: "bilinear"
+  width: 320
+  height: 240
+  align_corners: False

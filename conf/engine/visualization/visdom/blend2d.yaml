@@ -1,0 +1,11 @@
+# @package visualization.visualizers._name_
+
+_target_: moai.visualization.visdom.Blend2d
+name: ${experiment.name}
+ip: "localhost" # pay attention this __NEEDS__ to be a "string"
+left: ???
+right: ???
+blending: ??? # float
+colormaps: ???
+transforms: ???
+

@@ -1,0 +1,4 @@
+# @package export
+
+_target_: moai.export.Collection
+batch_interval: 200

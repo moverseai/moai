@@ -1,0 +1,158 @@
+# @package _global_
+
+conv_type: conv2d
+downscale_type: maxpool2d
+model:
+  configuration:
+    input: depth
+    in_features: 1
+    out_features: 18
+    stacks: 4
+    preproc:
+      convolution: ${conv_type}
+      residual: bottleneck
+      downscale: ${downscale_type}
+    projection:
+      convolution: ${conv_type}
+    prediction:
+      convolution: ${conv_type}
+      activation: sigmoid
+  modules:
+    hourglass:
+      convolution: ${conv_type}
+      downscale: ${downscale_type}
+      features: 128
+      depth: 2
+
+  parameters:
+    optimization:
+      optimizers:
+        adam:          
+          lr: 2.0e-3
+
+  monads:
+    grid:
+      width: 320  # x
+      height: 160 # y     
+      inclusive: false
+      order: xy
+      mode: coord
+
+    quantize_coords:
+      mode: ceil
+      width: 320  # x
+      height: 160 # y
+      coord_type: coord
+
+    visibility_fov:
+      width: 320  # x
+      height: 160 # y  
+      # order: xy
+      coord_type: coord
+
+    visibility_heatmap:
+      threshold: 0.4
+
+    isotropic_gaussian:
+      std: 2
+      normalize: false
+      scale: false
+      grid_type: coord
+
+    transform:
+      xyz_in_at: row
+      xyz_out_at: row
+      transpose: false
+
+    project:
+      xyz_at: row
+      uv_at: row
+      uv_type: coord
+
+    interpolate:
+      width: 80
+      height: 40
+      mode: nearest
+
+    coordinate_decoding:
+      mode: argmax
+      flip: false
+
+    gaussian2d:
+      kernel_size: [5, 5]
+      sigma: [1.0, 1.0]
+      border_type: reflect
+
+    dark:
+      flip: false
+      grid_type: coord
+      
+  feedforward:
+    preprocess:
+      grid:
+        tensor: [depth]
+        out: [grid_ori]      
+
+      transform:
+        points: [joints_3d]
+        rotation: [campose_rotation]
+        translation: [campose_translation]
+        out: [joints_3d_view]
+
+      interpolate:
+        image: [grid_ori]
+        out: [grid]
+
+      project:
+        intrinsics: [dintr]
+        points: [joints_3d_view]
+        grid: [grid_ori]
+        out: [joints_2d]
+
+      visibility_fov:
+        coords: [joints_2d]
+        out: [joints_2d_mask]
+
+      quantize_coords:
+        coords: [joints_2d]
+        grid: [grid_ori]
+        out: [joints_2d_quant]
+
+      isotropic_gaussian:
+        keypoints: [joints_2d_quant]
+        grid: [grid_ori]
+        masks: [joints_2d_mask]
+        out: [heatmaps_gt_ori]
+
+    postprocess:
+      interpolate:
+        image: [heatmaps_gt_ori]
+        out: [heatmaps_gt]
+      
+      coordinate_decoding:
+        grid: [grid]
+        heatmaps: [heatmaps_t_4]
+        out: [raw_coords]
+
+      downscale_coords_x4:
+        coords: [joints_2d, raw_coords]
+        out: [joints_2d_low, raw_coords_low]
+      
+      gaussian2d:
+        image: [heatmaps_t_4]
+        out: [filtered_hm]
+      
+      dark:
+        coords: [raw_coords_low]
+        heatmaps: [filtered_hm]
+        out: [kpts_low]
+
+      visibility_heatmap:
+        coords: [kpts_low]
+        heatmaps: [filtered_hm]
+        out: [kpts_mask]
+
+      upscale_coords_x4:
+        coords: [kpts_low]
+        out: [kpts]
+

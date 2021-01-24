@@ -1,0 +1,12 @@
+# @package export.exporters._name_
+
+_target_: moai.export.local.Blend2d
+blending: [0.5]
+colormaps: [none] # bone, etc.
+transforms: [none] # minmax, etc.
+mode: overwrite # [all, overwrite]
+left: ???
+right: ???
+path: ???
+extensions: ??? # [png, jpg]
+scale: 1.0

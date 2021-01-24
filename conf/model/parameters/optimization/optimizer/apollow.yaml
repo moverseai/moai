@@ -1,0 +1,9 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.ApolloW
+lr: ???
+beta: 0.9
+eps: 1.0e-4
+warmup: 100
+init_lr: 0.01
+weight_decay: 0.0

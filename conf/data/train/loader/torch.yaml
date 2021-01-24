@@ -1,0 +1,8 @@
+# @package data.train.loader
+
+_target_: torch.utils.data.DataLoader
+batch_size: ${experiment.batch_size}
+shuffle: true
+num_workers: ${experiment.workers}
+pin_memory: false
+drop_last: false

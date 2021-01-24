@@ -1,0 +1,3 @@
+# @package export
+
+_target_: moai.utils.engine.NoOp

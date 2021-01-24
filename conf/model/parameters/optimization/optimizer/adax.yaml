@@ -1,0 +1,7 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.AdaX
+lr: 1.5e-3
+betas: [0.9, 1.0e-4]
+eps: 1.e-12
+weight_decay: 5.0e-4

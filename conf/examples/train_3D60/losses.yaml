@@ -1,0 +1,13 @@
+# @package _global_
+
+model:
+  supervision:
+    losses:
+      berhu:
+        threshold: 1.0
+        adaptive: true
+        image_wide: false
+    berhu:
+      gt: [left_down_depth]
+      pred: [left_down_depth_t]
+      weights: [left_down_weights]

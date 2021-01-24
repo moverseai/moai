@@ -1,0 +1,3 @@
+# @package model.validation
+
+_target_: moai.validation.Single

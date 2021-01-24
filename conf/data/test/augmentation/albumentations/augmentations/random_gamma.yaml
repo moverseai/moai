@@ -1,0 +1,8 @@
+# @package data.test.iterator.augmentation.augmentations._name_
+
+_target_: moai.data.augmentation.albumentations.augmentations.RandomGamma
+# gamma_limit: (80, 120) # (float or (float, float)): If gamma_limit is a single float value, the range will be (-gamma_limit, gamma_limit). Default: (80, 120).
+low: 80
+high: 120
+eps: 1e-7 # (float): value for exclude division by zero.
+p: 0.5 #probability

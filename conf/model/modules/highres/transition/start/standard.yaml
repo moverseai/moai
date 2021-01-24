@@ -1,0 +1,16 @@
+# @package model.modules.start_transition
+
+_target_: moai.modules.lightning.highres.StartTransition
+identity:
+  convolution: ${model.configuration.global.convolution}
+  activation: ${model.configuration.global.activation}
+  kernel_size: 3
+  stride: 1
+  padding: 1
+branched:
+  convolution: ${model.configuration.global.convolution}
+  activation: ${model.configuration.global.activation}
+  downscale: none # maxpool2d
+  kernel_size: 3
+  stride: 2
+  padding: 1

@@ -1,0 +1,23 @@
+all_joints_2d: [M72i_joints_2d, M72e_joints_2d, M72h_joints_2d, M72j_joints_2d]
+all_heatmaps_gt: [M72i_heatmaps_gt, M72e_heatmaps_gt, M72h_heatmaps_gt, M72j_heatmaps_gt]
+all_heatmaps: [M72i_heatmaps, M72e_heatmaps, M72h_heatmaps, M72j_heatmaps]
+all_kpts: [M72i_kpts, M72e_kpts, M72h_kpts, M72j_kpts]
+
+model:
+  supervision:
+    losses:
+      wing:
+        omega: 0.15
+    L1:
+      gt: ${all_joints_2d}
+      pred: ${all_kpts}
+      # weight: ${weights_3}
+      # weight: [0.233, 0.233, 0.233]
+      weight: [0.001, 0.001, 0.001, 0.001]
+    wing: # KL: # JS:
+      gt: ${all_heatmaps_gt}
+      pred: ${all_heatmaps}
+      # weight: [0.03, 0.03, 0.03]
+      # weight: [0.1, 0.1, 0.1]
+      # weight: [0.233, 0.233, 0.233]
+      weight: [10, 10, 10, 10]

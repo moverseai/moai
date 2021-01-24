@@ -1,0 +1,7 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: torch.optim.Adadelta
+lr: 1.0
+rho: 0.9
+eps: 1.0e-6
+weight_decay: 0.0

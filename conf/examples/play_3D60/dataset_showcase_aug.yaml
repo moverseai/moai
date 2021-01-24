@@ -1,0 +1,42 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+  ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+  - engine/modules: manual_seed
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: image2d
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/iterator: indexed
+  - data/train/augmentation/albumentations: compose
+  - data/train/augmentation/albumentations/augmentations: brightness_contrast
+  - data/train/augmentation/albumentations/augmentations: random_gamma
+  - data/train/dataset/spherical: 3D60
+
+  - data/test/loader: torch
+  - data/test/iterator: indexed
+  - data/test/augmentation: none
+  - data/test/dataset/spherical: 3D60
+
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation: none
+  - data/val/dataset/spherical: 3D60
+
+  # ###### MODEL 
+  - model/feedforward: preprocess
+  - model/monads/math: clamp
+  - model/monads/math: multiply
+  - model/monads/masking: threshold
+  - model/monads/masking: finite
+  - model/monads/masking: mask
+
+  - examples/play_3D60/options+
+  - examples/play_3D60/model+
+  - examples/play_3D60/data_aug

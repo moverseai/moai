@@ -1,0 +1,20 @@
+H4D_train_split: ???
+H4D_test_split: ???
+H4D_val_split: ???
+
+data:
+  train:
+    iterator:
+      datasets:
+        H4D:
+          data_types: ["color", "depth"]
+  test:
+    iterator:
+      datasets:
+        H4D:
+          data_types: ["color", "depth"]   
+  val:
+    iterator:
+      datasets:
+        H4D:
+          data_types: ["color", "depth"]

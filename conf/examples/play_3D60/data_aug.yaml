@@ -1,0 +1,41 @@
+# @package _global_
+
+ThreeD60_train_split: ???
+ThreeD60_test_split: ???
+ThreeD60_val_split: ???
+
+data:
+  train:
+    iterator:
+      augmentation:
+        augmentations:
+          brightness_contrast:
+            brightness_limit: 0.2
+            contrast_limit: 0.2
+            p: 0.4
+          random_gamma:
+            low: 80
+            high: 120
+            eps: 1e-7
+            p: 0.4
+        inputs: [left_down_color]
+        outputs: [left_down_color]
+      datasets:
+        3D60:
+          datasets: [suncg, s2d3d, m3d]
+          placements: [center]
+          image_types: [color, depth, normal]
+  test:
+    iterator:
+      datasets:
+        3D60:
+          datasets: [suncg, s2d3d, m3d]
+          placements: [center]
+          image_types: [color, depth, normal]
+  val:
+    iterator:
+      datasets:
+        3D60:
+          datasets: [suncg, s2d3d, m3d]
+          placements: [center]
+          image_types: [color, depth, normal]

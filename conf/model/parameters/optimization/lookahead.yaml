@@ -1,0 +1,5 @@
+# @package model.parameters.optimization
+
+_target_: moai.parameters.optimization.Lookahead
+k: 5
+alpha: 0.5

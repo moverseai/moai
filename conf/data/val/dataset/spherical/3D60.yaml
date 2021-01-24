@@ -1,0 +1,8 @@
+# @package data.val.iterator.datasets._name_
+
+_target_: moai.data.datasets.spherical.ThreeD60
+longitudinal_rotation: false
+filename: ${ThreeD60_val_split}
+datasets: [suncg, s2d3d, m3d]
+placements: [center, right, up]
+image_types: [color, depth, normal]

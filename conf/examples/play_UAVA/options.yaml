@@ -1,0 +1,30 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: UAVA_dataset_vizualization
+  batch_size: 4
+  workers: 2
+  
+visualization:
+  batch_interval: 1
+  visualizers:
+    gizmo2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      images: [exocentric_0_colour,color2]
+      gizmos: [marker_diamond,bbox3d]
+      gt: [exocentric_0_points_3d,exocentric_0_3dbbox]
+      pred: [keypoints_t,exocentric_1_3dbbox]
+      coords: [coord,coord]
+      color_gt: [red,red]
+      color_pred: [orange,orange]
+      reverse_coords: [true,true]
+    
+    feature2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      keys: [heatmaps_gt]
+      types: [color]
+      colormaps: [turbo]
+      transforms: [minmax]

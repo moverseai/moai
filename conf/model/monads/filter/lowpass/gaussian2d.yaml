@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.filter.lowpass.Gaussian2d
+kernel_size: [5, 5]
+sigma: [1.0, 1.0]
+border_type: reflect

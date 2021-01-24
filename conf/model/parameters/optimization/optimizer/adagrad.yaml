@@ -1,0 +1,8 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: torch.optim.Adagrad
+lr: 0.01
+lr_decay: 0.0
+eps: 1.0e-10
+weight_decay: 0.0
+initial_accumulator_value: 0.0

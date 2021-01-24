@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.math.Clamp
+min_value: 0.0
+max_value: 1.0

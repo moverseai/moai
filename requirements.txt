@@ -1,0 +1,19 @@
+hydra-core==1.0.3           #TODO: update
+hydra-colorlog==1.0.0
+pytorch-lightning==1.0.7    #TODO: update
+kornia==0.4.1               #TODO: update
+visdom
+hiplot==0.1.20
+numpy
+opencv-python
+albumentations
+matplotlib
+toolz
+tablib
+json2html
+pysm==0.3.9
+colour
+parsedatetime==2.6
+deepdiff==4.0.9
+pandas
+rich

@@ -1,0 +1,13 @@
+# @package model.parameters.schedule.schedulers._name_
+
+_target_: moai.parameters.optimization.schedule.schedulers.CyclicLRWithRestarts
+batch_size: ???
+epoch_size: ???
+restart_period: 100
+t_mult: 2 
+last_epoch: -1
+verbose: false
+policy: cosine # arccosine # triangular # triangular2 # exp_range
+min_lr: 1.0e-7
+gamma: 1.0
+triangular_step: 0.5

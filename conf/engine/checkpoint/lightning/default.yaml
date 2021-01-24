@@ -1,0 +1,13 @@
+# @package trainer.checkpoint
+
+_target_: pytorch_lightning.callbacks.ModelCheckpoint
+monitor: ??? # metric to monitor
+verbose: false
+save_weights_only: false
+mode: auto # auto or max or min depending on where the metric is an accuracy or error above (with auto it is determined by 'acc' or 'loss')
+period: 1 # number of epochs between checkpoints
+prefix: ${experiment.name}
+save_top_k: 3
+save_last: true                                
+dirpath: null
+filename: ??? # '{epoch}-{val_loss:.2f}-{other_metric:.2f}'

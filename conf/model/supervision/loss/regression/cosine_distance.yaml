@@ -1,0 +1,6 @@
+# @package model.supervision.losses.cosine_distance
+
+_target_: moai.supervision.losses.regression.CosineDistance
+normalized: true
+epsilon: 1.0e-4
+dim: 1

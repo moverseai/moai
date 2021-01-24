@@ -1,0 +1,241 @@
+# @package _global_
+
+downscale_type: maxpool2d_aa
+upscale_type: upsample2d # deconv2d
+
+model:
+  configuration:
+    input: exocentric_0_colour
+    output: heatmaps_t_4
+    in_features: 3
+    out_features: 9
+    stages: 3
+    global:
+      convolution: conv2d
+      activation: bn2d_relu
+    preproc:
+      stem:
+        blocks: [conv2d]
+        convolutions: [conv2d]
+        activations: [bn2d_relu]
+        features: [64]
+        kernel_sizes: [3]
+        strides: [2]
+      residual:
+        block: preactiv_bottleneck
+        convolution: conv2d
+        activation: bn2d_relu
+        features:
+          in_features: [64,256,256,256]
+          out_features: [256,256,256,256]
+          bottleneck_features: [64,64,64,64]
+    branches:
+      start_features: 48
+      modules: [1 , 4]
+      depths: 
+        - [4]
+        - [4, 4, 4, 4]
+  modules:
+    highres:
+      residual:
+        type: preactiv_bottleneck
+        bottleneck_features: 64
+      fuse:
+        activation:
+          intermediate: bn2d_relu
+          prefusion: bn2d
+          final: relu
+        upscale:
+          type: upsample2d
+          conv_up: true
+    start_transition:
+      identity:
+        kernel_size: 3
+        stride: 1
+        padding: 1
+      branched:
+        downscale: none
+        kernel_size: 3
+        stride: 2
+        padding: 1
+    stage_transition:
+      branched:
+        downscale: none
+        kernel_size: 3
+        stride: 2
+        padding: 1
+    head:
+      deconvolution:
+        block: [deconv2d]
+        type: [deconv2d]
+        kernel_size: [4]
+        padding: [1]
+        output_padding: [0]
+        deconv_out_features: [32]
+        activation: [bn2d_relu]
+        concat: [true]
+        residual_units:
+          - 4
+      residual:
+        type: preactiv_bottleneck
+        convolution: conv2d
+        bottleneck_features: 64
+        activation: bn2d_relu
+      final:
+        activation: none
+        kernel_size: 1
+        padding: 0
+
+  monads:
+    grid:
+      width:  160 #80
+      height: 120 #60
+      inclusive: true
+      mode: norm
+      order: xy
+
+    transform:
+      xyz_in_at: "row"
+      xyz_out_at: "channel"
+      transpose:  false
+
+    camera:
+        fov: 64.69
+        width: 320
+        height: 240
+    
+    keypoints:
+        keypoints: ${keypoints}
+    
+    vertices:
+      filename: ???
+    
+    isotropic_gaussian:
+      std: 3.5
+      normalize: true
+      scale: true
+      grid_type: norm
+
+    center_of_mass:
+      flip: false
+    
+    scalar:
+      value: 0
+    
+    norm_to_coords:
+      flip: true
+    
+    norm_to_ndc:
+      flip: true
+   
+    ndc_to_camera:
+      fov: 64.69
+      width: 320
+      height: 240
+      flip: true
+      order: 'xy'
+
+    bpnp:
+      isBatch: true
+    
+    epnp:
+      skip_quadratic_eq: false
+    
+    angle_axis:
+      convert_to: "rot_mat"
+    
+    project:
+      # xyz_at: row
+      uv_at: row
+      uv_type: coord
+
+  feedforward:
+    preprocess:
+      
+      camera:
+        x: [exocentric_0_colour]
+        out: [camera_matrix]
+      
+      grid:
+        tensor: [exocentric_0_colour]
+        out: [grid]
+      
+      keypoints:
+        x: [exocentric_0_colour]
+        out: [keypoints_out]
+      
+      axes:
+        x: [exocentric_0_colour]
+        out: [points_axes]
+      
+      vertices:
+        x: [exocentric_0_colour]
+        out: [vertices]
+      
+      isotropic_gaussian:
+        keypoints: [exocentric_0_points_3d]
+        grid: [grid]
+        out: [heatmaps_gt]
+
+    postprocess:
+      scalar:
+        tensor: [exocentric_0_colour]
+        out: [index_0]
+
+      ones:
+        tensor: [index_0]
+        out: [index_1]
+
+      spatial_softmax:
+        tensor: [heatmaps_t_4]
+        out: [heatmaps_t_4]
+      
+      center_of_mass:
+        grid: [grid]
+        heatmaps: [heatmaps_t_4]
+        out: [predicted_kpts]
+      
+      norm_to_ndc:
+        coords: [exocentric_0_points_3d,predicted_kpts]
+        img: [exocentric_0_colour,exocentric_0_colour]
+        out: [exocentric_0_points_3d_ndc,predicted_kpts_ndc]
+      
+      ndc_to_camera:
+        coords: [exocentric_0_points_3d_ndc,predicted_kpts_ndc]
+        out: [exocentric_0_points_3d_cc,predicted_kpts_cc]
+      
+      norm_to_coords:
+        coords: [exocentric_0_points_3d,predicted_kpts]
+        img: [exocentric_0_colour,exocentric_0_colour]
+        out: [exocentric_0_points_3d,predicted_kpts]
+      
+      bpnp:
+        keypoints2d: [predicted_kpts]
+        intrinsics: [camera_matrix]
+        keypoints3d: [keypoints_out]
+        out: [predicted_pose]
+
+      epnp:
+        keypoints2d: [predicted_kpts_cc]
+        keypoints3d: [keypoints_out]
+        out: [predicted_pose_epnp]
+      
+      split:
+        tensor: [predicted_pose,predicted_pose]
+        index: [index_1,index_0]
+        out: [predicted_trans,predicted_rot]
+      
+      angle_axis:
+        angle_axis: [predicted_rot]
+        out: [predicted_rot]
+      
+      transform:
+        points: [vertices,vertices]
+        rotation: [exocentric_0_rotation,predicted_rot]
+        translation:  [exocentric_0_translation,predicted_trans]
+        out: [pts_gt,pts_est]
+
+      project:
+        intrinsics: [camera_matrix,camera_matrix,camera_matrix]
+        points: [pts_gt,pts_est,keypoints_out_epnp]
+        out: [projected_points_gt,projected_points_est,projected_points_test]

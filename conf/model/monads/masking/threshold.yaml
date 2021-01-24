@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.masking.Threshold
+value: 20.0
+comparison: lower
+dtype: float # byte or float, corresponding to a 'mask' or 'weights' attribute

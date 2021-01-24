@@ -1,0 +1,10 @@
+# @package data.test.iterator.datasets._name_
+
+_target_: moai.data.datasets.object_pose.UAVA
+root: ???
+metadata: ???
+split: test
+views: [exocentric]
+drones: [M2ED]
+frames: [0, 1]
+types: [colour]

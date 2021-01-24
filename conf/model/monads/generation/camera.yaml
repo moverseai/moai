@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.generation.camera.Perspective
+fov: 64.69
+width: 320
+height: 240 

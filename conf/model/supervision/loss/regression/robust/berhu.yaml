@@ -1,0 +1,6 @@
+# @package model.supervision.losses._name_
+
+_target_: moai.supervision.losses.regression.robust.Berhu
+threshold: ???
+adaptive: false
+image_wide: false

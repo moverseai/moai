@@ -1,0 +1,42 @@
+# @package model
+
+_target_: moai.networks.lightning.factory.HRNet
+configuration:
+  stages: 4
+  in_features: 3
+  out_features: 16
+  input: ???
+  output: heatmaps_t_4
+  preproc:
+    stem:
+      blocks: [conv2d, conv2d]
+      convolutions: [conv2d, conv2d]
+      activations: [relu_bn2d, relu_bn2d]
+      kernel_sizes: [3, 3]
+      features: [32, 64]
+      strides: [2, 2]
+      paddings: [1, 1]
+    residual: 
+      block: preactiv_bottleneck
+      convolution: conv2d
+      activation: relu_bn2d
+      features:
+        in_features: [64, 256]
+        out_features: [256, 256]
+        bottleneck_features: [64, 64]
+  branches:
+    block: conv2d
+    convolution: conv2d
+    activation: relu
+    start_features: 32 # top / highres branch features
+    kernel_size: 3
+    stride: 1
+    padding: 1
+    modules: 
+      - [3, 4, 4] # must align with # branches - 1
+      - [3, 4, 4] # must align with # branches - 1
+      - [3, 4, 4] # must align with # branches - 1
+    depths: 
+      - [3, 3, 3] # must align with the module # of each branch
+      - [3, 3, 2, 2]
+      - [3, 3, 3, 4]

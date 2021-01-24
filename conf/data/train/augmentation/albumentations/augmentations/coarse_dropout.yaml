@@ -1,0 +1,12 @@
+# @package data.train.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.CoarseDropout
+max_holes: 8
+max_height: 8
+max_width: 8
+# min_holes: None
+# min_height: None
+# min_width: None
+fill_value: 0
+always_apply: false        
+p: 0.5 #probability

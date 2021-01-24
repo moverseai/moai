@@ -1,0 +1,24 @@
+# @package _global_
+
+experiment:
+  name: supervised_depth_3D60
+  visdom_ip: localhost
+  batch_size: 8
+  workers: 2
+
+trainer:
+  gpus: "0"
+  #fast_dev_run: true
+  max_epochs: 60
+  weights_summary: top
+
+visualization:
+  batch_interval: 100
+  visualizers:
+    image2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      keys: [left_down_color, left_down_depth, left_down_depth_t, left_down_weights]
+      types: [color, color, color, color]
+      colormaps: [none, turbo, turbo, bone_r]
+      transforms: [none, minmax, minmax, none]

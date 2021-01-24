@@ -1,0 +1,4 @@
+# @package logging
+
+_target_: moai.log.lightning.Collection
+name: ${experiment.name}

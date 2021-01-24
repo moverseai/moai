@@ -1,0 +1,15 @@
+# @package visualization.visualizers._name_
+
+_target_: moai.visualization.visdom.Pose2d
+name: ${experiment.name}
+ip: "localhost" # pay attention this __NEEDS__ to be a "string"
+images: ['']
+poses: [''] # one of [human_pose2d]
+gt: ['']
+pred: ['']
+pose_structure: ???
+transparency: 0.5
+coords: [ndc]
+color_gt: cyan
+color_pred: orange
+reverse_coords: false

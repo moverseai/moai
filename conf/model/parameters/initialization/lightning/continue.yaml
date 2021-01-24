@@ -1,0 +1,4 @@
+# @package trainer.callbacks._name_
+
+_target_: moai.parameters.initialization.lightning.Continued
+filename: ???

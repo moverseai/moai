@@ -1,0 +1,5 @@
+# @package engine.modules._name_
+
+_target_: moai.engine.modules.ManualSeed
+seed: 1337
+deterministic: true

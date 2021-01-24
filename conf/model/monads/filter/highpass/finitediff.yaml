@@ -1,0 +1,8 @@
+# @package model.monads._name_
+
+_target_: moai.monads.filter.highpass.FiniteDifference
+dims: [2, 3]
+mode: central         # one of [central, backward, forward]
+pad: reflect          # one of [reflect, replicate, zero]
+reduction: magnitude  # one of [none, magnitude, abssum]
+keep_size: false      # output same size (add padding)

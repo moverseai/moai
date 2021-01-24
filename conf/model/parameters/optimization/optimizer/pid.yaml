@@ -1,0 +1,9 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.PID
+lr: 1.0e-3
+momentum: 0.0
+dampening: 0.0
+weight_decay: 0.0
+integral: 5.0
+derivative: 10.0

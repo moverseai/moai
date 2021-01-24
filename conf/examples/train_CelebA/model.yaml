@@ -1,0 +1,6 @@
+# @package _global_
+
+model:
+  configuration:
+    input: color
+    output: [mu, logvar, latent, generated]

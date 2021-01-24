@@ -1,0 +1,4 @@
+# @package model.monads._name_
+
+_target_: moai.monads.math.Scale
+value: 1.0
