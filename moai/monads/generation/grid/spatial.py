@@ -43,6 +43,7 @@ class Grid(torch.nn.Module):
         depth:          int=1,
         inclusive:      bool=True,
         order:          str='xyz', # order of coords
+        persistent:     bool=True, # save and re-use the grid buffer
     ):
         super(Grid, self).__init__()
         size = [n for n in [depth, height, width] if n > 1]
@@ -55,7 +56,7 @@ class Grid(torch.nn.Module):
         grid = torch.stack([
             grid[:, i, ...] for i in indices
         ], dim=1)
-        self.register_buffer("grid", grid)
+        self.register_buffer("grid", grid, persistent)
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         b = tensor.shape[0]
