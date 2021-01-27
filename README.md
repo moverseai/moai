@@ -2,7 +2,7 @@
 
 **moai** is an AI Model Development Kit (MDK) that aims at improving data-driven models' workflows, design and understanding.
 It is currently based on [PyTorch](https://pytorch.org/) and is in early development _alpha_ version.
-Nonetheless, since it is based on other [open-source established packages](#Dependencies), it can be readily used to improve most AI workflows, simply [install](#Installation) the package and follow the [examples](#TODO).  
+Nonetheless, since it is based on other [open-source established packages](#Dependencies), it can be readily used to improve most AI workflows, simply [install](#Installation) the package and follow the [examples](https://github.com/ai-in-motion/moai/tree/master/conf/examples).  
 
 # Features & Design Goals
 
@@ -10,7 +10,7 @@ Nonetheless, since it is based on other [open-source established packages](#Depe
 - **Reproducibility via Configuration**: _moai_ manages the hyper-parameter sensitive AI R&D workflows via its built-in configuration-based design.
 - **Productivity via Minimizing Coding**: _moai_ offers a data-driven domain modelling language (DML) that can facilitates quick & easy model design.
 - **Extensibility via Plugins**: Easily integrate external code using _moai_'s built-in metaprogramming and external code integration. 
-- **Understanding via Analysis**: _moai_ supports inter-model performance and design aggregation [**actions**](#TODO) to consolidate knowledge between models and query differences.
+- **Understanding via Analysis**: _moai_ supports inter-model performance and design aggregation [**actions**](#) to consolidate knowledge between models and query differences.
 
 # Dependencies
 
@@ -44,13 +44,13 @@ Download the master branch source and install it by opening a command line on th
 
 # Getting Started
 
-Visit the [**documentation**](#TODO) site to learn about _moai_'s DML and the overall MDK design and usage.
+Visit the [**documentation**](#) site to learn about _moai_'s DML and the overall MDK design and usage.
 
 Examples can be found at [**conf/examples**](https://github.com/ai-in-motion/moai/tree/master/conf/examples).
 
 # Licence
 
-_moai_ is Apache 2.0 licenced, as found in the corresponding [LICENCE](https://github.com/ai-in-motion/moai/tree/master/LICENCE) file.
+_moai_ is Apache 2.0 licenced, as found in the corresponding [LICENCE](https://github.com/ai-in-motion/moai/blob/main/LICENSE) file.
 
 However, some code integrated from external projects may carry their own licences.
 
