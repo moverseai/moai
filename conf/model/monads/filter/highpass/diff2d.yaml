@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.filter.highpass.Diff2d
+order: 1              # 1 or 2
+normalized: true
+reduction: magnitude  # one of [magnitude, non, abssum]

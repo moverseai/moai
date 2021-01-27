@@ -1,0 +1,8 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.PlainRAdam
+lr: 0.001
+betas: [0.9, 0.999]
+eps: 1e-8
+weight_decay: 0.0
+degenerated_to_sgd: true

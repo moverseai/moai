@@ -1,0 +1,14 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.GaussianSimulatedAnnealing
+
+min_temp: 0.00001
+anneal_every: 100000
+hard: false
+hard_rate: 0.9
+dtype: float
+cuda: false
+anneal_rate: 0.0003
+tau0: 1.0
+mu: ???
+sigma: ???

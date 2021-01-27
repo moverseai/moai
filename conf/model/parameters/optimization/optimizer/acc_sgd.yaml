@@ -1,0 +1,8 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.AccSGD
+lr: 1.0e-3
+kappa: 1000.0
+xi: 10.0
+small_const: 0.7
+weight_decay: 0.0

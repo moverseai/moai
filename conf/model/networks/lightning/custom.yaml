@@ -1,0 +1,5 @@
+# @package model
+
+_target_: moai.networks.lightning.Custom
+configuration:
+  io: ???

@@ -1,0 +1,12 @@
+# @package trainer.regularization
+
+_target_: pytorch_lightning.callbacks.EarlyStopping
+monitor: ${experiment.monitor_metric}
+min_delta: 0.0 # float -- minimum change in the monitored quantity
+# to qualify as an improvement, i.e. an absolute 
+# change of less than `min_delta`, will count as no improvement
+patience: 0 # int -- number of epochs with no improvement
+# after which training will be stopped.
+verbose: false #bool
+mode: auto #min or max to check whether it has stop decreasng or increasing
+strict: false # whether to crash the training if `monitor` is not found in metrics

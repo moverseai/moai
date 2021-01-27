@@ -1,0 +1,64 @@
+# @package _global_
+
+diagonal: 0.354 #in m
+
+model:
+  validation:
+    object_pose_position:
+      pred: [predicted_trans]
+      gt: [exocentric_0_translation]
+    
+    object_pose_rotation:
+      pred: [predicted_rot]
+      gt: [exocentric_0_rotation]
+    
+    object_pose_accuracy2:
+      pred_rotation: [predicted_rot]
+      gt_rotation: [exocentric_0_rotation]
+      pred_position: [predicted_trans]
+      gt_position: [exocentric_0_translation]
+      out: [acc2]
+    
+    object_pose_accuracy5:
+      pred_rotation: [predicted_rot]
+      gt_rotation: [exocentric_0_rotation]
+      pred_position: [predicted_trans]
+      gt_position: [exocentric_0_translation]
+      out: [acc5]
+    
+    object_pose_accuracy10:
+      pred_rotation: [predicted_rot]
+      gt_rotation: [exocentric_0_rotation]
+      pred_position: [predicted_trans]
+      gt_position: [exocentric_0_translation]
+      out: [acc10]
+    
+    object_pose_add2:
+      pts_gt: [pts_gt]
+      pts_est: [pts_est]
+      out: [add2]
+    
+    object_pose_add5:
+      pts_gt: [pts_gt]
+      pts_est: [pts_est]
+      out: [add5]
+    
+    object_pose_add10:
+      pts_gt: [pts_gt]
+      pts_est: [pts_est]
+      out: [add10]
+    
+    object_pose_projection2:
+      gt: [projected_points_gt]
+      pred: [projected_points_est]
+      out: [proj2d_2px]
+    
+    object_pose_projection5:
+      gt: [projected_points_gt]
+      pred: [projected_points_est]
+      out: [proj2d_5px]
+    
+    object_pose_projection10:
+      gt: [projected_points_gt]
+      pred: [projected_points_est]
+      out: [proj2d_10px]

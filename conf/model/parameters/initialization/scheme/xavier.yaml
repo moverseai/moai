@@ -1,0 +1,4 @@
+# @package model.parameters.initialization.schemes._name_
+
+_target_: moai.parameters.initialization.schemes.Xavier
+zero_bias: false

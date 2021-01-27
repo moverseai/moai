@@ -1,0 +1,18 @@
+# @package _global_
+
+model:
+  supervision:
+    losses:
+      std_kl:
+        mode: beta
+        beta: 4.0
+    L1:
+      gt: [color]
+      pred: [generated]
+      out: [L1]
+
+    std_kl:
+      mu: [mu]
+      var: [logvar]
+      out: [std_kl]
+      weight: [1.0]

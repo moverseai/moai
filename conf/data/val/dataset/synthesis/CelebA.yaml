@@ -1,0 +1,4 @@
+# @package data.val.iterator.datasets._name_
+
+_target_: moai.data.datasets.synthesis.CelebA
+root: ${CelebA_root}

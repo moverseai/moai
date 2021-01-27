@@ -1,0 +1,53 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+  ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+  - engine/modules: manual_seed
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: gizmo2d
+  - engine/visualization/visdom: feature2d
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/iterator: indexed
+  - data/train/augmentation: none
+  - data/train/dataset/object_pose: UAVA
+
+  - data/test/loader: torch
+  - data/test/iterator: indexed
+  - data/test/augmentation: none
+  - data/test/dataset/object_pose: UAVA
+
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation: none
+  - data/val/dataset/object_pose: UAVA
+
+  - model/feedforward: preprocess
+  - model/monads/generation: grid
+  - model/monads/object_pose: norm_to_coords 
+  - model/monads/generation: camera
+  - model/monads/generation: keypoints
+  - model/monads/distribution/reconstruction: isotropic_gaussian
+  
+
+  - model/feedforward: postprocess
+  - model/monads/generation/tensor: scalar
+  - model/monads/generation/tensor: ones
+  - model/monads/distribution/prior: spatial_softmax
+  - model/monads/distribution: coordinate_decoding
+  - model/monads/object_pose: bpnp
+  - model/monads/tensor: split
+  - model/monads/object_pose: angle_axis 
+  - model/monads/object_pose: project_points
+  - model/monads/tensor: concat
+  - model/monads/generation/tensor: clone
+
+  - examples/play_UAVA/options
+  - examples/play_UAVA/data
+  - examples/play_UAVA/preproc

@@ -1,0 +1,4 @@
+# @package model.feedforward._name_
+
+_target_: moai.monads.execution.Cascade
+

@@ -1,0 +1,13 @@
+# @package visualization.visualizers._name_
+
+_target_: moai.visualization.visdom.Gizmo2d
+name: ${experiment.name}
+ip: "localhost" # pay attention this __NEEDS__ to be a "string"
+images: ['']
+gizmos: [''] # one of [marker_diamond, marker_star, marker_cross, bbox2d, bbox3d]
+gt: ['']
+pred: ['']
+coords: [ndc] # one of [ndc, coord, norm]
+color_gt: cyan
+color_pred: orange
+reverse_coords: false

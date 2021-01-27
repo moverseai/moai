@@ -1,0 +1,67 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+  ###### ENGINE
+  - engine: engine
+  - engine/train: lightning
+  - engine/modules: manual_seed
+
+  - engine/visualization: collection #void
+  - engine/visualization/visdom: image2d
+  - engine/visualization/visdom: feature2d
+  - engine/visualization/visdom: gizmo2d
+  # - engine/visualization/visdom: blend2d
+  
+  - engine/log/lightning: collection
+  - engine/log/lightning/logger: visdom
+  - engine/log/lightning/logger: tabular
+
+  ###### DATA  
+  - data/train/loader: torch
+  - data/train/iterator: indexed
+  - data/train/augmentation: none
+  - data/train/dataset/human_pose: HUMAN4D
+
+  - data/test/loader: torch
+  - data/test/iterator: indexed
+  - data/test/augmentation: none
+  - data/test/dataset/human_pose: HUMAN4D
+
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation: none
+  - data/val/dataset/human_pose: HUMAN4D
+
+  ###### MODEL
+  - model/networks/lightning/factory: stacked_hourglass
+  - model/modules/hourglass: standard
+
+  - model/feedforward: preprocess 
+  - model/monads/generation: grid
+  - model/monads/distribution/reconstruction: isotropic_gaussian  
+  - model/monads/math: clamp
+  - model/monads/masking: threshold
+  - model/monads/geometry/transformation: transform
+  - model/monads/geometry/projection: project  
+
+  - model/feedforward: postprocess
+  - model/monads/distribution/prior: spatial_softmax
+  # - model/monads/distribution: center_of_mass
+  - model/monads/distribution: coordinate_decoding
+
+  - model/parameters/initialization: default  
+  - model/parameters/optimization: single
+  - model/parameters/optimization/optimizer: adam
+  - model/parameters/regularization: none
+
+  - model/supervision: weighted
+  - model/supervision/loss/regression:  L1
+  - model/supervision/loss/distribution:  KL # KL # JS
+  - model/supervision/loss/regression/robust: wing
+
+  - examples/train_H4D/options
+  - examples/train_H4D/data
+  - examples/train_H4D/model
+  - examples/train_H4D/losses

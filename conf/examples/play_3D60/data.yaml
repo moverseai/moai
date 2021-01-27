@@ -1,0 +1,28 @@
+# @package _global_
+
+ThreeD60_train_split: ???
+ThreeD60_test_split: ???
+ThreeD60_val_split: ???
+
+data:
+  train:
+    iterator:
+      datasets:
+        3D60:
+          datasets: [suncg, s2d3d, m3d]
+          placements: [center, right, up]
+          image_types: [color, depth]
+  test:
+    iterator:
+      datasets:
+        3D60:
+          datasets: [suncg, s2d3d, m3d]
+          placements: [center, right, up]
+          image_types: [color, depth]
+  val:
+    iterator:
+      datasets:
+        3D60:
+          datasets: [suncg, s2d3d, m3d]
+          placements: [center, right, up]
+          image_types: [color, depth]

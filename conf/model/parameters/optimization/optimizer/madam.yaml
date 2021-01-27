@@ -1,0 +1,6 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.Madam
+lr: 0.01
+p_scale: 3.0
+g_bound: 10.0

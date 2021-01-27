@@ -1,0 +1,20 @@
+joint_selection = [
+    0,  # Hips
+    2,  # Spine1
+    5,  # Neck
+    8,  # Head
+    10, # RightArm
+    11, # RightForeArm
+    12, # RightHand
+    16, # LeftArm
+    17, # LeftForeArm
+    18, # LeftHand
+    21, # RightUpLeg
+    22, # RightLeg
+    23, # RightFoot
+    25, # RightToeBase
+    27, # LeftUpLeg
+    28, # LeftLeg
+    29, # LeftFoot
+    31, # LeftToeBase
+]

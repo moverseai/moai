@@ -1,0 +1,17 @@
+# @package model.modules.head
+
+_target_: moai.modules.lightning.highres.AllBranchesHead
+prediction:
+  convolution: ${model.configuration.global.convolution}
+  kernel_size: 3
+  padding: 1
+  activation: ${model.configuration.global.activation}
+  inplace: True
+projection:
+  convolution: ${model.configuration.global.convolution}
+  activation: none
+  kernel_size: 1
+  padding: 0
+  inplace: True
+upsample:
+  mode: bilinear

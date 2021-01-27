@@ -1,0 +1,7 @@
+# @package model.monads._name_
+
+_target_: moai.monads.generation.grid.Spherical
+mode: pi # one of ['pi', 'tau']
+width: 512 # int, x coord dimension
+inclusive: false
+order: longlat # one of ['longlat', 'latlong']

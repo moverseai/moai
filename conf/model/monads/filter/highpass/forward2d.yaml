@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.filter.highpass.Forward2d
+pad: reflect          # one of [reflect, replicate, zero]
+reduction: magnitude  # one of [none, magnitude, abssum]
+keep_size: false      # output same size (add padding)

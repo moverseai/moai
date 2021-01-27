@@ -1,0 +1,8 @@
+# @package data.val.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.Normalize
+mean: 0.0
+std: 1.0
+max_pixel_value: 1.0
+always_apply: True
+p: 1.0

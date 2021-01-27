@@ -1,0 +1,7 @@
+# @package model.parameters.initialization.schemes._name_
+
+_target_: moai.parameters.initialization.schemes.Kaiming
+zero_bias: false
+gain: 0.0
+mode: fan_in
+nonlinearity: leaky_relu

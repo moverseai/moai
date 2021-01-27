@@ -1,0 +1,11 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.SWAdam
+lr: 0.001
+betas: [0.9, 0.999]
+weight_decay: 0.0
+eps: 1e-8
+amsgrad: false
+swa_start: ???
+swa_freq: ???
+swa_lr: ???

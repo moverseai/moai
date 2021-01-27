@@ -1,0 +1,5 @@
+# @package model.parameters.initialization
+
+_target_: moai.parameters.initialization.lightning.Pretrained
+strict: true
+filename: ???

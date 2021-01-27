@@ -1,0 +1,8 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.QHM
+lr: 1.0e-3
+momentum: 0.0
+nu: 0.7
+weight_decay: 0.0
+weight_decay_type: grad # direct # grad

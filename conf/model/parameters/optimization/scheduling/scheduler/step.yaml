@@ -1,0 +1,6 @@
+# @package model.parameters.schedule.schedulers._name_
+
+_target_: torch.optim.lr_scheduler.StepLR
+step_size: 3
+gamma: 0.5
+last_epoch: -1

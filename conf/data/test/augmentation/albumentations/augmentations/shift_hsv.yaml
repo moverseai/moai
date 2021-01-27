@@ -1,0 +1,7 @@
+# @package data.test.iterator.augmentation.augmentations._name_
+  
+_target_: albumentations.augmentations.transforms.HueSaturationValue
+hue_shift_limit: 0.1 # 20 # ((int, int) or int): range for changing hue. If hue_shift_limit is a single int, the range will be (-hue_shift_limit, hue_shift_limit). Default: (-20, 20).
+sat_shift_limit: 0.1 # 30 # ((int, int) or int): range for changing saturation. If sat_shift_limit is a single int, the range will be (-sat_shift_limit, sat_shift_limit). Default: (-30, 30).
+val_shift_limit: 0.1 # 20 # ((int, int) or int): range for changing value. If val_shift_limit is a single int, the range will be (-val_shift_limit, val_shift_limit). Default: (-20, 20).
+p: 0.5 #probability

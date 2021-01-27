@@ -1,0 +1,36 @@
+# @package model
+
+_target_: moai.networks.lightning.factory.VariationalAutoencoder
+configuration:
+  in_features: 3
+  out_features: 3
+  input: ???
+  output: generated
+  latent_dim: 128
+  hidden_dim: [32, 64, 128, 356, 512]
+preproc:
+  convolution: 
+    type: conv2d
+    params:
+      kernel_size: 3
+      stride: 2
+      padding: 1
+    activation:
+      type: bn2d_lrelu
+      params:
+        inplace: true
+  linear: 
+    type: linear
+    activation:
+      type: none
+  deconvolution:
+    type: deconv2d
+    params:
+      kernel_size: 3
+      stride: 2
+      padding: 1
+      output_padding: 1
+    activation:
+      type: bn2d_lrelu
+      params:
+        inplace: true

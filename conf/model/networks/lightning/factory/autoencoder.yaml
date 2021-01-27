@@ -1,0 +1,11 @@
+# @package model
+
+_target_: moai.networks.lightning.factory.Autoencoder
+configuration:
+  encoder:  
+    in: ???
+    out: ???
+  decoder:  
+    in: ???
+    out: ???
+

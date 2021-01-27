@@ -1,0 +1,45 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+  ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+  - engine/modules: manual_seed
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: image2d
+  - engine/visualization/visdom: feature2d
+  - engine/visualization/visdom: blend2d
+
+  ###### DATA  
+  - data/train/loader: torch
+  - data/train/iterator: indexed
+  - data/train/augmentation: none
+  - data/train/dataset/human_pose: HUMAN4D
+
+  - data/test/loader: torch
+  - data/test/iterator: indexed
+  - data/test/augmentation: none
+  - data/test/dataset/human_pose: HUMAN4D
+
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation: none
+  - data/val/dataset/human_pose: HUMAN4D
+
+  ###### MODEL
+  - model/feedforward: preprocess 
+  - model/monads/generation: grid
+  - model/monads/distribution/reconstruction: isotropic_gaussian  
+  - model/monads/math: clamp
+  - model/monads/mask: threshold
+  - model/monads/geometry/transformation: transform
+  - model/monads/geometry/projection: project
+
+  
+
+  - examples/play_H4D/options
+  - examples/play_H4D/data
+  - examples/play_H4D/preproc

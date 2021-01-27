@@ -1,0 +1,18 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: 3D60_dataset_vizualization
+  batch_size: 8
+  workers: 4
+  
+visualization:
+  batch_interval: 1
+  visualizers:
+    image2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      keys: [left_down_color, left_down_depth, left_down_mask]
+      types: [color, color, color]
+      colormaps: [none, turbo, plasma]
+      transforms: [none, minmax, none]

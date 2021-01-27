@@ -1,0 +1,3 @@
+# @package logging
+
+_target_: moai.log.lightning.NoOp

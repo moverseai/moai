@@ -1,0 +1,62 @@
+# @package _global_
+
+root: ???
+metadata: ???
+keypoints:
+  [
+    #Centroid
+    [0.0,0.0,0.0],
+    #Front Upper Left Motor
+    [-0.217215,0.052593,0.112591],
+    #Front Upper Right Motor
+    [0.219065,0.052538,0.111367],
+    #Front Lower Left Motor
+    [0.211193, -0.072009 , 0.116905],
+    #Front Lower Right Motor
+    [-0.213789, -0.072006, 0.113757],
+    #Back Upper Left Motor
+    [0.16544,-0.00154,-0.210864],
+    #Back Upper Right Motor
+    [-0.158342,-0.001453,-0.212288],
+    #Back Lower Left Motor
+    [0.165838,-0.058663,-0.212643],
+    #Back Lower Right Motor
+    [-0.160262, -0.058663, -0.212643]
+  ]
+
+data:
+  train:
+    iterator:
+      datasets:
+        UAVA:
+          root: ${root}
+          metadata: ${metadata}
+          split: "train"
+          views: ["exocentric"]
+          drones: ["M2ED"]
+          frames: [0, 1]
+          types: ["colour"]
+  
+  test:
+    iterator:
+      datasets:
+        UAVA:
+          root: ${root}
+          metadata:  ${metadata}
+          split: "test"
+          views: ["exocentric"]
+          drones: ["M2ED"]
+          frames: [0, 1]
+          types: ["colour"]
+  
+  val:
+    iterator:
+      datasets:
+        UAVA:
+          root:  ${root}
+          metadata:  ${metadata}
+          split: "val"
+          views: ["exocentric"]
+          drones: ["M2ED"]
+          frames: [0, 1]
+          types: ["colour"]

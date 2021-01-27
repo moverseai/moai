@@ -1,0 +1,12 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.CentralizedRanger
+lr: 1.0e-3
+alpha: 0.5
+k: 6
+N_sma_threshhold: 5
+betas: [0.95, 0.999]
+eps: 1.0e-4
+weight_decay: 0.0
+gc_conv_only: false
+gc_loc: false

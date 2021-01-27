@@ -1,0 +1,26 @@
+# @package _global_
+
+model:
+  monads:
+    clamp:
+      max_value: 10.0
+    threshold:
+      value: 15.0
+    finite:
+      dtype: bool
+
+  feedforward:
+    preprocess:
+      threshold:
+        x: [left_down_depth]
+        out: [left_down_mask]
+      finite:
+        x: [left_down_normal]
+        out: [left_down_normal_mask]
+      clamp:
+        x: [left_down_depth]
+        out: [left_down_depth]
+      mask:
+        tensor: [left_down_normal, left_down_mask]
+        mask: [left_down_normal_mask, left_down_normal_mask]
+        out: [left_down_normal, left_down_mask]

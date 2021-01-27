@@ -1,0 +1,38 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: CelebA_disentangled_betaVAE_exp
+  batch_size: 4
+  workers: 4
+
+trainer:
+  gpus: '0'
+
+logging:
+  name: ${experiment.name}
+  loggers:
+    visdom:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+
+visualization:
+  batch_interval: 1
+  visualizers:
+    image2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      batch_percentage: 1.0
+      keys: [color, generated]
+      types: [color, color]
+      colormaps: [none, none]
+      transforms: [ndc, ndc]
+    image_grid2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      batch_percentage: 1.0
+      traversals: 7
+      keys: [color_grid]
+      types: [color_grid]
+      colormaps: [none]
+      transforms: [ndc]

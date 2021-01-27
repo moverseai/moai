@@ -1,0 +1,5 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.Fromage
+lr: 0.01
+p_bound: null # float

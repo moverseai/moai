@@ -1,0 +1,56 @@
+# @package _global_
+
+model:
+  configuration:
+    encoder:
+      data: left_down_color
+      out: [features, '']
+    branch1:
+      features: features
+      out: left_down_normal_t
+    branch2:
+      features: features
+      out: left_down_depth_t
+    activation_type: elu
+
+  modules:
+    encoder:
+      configuration:
+        start_features: 64
+    branch1:
+      configuration:
+        bottleneck_features: 512
+        out_features: 3 # normals
+        blocks: [2, 2, 2, 2]
+      prediction:
+        activation:
+          type: normalize
+    branch2:
+      configuration:
+        bottleneck_features: 512
+        out_features: 1 # depth
+        blocks: [2, 2, 2, 2]
+
+  monads:
+    clamp:
+      max_value: 15.0
+    threshold:
+      value: 15.0
+    finite:
+      dtype: bool
+
+  feedforward:
+    preprocess:
+      threshold:
+        x: [left_down_depth]
+        out: [left_down_mask]
+      finite:
+        x: [left_down_normal]
+        out: [left_down_normal_mask]
+      clamp:
+        x: [left_down_depth]
+        out: [left_down_depth]
+      mask:
+        tensor: [left_down_normal, left_down_mask]
+        mask: [left_down_normal_mask, left_down_normal_mask]
+        out: [left_down_normal, left_down_mask]

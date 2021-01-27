@@ -1,0 +1,8 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.LARS
+lr: 0.001
+momentum: 0.9
+weight_decay: 0.0005
+eta: 0.001
+max_epoch: 200

@@ -1,0 +1,13 @@
+# @package data.test.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.Resize
+height: 512
+width: 1024
+interpolation: 2
+# INTER_NEAREST – a nearest-neighbor interpolation
+# INTER_LINEAR – a bilinear interpolation (used by default)
+# INTER_AREA – resampling using pixel area relation. It may be a preferred method for image decimation, as it gives moire’-free results. But when the image is zoomed, it is similar to theINTER_NEAREST method.
+# INTER_CUBIC – a bicubic interpolation over 4×4 pixel neighborhood
+# INTER_LANCZOS4 – a Lanczos interpolation over 8×8 pixel neighborhood
+always_apply: false
+p: 1.0 #probability

@@ -1,0 +1,13 @@
+# @package data.train.iterator.datasets._name_
+
+_target_: moai.data.datasets.human_pose.HUMAN4D
+path: ${H4D_train_split}
+mode: single
+depth_threshold: 7.0
+data_types: ["depth"]
+clip_frames: 100
+metadata_path: "training.txt"
+center_crop: 
+  width: 0
+  height: 40
+device_list: ["M72e","M72h","M72i","M72j"]

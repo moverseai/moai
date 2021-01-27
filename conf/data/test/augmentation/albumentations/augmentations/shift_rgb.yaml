@@ -1,0 +1,7 @@
+# @package data.test.iterator.augmentation.augmentations._name_
+  
+_target_: albumentations.augmentations.transforms.RGBShift
+r_shift_limit: 0.1 # 20 # ((int, int) or int): range for changing values for the red channel. If r_shift_limit is a single int, the range will be (-r_shift_limit, r_shift_limit). Default: (-20, 20).
+g_shift_limit: 0.1 # 20 # ((int, int) or int): range for changing values for the green channel. If g_shift_limit is a single int, the range  will be (-g_shift_limit, g_shift_limit). Default: (-20, 20).
+b_shift_limit: 0.1 # 20 # ((int, int) or int): range for changing values for the blue channel. If b_shift_limit is a single int, the range will be (-b_shift_limit, b_shift_limit). Default: (-20, 20).
+p: 0.5 #probability

@@ -1,0 +1,6 @@
+# @package model.parameters.initialization.schemes._name_
+
+_target_: moai.parameters.initialization.schemes.PredictionBias
+bias: 1.0
+kernel_size: 3
+out_channels: 1

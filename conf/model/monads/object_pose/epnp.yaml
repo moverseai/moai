@@ -1,0 +1,4 @@
+# @package model.monads._name_
+
+_target_: moai.monads.object_pose.epnp.EPnP
+skip_quadratic_eq: False

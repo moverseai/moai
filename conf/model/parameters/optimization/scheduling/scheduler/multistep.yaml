@@ -1,0 +1,6 @@
+# @package model.parameters.schedule.schedulers._name_
+
+_target_: torch.optim.lr_scheduler.MultiStepLR
+milestones: [10, 30, 50]
+gamma: 0.1
+last_epoch: -1

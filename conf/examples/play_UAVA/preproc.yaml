@@ -1,0 +1,99 @@
+# @package _global_
+
+model:
+  monads:
+    grid:
+      width: 320
+      height: 240      
+      inclusive: true
+      mode: coord
+      order: xy
+
+    isotropic_gaussian:
+      normalize: true
+      scale: true
+      grid_type: coord
+    
+    camera:
+      fov: 64.69
+      width: 320
+      height: 240
+    
+    keypoints:
+      keypoints: ${keypoints}
+    
+    # center_of_mass:
+    #   flip: false
+
+    coordinate_decoding:
+      mode: standard #argmax #standard
+      flip: false
+    
+    scalar:
+      value: 0
+
+    norm_to_coords:
+      flip: true  
+    
+    bpnp:
+      isBatch: False
+    
+    angle_axis:
+      convert_to: rot_mat
+
+  feedforward:
+    preprocess:
+      camera:
+        x: [exocentric_0_colour]
+        out: [camera_matrix]
+      
+      grid:
+        tensor: [exocentric_0_colour]
+        out: [grid]
+      
+      keypoints:
+        x: [exocentric_0_colour]
+        out: [keypoints_out]
+
+      norm_to_coords:
+        coords: [exocentric_0_points_3d,exocentric_1_points_3d,exocentric_0_3dbbox,exocentric_1_3dbbox]
+        img: [exocentric_0_colour,exocentric_0_colour,exocentric_0_colour,exocentric_0_colour]
+        out: [exocentric_0_points_3d,exocentric_1_points_3d,exocentric_0_3dbbox,exocentric_1_3dbbox]
+      
+      isotropic_gaussian:
+        keypoints: [exocentric_0_points_3d]
+        grid: [grid]
+        out: [heatmaps_gt]
+    
+    postprocess:
+      scalar:
+        tensor: [exocentric_0_colour]
+        out: [index_0]
+
+      ones:
+        tensor: [index_0]
+        out: [index_1]
+      
+      coordinate_decoding:
+        grid: [grid]
+        heatmaps: [heatmaps_gt]
+        out: [keypoints_t]
+
+      bpnp:
+        keypoints2d: [exocentric_0_points_3d,exocentric_1_points_3d]
+        intrinsics: [camera_matrix,camera_matrix]
+        keypoints3d: [keypoints_out, keypoints_out]
+        out: [predicted_pose,predicted_pose_1]
+      
+      split:
+        tensor: [predicted_pose,predicted_pose,predicted_pose_1,predicted_pose_1]
+        index: [index_1,index_0,index_1,index_0]
+        out: [predicted_trans,predicted_rot,predicted_trans_1,predicted_rot_1]
+      
+      angle_axis:
+        angle_axis: [predicted_rot,predicted_rot_1]
+        out: [predicted_rot,predicted_rot_1]
+
+      clone:
+        tensor: [exocentric_0_colour]
+        out: [color2]

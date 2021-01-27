@@ -1,0 +1,89 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+  ###### ENGINE
+  - engine: engine
+  - engine/train: lightning
+  - engine/modules: manual_seed
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: feature2d                        
+  - engine/visualization/visdom: gizmo2d  
+
+  - engine/log/lightning: collection
+  - engine/log/lightning/logger: visdom
+  - engine/log/lightning/logger: tabular
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/iterator: indexed
+  - data/train/augmentation: none
+  - data/train/dataset/object_pose: UAVA
+
+  - data/test/loader: torch
+  - data/test/iterator: indexed
+  - data/test/augmentation: none
+  - data/test/dataset/object_pose: UAVA
+
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation: none
+  - data/val/dataset/object_pose: UAVA
+
+  # ###### MODEL
+  - model/networks/lightning/factory: hrnet
+  - model/modules/highres: standard
+  - model/modules/highres/transition/start: standard
+  - model/modules/highres/transition/stage: standard
+  - model/modules/highres/head: top_branch #higher
+
+  - model/feedforward: preprocess
+  - model/monads/generation: grid
+  - model/monads/generation: camera
+  - model/monads/generation: keypoints
+  - model/monads/generation: vertices                         
+  - model/monads/distribution/reconstruction: isotropic_gaussian
+
+  - model/feedforward: postprocess
+  - model/monads/generation/tensor: scalar
+  - model/monads/generation/tensor: ones
+  - model/monads/distribution: center_of_mass   
+  - model/monads/distribution/prior: spatial_softmax
+  - model/monads/distribution: center_of_mass
+  - model/monads/object_pose: norm_to_coords
+  - model/monads/object_pose: norm_to_ndc
+  - model/monads/object_pose: ndc_to_camera
+  - model/monads/object_pose: bpnp #epnp
+  - model/monads/tensor: split
+  - model/monads/object_pose: angle_axis
+  - model/monads/geometry/transformation: transform
+  - model/monads/geometry/projection: project 
+  
+  - model/parameters/initialization: default  
+  - model/parameters/optimization: single
+  - model/parameters/optimization/optimizer: adam
+  - model/parameters/regularization: none
+
+  - model/supervision: weighted
+  - model/supervision/loss/regression: L1
+
+  - model/validation: collection
+  - model/validation/metric/object_pose: position
+  - model/validation/metric/object_pose: rotation
+  - model/validation/metric/object_pose: accuracy2
+  - model/validation/metric/object_pose: accuracy5
+  - model/validation/metric/object_pose: accuracy10
+  - model/validation/metric/object_pose: add2
+  - model/validation/metric/object_pose: add5
+  - model/validation/metric/object_pose: add10
+  - model/validation/metric/object_pose: projection2
+  - model/validation/metric/object_pose: projection5
+  - model/validation/metric/object_pose: projection10
+
+  - examples/train_UAVA/data
+  - examples/train_UAVA/options
+  - examples/train_UAVA/model+
+  - examples/train_UAVA/losses
+  - examples/train_UAVA/metrics

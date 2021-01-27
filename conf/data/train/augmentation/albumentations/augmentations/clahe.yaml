@@ -1,0 +1,6 @@
+# @package data.train.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.CLAHE
+clip_limit: 4.0 #  upper threshold value for contrast limiting. If clip_limit is a single float value, the range will be (1, clip_limit). Default: (1, 4).
+tile_grid_size: [8, 8] # size of grid for histogram equalization. Default: (8, 8).
+p: 0.5 #probability

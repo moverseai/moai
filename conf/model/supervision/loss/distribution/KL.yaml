@@ -1,0 +1,5 @@
+# @package model.supervision.losses._name_
+
+_target_: moai.supervision.losses.distribution.KL
+is_input_log: false
+is_target_log: false

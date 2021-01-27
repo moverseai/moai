@@ -1,0 +1,47 @@
+H4D_train_split: ???
+H4D_test_split: ???
+H4D_val_split: ???
+
+data:
+  train:
+    iterator:
+      augmentation:
+        augmentations:
+          center_crop:
+            width: 320
+            height: 160
+            always_apply: true
+            p: 1.0         
+        inputs: [depth]
+        outputs: [depth]
+      datasets:
+        H4D:
+          data_types: ["depth"]
+  test:
+    iterator:
+      augmentation:
+        augmentations:
+          center_crop:
+            width: 320
+            height: 160
+            always_apply: true
+            p: 1.0         
+        inputs: [depth]
+        outputs: [depth]
+      datasets:
+        H4D: 
+          data_types: ["depth"]   
+  val:
+    iterator:
+      augmentation:
+        augmentations:
+          center_crop:
+            width: 320
+            height: 160
+            always_apply: true
+            p: 1.0         
+        inputs: [depth]
+        outputs: [depth]
+      datasets:
+        H4D:  
+          data_types: ["depth"]

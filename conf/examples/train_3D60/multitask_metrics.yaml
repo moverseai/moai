@@ -1,0 +1,20 @@
+# @package _global_
+
+model:
+  validation:
+    rmse:
+      gt: [left_down_depth]
+      pred: [left_down_depth_t]
+      weights: [left_down_mask]
+    rmsle:
+      gt: [left_down_depth]
+      pred: [left_down_depth_t]
+      weights: [left_down_mask]
+    absrel:
+      gt: [left_down_depth]
+      pred: [left_down_depth_t]
+      weights: [left_down_mask]
+    sqrel:
+      gt: [left_down_depth]
+      pred: [left_down_depth_t]
+      weights: [left_down_mask]

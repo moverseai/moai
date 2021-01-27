@@ -1,0 +1,4 @@
+# @package model.supervision.losses._name_
+
+_target_: moai.supervision.losses.regression.L1
+mode: raw # one of [raw, ln, log]

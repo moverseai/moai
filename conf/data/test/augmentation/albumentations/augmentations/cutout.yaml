@@ -1,0 +1,9 @@
+# @package data.test.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.Cutout
+num_holes: 8
+max_h_size: 8
+max_w_size: 8
+fill_value: 0
+always_apply: false
+p: 0.5 #probability

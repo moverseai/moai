@@ -1,0 +1,66 @@
+# @package _global_
+model:
+  monads:
+    grid:
+      width: 320  # x
+      height: 180 # y     
+      inclusive: true
+      order: xy
+      mode: ndc
+
+    isotropic_gaussian:
+      normalize: true
+      scale: false
+      grid_type: ndc
+
+    center_of_mass:
+      flip: false
+   
+    transform:
+      xyz_in_at: row
+      xyz_out_at: row
+      transpose: false
+
+    project:
+      xyz_at: row
+      uv_at: row
+      uv_type: ndc
+
+        
+    clamp:
+      max_value: 1.0
+
+    threshold:
+      value: 4.0  
+
+
+  feedforward:
+    preprocess:
+      grid:
+        tensor: [M72j_depth]
+        out: [grid]
+
+      transform:
+        points: [joints_3d]
+        rotation: [M72j_campose_rotation]
+        translation: [M72j_campose_translation]
+        out: [M72j_joints_3d]
+
+      project:
+        intrinsics: [M72j_intr]
+        points: [M72j_joints_3d]
+        grid: [grid]
+        out: [M72j_joints_2d]
+
+      isotropic_gaussian:
+        keypoints: [M72j_joints_2d]
+        grid: [grid]
+        out: [M72j_heatmaps_gt]
+
+      threshold:
+        x: [M72j_depth]
+        out: [depth_mask]
+
+      clamp:
+        x: [M72j_depth]
+        out: [depth]

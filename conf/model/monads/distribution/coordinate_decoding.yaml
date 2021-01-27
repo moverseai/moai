@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.distribution.CoordinateDecoding
+mode: argmax
+flip: true # whether to flip coords w.r.t grid coord order

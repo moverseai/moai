@@ -1,0 +1,6 @@
+# @package model.parameters.optimization
+
+_target_: moai.parameters.optimization.SWA
+swa_start: ???
+swa_freq: ???
+swa_lr: ???

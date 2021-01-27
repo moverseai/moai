@@ -1,0 +1,6 @@
+# @package data.val.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.ChannelDropout
+channel_drop_range: [1, 1] # (int, int): range from which we choose the number of channels to drop.
+fill_value: 0.0 # (int, float): pixel value for the dropped channel.
+p: 0.5 #probability

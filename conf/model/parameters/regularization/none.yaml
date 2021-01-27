@@ -1,0 +1,3 @@
+# @package trainer.regularization
+
+_target_: moai.parameters.regularization.lightning.NoOp

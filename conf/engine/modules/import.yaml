@@ -1,0 +1,5 @@
+# @package engine.modules._name_
+
+_target_: moai.engine.modules.Import
+run_path: true
+other_paths: []

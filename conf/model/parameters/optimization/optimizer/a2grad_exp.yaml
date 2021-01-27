@@ -1,0 +1,6 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.A2GradExp
+beta: 10.0
+lips: 10.0
+rho: 0.5

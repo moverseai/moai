@@ -1,0 +1,3 @@
+# @package data.test.iterator.augmentation
+
+_target_: moai.data.augmentation.NoOp

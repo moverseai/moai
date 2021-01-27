@@ -1,0 +1,4 @@
+# @package _group_
+
+_target_: moai.data.iterator.Indexed
+#dataset: empty

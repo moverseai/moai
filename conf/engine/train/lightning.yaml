@@ -1,0 +1,67 @@
+# @package trainer
+
+_target_: moai.engine.lightning.train.LightningTrainer
+################
+# train options
+################
+max_epochs: 30
+min_epochs: 1
+check_val_every_n_epoch: 1
+gradient_clip_val: 0 # 0 means don't clip.
+accumulate_grad_batches: 1
+#overfit_batches: 0.0
+limit_train_batches: 1.0
+limit_val_batches: 1.0
+limit_test_batches: 1.0
+val_check_interval: 1.0
+# weights_save_path: None
+# default_save_path: "" #NOTE: keep commented out since we use hydra's cwd
+# truncated_bptt_steps: 1
+reload_dataloaders_every_epoch: false # Set to True to reload dataloaders every epoch
+deterministic: true
+auto_lr_find: false
+terminate_on_nan: false
+auto_scale_batch_size: false
+automatic_optimization: true
+
+################
+# backend options
+################
+num_nodes: 0 # only for the distributed case / number of GPU nodes for distributed training.
+num_processes: 1
+### ___gpus___ MUST BE STRING TO OVERCOME HYDRA/LIGHTNING TYPE ISSUES
+### NOTE: see https://pytorch-lightning.readthedocs.io/en/stable/multi_gpu.html#select-gpu-devices 
+#gpus: "1" # comment out or zero (0) for cpu mode, -1 means all available gpus, otherwise int or list of ints or comma separated string
+#tpu_cores: 0 # How many TPU cores to train on (1 or 8) / Single TPU to train on [1] #NOTE: keep commented out not to use
+precision: 32 # Full precision (32), half precision (16).
+benchmark: false # if true enables cudnn benchmark
+auto_select_gpus: false
+amp_backend: native
+amp_level: O2
+prepare_data_per_node: true
+replace_sampler_ddp: true
+#plugins: null
+#distributed_backend: null
+
+################
+### log options
+################
+flush_logs_every_n_steps: 100
+log_every_n_steps: 10    
+progress_bar_refresh_rate: 1 # How often to refresh progress bar (in steps). Value ``0`` disables progress bar. - NOTE: deprecated show_progress_bar: true # uses tqdm in cli
+# log_gpu_memory: all # requires nvidia-smi in path - NOTE: None, 'min_max', 'all'.  
+weights_summary: top # or full / null
+profiler: simple # comment out for passthrough profiler, cannot use advanced one yet
+default_root_dir: ''
+
+################
+### debug options
+################
+fast_dev_run: false
+num_sanity_val_steps: 2
+track_grad_norm: -1 #-1 is do not track
+
+################
+### other options
+################
+process_position: 0 # orders the tqdm bar when running multiple models on same machine.

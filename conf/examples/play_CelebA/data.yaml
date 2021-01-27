@@ -1,0 +1,22 @@
+# @package _global_
+
+CelebA_root: ???
+
+data:
+  train:
+    iterator:
+      datasets:
+        StructuredImages:
+          root: ${CelebA_root}
+
+  test:
+    iterator:
+      datasets:
+        StructuredImages:
+          root: ${CelebA_root}
+
+  val:
+    iterator:
+      datasets:
+        StructuredImages:
+          root: ${CelebA_root}

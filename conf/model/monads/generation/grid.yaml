@@ -1,0 +1,10 @@
+# @package model.monads._name_
+
+_target_: moai.monads.generation.grid.Grid
+mode: ndc # ndc, coord, norm
+width: 256 # int, x coord dimension
+height: 1 # int, y coord dimension
+depth: 1 # int, z coord dimension
+inclusive: true
+order: x # swizzled from 'xyz'
+persistent: true

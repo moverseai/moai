@@ -1,0 +1,66 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+  ###### ENGINE
+  - engine: engine
+  - engine/train: lightning
+  - engine/modules: manual_seed
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: image2d
+
+  - engine/log/lightning: collection
+  - engine/log/lightning/logger: visdom
+  - engine/log/lightning/logger: tabular
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/iterator: indexed
+  - data/train/augmentation: none
+  - data/train/dataset/spherical: 3D60
+
+  - data/test/loader: torch
+  - data/test/iterator: indexed
+  - data/test/augmentation: none
+  - data/test/dataset/spherical: 3D60
+
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation: none
+  - data/val/dataset/spherical: 3D60
+
+  # ###### MODEL 
+  - model/networks/lightning/factory: autoencoder
+  - model/modules/encoder: resnet
+  - model/modules/decoder: convolutional
+
+  - model/feedforward: preprocess
+  - model/monads/math: clamp
+  - model/monads/masking: threshold
+
+  - model/parameters/initialization: cascade  
+  - model/parameters/initialization/scheme: xavier
+  - model/parameters/initialization/scheme: prediction_bias
+  - model/parameters/optimization: single
+  - model/parameters/optimization/optimizer: adam
+  - model/parameters/optimization/scheduling: single
+  - model/parameters/optimization/scheduling/scheduler: step
+  - model/parameters/regularization: none
+
+  - model/supervision: weighted
+  - model/supervision/loss/regression/robust:  berhu
+
+  - model/validation: collection
+  - model/validation/metric: rmse
+  - model/validation/metric: rmsle
+  - model/validation/metric: absrel
+  - model/validation/metric: sqrel
+  - model/validation/metric/depth: delta1
+
+  - examples/train_3D60/options
+  - examples/train_3D60/model
+  - examples/train_3D60/data
+  - examples/train_3D60/losses
+  - examples/train_3D60/metrics

@@ -1,0 +1,4 @@
+# @package logging.loggers._name_
+
+_target_: moai.log.lightning.loggers.Tabular
+name: ${experiment.name}

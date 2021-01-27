@@ -1,0 +1,30 @@
+# @package player
+
+_target_: moai.engine.lightning.play.LightningPlayer
+################
+# train options
+################
+limit_train_batches: 1.0
+limit_val_batches: 1.0
+limit_test_batches: 1.0 # not sure what this is yet
+################
+# backend options
+################
+num_nodes: 0 # only for the distributed case / number of GPU nodes for distributed training.
+### ___gpus___ MUST BE STRING TO OVERCOME HYDRA/LIGHTNING TYPE ISSUES
+# gpus: "1" # comment out or zero (0) for cpu mode, -1 means all available gpus, otherwise int or list of ints or comma separated string
+#distributed_backend: None # comment out to remove
+#num_tpu_cores: 0 #How many TPU cores to train on (1 or 8). - NOTE: keep commented out if not using    
+amp_level: O1
+terminate_on_nan: false
+num_sanity_val_steps: 0
+################
+### log options
+################
+profiler: simple # comment out for passthrough profiler, cannot use advanced one yet
+weights_summary: null
+################
+### debug options
+################
+fast_dev_run: false
+overfit_batches: 0.0

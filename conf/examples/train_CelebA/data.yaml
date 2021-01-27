@@ -1,0 +1,56 @@
+# @package _global_
+
+CelebA_root: ???
+
+data:
+  train:
+    iterator:
+      augmentation:
+        augmentations:
+          horizontal_flip:
+            p: 0.5
+          center_crop:
+            height: 178
+            width: 178
+            always_apply: true
+            p: 1.0
+          resize:
+            height: 128
+            width: 128
+            interpolation: 2
+            always_apply: true
+            p: 1.0
+        inputs: [color]
+        outputs: [color]
+      datasets:
+        CelebA:
+          root: ${CelebA_root}
+
+  test:
+    iterator:
+      datasets:
+        CelebA:
+          root: ${CelebA_root}
+
+  val:
+    iterator:
+      augmentation:
+        augmentations:
+          horizontal_flip:
+            p: 0.5
+          center_crop:
+            height: 178
+            width: 178
+            always_apply: true
+            p: 1.0
+          resize:
+            height: 128
+            width: 128
+            interpolation: 2
+            always_apply: true
+            p: 1.0
+        inputs: [color]
+        outputs: [color]
+      datasets:
+        CelebA:
+          root: ${CelebA_root}

@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.tensor.Split
+dim: 1
+split: 0

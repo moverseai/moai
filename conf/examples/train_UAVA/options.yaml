@@ -1,0 +1,51 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: UAVA_second_train
+
+trainer:
+  gpus: "0"
+  max_epochs: 70
+  limit_train_batches: 0.01
+  limit_val_batches: 0.2
+  deterministic: true
+
+engine:
+  modules:
+    manual_seed:
+      seed: 1989
+      deterministic: true
+
+logging:
+  name: ${experiment.name}
+  loggers:
+    visdom:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      clear_window: False
+    tabular:
+      name: ${experiment.name}
+
+visualization:
+  batch_interval: 1
+  visualizers:
+    gizmo2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      images: [exocentric_0_colour]
+      gizmos: [marker_diamond]
+      gt: [exocentric_0_points_3d]
+      pred: [projected_points_test]
+      coords: [coord]
+      color_gt: [red]
+      color_pred: [orange]
+      reverse_coords: [true]
+    
+    feature2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      keys: [heatmaps_gt,heatmaps_t_4]
+      types: [color,color]
+      colormaps: [turbo,turbo]
+      transforms: [minmax,minmax]

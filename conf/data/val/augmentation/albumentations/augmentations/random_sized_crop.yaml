@@ -1,0 +1,11 @@
+# @package data.val.iterator.augmentation.augmentations._name_
+
+_target_: moai.data.augmentation.albumentations.augmentations.RandomSizedCrop
+min_height: 170
+max_height: 170
+height: 128
+width: 128
+w2h_ratio: 1.0
+interpolation: 1
+always_apply: true
+p: 1.0 #probability

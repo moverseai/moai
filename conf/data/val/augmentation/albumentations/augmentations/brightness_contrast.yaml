@@ -1,0 +1,6 @@
+# @package data.val.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.transforms.RandomBrightnessContrast
+brightness_limit: 0.2
+contrast_limit: 0.2
+p: 0.5 #probability

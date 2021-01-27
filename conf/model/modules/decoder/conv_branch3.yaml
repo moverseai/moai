@@ -1,0 +1,34 @@
+# @package model.modules.branch3
+
+_target_: moai.modules.lightning.decoder.Convolutional
+configuration:
+  bottleneck_features: ???
+  out_features: ???
+  feature_block_divisor: 2
+  blocks: [2, 2, 2, 2]
+convolution:
+  type: conv2d
+  params:
+    kernel_size: 3
+    stride: 1
+    padding: 1    
+  activation:
+    type: ${model.configuration.activation_type}
+    params:
+      inplace: true
+prediction:
+  convolution:
+    type: conv2d
+    params:
+      kernel_size: 3
+      stride: 1
+      padding: 1
+  activation:
+    type: identity
+    params:
+      inplace: true
+upscale:
+  type: upsample2d
+  params:
+    kernel_size: 4
+    stride: 2

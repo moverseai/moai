@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.geometry.Projection
+xyz_at: channel # one of ['channel', 'row]
+uv_at: channel # one of ['channel', 'row]
+uv_type: ndc # one of ['ndc', 'coord', 'norm']

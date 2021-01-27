@@ -1,0 +1,8 @@
+# @package model.modules.head
+
+_target_: moai.modules.lightning.highres.TopBranchHead
+convolution: ${model.configuration.global.convolution}
+activation: none
+kernel_size: 1
+padding: 0
+inplace: True
