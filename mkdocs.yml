@@ -55,11 +55,12 @@ markdown_extensions:
   - abbr
   - admonition
   - pymdownx.details
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_div_format ''
+  - pymdownx.superfences
+  # - pymdownx.superfences:
+      # custom_fences:
+        # - name: mermaid
+          # class: mermaid
+          # format: !!python/name:pymdownx.superfences.fence_div_format ''
   - pymdownx.tabbed
   - extra
   - attr_list
