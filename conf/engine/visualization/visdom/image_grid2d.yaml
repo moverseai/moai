@@ -1,0 +1,9 @@
+# @package visualization.latent_visualizers._name_
+
+_target_: moai.visualization.visdom.Image_grid2d
+name: ${experiment.name}
+ip: "localhost" # pay attention this __NEEDS__ to be a "string"
+keys: ???
+types: ???
+colormaps: ???
+transforms: ???

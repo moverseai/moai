@@ -10,6 +10,7 @@ defaults:
 
   - engine/visualization: collection
   - engine/visualization/visdom: image2d
+  - engine/visualization: latent_collection
   - engine/visualization/visdom: image_grid2d
 
   - engine/log/lightning: collection
@@ -23,6 +24,7 @@ defaults:
   - data/train/augmentation/albumentations/augmentations: horizontal_flip
   - data/train/augmentation/albumentations/augmentations: center_crop
   - data/train/augmentation/albumentations/augmentations: resize
+  - data/train/augmentation/albumentations/augmentations: normalize
   - data/train/dataset/synthesis: CelebA
 
   - data/test/loader: torch
@@ -36,6 +38,7 @@ defaults:
   - data/val/augmentation/albumentations/augmentations: horizontal_flip
   - data/val/augmentation/albumentations/augmentations: center_crop
   - data/val/augmentation/albumentations/augmentations: resize
+  - data/train/augmentation/albumentations/augmentations: normalize
   - data/val/dataset/synthesis: CelebA
 
   # ###### MODEL 
@@ -48,7 +51,7 @@ defaults:
   - model/parameters/regularization: none
 
   - model/supervision: weighted
-  - model/supervision/loss/regression:  L1
+  - model/supervision/loss/regression:  L2
   - model/supervision/loss/distribution:  std_kl
 
   - model/validation: collection
@@ -58,4 +61,3 @@ defaults:
   - examples/train_CelebA/options
   - examples/train_CelebA/model
   - examples/train_CelebA/losses
-  - examples/train_celebA/metrics
