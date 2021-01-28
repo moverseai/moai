@@ -6,5 +6,5 @@ __all__ = ["CelebA"]
 
 CelebA = functools.partial(StructuredImages, color={
     'glob': '*.jpg',
-    'output_space': 'ndc',
+    'output_space': None,
 })

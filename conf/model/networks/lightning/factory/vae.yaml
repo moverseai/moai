@@ -7,7 +7,12 @@ configuration:
   input: ???
   output: generated
   latent_dim: 128
-  hidden_dim: [32, 64, 128, 356, 512]
+  hidden_dim: [32,64,128,356,512]
+  repeat_val: 7
+  traversal_len: 7
+  traversal_step: 0.25
+  traversal_dim: -1
+  traversal_init_value: -0.75
 preproc:
   convolution: 
     type: conv2d

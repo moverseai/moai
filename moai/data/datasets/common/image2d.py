@@ -12,10 +12,6 @@ def load_color_image(
     
     if output_space == 'norm':
         img = img / 255.0
-    elif output_space == 'ndc':
-        img = (img / 255.0) * 2.0 - 1.0
-        #TODO: bother to optimize?
-        #NOTE: check img = (img - (255.0 * 0.5)) * (1.0 / 255.0)
     return img
 
 def load_depth_image(

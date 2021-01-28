@@ -1,0 +1,4 @@
+# @package visualization
+
+_target_: moai.visualization.LatentCollection
+batch_interval: 40
