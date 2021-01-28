@@ -96,8 +96,6 @@ del mit
 
 #NOTE: "coord_conv":
 #NOTE: "partial_conv":
-    
-import moai.nn.deconvolution.spherical as mis
 
 #NOTE: "coord_conv":
 #NOTE: "partial_conv":
