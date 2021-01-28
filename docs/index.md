@@ -63,8 +63,4 @@ The examples found at [**conf/examples**](https://github.com/ai-in-motion/moai/t
 [Documentation](https://moai.readthedocs.io/en/latest/) is currently a **work-in-progress**.
 
 ## API
-The API is currently a **work-in-progress**.
-
-<!-- ### [Losses](api/losses.md) -->
-
-<!-- ### [Optimizers](api/optimizers.md) -->
+The API documentation is currently a **work-in-progress**.
