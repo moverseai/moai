@@ -1,8 +1,7 @@
 # _moai_: Accelerating modern data-driven workflows
 
-**moai** is an AI Model Development Kit (MDK) that aims at improving data-driven models' workflows, design and understanding.
-It is currently based on [PyTorch](https://pytorch.org/) and is in early development _alpha_ version.
-Nonetheless, since it is based on other [open-source established packages](#Dependencies), it can be readily used to improve most AI workflows, simply [install](#Installation) the package and follow the [examples](https://github.com/ai-in-motion/moai/tree/master/conf/examples).  
+**moai** is a [PyTorch](https://pytorch.org/)-based AI Model Development Kit (MDK) that aims to improve data-driven model workflows, design and understanding.
+Since it is based on established [open-source packages](#Dependencies), it can be readily used to improve most AI workflows. To explore **moai**, simply [install](#Installation) the package and follow the [examples](https://github.com/ai-in-motion/moai/tree/master/conf/examples), having in mind that it is in early development _alpha_ version, thus new features will be available soon.
 
 # Features & Design Goals
 
@@ -16,11 +15,11 @@ Nonetheless, since it is based on other [open-source established packages](#Depe
 
 _moai_ stands on the shoulders of giants as it relies on various large scale open-source projects:
 
-1. [PyTorch](https://pytorch.org/) `> 1.7.0`, which needs to be customly installed on your system/environment.
-2. [Lightning](https://www.pytorchlightning.ai/) `> 1.0.0`, which is the currently supported training backend.
-3. [Hydra](https://hydra.cc/) `> 1.0`, which drives _moai_'s DML that sets up model configurations, and additionally manages the hyper-parameter complexity of modern AI models.
-4. [Visdom](https://github.com/fossasia/visdom), which is the currently supported visualization engine.
-5. [HiPlot](https://github.com/facebookresearch/hiplot), which drives _moai_'s inter-model analytics.
+1. [PyTorch](https://pytorch.org/) `> 1.7.0` needs to be customly installed on your system/environment.
+2. [Lightning](https://www.pytorchlightning.ai/) `> 1.0.0` is the currently supported training backend.
+3. [Hydra](https://hydra.cc/) `> 1.0` drives _moai_'s DML that sets up model configurations, and additionally manages the hyper-parameter complexity of modern AI models.
+4. [Visdom](https://github.com/fossasia/visdom) is the currently supported visualization engine.
+5. [HiPlot](https://github.com/facebookresearch/hiplot) drives _moai_'s inter-model analytics.
 6. [Various PyTorch Open Source Projects](#Dependencies):
     
     - [Kornia](https://github.com/kornia/kornia) for a set of computer vision operations integrated as _moai_ monads.
