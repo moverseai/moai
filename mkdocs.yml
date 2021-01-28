@@ -106,7 +106,7 @@ extra_css:
 
 nav:
   - Introduction: index.md
-  - API:
-    - api/losses.md
-    - api/optimizers.md
-    - api/meta_optimizers.md
+  # - API:
+  #   - api/losses.md
+  #   - api/optimizers.md
+  #   - api/meta_optimizers.md

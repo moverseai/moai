@@ -65,6 +65,6 @@ The examples found at [**conf/examples**](https://github.com/ai-in-motion/moai/t
 ## API
 The API is currently a **work-in-progress**.
 
-### [Losses](api/losses.md)
+<!-- ### [Losses](api/losses.md) -->
 
-### [Optimizers](api/optimizers.md)
+<!-- ### [Optimizers](api/optimizers.md) -->
