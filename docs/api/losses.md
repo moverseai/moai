@@ -4,7 +4,7 @@
 
 ### Robust
 
-#### Berhu
+#### BerHu (Reverse Huber)
 
 ::: moai.supervision.losses.regression.robust.berhu.Berhu
     selection:
@@ -24,7 +24,7 @@
 
 ### Object Pose
 
-#### Geodesic Loss
+#### Geodesic
 
 ::: moai.supervision.losses.object_pose.Geodesic
     selection:

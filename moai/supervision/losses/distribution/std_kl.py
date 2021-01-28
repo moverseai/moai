@@ -16,18 +16,61 @@ __all__ = ["StandardNormalKL"]
 class StandardNormalKL(torch.nn.Module):
     r""" Implements the generalized Kullback-Leibler (KL) divergence function assuming the standard normal distribution as prior, including its **beta** (β-VAE), **capacity** (disentangled β-VAE), and **robust** (Charbonnier) variants. The method receives the mean (μ) and the variance (σ) of the input distribution as input and returns the KL divergence.
 
-    ??? info "Standard KL Loss"
+    ??? note "Standard KL Loss"
         <p align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Chuge%5Cbegin%7Bequation%7D%5Cmathrm%7BStandardKL%7D%28%5Cmu%2C%5Csigma%29%20%3D%20%5Cfrac%7B1%7D%7B2%7D%20%5Cdisplaystyle%5Csum_%7Bi%7D%20%281%2B%5Clog%28%5Csigma_%7Bi%7D^%7B2%7D%29%20-%5Cmu_%7Bi%7D^%7B2%7D-%5Csigma_%7Bi%7D^%7B2%7D%29%5Cend%7Bequation%7D"/></p>
 
-    ??? info "Beta-Standard KL Loss"
+    ??? note "Beta-Standard KL Loss"
         <p align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Chuge%5Cbegin%7Bequation%7D%5Cbeta%5Cmathrm%7B-StandardKL%7D%28%5Cmu%2C%5Csigma%29%20%3D%20%5Cbeta%20%5C%2C%20%5C%2C%20%5Cfrac%7B1%7D%7B2%7D%20%5Cdisplaystyle%5Csum_%7Bi%7D%20%281%2B%5Clog%28%5Csigma_%7Bi%7D^%7B2%7D%29%20-%5Cmu_%7Bi%7D^%7B2%7D-%5Csigma_%7Bi%7D^%7B2%7D%29%5Cend%7Bequation%7D"/></p>
 
-    ??? info "Capacity Standard KL Loss"
+    ??? note "Capacity Standard KL Loss"
         <p align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Chuge%5Cbegin%7Bequation%7D%5Cmathrm%7BCapacityStandardKL%7D%28%5Cmu%2C%5Csigma%29%20%3D%20%5Cbeta%20%5C%2C%20%5C%2C%20%5C%2C%20|%5C%2C%5Cfrac%7B1%7D%7B2%7D%20%5Cdisplaystyle%5Csum_%7Bi%7D%20%281%2B%5Clog%28%5Csigma_%7Bi%7D^%7B2%7D%29%20-%5Cmu_%7Bi%7D^%7B2%7D-%5Csigma_%7Bi%7D^%7B2%7D%29%5C%2C-%5C%2CC%5C%2C|%5Cend%7Bequation%7D"/></p>
 
-    ??? info "Robust Standard KL Loss"
+    ??? note "Robust Standard KL Loss"
         <p align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Chuge%5Cbegin%7Bequation%7D%5Cmathrm%7BRobustStandardKL%7D%28%5Cmu%2C%5Csigma%29%20%3D%20%5Csqrt%7B1%20%2B%20%5Cbig%28%5Cfrac%7B1%7D%7B2%7D%20%5Cdisplaystyle%5Csum_%7Bi%7D%20%281%2B%5Clog%28%5Csigma_%7Bi%7D^%7B2%7D%29%20-%5Cmu_%7Bi%7D^%7B2%7D-%5Csigma_%7Bi%7D^%7B2%7D%29%5Cbig%29^2%7D%20-%201%5Cend%7Bequation%7D"/></p>
 
+    ??? cite "Papers"
+        [![Paper](https://img.shields.io/static/v1?label=OpenReview&message=beta-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework&color=1c1ca2&)](https://openreview.net/forum?id=Sy2fzU9gl)
+
+        [![Paper](https://img.shields.io/static/v1?label=1904.07399&message=Understanding disentangling in β-VAE&color=1c1ca2&logo=arxiv)](https://arxiv.org/pdf/1804.03599.pdf)
+        
+        [![Paper](https://img.shields.io/static/v1?label=2006.11697&message=Perpetual Motion: Generating Unbounded Human Motion&color=1c1ca2&logo=arxiv)](https://arxiv.org/pdf/2007.13886.pdf)
+
+    ???+ example "Configuration"
+        === "Main Entry"
+            ```yaml
+            - model/supervision/loss/classification/distribution:  std_kl
+            ```
+        === "Parameters"
+            ```yaml
+            mode: 'standard'
+            is_var_log: true
+            beta: 1.0
+            C_max: 0
+            C_max_iter: 0      
+            ```
+        === "DML"
+            ```yaml
+            model:
+              supervision:
+                losses:
+                  std_kl:
+                    mode: capacity
+                    is_var_log: true
+                    beta: 100.0
+                    C_max: 25
+                    C_max_iter: 1e4
+            ```
+        === "Graph"
+            ```yaml
+            model:
+              supervision:
+                losses:
+                  std_kl:
+                    mu: [input_distribution_mean_tensor_name] # the name of the mean tensor
+                    var: [input_distribution_variance_tensor_name] # the name of the variance tensor
+                    out: [std_kl_loss] # optional, will be 'std_kl' if omitted
+            ```
+    
     Arguments:
         mode (str, required):
             Kullback-Leibler divergence between the input distribution and the standard normal one. Selector parameter can be one of [standard, beta, capacity, robust]. 
@@ -55,49 +98,7 @@ class StandardNormalKL(torch.nn.Module):
     !!! important
         The '_robust_' variant uses the [Charbonier penalty](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.469.129&rep=rep1&type=pdf) to prevent posterior collapse.
 
-    ???+ example "Configuration"
-        === "Main Entry"
-            ```yaml
-            - model/supervision/loss/classification/distribution:  std_kl
-            ```
-        === "Parameters"
-            ```yaml
-            mode: 'standard'
-            is_var_log: true
-            beta: 1.0
-            C_max: 0
-            C_max_iter: 0      
-            ```
-        === "Customized"
-            ```yaml
-            model:
-                supervision:
-                losses:
-                    std_kl:
-                    mode: capacity
-                    is_var_log: true
-                    beta: 100.0
-                    C_max: 25
-                    C_max_iter: 1e4
-            ```
-        === "Input / Output"
-            ```yaml
-            model:
-                supervision:
-                losses:
-                    std_kl:
-                    mu: [input_distribution_mean_tensor_name] # the name of the mean tensor
-                    var: [input_distribution_variance_tensor_name] # the name of the variance tensor
-                    out: [std_kl_loss] # optional, will be 'std_kl' if omitted
-            ```
-
-    ??? info "Papers"
-        [![Paper](https://img.shields.io/static/v1?label=OpenReview&message=beta-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework&color=1c1ca2&)](https://openreview.net/forum?id=Sy2fzU9gl)
-
-        [![Paper](https://img.shields.io/static/v1?label=1904.07399&message=Understanding disentangling in β-VAE&color=1c1ca2&logo=arxiv)](https://arxiv.org/pdf/1804.03599.pdf)
-        
-        [![Paper](https://img.shields.io/static/v1?label=2006.11697&message=Perpetual Motion: Generating Unbounded Human Motion&color=1c1ca2&logo=arxiv)](https://arxiv.org/pdf/2007.13886.pdf)
-
+    
     """
     def  __init__(self,
         mode:           str = 'standard', # ['standard', 'beta', 'capacity', 'robust']

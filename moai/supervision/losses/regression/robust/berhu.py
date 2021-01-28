@@ -13,6 +13,11 @@ class Berhu(torch.nn.Module):
     ??? note "Adaptive Threshold"
         <p align="center"><img src="https://render.githubusercontent.com/render/math?math=%5Chuge%20c%20%3D%20%5Cfrac%7B1%7D%7B5%7D%20%5Cmax_i%28|%5Ctilde%7By%7D_i%20-%20y_i|%29"/></p>
 
+    ??? cite "Papers"
+        [![Paper](https://img.shields.io/static/v1?label=1606.00373&message=Deeper Depth Prediction with Fully Convolutional Residual Networks&color=1c1ca2&logo=arxiv&style=plastic)](https://arxiv.org/pdf/1606.00373.pdf)
+
+        [![Paper](https://img.shields.io/static/v1?label=1207.6868&message=The BerHu penalty and the grouped effect&color=1c1ca2&logo=arxiv&style=plastic)](https://arxiv.org/pdf/1207.6868.pdf)
+ 
     ???+ example "Configuration"
         === "Main Entry"
             ```yaml
@@ -24,46 +29,41 @@ class Berhu(torch.nn.Module):
             adaptive: false # toggle adaptive threshold, ignores given threshold
             image_wide: false # adaptive threshold calculated per batch item (true) or per batch (false)
             ```
-        === "Customized"
+        === "DML"
             ```yaml
             model:
-                supervision:
+              supervision:
                 losses:
-                    berhu:
+                  berhu:
                     threshold: 1.0
                     adaptive: false
                     image_wide: false
             ```
-        === "Input / Output"
+        === "Graph"
             ```yaml
             model:
-                supervision:
+              supervision:
                 losses:
-                    berhu:
+                  berhu:
                     gt: [groundtruth_tensor_name] # the name of the groundtruth tensor
                     pred: [prediction_tensor_name] # the name of the predicted tensor
                     out: [berhu_loss] # optional, will be 'berhu' if omitted
             ```
-
+       
     Arguments:
         threshold (float, optional):
             Sets the threshold that switches between the L1 and L2 loss.       
         adaptive (boolean, optional):
             If true, the threshold is calculated dynamically for each batch. **Default value: False.**
         image_wide (boolean, optional): 
-            If true, the adaptive threshold is calculated for each batch item. **Default value: False.**
-    
-    ??? cite "Papers"
-        [![Paper](https://img.shields.io/static/v1?label=1606.00373&message=Deeper Depth Prediction with Fully Convolutional Residual Networks&color=1c1ca2&logo=arxiv&style=plastic)](https://arxiv.org/pdf/1606.00373.pdf)
-
-        [![Paper](https://img.shields.io/static/v1?label=1207.6868&message=The BerHu penalty and the grouped effect&color=1c1ca2&logo=arxiv&style=plastic)](https://arxiv.org/pdf/1207.6868.pdf)
-    
-    ??? info "Repositories"
-        [![Repo1](https://github-readme-stats.vercel.app/api/pin/?username=iro-cp&repo=FCRN-DepthPrediction&hide_border=true&title_color=1c1ca2&show_owner=true)](https://github.com/iro-cp/FCRN-DepthPrediction){: align=left }
-        [![Repo2](https://github-readme-stats.vercel.app/api/pin/?username=dontLoveBugs&repo=FCRN_pytorch&hide_border=true&title_color=1c1ca2&show_owner=true)](https://github.com/dontLoveBugs/FCRN_pytorch){: align=right }
+            If true, the adaptive threshold is calculated for each batch item. **Default value: False.**        
 
     !!! important
         Can be helpful when dealing with heavy-tailed distribution of predicted values.
+
+    ??? info "Repositories"
+        [![Repo1](https://github-readme-stats.vercel.app/api/pin/?username=iro-cp&repo=FCRN-DepthPrediction&hide_border=true&title_color=1c1ca2&show_owner=true)](https://github.com/iro-cp/FCRN-DepthPrediction){: align=left }
+        [![Repo2](https://github-readme-stats.vercel.app/api/pin/?username=dontLoveBugs&repo=FCRN_pytorch&hide_border=true&title_color=1c1ca2&show_owner=true)](https://github.com/dontLoveBugs/FCRN_pytorch){: align=right }
 
     *[berHu]: Reverse Huber
 

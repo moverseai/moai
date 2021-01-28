@@ -54,10 +54,11 @@ _moai_ is Apache 2.0 licenced, as found in the corresponding [LICENCE](https://g
 However, some code integrated from external projects may carry their own licences.
 
 # Citation
+If you use _moai_ in your R&D workflows or find its code useful please consider citing:
+
 ```
 @misc{moai,
-    author = {The AI-in-Motion Team},
-    title = {{moai, accelerating modern data-driven workflows}},
+    title = {{\textit{moai}: Accelerating modern data-driven workflows}},
     year = {2021},
     publisher = {GitHub},
     journal = {GitHub repository},
