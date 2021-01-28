@@ -10,7 +10,7 @@
 
 # ***moai***: Accelerating modern data-driven workflows
 
-[![Docs](https://moai.readthedocs.io/en/latest/?badge=latest)](https://moai.readthedocs.io/en/latest/)
+[![Documentation Status](https://readthedocs.org/projects/moai/badge/?version=latest)](https://moai.readthedocs.io/en/latest/?badge=latest)
 
 **_moai_** is a [PyTorch](https://pytorch.org/)-based AI Model Development Kit (MDK) that aims to **improve data-driven model workflows, design and understanding**.
 Since it is based on established [open-source packages](#Dependencies), it can be readily used to improve most AI workflows. To explore _moai_, simply [install](#Installation) the package and follow the [examples](https://github.com/ai-in-motion/moai/tree/master/conf/examples), having in mind that it is in early development _alpha_ version, thus new features will be available soon.
