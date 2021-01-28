@@ -6,11 +6,11 @@ Nonetheless, since it is based on other [open-source established packages](#Depe
 
 # Features & Design Goals
 
-- **Modularity via Monads**: Use _moai_'s existing pool of modular model building blocks.
-- **Reproducibility via Configuration**: _moai_ manages the hyper-parameter sensitive AI R&D workflows via its built-in configuration-based design.
-- **Productivity via Minimizing Coding**: _moai_ offers a data-driven domain modelling language (DML) that can facilitates quick & easy model design.
-- **Extensibility via Plugins**: Easily integrate external code using _moai_'s built-in metaprogramming and external code integration. 
-- **Understanding via Analysis**: _moai_ supports inter-model performance and design aggregation [**actions**](#) to consolidate knowledge between models and query differences.
+- **Modularity via Monads**: Use _moai_'s existing pool of modular _model building blocks_.
+- **Reproducibility via Configuration**: _moai_ manages the hyper-parameter sensitive AI R&D workflows via its built-in _configuration-based design_.
+- **Productivity via Minimizing Coding**: _moai_ offers a _data-driven domain modelling language_ (DML) that can facilitates quick & easy model design.
+- **Extensibility via Plugins**: Easily integrate external code using _moai_'s built-in metaprogramming and _external code integration_. 
+- **Understanding via Analysis**: _moai_ supports _inter-model performance and design aggregation_ [**actions**](#) to consolidate knowledge between models and query differences.
 
 # Dependencies
 
