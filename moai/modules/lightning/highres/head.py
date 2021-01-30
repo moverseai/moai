@@ -106,6 +106,7 @@ class Higher(torch.nn.Module):
         stages: int,
         start_features: int, #in channels
         out_features: int, #initial out channels
+        deconvolution_modules: int, #nr of deconvolution modules
         deconvolution: omegaconf.DictConfig,
         residual:   omegaconf.DictConfig,
         final: omegaconf.DictConfig,
@@ -113,39 +114,40 @@ class Higher(torch.nn.Module):
     ):
         super(Higher, self).__init__()
 
+        self.deconvolution_modules = deconvolution_modules
         self.deconvolution = deconvolution
 
-        start_features_ = lambda i : start_features if i == 0 else deconvolution.deconv_out_features[i-1]
+        start_features_ = lambda i : start_features if i == 0 else deconvolution.deconv_out_features
         self.deconv_layers = torch.nn.ModuleList([
             torch.nn.Sequential(*[
                 midec.make_deconv_block(
-                    block_type = deconvolution.block[i],
+                    block_type = deconvolution.block,
                     in_features = (start_features_(i) + out_features) \
-                                 if deconvolution.concat[i] \
+                                 if deconvolution.concat \
                                  else start_features_(i),
-                    out_features=deconvolution.deconv_out_features[i],
-                    deconvolution_type = deconvolution.type[i],
-                    activation_type=deconvolution.activation[i],
+                    out_features=deconvolution.deconv_out_features,
+                    deconvolution_type = deconvolution.type,
+                    activation_type=deconvolution.activation,
                     deconvolution_params={
-                        'kernel_size': deconvolution.kernel_size[i],
-                        'padding': deconvolution.padding[i],
-                        'output_padding': deconvolution.output_padding[i],
+                        'kernel_size': deconvolution.kernel_size,
+                        'padding': deconvolution.padding,
+                        'output_padding': deconvolution.output_padding,
                         'stride': 2,
                     }),
                 torch.nn.Sequential(*[
                     mires.make_residual_block(
                         block_type=residual.type,
                         convolution_type=residual.convolution,
-                        in_features=deconvolution.deconv_out_features[i],
-                        out_features=deconvolution.deconv_out_features[i],
+                        in_features=deconvolution.deconv_out_features,
+                        out_features=deconvolution.deconv_out_features,
                         bottleneck_features=residual.bottleneck_features,
                         activation_type=residual.activation,
                         strided=False,
                         convolution_params={
                                 'bias':         False,
-                        }) for r in range(deconvolution.residual_units[i])
+                        }) for r in range(deconvolution.residual_units)
                 ])
-            ]) for i in range(len(deconvolution.type))
+            ]) for i in range(deconvolution_modules)
         ])
 
         #final layer
@@ -161,18 +163,18 @@ class Higher(torch.nn.Module):
                     'padding': final.padding,
                 }
             ),
-            torch.nn.Sequential(*[
+            torch.nn.ModuleList([
                 mic.make_conv_block(
                     block_type="conv2d",
                     convolution_type=final.convolution,
-                    in_features=deconvolution.deconv_out_features[i],
+                    in_features=deconvolution.deconv_out_features,
                     out_features=out_features,
                     activation_type=final.activation,
                     convolution_params={
                         'kernel_size': final.kernel_size,
                         'padding': final.padding,
                     }
-                ) for i in range(len(deconvolution.type))
+                ) for i in range(deconvolution_modules)
             ])
         ])
 
@@ -188,24 +190,32 @@ class Higher(torch.nn.Module):
         all_branches: typing.Union[typing.Tuple[torch.Tensor, ...], typing.List[torch.Tensor]]
     ) -> torch.Tensor:
         
-        final_outputs = []
-        heatmaps_avg = 0
+        isTraining = self.final_layers[0].training
         x = all_branches[0]
         y = self.final_layers[0](x) #output from top branch
-        y_upscaled = self.aggregator_func(y)
-        heatmaps_avg += y_upscaled
-        final_outputs.append(y)
-        for i in range(len(self.deconvolution.type)):
-            if self.deconvolution.concat[i]:
+        final_outputs = []
+        if isTraining:
+            final_outputs.append(y)
+        else:
+            heatmaps_avg = []
+            y_upscaled = self.aggregator_func(y)
+            heatmaps_avg.append(y_upscaled)
+        for i in range(self.deconvolution_modules):
+            if self.deconvolution.concat:
                 x = torch.cat((x, y), 1)
             x = self.deconv_layers[i](x)
             y = self.final_layers[1][i](x)
-            final_outputs.append(y)
-            #upscale output to be used in the aggregator
-            y_upscaled = self.aggregator_func(y)
-            heatmaps_avg += y_upscaled
-        #append average htmp
-        final_outputs.append(
-            heatmaps_avg/(len(self.deconvolution.type) + 1)
-        )
+            if isTraining:
+                final_outputs.append(y)
+            else:
+                #upscale output to be used in the aggregator
+                y_upscaled = self.aggregator_func(y)
+                heatmaps_avg.append(y_upscaled)
+        
+        if not isTraining:
+            final_outputs.append(
+                torch.mean(torch.stack(heatmaps_avg), dim = 0)
+            )
+            final_outputs.append(torch.zeros((1)))
+        
         return final_outputs

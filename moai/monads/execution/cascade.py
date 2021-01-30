@@ -36,7 +36,7 @@ class Cascade(torch.nn.ModuleDict): #TODO: check if x: ['arg'] is the same as x:
                     tensor_dict.update({
                         k[-1]: f(**dict(zip(p, 
                             list(tensor_dict[i] if type(i) is str
-                                else list(tensor_dict[j] for j in i)
+                                else list(tensor_dict[j] for j in i) if i is not None else None
                                 for i in k[:-1]
                             )
                         )))

@@ -38,3 +38,21 @@ class Split(torch.nn.Module): #TODO: optimize by returning the tuple
         size = self.split if self.split else tensor.shape[self.dim] // 2
         ret = torch.split(tensor, size, dim=self.dim)[int(index)]
         return ret.squeeze(self.dim) if ret.shape[self.dim] == 1 else ret
+
+class SelectTensor(torch.nn.Module):
+    def __init__(self):
+
+        super(SelectTensor,self).__init__()
+    
+    def forward(self,
+                tensors: typing.List[torch.Tensor],
+                ref_tensor: torch.Tensor) -> torch.Tensor:
+
+                for ten in tensors:
+                    if ten.shape[-2:] == ref_tensor.shape[-2:]:
+                        out_tensor = ten
+                        break
+                    else:
+                       out_tensor = None
+                
+                return out_tensor
