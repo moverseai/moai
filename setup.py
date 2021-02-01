@@ -57,7 +57,7 @@ def moai_info():
             url, code_url, docs_url, \
             short_desc, keywords.split(',')
 
-PACKAGE_NAME = 'moai'
+PACKAGE_NAME = 'moai-mdk'
 VERSION, AUTHOR, EMAIL, LICENSE,\
 URL, CODE_URL, DOCS_URL, \
 DESCRIPTION, KEYWORDS = moai_info()
@@ -65,7 +65,7 @@ DESCRIPTION, KEYWORDS = moai_info()
 if __name__ == '__main__':
     logger.info(f"Installing {PACKAGE_NAME} (v: {VERSION}) ...")
     setup(
-        name=VERSION,
+        name=PACKAGE_NAME,
         version=VERSION,
         author=AUTHOR,
         author_email=EMAIL,
@@ -79,10 +79,11 @@ if __name__ == '__main__':
             'Documentation': DOCS_URL,
             'Source': CODE_URL,
         },
-        packages=find_packages(exclude=('docs', 'conf', 'outputs')),
+        packages=find_packages(exclude=('docs', 'outputs')),
         install_requires=get_requirements(),
         include_package_data=True,
         python_requires='~=3.7',
+        py_modules = ['main','train','diff','evaluate','plot','play'],
         entry_points={
             'console_scripts': [
                 'moai=main:moai',              
