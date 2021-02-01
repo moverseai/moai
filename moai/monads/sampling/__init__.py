@@ -1,9 +1,9 @@
 from moai.monads.sampling.torch import (
     Interpolate,
-    BilinearDownsample2,
+    BilinearDownsample_x2,
 )
 
 __all__ = [
     "Interpolate",
-    "BilinearDownsample2",
+    "BilinearDownsample_x2",
 ]

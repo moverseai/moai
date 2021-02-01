@@ -79,10 +79,11 @@ if __name__ == '__main__':
             'Documentation': DOCS_URL,
             'Source': CODE_URL,
         },
-        packages=find_packages(exclude=('docs', 'conf', 'outputs')),
+        packages=find_packages(exclude=('docs', 'outputs')),
         install_requires=get_requirements(),
         include_package_data=True,
         python_requires='~=3.7',
+        py_modules = ['main','train','diff','evaluate','plot','play'],
         entry_points={
             'console_scripts': [
                 'moai=main:moai',              

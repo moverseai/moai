@@ -188,14 +188,6 @@ def _null_space(m, kernel_dim):
     """
     mTm = torch.bmm(m.transpose(1, 2), m)
 
-    #NOTE:Debug
-    #mTm_ = torch.where(torch.isinf(mTm),torch.Tensor([3.4028e+38]).to(mTm),mTm)
-    #mTm_ = torch.where(torch.isnan(mTm_),torch.Tensor([0.0]).to(mTm),mTm_)
-    #mTm_ = torch.where(torch.isneginf(mTm_.detach()),torch.Tensor([-3.4028e+38]).to(mTm),mTm_)
-
-
-    #s, v = torch.symeig(mTm_, eigenvectors=True)
-
     s, v = torch.symeig(mTm, eigenvectors=True)
     return v[:, :, :kernel_dim].reshape(-1, 4, 3, kernel_dim), s[:, :kernel_dim]
 
@@ -210,7 +202,6 @@ def _reproj_error(y_hat, y, weight, eps=1e-9):
     Returns:
         Optionally weighted RMSE of difference between y and y_hat.
     """
-    #y_hat = y_hat / torch.clamp(y_hat[..., 2:], eps)
     y_hat = y_hat / (y_hat[..., 2:] + eps)
     dist = ((y - y_hat[..., :2]) ** 2).sum(dim=-1, keepdim=True) ** 0.5
     return _wmean(dist, weight)[:, 0, 0]
@@ -504,7 +495,6 @@ def _corresponding_points_alignment(
         #NOTE:DEGUG
         global RERUN 
         RERUN = True
-        #break
     else:
         RERUN = False
 
@@ -669,13 +659,14 @@ class EPnP(torch.nn.Module):
         self,
         weights: typing.Optional[torch.Tensor] = None,
         skip_quadratic_eq: bool = False,
+        transform_deg: float = 180, #rotate axes if needed for mathcing the gt
     ):
         super(EPnP,self).__init__()
         self.weights = weights
         self.skip_quadratic_eq = skip_quadratic_eq
         #TODO: remove this
         #NOTE: should we make an external operation with params angle, axis?
-        rads = torch.deg2rad(torch.Tensor([180]))
+        rads = torch.deg2rad(torch.Tensor([transform_deg]))
         self.rot = kn.geometry.conversions.angle_axis_to_rotation_matrix(torch.Tensor([[rads,0,0]]))
 
 
