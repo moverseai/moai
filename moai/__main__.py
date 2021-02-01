@@ -1,8 +1,8 @@
-from train import train
-from evaluate import evaluate
-from play import play
-from diff import diff
-from plot import plot
+from moai.action.train import train
+from moai.action.evaluate import evaluate
+from moai.action.play import play
+from moai.action.diff import diff
+from moai.action.plot import plot
 
 import omegaconf.omegaconf
 import hydra
@@ -42,7 +42,7 @@ __MIN_ARGS_COUNT__ = {
     'play': 2,
     'diff': 1,
     'plot': 1,
-    'debug': 1,
+    'debug': 2,
 }
 
 def run(cfg: omegaconf.DictConfig):

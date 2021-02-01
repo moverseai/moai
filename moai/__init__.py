@@ -1,4 +1,4 @@
-__version__ = '0.1.0a'
+__version__ = '0.1.0a1'
 __author__ = 'AI-in-Motion Team'
 __author_email__ = 'moai@ai-in-motion.dev'
 __license__ = 'Apache-2.0'
@@ -7,4 +7,4 @@ __homepage__ = 'https://github.com/ai-in-motion/moai'
 __github_repo__ = 'https://github.com/ai-in-motion/moai'
 __documentation_page__ = 'https://moai.readthedocs.io/en/latest/'
 __docs__ = "moai: Accelerated, Flexible, Modular, Reproducible, Insightful AI"
-__keywords__ = 'AI,workflow,framework,PyTorch' # comma separated
+__keywords__ = 'AI,workflow,framework,PyTorch'
