@@ -9,8 +9,8 @@ __all__ = [
 def _calculate_pck(
     gt_kpts:        torch.Tensor,
     pred_kpts:      torch.Tensor,
-    pred_masks:     torch.Tensor,
     gt_masks:       torch.Tensor,
+    pred_masks:     torch.Tensor,
     kpts_indices:   list,
     threshold:      float
 ):
@@ -18,9 +18,9 @@ def _calculate_pck(
     Detected joint is considered correct if the distance between 
     the predicted and the ground truth joint is within a certain threshold (threshold varies)
     """
-    kpts_error = torch.linalg.norm(gt_kpts - pred_kpts, ord=2, dim=-1)
-    max_sizes = torch.linalg.norm(gt_kpts[:, kpts_indices[0], ...] - gt_kpts[:, kpts_indices[1], ...], ord=2, dim=-1).unsqueeze(1)
-    kpts_error_norm = kpts_error / max_sizes
+    diff = torch.abs(gt_kpts - pred_kpts)
+    max_sizes = torch.abs(gt_kpts[:, kpts_indices[0], ...] - gt_kpts[:, kpts_indices[1], ...]).unsqueeze(1)    
+    kpts_error_norm = diff / max_sizes
     #count correct threshold
     valid_kpts = torch.zeros_like(kpts_error_norm)
     valid_kpts[kpts_error_norm < threshold] = 1.0
@@ -30,10 +30,9 @@ def _calculate_pck(
     pck = 100.0 * torch.mean(valid_kpts[values2compare])
     return pck
 
-#TODO: create generic thresholded accuracy metric and subclass from it
 class PCK(torch.nn.Module):
     def __init__(self,
-        threshold: float=0.05,
+        threshold:      float=0.05,
         joint_indices:  list=[0, 2]
     ):
         super(PCK, self).__init__()
@@ -41,16 +40,16 @@ class PCK(torch.nn.Module):
         self.joint_indices = joint_indices
 
     def forward(self,
-        pred_kpts:          torch.Tensor,
         gt_kpts:            torch.Tensor,
-        pred_masks:         torch.Tensor,
+        pred_kpts:          torch.Tensor,
         gt_masks:           torch.Tensor,
+        pred_masks:         torch.Tensor,
     ) -> torch.Tensor:
         return _calculate_pck(
-            pred_kpts, 
             gt_kpts, 
-            pred_masks, 
+            pred_kpts,
             gt_masks, 
+            pred_masks, 
             self.joint_indices, 
             self.threshold
         )

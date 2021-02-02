@@ -5,7 +5,7 @@ model:
     rmse:
       gt: [joints_2d]
       pred: [kpts]
-      # mask: [joints_2d_mask]
+      weights: [joints_2d_mask]
       out: [rmse_]
 
     human_pose_pckh2d_50:

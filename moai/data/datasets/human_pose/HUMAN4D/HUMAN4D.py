@@ -276,8 +276,6 @@ class HUMAN4D(Dataset):
 				datum_out.update({
 					"color" : color_tensor.squeeze(0),
 					"cintr" : color_intrinsics,
-					"dintr" : depth_intrinsics,
-					"depth" : masked_depth_tensor.squeeze(0), 
 					"campose_rotation" : inv_rot, 
 					"campose_translation" :  inv_trans
 					})

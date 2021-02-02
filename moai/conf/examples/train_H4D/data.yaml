@@ -16,7 +16,8 @@ data:
         outputs: [depth]
       datasets:
         H4D:
-          data_types: ["depth"]
+          data_types: ["depth"]   
+          # types: ["colour"]   
   test:
     iterator:
       augmentation:
@@ -29,7 +30,8 @@ data:
         inputs: [depth]
         outputs: [depth]
       datasets:
-        H4D: 
+        H4D:
+          # types: ["colour"]   
           data_types: ["depth"]   
   val:
     iterator:
@@ -43,5 +45,6 @@ data:
         inputs: [depth]
         outputs: [depth]
       datasets:
-        H4D:  
+        H4D:
+          # types: ["colour"]   
           data_types: ["depth"]

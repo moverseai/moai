@@ -58,3 +58,12 @@ visualization:
       color_gt: [green]
       color_pred: [red]
       reverse_coords: [false]
+
+    # blend2d:
+    #   name: ${experiment.name}
+    #   ip: ${experiment.visdom_ip}
+    #   left: [M72j_depth]
+    #   right: [M72j_heatmaps_gt]
+    #   blending: [0.5]
+    #   colormaps: [turbo]
+    #   transforms: [sum_minmax]

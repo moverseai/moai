@@ -3,6 +3,26 @@
 conv_type: conv2d
 downscale_type: maxpool2d
 
+# model:
+#   configuration:
+#     in_features: 1
+#     input: depth
+#     out_features: 18
+#     preproc:
+#       stem:
+#         kernel_size: 7
+#         stride: 1
+#         padding: 3
+
+#   modules:
+#     hourglass:
+#       features: 128
+#       depth: 1
+#       convolution: ${conv_type}
+#       downscale: ${downscale_type}
+
+
+
 model:
   configuration:
     stages: 4
@@ -112,6 +132,9 @@ model:
       kernel_size: [5, 5]
       sigma: [1.0, 1.0]
       border_type: reflect
+    # laplacian2d:
+    #   kernel_size: 5
+    #   border_type: reflect
 
     dark:
       flip: false

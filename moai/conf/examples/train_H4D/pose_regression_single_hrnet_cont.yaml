@@ -7,6 +7,7 @@ defaults:
   - engine: engine
   - engine/train: lightning
   - engine/modules: manual_seed
+  # - engine/modules: anomaly
 
   - engine/visualization: collection
   - engine/visualization/visdom: feature2d
@@ -15,6 +16,8 @@ defaults:
   - engine/log/lightning: collection
   - engine/log/lightning/logger: visdom
   - engine/log/lightning/logger: tabular
+
+  - engine/checkpoint/lightning: default
 
   ###### DATA  
   - data/train/loader: torch
@@ -53,7 +56,7 @@ defaults:
   - model/feedforward: postprocess
   - model/monads/distribution: coordinate_decoding
   - model/monads/filter/lowpass: gaussian2d
-  - model/monads/distribution: taylor
+  - model/monads/distribution: dark
   - model/monads/keypoints: downscale_coords_x4
   - model/monads/keypoints: upscale_coords_x4
   - model/monads/keypoints: visibility_heatmap
@@ -71,7 +74,7 @@ defaults:
   - model/validation/metric/human_pose: pckh2d_50
   - model/validation/metric/human_pose: pckh2d_10
 
-  - examples/train_H4D/options_single
+  - examples/train_H4D/options_single_hrnet_cont
   - examples/train_H4D/data
   - examples/train_H4D/model_single_hrnet_cont
   - examples/train_H4D/losses_single
