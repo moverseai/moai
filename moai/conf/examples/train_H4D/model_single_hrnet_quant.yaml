@@ -31,11 +31,11 @@ model:
           bottleneck_features: [64, 64]
     branches:
       start_features: 32
-      modules: [3, 4, 4]
+      modules: [1, 1, 1]
       depths: 
-        - [3, 3, 3]
-        - [3, 3, 2, 2]
-        - [3, 3, 3, 4]
+        - [4]
+        - [4]
+        - [4]
   modules:
     highres:
       residual:

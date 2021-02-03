@@ -10,7 +10,7 @@ import functools
 
 __all__ = ["CoordinateDecoding"]
 
-#TODO: refactor to a common module
+# NOTE: generic helper functions should go to utils? 
 def unravel_indices(
     indices: torch.Tensor,
     shape: torch.Tensor
@@ -33,17 +33,6 @@ def unravel_indices(
     return coord
 
 class CoordinateDecoding(torch.nn.Module):
-    def __init__(self,
-        mode:           str="argmax", #NOTE: to support argmax, standard
-        flip:           bool=True, # flip order of coordinates as originated from the grid's order
-        sub:            float=0.25
-    ):
-        super(CoordinateDecoding, self).__init__()
-        self.mode = mode
-        self.flip = flip
-        self.sub = sub
-        self.branch = functools.partial(self._argmax_sub, sub=sub)\
-            if mode == 'standard' else functools.partial(self._argmax)
 
     @staticmethod
     def _argmax(
@@ -73,6 +62,7 @@ class CoordinateDecoding(torch.nn.Module):
         ) -> torch.Tensor:              # [B, K, UV(S) or (S)VU]
             channels = heatmaps.shape[1]        
             dims = spatial_dims(heatmaps)
+            argmax_dims = spatial_dim_list(heatmaps)
             coords = []
             for i in range(channels): #TODO: refactor for loop
                 heatmap = heatmaps[:, i, ...].unsqueeze(1)
@@ -91,11 +81,24 @@ class CoordinateDecoding(torch.nn.Module):
                     for j in range(len(dims)):
                         s[b, j] = grid[b, j][tuple(raw_s[b])]
 
-                coord = m + sub * (s - m) * (grid.amax(dim=dims) - \
-                    grid.amin(dim=dims)) / (torch.linalg.norm(s - m) * dims)
+                coord = m + sub * (s - m) * (grid.amax(dim=argmax_dims) - \
+                    grid.amin(dim=argmax_dims)) / (torch.linalg.norm(s - m) * dims)
                 coords.append(coord)
             return torch.stack(coords, dim=1)
 
+    def __init__(self,
+        mode:           str="argmax", #NOTE: to support argmax, standard
+        flip:           bool=True, # flip order of coordinates as originated from the grid's order
+        sub:            float=0.25
+    ):
+        super(CoordinateDecoding, self).__init__()
+        self.mode = mode
+        self.flip = flip
+        self.sub = sub
+        self.branch = functools.partial(self._argmax_sub, sub=sub)\
+            if mode == 'standard' else functools.partial(self._argmax)
+
+                
     def forward(self, 
         grid: torch.Tensor,     # coordinates grid tensor of C coordinates
         heatmaps: torch.Tensor, # spatial probability tensor of K keypoints

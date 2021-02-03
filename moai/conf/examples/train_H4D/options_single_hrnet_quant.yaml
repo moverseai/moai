@@ -1,0 +1,65 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: H4D_pose_regression_hrnet_quant
+  batch_size: 16
+  workers: 4
+
+
+engine:
+  modules:
+    manual_seed:
+      seed: 1314
+
+trainer:
+  gpus: "0"
+  check_val_every_n_epoch: 1
+  accumulate_grad_batches: 1
+  max_epochs: 100
+  deterministic: true
+  checkpoint:
+    monitor: pckh
+    mode: max
+    filename: '{epoch}_{pckh:.4f}'
+
+logging:
+  name: ${experiment.name}
+  loggers:
+    visdom:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+    tabular:
+      name: ${experiment.name}
+
+visualization:
+  batch_interval: 200
+  visualizers:
+    feature2d:                      
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      keys: [heatmaps_gt, heatmaps_t_4]
+      types: [color, color]
+      colormaps: [turbo, turbo]
+      transforms: [minmax, minmax]
+
+    pose2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      images: [depth]
+      poses: [human_pose2d]
+      gt: [joints_2d]
+      pred: [kpts]
+      gt_masks: [joints_2d_mask]
+      pred_masks: [kpts_mask]
+      pose_structure: 
+        - [0, 1, 2, 3]
+        - [2, 4, 5, 6]
+        - [2, 7, 8, 9]
+        - [0, 10, 11, 12, 13]
+        - [0, 14, 15, 16, 17]
+      coords: [coord]
+      color_gt: [green]
+      color_pred: [red]
+      reverse_coords: [false]
+      rotate_image: [true]

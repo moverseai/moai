@@ -49,7 +49,7 @@ Download the master branch source and install it by opening a command line on th
 
 Visit the [**documentation**](#) site to learn about _moai_'s DML and the overall MDK design and usage.
 
-Examples can be found at [**conf/examples**](https://github.com/ai-in-motion/moai/tree/master/conf/examples).
+Examples can be found at [**conf/examples**](https://github.com/ai-in-motion/moai/tree/main/moai/conf/examples). 
 
 # Licence
 

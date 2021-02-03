@@ -55,7 +55,6 @@ model:
 
     # center_of_mass:
     #   flip: false
-
     coordinate_decoding:
       mode: standard
       flip: false
@@ -99,6 +98,14 @@ model:
         grid: ${all_grids}
         out: [M72j_heatmaps_gt]
 
+      # threshold:
+      #   x: [M72j_depth]
+      #   out: [depth_mask]
+
+      # clamp:
+      #   x: [M72j_depth]
+      #   out: [depth]
+
     postprocess:
       spatial_softmax:
         tensor: ${all_heatmaps}
@@ -106,5 +113,12 @@ model:
       
       coordinate_decoding:
         grid: ${all_grids}
+        # heatmaps: [M72j_heatmaps_gt]
         heatmaps: ${all_heatmaps}
         out: ${all_kpts}
+      
+      # center_of_mass:
+      #   grid: [grid]
+      #   heatmaps: [M72j_heatmaps_gt]
+      #   # heatmaps: [heatmaps_t_4]
+      #   out: [predicted_kpts]
