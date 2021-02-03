@@ -11,7 +11,7 @@ class VisibilityFOV(torch.nn.Module):
     def __init__(self,
         width:          int=1,
         height:         int=1,
-        coord_type:     str='ndc',              # [B, K, UV]
+        coord_type:     str='coord',              # [B, K, UV]
     ):
         super(VisibilityFOV,self).__init__()
         self.coord_type = coord_type
@@ -61,7 +61,7 @@ class VisibilityHeatmap(torch.nn.Module):
         width:          int=1,
         height:         int=1,
         threshold:      float=0.4,
-        coord_type:     str='ndc',              # [B, K, UV]
+        coord_type:     str='coord',              # [B, K, UV]
     ):
         super(VisibilityHeatmap,self).__init__()
         self.coord_type = coord_type

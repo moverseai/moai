@@ -48,7 +48,7 @@ class Pose2d(Base):
         self.reverse = reverse_coords
         self.rotate = rotate_image
         self.transparency = transparency
-        self.gizmo_render = {
+        self.viz_pose = {
             'human_pose2d': functools.partial(self.__draw_human_pose2d, 
                 self.visualizer, marker=cv2.MARKER_DIAMOND, rotate=self.rotate, transparency=self.transparency),
         }
@@ -77,7 +77,7 @@ class Pose2d(Base):
                 gt_coord = gt_coord.flip(-1)
                 pred_coord = pred_coord.flip(-1)
             image = tensors[img].detach()
-            self.gizmo_render[poses](
+            self.viz_pose[poses](
                 image,
                 self.xforms[coord](gt_coord, image),
                 self.xforms[coord](pred_coord, image),
@@ -110,8 +110,8 @@ class Pose2d(Base):
     ):
         imgs = np.zeros([images.shape[0], 3, images.shape[2], images.shape[3]], dtype=np.uint8) if not rotate \
             else np.zeros([images.shape[0], 3, images.shape[3], images.shape[2]], dtype=np.uint8)
-        gt_coords = gt_coordinates.cpu()
-        pred_coords = pred_coordinates.cpu()
+        gt_coords = gt_coordinates.cpu().int()
+        pred_coords = pred_coordinates.cpu().int()
         gt_coords = torch.flip(gt_coords, dims=[-1])
         pred_coords = torch.flip(pred_coords, dims=[-1])
         gt_coords = gt_coords.numpy()
@@ -131,7 +131,7 @@ class Pose2d(Base):
                 coord_i = coords[i, ...]
                 for kpts_group in pose_structure:
                     for j in range(len(kpts_group) - 1):
-                        if masks[i, j] and masks[i, j+1]:
+                        if torch.sum(masks[i, j]) and torch.sum(masks[i, j+1]):
                             start_xy = tuple(coord_i[kpts_group[j]])
                             end_xy = tuple(coord_i[kpts_group[j+1]])
                             X = (start_xy[0], end_xy[0])
@@ -146,7 +146,7 @@ class Pose2d(Base):
                         
                 
                 for k, coord in enumerate(coord_i):
-                    if masks[i, k]:
+                    if torch.sum(masks[i, k]):
                         if marker < 0:
                             cv2.circle(bg, 
                                 tuple(coord), 
