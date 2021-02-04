@@ -22,39 +22,39 @@ As _moai_ is built around these configuration files that define its context and 
 
 Details for each action follow:
 
-- `play`
+- _`moai`_ **`play`** `CONFIG_PATH`
 
 ![Play Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/play_action.svg "Play Action")
 
 Using the `play` action, _moai_ starts the playback of a dataset's `train\val\test` splits. _moai_'s exporters can be used to the extract dataset specific statistics. _moai_'s visualization engine can be used to showcase the dataset. Optionally, monad processing graphs can be defined to transform the data.
 
-- `train`
+- _`moai`_ **`train`** `CONFIG_PATH`
 
 ![Train Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/train_action.svg "Train Action")
 
 The `train` action consumed a configuration file that defines the model that will be trained, the data that will be used to train and validate it, as well as configurating the engine around the training process.
 The results include model states across training and logs including validation metrics and losses.
 
-- `evaluate`
+- _`moai`_ **`evaluate`** `CONFIG_PATH`
 
 ![Evaluate Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/evaluate_action.svg "Evaluate Action")
 
 The `evaluate` action consumes a configuration file that defines the trained model that will be tested, the test data, as well as configurating the engine around the testing process.
 The results include model aggregated and/or detailed metrics, and inference samples.
 
-- `plot`
+- _`moai`_ **`plot`** `PATH_TO_EXPERIMENTS`
 
 ![Plot Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/plot_action.svg "Plot Action")
 
 The `plot` action consumes various configuration file - usually from different versions of the same model - and generates a visualization consolidating and aggregating inter-model performance, providing the necessary means to analyze the behaviour of different hyper-parameters or model configurations.
 
-- `diff`
+- _`moai`_ **`diff`** `lhs=PATH_TO_CONFIG_A` `rhs=PATH_TO_CONFIG_B`
 
 ![Diff Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/diff_action.svg "Diff Action")
 
 The `diff` action consumes two different configuration file - usually from different versions of the same model - and reports their differences related to hyper-parameterization, processing graph variations, etc..
 
-- `reprod`
+- _`moai`_ **`reprod`** `PATH_TO_RESOLVED_CONFIG`
 
 ![Reprod Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/reprod_action.svg "Reprod Action")
 
