@@ -24,39 +24,39 @@ Details for each action follow:
 
 - `play`
 
-![Play Action](./docs/diagrams/play_action.svg "Play Action")
+![Play Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/play_action.svg "Play Action")
 
 Using the `play` action, _moai_ starts the playback of a dataset's `train\val\test` splits. _moai_'s exporters can be used to the extract dataset specific statistics. _moai_'s visualization engine can be used to showcase the dataset. Optionally, monad processing graphs can be defined to transform the data.
 
 - `train`
 
-![Train Action](./docs/diagrams/train_action.svg "Train Action")
+![Train Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/train_action.svg "Train Action")
 
 The `train` action consumed a configuration file that defines the model that will be trained, the data that will be used to train and validate it, as well as configurating the engine around the training process.
 The results include model states across training and logs including validation metrics and losses.
 
 - `evaluate`
 
-![Evaluate Action](./docs/diagrams/evaluate_action.svg "Evaluate Action")
+![Evaluate Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/evaluate_action.svg "Evaluate Action")
 
 The `evaluate` action consumes a configuration file that defines the trained model that will be tested, the test data, as well as configurating the engine around the testing process.
 The results include model aggregated and/or detailed metrics, and inference samples.
 
 - `plot`
 
-![Plot Action](./docs/diagrams/plot_action.svg "Plot Action")
+![Plot Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/plot_action.svg "Plot Action")
 
 The `plot` action consumes various configuration file - usually from different versions of the same model - and generates a visualization consolidating and aggregating inter-model performance, providing the necessary means to analyze the behaviour of different hyper-parameters or model configurations.
 
 - `diff`
 
-![Diff Action](./docs/diagrams/diff_action.svg "Diff Action")
+![Diff Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/diff_action.svg "Diff Action")
 
 The `diff` action consumes two different configuration file - usually from different versions of the same model - and reports their differences related to hyper-parameterization, processing graph variations, etc..
 
 - `reprod`
 
-![Reprod Action](./docs/diagrams/reprod_action.svg "Reprod Action")
+![Reprod Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/reprod_action.svg "Reprod Action")
 
 The `reprod` action consumes a previously logged and resolved configuration file, and facilitates its reproduction by re-executing it while adjusting to development environment differences.
 
