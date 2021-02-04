@@ -1,0 +1,6 @@
+# @package data.train.iterator.datasets._name_
+
+_target_: moai.data.datasets.torchvision.CIFAR10
+root_path: ${CIFAR10_root_path}
+download: true
+split: train
