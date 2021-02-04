@@ -13,7 +13,52 @@ Since it is based on established [open-source packages](#Dependencies), it can b
 - **Reproducibility via Configuration**: _moai_ manages the hyper-parameter sensitive AI R&D workflows via its built-in _configuration-based design_.
 - **Productivity via Minimizing Coding**: _moai_ offers a _data-driven domain modelling language_ (DML) that can facilitates quick & easy model design.
 - **Extensibility via Plugins**: Easily integrate external code using _moai_'s built-in metaprogramming and _external code integration_. 
-- **Understanding via Analysis**: _moai_ supports _inter-model performance and design aggregation_ [**actions**](#) to consolidate knowledge between models and query differences.
+- **Understanding via Analysis**: _moai_ supports _inter-model performance and design aggregation_ [**actions**](#Actions) to consolidate knowledge between models and query differences.
+
+# Actions
+
+_moai_'s offers a set of data-driven workflow functionalities through specific integrated **actions**. These consume _moai_ **configuration files** that describe each action's executed context.
+As _moai_ is built around these configuration files that define its context and describe each model's details, it offers actions that support heavy data-driven workflows with inter-model analytics, knowledge extraction and meticulous reproduction.
+
+Details for each action follow:
+
+- `play`
+
+![Play Action](./docs/diagrams/play_action.svg "Play Action")
+
+Using the `play` action, _moai_ starts the playback of a dataset's `train\val\test` splits. _moai_'s exporters can be used to the extract dataset specific statistics. _moai_'s visualization engine can be used to showcase the dataset. Optionally, monad processing graphs can be defined to transform the data.
+
+- `train`
+
+![Train Action](./docs/diagrams/train_action.svg "Train Action")
+
+The `train` action consumed a configuration file that defines the model that will be trained, the data that will be used to train and validate it, as well as configurating the engine around the training process.
+The results include model states across training and logs including validation metrics and losses.
+
+- `evaluate`
+
+![Evaluate Action](./docs/diagrams/evaluate_action.svg "Evaluate Action")
+
+The `evaluate` action consumes a configuration file that defines the trained model that will be tested, the test data, as well as configurating the engine around the testing process.
+The results include model aggregated and/or detailed metrics, and inference samples.
+
+- `plot`
+
+![Plot Action](./docs/diagrams/plot_action.svg "Plot Action")
+
+The `plot` action consumes various configuration file - usually from different versions of the same model - and generates a visualization consolidating and aggregating inter-model performance, providing the necessary means to analyze the behaviour of different hyper-parameters or model configurations.
+
+- `diff`
+
+![Diff Action](./docs/diagrams/diff_action.svg "Diff Action")
+
+The `diff` action consumes two different configuration file - usually from different versions of the same model - and reports their differences related to hyper-parameterization, processing graph variations, etc..
+
+- `reprod`
+
+![Reprod Action](./docs/diagrams/reprod_action.svg "Reprod Action")
+
+The `reprod` action consumes a previously logged and resolved configuration file, and facilitates its reproduction by re-executing it while adjusting to development environment differences.
 
 # Dependencies
 
@@ -47,7 +92,7 @@ Download the master branch source and install it by opening a command line on th
 
 # Getting Started
 
-Visit the [**documentation**](#) site to learn about _moai_'s DML and the overall MDK design and usage.
+Visit the [**documentation**](https://moai.readthedocs.io/) site to learn about _moai_'s DML and the overall MDK design and usage.
 
 Examples can be found at [**conf/examples**](https://github.com/ai-in-motion/moai/tree/main/moai/conf/examples). 
 
