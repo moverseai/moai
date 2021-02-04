@@ -83,12 +83,11 @@ if __name__ == '__main__':
         install_requires=get_requirements(),
         include_package_data=True,
         python_requires='~=3.7',
-        # py_modules = ['main','train','diff','evaluate','plot','play'],
         package_dir={'moai': 'moai'},
         package_data={'moai': ['conf/**/*.yaml']},
         entry_points={
             'console_scripts': [
-                'moai=moai.__main__:moai',              
+                'moai=moai.__main__:moai',
             ],
         },
         classifiers=[

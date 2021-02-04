@@ -74,14 +74,14 @@ _moai_ stands on the shoulders of giants as it relies on various large scale ope
     - [Kornia](https://github.com/kornia/kornia) for a set of computer vision operations integrated as _moai_ monads.
     - [Albumentations](https://github.com/albumentations-team/albumentations) as the currently supported data augmentation framework.
 
-7. [The Wider Open Source Community](www.github.com) that conducts accessible R&D and drives most of _moai_'s capabilities.
+7. [The Wider Open Source Community](https://www.github.com) that conducts accessible R&D and drives most of _moai_'s capabilities.
 
-8. [A set of awesome Python libraries](#Dependencies) as found in our [**requirements**](https://github.com/ai-in-motion/moai/tree/master/requirements.txt) file.
+8. [A set of awesome Python libraries](https://github.com/ai-in-motion/moai/tree/master/requirements.txt).
 
 # Installation
 
 ## Package
-To install the currently **released** _moai_ version package run:
+To install the latest **released** _moai_ package run:
 
 `pip install moai-mdk`
 
