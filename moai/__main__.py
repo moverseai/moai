@@ -3,6 +3,7 @@ from moai.action.evaluate import evaluate
 from moai.action.play import play
 from moai.action.diff import diff
 from moai.action.plot import plot
+from moai.action.reprod import reprod
 
 import omegaconf.omegaconf
 import hydra
@@ -34,6 +35,7 @@ __MODES__ = {
     'diff': diff,
     'plot': plot,
     'debug': debug,
+    'reprod': reprod,
 }
 
 __MIN_ARGS_COUNT__ = {
@@ -43,10 +45,14 @@ __MIN_ARGS_COUNT__ = {
     'diff': 1,
     'plot': 1,
     'debug': 2,
+    'reprod': 2,
 }
 
 def run(cfg: omegaconf.DictConfig):
-    __MODES__[cfg.mode](cfg)
+    if cfg.reprod:
+        __MODES__[cfg.reprod](cfg)
+    else:
+        __MODES__[cfg.mode](cfg)
 
 def moai():    
     # os.environ['HYDRA_FULL_ERROR'] = '1'
@@ -68,7 +74,10 @@ def moai():
         other_args.append("hydra.output_subdir=null")
     for oarg in other_args:
         sys.argv.append(oarg)
-    sys.argv.append(f"+mode={mode}")
+    if mode != 'reprod':
+        sys.argv.append(f"+mode={mode}")
+    else:
+        sys.argv.append(f"+reprod={mode}")
     main = hydra.main(config_path="conf", config_name=config)(run)
     main()
 
