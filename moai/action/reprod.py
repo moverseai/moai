@@ -4,35 +4,10 @@ import os
 import omegaconf.omegaconf
 import logging
 import typing
+import ipaddress
 from rich.console import Console
 
-import errno, os
-import ipaddress
-
-# Sadly, Python fails to provide the following magic number for us.
-ERROR_INVALID_NAME = 123
-
 log = logging.getLogger(__name__)
-
-def get_conf(path: str) -> omegaconf.OmegaConf:
-    if os.path.splitext(path)[1] != '.yaml':
-        nominal_config_path = os.path.join(path, 'config_resolved.yaml')
-        if os.path.exists(nominal_config_path):
-            path = nominal_config_path
-        elif os.path.basename(path) != '.hydra':
-            path = os.path.join(path, '.hydra') #TODO: merge with overrides
-            path = os.path.join(path, 'config.yaml')
-    return omegaconf.OmegaConf.load(path)
-
-def get_conf_path(path: str) -> omegaconf.OmegaConf:
-    if os.path.splitext(path)[1] != '.yaml':
-        nominal_config_path = os.path.join(path, 'config_resolved.yaml')
-        if os.path.exists(nominal_config_path):
-            path = nominal_config_path
-        elif os.path.basename(path) != '.hydra':
-            path = os.path.join(path, '.hydra') #TODO: merge with overrides
-            path = os.path.join(path, 'config.yaml')
-    return path
 
 def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any]:
     return getattr(cfg, attr) if hasattr(cfg, attr) else None
