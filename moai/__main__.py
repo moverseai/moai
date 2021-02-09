@@ -49,10 +49,11 @@ __MIN_ARGS_COUNT__ = {
 }
 
 def run(cfg: omegaconf.DictConfig):
-    if cfg.reprod:
-        __MODES__[cfg.reprod](cfg)
-    else:
+    reprod_key = "reprod"
+    if not reprod_key in cfg:
         __MODES__[cfg.mode](cfg)
+    else:
+        __MODES__[cfg.reprod](cfg)
 
 def moai():    
     # os.environ['HYDRA_FULL_ERROR'] = '1'
