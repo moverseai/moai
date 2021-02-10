@@ -17,7 +17,7 @@ Since it is based on established [open-source packages](#Dependencies), it can b
 
 # Actions
 
-_moai_'s offers a set of data-driven workflow functionalities through specific integrated **actions**. These consume _moai_ **configuration files** that describe each action's executed context.
+**_moai_** offers a set of data-driven workflow functionalities through specific integrated **actions**. These consume _moai_ **configuration files** that describe each action's executed context.
 As _moai_ is built around these configuration files that define its context and describe each model's details, it offers actions that support heavy data-driven workflows with inter-model analytics, knowledge extraction and meticulous reproduction.
 
 Details for each action follow:
