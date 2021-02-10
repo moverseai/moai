@@ -4,9 +4,6 @@ from moai.monads.filter.highpass.image2d import (
     Sobel2d,
     Diff2d,
 )
-from moai.monads.filter.highpass.panorama import (
-    Laplacian as PanoramaLaplacian2d
-)
 
 import functools
 
@@ -36,5 +33,4 @@ __all__ = [
     "Laplacian2d", 
     "Sobel2d", 
     "Diff2d",
-    "PanoramaLaplacian2d",
 ]

@@ -7,14 +7,18 @@ __all__ = ["Indexed"]
 
 class Indexed(torch.utils.data.Dataset):
     def __init__(self,
-        augmentation: omegaconf.DictConfig,
         datasets: omegaconf.DictConfig,
+        augmentation: omegaconf.DictConfig=None,
     ):
         super(Indexed, self).__init__()
-        self.dataset = hyu.instantiate(
-            augmentation,
-            hyu.instantiate(next(iter(datasets.values())))
-        )
+        if augmentation is not None:
+            self.dataset = hyu.instantiate(
+                augmentation,
+                hyu.instantiate(next(iter(datasets.values())))
+            )
+        else:
+            from moai.data.augmentation import NoOp
+            self.dataset = NoOp(hyu.instantiate(next(iter(datasets.values()))))
 
     def __len__(self) -> int:
         return len(self.dataset)

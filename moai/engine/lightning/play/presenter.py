@@ -1,3 +1,5 @@
+from moai.data.iterator import Indexed
+
 import moai.networks.lightning as minet
 
 import torch
@@ -88,19 +90,46 @@ class Presenter(minet.FeedForward):
         pass
 
     def train_dataloader(self) -> torch.utils.data.DataLoader:
-        log.info(f"Instantiating ({self.data.train.iterator._target_.split('.')[-1]}) train set data iterator")
-        train_iterator = hyu.instantiate(self.data.train.iterator)
-        train_loader = hyu.instantiate(self.data.train.loader, train_iterator)
+        if hasattr(self.data.train.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.train.iterator._target_.split('.')[-1]}) train set data iterator")
+            train_iterator = hyu.instantiate(self.data.train.iterator)
+        else:
+            train_iterator = Indexed(
+                self.data.train.iterator.datasets,
+                self.data.train.iterator.augmentation if hasattr(self.data.train.iterator, 'augmentation') else None,
+            )
+        if not hasattr(self.data.train, 'loader'):
+            log.error("Train data loader missing. Please add a data loader (i.e. \'- data/train/loader: torch\') entry in the configuration.")
+        else:
+            train_loader = hyu.instantiate(self.data.train.loader, train_iterator)
         return train_loader
 
     def val_dataloader(self) -> torch.utils.data.DataLoader:
-        log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
-        val_iterator = hyu.instantiate(self.data.val.iterator)
-        validation_loader = hyu.instantiate(self.data.val.loader, val_iterator)
+        if hasattr(self.data.val.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
+            val_iterator = hyu.instantiate(self.data.val.iterator)
+        else:
+            val_iterator = Indexed(
+                self.data.val.iterator.datasets,
+                self.data.val.iterator.augmentation if hasattr(self.data.val.iterator, 'augmentation') else None,
+            )
+        if not hasattr(self.data.val, 'loader'):
+            log.error("Validation data loader missing. Please add a data loader (i.e. \'- data/val/loader: torch\') entry in the configuration.")
+        else:
+            validation_loader = hyu.instantiate(self.data.val.loader, val_iterator)
         return validation_loader
 
     def test_dataloader(self) -> torch.utils.data.DataLoader:
-        log.info(f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator")
-        test_iterator = hyu.instantiate(self.data.test.iterator)
-        test_loader = hyu.instantiate(self.data.test.loader, test_iterator)
+        if hasattr(self.data.test.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator")
+            test_iterator = hyu.instantiate(self.data.test.iterator)
+        else:
+            test_iterator = Indexed(
+                self.data.test.iterator.datasets,
+                self.data.test.iterator.augmentation if hasattr(self.data.test.iterator, 'augmentation') else None,
+            )
+        if not hasattr(self.data.test, 'loader'):
+            log.error("Test data loader missing. Please add a data loader (i.e. \'- data/test/loader: torch\') entry in the configuration.")
+        else:
+            test_loader = hyu.instantiate(self.data.test.loader, test_iterator)
         return test_loader

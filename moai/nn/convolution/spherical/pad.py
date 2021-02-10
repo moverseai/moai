@@ -32,7 +32,7 @@ horizontal_circular_pad2d = functools.partial(__pad_circular_nd, dim=[3])
 
 class SphericalPad2d(torch.nn.Module):
     def __init__(self,
-        padding:int = 1
+        padding:        int = 1,
     ):
         super(SphericalPad2d, self).__init__()
         self.padding = padding

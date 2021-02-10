@@ -5,6 +5,11 @@ import logging
 
 log = logging.getLogger(__name__)
 
+__all__ = ['CIFAR10', 'CIFAR100']
+
+def _identity(x: torch.Tensor) -> torch.Tensor:
+    return x
+
 class CIFAR10(torchvision.datasets.CIFAR10):
     def __init__(self,
         root_path:      str,
@@ -16,9 +21,9 @@ class CIFAR10(torchvision.datasets.CIFAR10):
             train=split == 'train',
             download=download,
             transform=torchvision.transforms.Compose([
-                torchvision.transforms.RandomCrop(size=32, padding=4),
+                # torchvision.transforms.RandomCrop(size=32, padding=4),
                 torchvision.transforms.RandomHorizontalFlip() if split == 'train'\
-                    else torchvision.transforms.Lambda(lambda x: x),
+                    else torchvision.transforms.Lambda(_identity),
                 torchvision.transforms.ToTensor(),
                 torchvision.transforms.Normalize(
                     mean=(0.4914, 0.4822, 0.4465),
@@ -47,9 +52,9 @@ class CIFAR100(torchvision.datasets.CIFAR100):
             train=split == 'train',
             download=download,
             transform=torchvision.transforms.Compose([
-                torchvision.transforms.RandomCrop(size=32, padding=4),
+                # torchvision.transforms.RandomCrop(size=32, padding=4),
                 torchvision.transforms.RandomHorizontalFlip() if split == 'train'\
-                    else torchvision.transforms.Lambda(lambda x: x),
+                    else torchvision.transforms.Lambda(_identity),
                 torchvision.transforms.ToTensor(),                
                 torchvision.transforms.Normalize(
                     mean=(0.5071, 0.4867, 0.4408),

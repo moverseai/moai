@@ -1,0 +1,19 @@
+defaults:
+  - engine: engine
+  - engine/play: lightning
+  - engine/visualization: collection
+  - engine/visualization/visdom: image2d
+  - data/train/loader: torch
+  - data/train/dataset/torchvision: cifar10
+  - data/test/loader: torch
+  - data/test/dataset/torchvision: cifar10
+
+# @package _global_
+
+CIFAR10_root_path: ???
+
+experiment:
+  visdom_ip: localhost
+  name: CIFAR10_playback
+  batch_size: 8
+  workers: 4

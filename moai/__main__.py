@@ -1,8 +1,15 @@
-from moai.action.train import train
-from moai.action.evaluate import evaluate
-from moai.action.play import play
-from moai.action.diff import diff
-from moai.action.plot import plot
+try:
+    from moai.action.train import train
+    from moai.action.evaluate import evaluate
+    from moai.action.play import play
+    from moai.action.diff import diff
+    from moai.action.plot import plot
+except:
+    from action.train import train
+    from action.evaluate import evaluate
+    from action.play import play
+    from action.diff import diff
+    from action.plot import plot
 
 import omegaconf.omegaconf
 import hydra

@@ -87,7 +87,8 @@ if __name__ == '__main__':
         package_data={'moai': ['conf/**/*.yaml']},
         entry_points={
             'console_scripts': [
-                'moai=moai.__main__:moai',
+                # 'moai=moai.__main__:moai',
+                'moai=moai.__main__',
             ],
         },
         classifiers=[

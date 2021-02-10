@@ -5,11 +5,11 @@ from moai.parameters.optimization.schedule import NoOp as NoScheduling
 from moai.parameters.initialization import Default as NoInit
 from moai.validation import NoOp as NoValidation
 from moai.supervision import NoOp as NoSupervision
+from moai.data.iterator import Indexed
 
 import torch
 import numpy
 import pytorch_lightning
-import torch.utils.data as ptd
 import omegaconf.omegaconf 
 import hydra.utils as hyu
 import typing
@@ -74,6 +74,26 @@ def _create_scheduling_block(
         log.warning("No scheduling used in feedforward model.")
     return hyu.instantiate(cfg, optimizers) if cfg else NoScheduling(optimizers)
 
+def _assign_data(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
+    has_train = hasattr(cfg, 'train')
+    has_test = hasattr(cfg, 'test')
+    has_val = hasattr(cfg, 'val')
+    if not has_train and not has_test and not has_val:
+        log.error("No data have been included in the configuration. Please add the necessary \'- data/[split]/dataset/*: *\' entries.")
+    if not has_test and has_val:
+        test = omegaconf.OmegaConf.create({'test': cfg.val})
+        omegaconf.OmegaConf.set_struct(cfg, False)
+        cfg.merge_with(test)
+        omegaconf.OmegaConf.set_struct(cfg, True)
+        log.warning("No test dataset has been defined, adding the validation dataset as a test dataset.")
+    if not has_val and has_test:
+        val = omegaconf.OmegaConf.create({'val': cfg.test})
+        omegaconf.OmegaConf.set_struct(cfg, False)
+        cfg.merge_with(val)
+        omegaconf.OmegaConf.set_struct(cfg, True)
+        log.warning("No validation dataset has been defined, adding the test dataset as a validation dataset.")
+    return cfg
+
 class FeedForward(pytorch_lightning.LightningModule):
     def __init__(self, 
         data:               omegaconf.DictConfig=None,
@@ -87,7 +107,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
     ):
         super(FeedForward, self).__init__()        
-        self.data = data
+        self.data = _assign_data(data)
         self.initializer = parameters.initialization if parameters is not None else None
         self.optimization_config = parameters.optimization if parameters is not None else None
         self.schedule_config = parameters.schedule if parameters is not None else None
@@ -200,20 +220,47 @@ class FeedForward(pytorch_lightning.LightningModule):
         self.schedule = _create_scheduling_block(self.schedule_config, self.optimization.optimizers)
         return self.optimization.optimizers, self.schedule.schedulers
 
-    def train_dataloader(self) -> ptd.DataLoader:        
-        log.info(f"Instantiating ({self.data.train.iterator._target_.split('.')[-1]}) train set data iterator")
-        train_iterator = hyu.instantiate(self.data.train.iterator)
-        train_loader = hyu.instantiate(self.data.train.loader, train_iterator)
+    def train_dataloader(self) -> torch.utils.data.DataLoader:
+        if hasattr(self.data.train.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.train.iterator._target_.split('.')[-1]}) train set data iterator")
+            train_iterator = hyu.instantiate(self.data.train.iterator)
+        else:
+            train_iterator = Indexed(
+                self.data.train.iterator.datasets,
+                self.data.train.iterator.augmentation if hasattr(self.data.train.iterator, 'augmentation') else None,
+            )
+        if not hasattr(self.data.train, 'loader'):
+            log.error("Train data loader missing. Please add a data loader (i.e. \'- data/train/loader: torch\') entry in the configuration.")
+        else:
+            train_loader = hyu.instantiate(self.data.train.loader, train_iterator)
         return train_loader
 
-    def val_dataloader(self) -> ptd.DataLoader:        
-        log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
-        val_iterator = hyu.instantiate(self.data.val.iterator)
-        validation_loader = hyu.instantiate(self.data.val.loader, val_iterator)
+    def val_dataloader(self) -> torch.utils.data.DataLoader:
+        if hasattr(self.data.val.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
+            val_iterator = hyu.instantiate(self.data.val.iterator)
+        else:
+            val_iterator = Indexed(
+                self.data.val.iterator.datasets,
+                self.data.val.iterator.augmentation if hasattr(self.data.val.iterator, 'augmentation') else None,
+            )
+        if not hasattr(self.data.val, 'loader'):
+            log.error("Validation data loader missing. Please add a data loader (i.e. \'- data/val/loader: torch\') entry in the configuration.")
+        else:
+            validation_loader = hyu.instantiate(self.data.val.loader, val_iterator)
         return validation_loader
 
-    def test_dataloader(self) -> ptd.DataLoader:        
-        log.info(f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator")
-        test_iterator = hyu.instantiate(self.data.test.iterator)
-        test_loader = hyu.instantiate(self.data.test.loader, test_iterator)        
+    def test_dataloader(self) -> torch.utils.data.DataLoader:
+        if hasattr(self.data.test.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator")
+            test_iterator = hyu.instantiate(self.data.test.iterator)
+        else:
+            test_iterator = Indexed(
+                self.data.test.iterator.datasets,
+                self.data.test.iterator.augmentation if hasattr(self.data.test.iterator, 'augmentation') else None,
+            )
+        if not hasattr(self.data.test, 'loader'):
+            log.error("Test data loader missing. Please add a data loader (i.e. \'- data/test/loader: torch\') entry in the configuration.")
+        else:
+            test_loader = hyu.instantiate(self.data.test.loader, test_iterator)
         return test_loader

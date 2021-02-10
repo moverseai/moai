@@ -3,4 +3,4 @@
 _target_: moai.data.datasets.torchvision.CIFAR10
 root_path: ${CIFAR10_root_path}
 download: true
-split: val
+split: test
