@@ -32,7 +32,7 @@ Using the `play` action, _moai_ starts the playback of a dataset's `train\val\te
 
 ![Train Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/train_action.svg "Train Action")
 
-The `train` action consumed a configuration file that defines the model that will be trained, the data that will be used to train and validate it, as well as configurating the engine around the training process.
+The `train` action consumes a configuration file that defines the model that will be trained, the data that will be used to train and validate it, as well as configurating the engine around the training process.
 The results include model states across training and logs including validation metrics and losses.
 
 - _`moai`_ **`evaluate`** `CONFIG_PATH`
@@ -46,7 +46,7 @@ The results include model aggregated and/or detailed metrics, and inference samp
 
 ![Plot Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/plot_action.svg "Plot Action")
 
-The `plot` action consumes various configuration file - usually from different versions of the same model - and generates a visualization consolidating and aggregating inter-model performance, providing the necessary means to analyze the behaviour of different hyper-parameters or model configurations.
+The `plot` action consumes various configuration files - usually from different versions of the same model - and generates a visualization consolidating and aggregating inter-model performance, providing the necessary means to analyze the behaviour of different hyper-parameters or model configurations.
 
 - _`moai`_ **`diff`** `lhs=PATH_TO_CONFIG_A` `rhs=PATH_TO_CONFIG_B`
 
@@ -107,6 +107,7 @@ If you use _moai_ in your R&D workflows or find its code useful please consider 
 
 ```
 @misc{moai,
+    key = {moai: PyTorch Model Development Kit},
     title = {{\textit{moai}: Accelerating modern data-driven workflows}},
     year = {2021},
     publisher = {GitHub},
