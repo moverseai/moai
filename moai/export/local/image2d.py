@@ -94,7 +94,7 @@ class Image2d(Callable):
         ext:                str,
     ) -> int:
         b, _, __, ___ = array.shape
-        for i in range(b):
+        for i in range(b): #NOTE: change to cv2 to support .exr
            torchvision.utils.save_image(
                torch.from_numpy(array)[i, :, :, :], 
                f'{key}_{index + i}.{ext}'

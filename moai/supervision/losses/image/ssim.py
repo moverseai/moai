@@ -30,4 +30,4 @@ class StructuralDisimilarity(kornia.losses.SSIM):
             ssim = ssim * weights
         if mask is not None:
             ssim = ssim[mask]
-        return 
+        return torch.clamp(1.0 - (ssim + 1.0) * 0.5, min=0.0, max=1.0)

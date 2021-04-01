@@ -78,4 +78,4 @@ class ResNet(torch.nn.Module):
         features = [data]
         for _, block in self.block_modules.items():
             features.append(block(features[-1]))
-        return features[-1], features[2:-1]
+        return features[-1], features[2:-1] #TODO: return stem features as well for UNet?

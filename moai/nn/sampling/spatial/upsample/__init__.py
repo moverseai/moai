@@ -15,6 +15,11 @@ __UPSAMPLE_FACTORY__ = {
     "none":                 torch.nn.Identity,
 }
 
+#NOTE: need to implement:
+#  1) upscale->project,
+#  2) project->upscale,
+#  3) transpose conv with spatial and feature size reduction
+
 def _update_upsample_op(name: str, type: typing.Type):
     if name not in __UPSAMPLE_FACTORY__.keys():
         __UPSAMPLE_FACTORY__.update({name: type})
