@@ -1,0 +1,10 @@
+# @package model.supervision
+
+_target_: moai.supervision.Weighted
+losses:
+  cross_entropy:
+    _target_: moai.supervision.losses.classification.CrossEntropy
+    ignore_index: -100
+cross_entropy:
+  pred: prediction
+  gt: label

@@ -1,4 +1,6 @@
 from moai.utils.arguments import assert_choices
+from moai.monads.utils.spatial import spatial_dims
+from collections import namedtuple
 
 import torch
 import functools
@@ -12,6 +14,8 @@ __all__ = ["Interpolate"]
 
 class Interpolate(torch.nn.Module):
     __MODES__ = ['nearest', 'linear', 'bilinear', 'area', 'bicubic', 'trilinear']
+
+    STATIC_PARAMS = namedtuple('params', ['mode', 'align_corners', 'recompute_scale_factor'])
 
     def __init__(self,
         scale:                  float=0.0,
@@ -38,11 +42,15 @@ class Interpolate(torch.nn.Module):
                 align_corners=align_corners if mode != 'nearest' and mode != 'area' else None,
                 recompute_scale_factor=recompute_scale_factor,
             )
+        self.params = Interpolate.STATIC_PARAMS(mode, align_corners, recompute_scale_factor)
 
     def forward(self,
-        image: torch.Tensor
+        image:  torch.Tensor,
+        target: torch.Tensor=None,
     ) -> torch.Tensor:
-        return self.func(image)
+        return self.func(image) if target is None else torch.nn.functional.interpolate(
+            image, size=target.shape[2:], **self.params._asdict()
+        )#TODO: create a common func for spatial dims as tuple/list
 
 BilinearDownsample_x2 = functools.partial(Interpolate,
     mode='bilinear', scale=0.5,

@@ -63,6 +63,11 @@ class LightningTrainer(pytorch_lightning.Trainer):
         automatic_optimization:     bool=True,
         **kwargs
     ):
+        if logging and '_target_' not in logging: #TODO: needs a workaround for other viz types (e.g. not visdom) if they are moved to top level
+            #TODO: wrap config field setting into a helper method
+            omegaconf.OmegaConf.set_struct(logging, False)
+            logging['_target_'] = 'moai.log.lightning.Collection'
+            omegaconf.OmegaConf.set_struct(logging, True)
         logger = hyu.instantiate(logging)\
             if logging is not None else milog.NoOp()
         pytl_callbacks = [hyu.instantiate(c) for c in callbacks.values()]\

@@ -1,4 +1,4 @@
-hydra-core==1.0.3           #TODO: update
+hydra-core==1.0.3           #TODO: update (omegaconf==2.0.2)
 hydra-colorlog==1.0.0
 pytorch-lightning==1.0.7    #TODO: update
 kornia==0.4.1               #TODO: update

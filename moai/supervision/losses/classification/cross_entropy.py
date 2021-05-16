@@ -4,15 +4,18 @@ import torch
 
 __all__ = ["CrossEntropy"]
 
-#TODO: to be refactored into a generic multi-/binary classification loss (/w logits, logs or probs in gt/pred)
+#TODO: to add class weightings
 class CrossEntropy(torch.nn.CrossEntropyLoss):
     def __init__(self,
-    
+        ignore_index: int=-100,        
     ):
-        super(CrossEntropy, self).__init__()
+        super(CrossEntropy, self).__init__(            
+            ignore_index=ignore_index,
+            reduction='none'
+        )
 
     def forward(self, 
-        gt: torch.Tensor, # class ids
-        pred: torch.Tensor, # logits (i.e. raw predictions, no softmax applied -- see link above)
+        gt: torch.Tensor, # class ids [B, 1, ...]
+        pred: torch.Tensor, # logits [B, C, ...] (i.e. raw predictions, no softmax applied -- see link above)
     ) -> torch.Tensor:
         return super(CrossEntropy, self).forward(pred, gt)

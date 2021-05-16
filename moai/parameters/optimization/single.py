@@ -13,6 +13,7 @@ class Optimizer(mieng.Single):
     def __init__(self,        
         parameters: typing.Iterator[torch.nn.Parameter],
         optimizers: omegaconf.DictConfig,
+        **kwargs,
     ):
         super(Optimizer, self).__init__(
             items=optimizers, 

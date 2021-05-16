@@ -1,0 +1,16 @@
+# @package model.parameters.optimization
+
+_target_: moai.parameters.optimization.Single
+lr: 0.0001
+betas: [0.9, 0.999]
+eps: 1e-8
+weight_decay: 0.0
+amsgrad: false
+optimizers:
+  adam:
+    _target_: torch.optim.Adam
+    lr: ${model.parameters.optimization.lr}
+    betas: ${model.parameters.optimization.betas}
+    eps: ${model.parameters.optimization.eps}
+    weight_decay: ${model.parameters.optimization.weight_decay}
+    amsgrad: ${model.parameters.optimization.amsgrad}

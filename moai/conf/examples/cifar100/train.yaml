@@ -1,0 +1,15 @@
+defaults:
+  - engine: engine
+  - engine/train: lightning
+  - engine/visualization: visdom_cifar
+  - engine/log/lightning/logger: visdom
+  - data: cifar100
+  - model/networks: lightning/custom/cifar100_vgg11_bn
+  - model/supervision: cifar
+  - model/parameters/optimization: sgd
+  - model/validation: cifar
+
+CIFAR100_root_path: ???
+
+experiment:
+  name: CIFAR100_classification

@@ -31,6 +31,7 @@ class Weighted(torch.nn.ModuleDict):
             self.add_module(k, hyu.instantiate(getattr(losses, k)))
             last_module = toolz.last(self.modules()) # moduledict is ordered
             sig = inspect.signature(last_module.forward)
+            p = toolz.valmap(ensure_string_list, p)
             if 'out' not in p:
                 length = len(ensure_string_list(next(iter(p.values()))))
                 p['out'] = [k] if length == 1 else [f'{k}_{i}' for i in range(length)]

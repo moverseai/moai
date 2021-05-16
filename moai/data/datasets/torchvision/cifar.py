@@ -7,6 +7,27 @@ log = logging.getLogger(__name__)
 
 __all__ = ['CIFAR10', 'CIFAR100']
 
+#NOTE: normalization values taken from: https://github.com/kuangliu/pytorch-cifar/issues/19
+
+__NORM_MEAN_STD__ = {
+    'CIFAR10': {
+        'mean': torch.Tensor([
+            [[0.49139968]],     [[0.48215841]],     [[0.44653091]]
+        ]),
+        'std': torch.Tensor([
+            [[0.24703223]],     [[0.24348513]],     [[0.26158784]]
+        ]),
+    },
+    'CIFAR100': {
+        'mean': torch.Tensor([
+            [[0.50707516]],     [[0.48654887]],     [[0.44091784]]
+        ]),
+        'std': torch.Tensor([
+            [[0.26733429]],     [[0.25643846]],     [[0.27615047]]
+        ]),
+    }
+}
+
 def _identity(x: torch.Tensor) -> torch.Tensor:
     return x
 
@@ -26,8 +47,8 @@ class CIFAR10(torchvision.datasets.CIFAR10):
                     else torchvision.transforms.Lambda(_identity),
                 torchvision.transforms.ToTensor(),
                 torchvision.transforms.Normalize(
-                    mean=(0.4914, 0.4822, 0.4465),
-                    std=(0.2470, 0.2435, 0.2616),
+                    mean=__NORM_MEAN_STD__[__class__.__name__]['mean'].squeeze().tolist(),
+                    std=__NORM_MEAN_STD__[__class__.__name__]['std'].squeeze().tolist(),
                     inplace=True,
                 )
             ])
@@ -39,6 +60,8 @@ class CIFAR10(torchvision.datasets.CIFAR10):
         return {
             'color': image,
             'label': label,
+            'dataset_mean': __NORM_MEAN_STD__[__class__.__name__]['mean'],
+            'dataset_std': __NORM_MEAN_STD__[__class__.__name__]['std'],
         }
 
 class CIFAR100(torchvision.datasets.CIFAR100):
@@ -57,8 +80,8 @@ class CIFAR100(torchvision.datasets.CIFAR100):
                     else torchvision.transforms.Lambda(_identity),
                 torchvision.transforms.ToTensor(),                
                 torchvision.transforms.Normalize(
-                    mean=(0.5071, 0.4867, 0.4408),
-                    std=(0.2675, 0.2565, 0.2761),
+                    mean=__NORM_MEAN_STD__[__class__.__name__]['mean'].squeeze().tolist(),
+                    std=__NORM_MEAN_STD__[__class__.__name__]['std'].squeeze().tolist(),
                     inplace=True,
                 )
             ])
@@ -70,4 +93,6 @@ class CIFAR100(torchvision.datasets.CIFAR100):
         return {
             'color': image,
             'label': label,
+            'dataset_mean': __NORM_MEAN_STD__[__class__.__name__]['mean'],
+            'dataset_std': __NORM_MEAN_STD__[__class__.__name__]['std'],
         }

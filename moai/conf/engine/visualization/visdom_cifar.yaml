@@ -1,0 +1,14 @@
+# @package visualization
+
+_target_: moai.visualization.Collection
+batch_interval: 1
+visualizers:
+  image2d:
+    _target_: moai.visualization.visdom.Image2d
+    name: ${experiment.name}
+    ip: "localhost" # pay attention this __NEEDS__ to be a "string"
+    batch_percentage: 1.0
+    keys: [color]
+    types: [color]
+    colormaps: [none]
+    transforms: [dataset]

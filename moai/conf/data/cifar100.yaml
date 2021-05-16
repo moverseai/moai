@@ -1,0 +1,33 @@
+# @package data
+
+train:
+  loader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: 32
+    shuffle: true
+    num_workers: 4
+    pin_memory: false
+    drop_last: false
+  iterator:
+    datasets:
+      cifar100:
+        _target_: moai.data.datasets.torchvision.CIFAR100
+        root_path: ${CIFAR100_root_path}
+        download: true
+        split: train
+
+test:
+  loader:
+    _target_: torch.utils.data.DataLoader
+    batch_size: 32
+    shuffle: false
+    num_workers: 4
+    pin_memory: false
+    drop_last: false
+  iterator:
+    datasets:
+      cifar100:
+        _target_: moai.data.datasets.torchvision.CIFAR100
+        root_path: ${CIFAR100_root_path}
+        download: true
+        split: test

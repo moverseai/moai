@@ -1,0 +1,1 @@
+from moai.networks.lightning.torchvision.classifier import Classifier

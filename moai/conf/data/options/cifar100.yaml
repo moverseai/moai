@@ -1,0 +1,19 @@
+# @package data
+
+train:
+  loader:
+    batch_size: 32
+    num_workers: 4
+  iterator:
+    datasets:
+      cifar100:
+        download: true
+
+test:
+  loader:
+    batch_size: 32
+    num_workers: 1
+  iterator:
+    datasets:
+      cifar100:
+        download: true

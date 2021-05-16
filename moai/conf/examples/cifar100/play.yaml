@@ -2,9 +2,9 @@ defaults:
   - engine: engine
   - engine/play: lightning
   - engine/visualization/dataset: cifar
-  - data: cifar10
+  - data: cifar100
 
-CIFAR10_root_path: ???
+CIFAR100_root_path: ???
 
 experiment:
-  name: CIFAR10_playback
+  name: CIFAR100_playback

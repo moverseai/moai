@@ -3,8 +3,14 @@ from moai.utils.engine import NoOp as NoInterval
 from moai.parameters.optimization import NoOp as NoOptimization
 from moai.parameters.optimization.schedule import NoOp as NoScheduling
 from moai.parameters.initialization import Default as NoInit
-from moai.validation import NoOp as NoValidation
-from moai.supervision import NoOp as NoSupervision
+from moai.validation import (
+    NoOp as NoValidation,
+    Collection as DefaultValidation,
+)
+from moai.supervision import (
+    NoOp as NoSupervision,
+    Weighted as DefaultSupervision,
+)
 from moai.data.iterator import Indexed
 
 import torch
@@ -27,15 +33,25 @@ def _create_supervision_block(
 ):
     if force and not cfg:
         log.warning("Empty supervision block in feedforward model.")
-    return hyu.instantiate(cfg) if cfg else NoSupervision()
+    if not cfg:
+        return NoSupervision()
+    if '_target_' not in cfg:
+        return DefaultSupervision(**cfg)
+    else:
+        return hyu.instantiate(cfg)
 
 def _create_validation_block(
     cfg: omegaconf.DictConfig,
     force: bool=True
 ):
     if force and not cfg:
-        log.warning("Empty validation block in feedforward model.")
-    return hyu.instantiate(cfg) if cfg else NoValidation()
+        log.warning("Empty validation block in feedforward model.")    
+    if not cfg:
+        return NoValidation()
+    if '_target_' not in cfg:
+        return DefaultValidation(**cfg)
+    else:
+        return hyu.instantiate(cfg)
 
 def _create_processing_block(
     cfg: omegaconf.DictConfig, 
@@ -63,7 +79,12 @@ def _create_optimization_block(
 ):
     if force and not cfg:
         log.warning("No optimizer in feedforward model.")
-    return hyu.instantiate(cfg, params) if cfg else NoOptimization(params)
+    return hyu.instantiate(
+        # cfg,
+        #TODO: hack to get resolved values, should update when omegaconf 2.1 is out and explicit resolve is available
+        omegaconf.OmegaConf.create(omegaconf.OmegaConf.to_container(cfg, resolve=True)),
+        params
+    ) if cfg else NoOptimization(params)
 
 def _create_scheduling_block(
     cfg: omegaconf.DictConfig, 
@@ -85,13 +106,13 @@ def _assign_data(cfg: omegaconf.DictConfig) -> omegaconf.DictConfig:
         omegaconf.OmegaConf.set_struct(cfg, False)
         cfg.merge_with(test)
         omegaconf.OmegaConf.set_struct(cfg, True)
-        log.warning("No test dataset has been defined, adding the validation dataset as a test dataset.")
+        log.warning("No test dataset has been defined, using the validation dataset as a test dataset.")
     if not has_val and has_test:
         val = omegaconf.OmegaConf.create({'val': cfg.test})
         omegaconf.OmegaConf.set_struct(cfg, False)
         cfg.merge_with(val)
         omegaconf.OmegaConf.set_struct(cfg, True)
-        log.warning("No validation dataset has been defined, adding the test dataset as a validation dataset.")
+        log.warning("No validation dataset has been defined, using the test dataset as a validation dataset.")
     return cfg
 
 class FeedForward(pytorch_lightning.LightningModule):

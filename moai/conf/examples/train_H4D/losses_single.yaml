@@ -1,6 +1,0 @@
-model:
-  supervision:
-    L2:
-      gt: [heatmaps_gt]
-      pred: [heatmaps_t_4]
-      

@@ -1,0 +1,15 @@
+# @package model.parameters.optimization
+
+_target_: moai.parameters.optimization.Single
+lr: 0.01
+momentum: 0.9
+weight_decay: 0.0
+dampening: 0.0
+nesterov: false
+optimizers:
+  adam:
+    _target_: torch.optim.SGD
+    lr: ${model.parameters.optimization.lr}
+    momentum: ${model.parameters.optimization.momentum}
+    dampening: ${model.parameters.optimization.dampening}
+    nesterov: ${model.parameters.optimization.nesterov}
