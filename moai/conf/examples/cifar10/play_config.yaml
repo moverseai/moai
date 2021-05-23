@@ -4,15 +4,15 @@ defaults:
   
   - engine/visualization: collection
   - engine/visualization/visdom: image2d
-  - engine/visualization/options: cifar
+  - engine/visualization/defaults: cifar
 
   - data/train/loader: torch
   - data/train/dataset/torchvision: cifar10
   - data/test/loader: torch
   - data/test/dataset/torchvision: cifar10
-  - data/options: cifar10
+  - data/defaults: cifar10
 
-CIFAR10_root_path: ???
+DATA_ROOT: ???
 
 experiment:
   name: CIFAR10_playback

@@ -1,0 +1,8 @@
+# @package model.architecture
+
+_target_: torchvision.models.MNASNet
+pretrained: false
+progress: true
+num_classes: ${NUM_CLASSES}
+dropout: 0.2
+alpha: ???

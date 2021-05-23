@@ -30,13 +30,13 @@ class Classified(torch.nn.Module):
         class_indices = torch.arange(num_classes).to(pred.device)
         classes = torch.argmax(pred, dim=1).view(b, 1, -1)
         gt = gt.view(b, 1, -1)
-        correct = self.pred_rel(pred, class_indices) & self.gt_rel(gt, class_indices)
+        correct = self.pred_rel(classes, class_indices) & self.gt_rel(gt, class_indices)
         correct = correct.float()
         if weights is not None:
             correct = correct * weights
         if mask is not None:
             correct = correct[mask]
-        return correct.sum(dim=0)
+        return correct.sum(dim=0).squeeze()
 
 TruePositive = partial(Classified, prediction='eq', groundtruth='eq')
 TrueNegative = partial(Classified, prediction='neq', groundtruth='neq')

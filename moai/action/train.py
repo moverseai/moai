@@ -5,6 +5,8 @@ import omegaconf.omegaconf
 import logging
 import typing
 
+from moai.engine.callbacks import ModelCallbacks
+
 log = logging.getLogger(__name__)
 
 def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any]:
@@ -22,9 +24,10 @@ def train(cfg):
         visualization=assign(cfg, "visualization"),
         export=assign(cfg, "export"),    
     )
-    model.initialize_parameters()
+    model.initialize_parameters()    
     trainer = hydra.utils.instantiate(cfg.trainer, 
-        logging=assign(cfg, "logging")
+        logging=assign(cfg, "logging"),
+        model_callbacks=ModelCallbacks(model=model),
     )
     log.info("Training started.")     
     trainer.run(model)

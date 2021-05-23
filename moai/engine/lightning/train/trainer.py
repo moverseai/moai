@@ -14,6 +14,7 @@ class LightningTrainer(pytorch_lightning.Trainer):
         checkpoint:                 omegaconf.DictConfig=None,
         regularization:             omegaconf.DictConfig=None,
         callbacks:                  omegaconf.DictConfig=None,
+        model_callbacks:            typing.Sequence[pytorch_lightning.Callback]=None,
         default_root_dir:           typing.Optional[str]=None,
         gradient_clip_val:          float=0.0,
         process_position:           int=0,
@@ -78,6 +79,8 @@ class LightningTrainer(pytorch_lightning.Trainer):
             checkpoint_callback = True
         if regularization is not None:
             pytl_callbacks.append(hyu.instantiate(regularization))
+        if model_callbacks:
+            pytl_callbacks.extend(model_callbacks)
         super(LightningTrainer, self).__init__(
             logger=logger,
             checkpoint_callback=checkpoint_callback,

@@ -3,4 +3,4 @@
 _target_: torchvision.models.vgg16_bn
 pretrained: false
 progress: true
-num_classes: 1000
+num_classes: ${NUM_CLASSES}

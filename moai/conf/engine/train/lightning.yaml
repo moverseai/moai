@@ -31,7 +31,7 @@ num_nodes: 0 # only for the distributed case / number of GPU nodes for distribut
 num_processes: 1
 ### ___gpus___ MUST BE STRING TO OVERCOME HYDRA/LIGHTNING TYPE ISSUES
 ### NOTE: see https://pytorch-lightning.readthedocs.io/en/stable/multi_gpu.html#select-gpu-devices 
-#gpus: "1" # comment out or zero (0) for cpu mode, -1 means all available gpus, otherwise int or list of ints or comma separated string
+gpus: null #"1" # comment out or zero (0) for cpu mode, -1 means all available gpus, otherwise int or list of ints or comma separated string
 #tpu_cores: 0 # How many TPU cores to train on (1 or 8) / Single TPU to train on [1] #NOTE: keep commented out not to use
 precision: 32 # Full precision (32), half precision (16).
 benchmark: false # if true enables cudnn benchmark

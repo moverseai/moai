@@ -1,7 +1,7 @@
 from moai.networks.lightning.feedforward import FeedForward
-from moai.networks.lightning.custom import Custom
+from moai.networks.lightning.wrapper import Wrapper
 
 __all__ = [
-    "Custom",
+    "Wrapper",
     "FeedForward",
 ]

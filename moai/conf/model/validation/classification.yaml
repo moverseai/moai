@@ -1,15 +1,13 @@
 # @package model.validation
 
-_target_: moai.validation.Collection
-# @package model.validation.metrics._name_
+_target_: moai.validation.Classification
 metrics:
   top_accuracy:
     _target_: moai.validation.metrics.common.TopAccuracy
   top5_accuracy:
     _target_: moai.validation.metrics.common.Top5Accuracy
-top_accuracy:
-  gt: [label]
-  pred: [prediction]
-top5_accuracy:
-  gt: [label]
-  pred: [prediction]
+gt: [label]
+pred: [prediction]
+weights: []
+mask: null
+mode: total # or int / class_id

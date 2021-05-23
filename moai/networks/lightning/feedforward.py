@@ -195,7 +195,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         metrics = { }
         for key in keys:
             metrics[key] = numpy.mean(numpy.array(
-                [d[key].item() for d in outputs]
+                [d[key].item() for d in outputs if key in d]
             ))        
         self.log_dict(metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
         log_metrics = toolz.keymap(lambda k: f"val_{k}", metrics)

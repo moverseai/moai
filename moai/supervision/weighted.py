@@ -42,7 +42,7 @@ class Weighted(torch.nn.ModuleDict):
                 wgts = itertools.cycle([1.0 / len(p['out'])])
             reduction = p['reduction'] if 'reduction' in p else 'mean'
             #TODO: there is a bug if you pass in keys that are not bracketed ([]), i.e. as a list, even for a single arg
-            for keys in zip(*list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p[prop] is not None)):
+            for keys in zip(*list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p.get(prop) is not None)):
                 self.execs.append(lambda tensor_dict, k=keys, p=sig.parameters.keys(), f=last_module:
                     tensor_dict.update({
                         k[-1]: f(**dict(zip(p, 

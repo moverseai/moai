@@ -3,14 +3,14 @@ defaults:
   - engine/train: lightning
   - engine/visualization: visdom_cifar
   - engine/log/lightning/logger: visdom
-  - data: cifar100
+  - data: cifar10
   - model/networks: lightning/classification/vgg11_bn
   - model/supervision: classification
   - model/parameters/optimization: sgd
   - model/validation: classification
 
-NUM_CLASSES: 100
+NUM_CLASSES: 10
 DATA_ROOT: ???
 
 experiment:
-  name: CIFAR100_classification
+  name: CIFAR10_classification

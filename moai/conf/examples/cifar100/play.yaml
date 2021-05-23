@@ -4,7 +4,7 @@ defaults:
   - engine/visualization/dataset: cifar
   - data: cifar100
 
-CIFAR100_root_path: ???
+DATA_ROOT: ???
 
 experiment:
   name: CIFAR100_playback

@@ -12,7 +12,7 @@ train:
     datasets:
       cifar100:
         _target_: moai.data.datasets.torchvision.CIFAR100
-        root_path: ${CIFAR100_root_path}
+        root_path: ${DATA_ROOT}
         download: true
         split: train
 
@@ -28,6 +28,6 @@ test:
     datasets:
       cifar100:
         _target_: moai.data.datasets.torchvision.CIFAR100
-        root_path: ${CIFAR100_root_path}
+        root_path: ${DATA_ROOT}
         download: true
         split: test

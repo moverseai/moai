@@ -1,0 +1,9 @@
+# @package model.architecture
+
+_target_: torchvision.models.densenet169
+pretrained: false
+progress: true
+num_classes: ${NUM_CLASSES}
+bn_size: 4
+drop_rate: 0
+memory_efficient: false

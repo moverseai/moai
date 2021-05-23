@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 __all__ = ["Default"]
 
 class Default(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         pass
 
     def __call__(self, model: torch.nn.Module) -> None:

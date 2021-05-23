@@ -3,14 +3,14 @@ defaults:
   - engine/play: lightning
   - engine/visualization: collection
   - engine/visualization/visdom: image2d
-  - engine/visualization/options: cifar
+  - engine/visualization/defaults: cifar
   - data/train/loader: torch
   - data/train/dataset/torchvision: cifar100
   - data/test/loader: torch
   - data/test/dataset/torchvision: cifar100
-  - data/options: cifar100
+  - data/defaults: cifar100
 
-CIFAR100_root_path: ???
+DATA_ROOT: ???
 
 experiment:
   name: CIFAR100_playback

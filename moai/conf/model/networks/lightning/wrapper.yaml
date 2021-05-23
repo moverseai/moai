@@ -1,5 +1,5 @@
 # @package model
 
-_target_: moai.networks.lightning.Custom
+_target_: moai.networks.lightning.Wrapper
 configuration:
   io: ???

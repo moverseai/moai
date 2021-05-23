@@ -10,11 +10,11 @@ import inspect
 
 log = logging.getLogger(__name__)
 
-__all__ = ['Custom']
+__all__ = ['Wrapper']
 
-class Custom(minet.FeedForward):
+class Wrapper(minet.FeedForward):
     def __init__(self,
-        custom:         omegaconf.DictConfig,
+        inner:          omegaconf.DictConfig,
         configuration:  omegaconf.DictConfig,
         data:           omegaconf.DictConfig=None,
         parameters:     omegaconf.DictConfig=None,
@@ -25,13 +25,13 @@ class Custom(minet.FeedForward):
         visualization:  omegaconf.DictConfig=None,
         export:         omegaconf.DictConfig=None,
     ):
-        super(Custom, self).__init__(
+        super(Wrapper, self).__init__(
             feedforward=feedforward, monads=monads, 
             visualization=visualization, data=data,
             supervision=supervision, validation=validation, 
             export=export, parameters=parameters,
         )         
-        self.model = hyu.instantiate(custom)
+        self.model = hyu.instantiate(inner)
         self.fwds = []
         params = inspect.signature(self.model.forward).parameters
         model_in = list(zip(*[mirtp.force_list(configuration.io[prop]) for prop in params]))
