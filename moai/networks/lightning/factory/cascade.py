@@ -8,8 +8,7 @@ import inspect
 import hydra.utils as hyu
 import omegaconf.omegaconf
 import typing
-import logging 
-import toolz
+import logging
 
 __all__ = ['Cascade']
 
