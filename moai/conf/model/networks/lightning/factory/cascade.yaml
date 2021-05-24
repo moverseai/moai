@@ -1,0 +1,10 @@
+# @package model
+
+_target_: moai.networks.lightning.factory.Cascade
+configuration:
+  branch1:
+    # in: ???
+    out: ???
+  branch2:
+    # in: ???
+    out: ???
