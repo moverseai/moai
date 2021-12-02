@@ -31,7 +31,7 @@ class Pretrained(object):
             model.hparams = ckpt_hparams \
                 if isinstance(ckpt_hparams, types.SimpleNamespace) \
                     else types.SimpleNamespace(**ckpt_hparams)
-        if isinstance(model, minet.Custom):
+        if isinstance(model, minet.Wrapper):
             model.model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
         else:
             model.load_state_dict(checkpoint['state_dict'], strict=self.strict)

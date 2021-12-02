@@ -63,7 +63,7 @@ class Cascade(minet.FeedForward):
             get_mod_filler = iter(mod_res_fill)
             
             self.mod_fwds[name] = []
-            for keys in mod_in:
+            for keys in mod_in: #TODO: check if feedforward to ignore filler
                 self.mod_fwds[name].append(lambda td,
                     tk=keys,
                     args=params.keys(), 

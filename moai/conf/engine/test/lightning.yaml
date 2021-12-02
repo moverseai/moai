@@ -23,6 +23,7 @@ amp_level: O2
 prepare_data_per_node: true
 replace_sampler_ddp: true
 #distributed_backend: null
+gpus: null #"1" # comment out or zero (0) for cpu mode, -1 means all available gpus, otherwise int or list of ints or comma separated string
 
 ################
 ### log options

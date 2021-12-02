@@ -13,9 +13,9 @@ class CrossEntropy(torch.nn.CrossEntropyLoss):
             ignore_index=ignore_index,
             reduction='none'
         )
-
+    #NOTE: check for consistency with other components using label maps for channel dim (i.e. [B, 1, ...] or [B, ...])
     def forward(self, 
-        gt: torch.Tensor, # class ids [B, 1, ...]
+        gt: torch.Tensor, # class ids [B, ...]
         pred: torch.Tensor, # logits [B, C, ...] (i.e. raw predictions, no softmax applied -- see link above)
     ) -> torch.Tensor:
         return super(CrossEntropy, self).forward(pred, gt)
