@@ -32,7 +32,7 @@ class Pretrained(object):
                 if isinstance(ckpt_hparams, types.SimpleNamespace) \
                     else types.SimpleNamespace(**ckpt_hparams)
         if isinstance(model, minet.Wrapper):
-            model.model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
+            model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
         else:
             model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
             model.on_load_checkpoint(checkpoint) #NOTE: check why this is needed

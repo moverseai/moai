@@ -5,6 +5,7 @@ from moai.monads.geometry.transform_ops import (
     Inverse,
     Transpose
 )
+from moai.monads.geometry.camera import WeakPerspective as WeakPerspectiveCamera
 
 __all__ = [
     "Projection",
@@ -12,4 +13,5 @@ __all__ = [
     "Relative",
     "Inverse",
     "Transpose",
+    "WeakPerspectiveCamera",
 ]

@@ -7,6 +7,8 @@ images: ['']
 poses: [''] # one of [human_pose2d]
 gt: ['']
 pred: ['']
+gt_masks: ['']
+pred_masks: ['']
 pose_structure: ???
 transparency: 0.5
 coords: [ndc]

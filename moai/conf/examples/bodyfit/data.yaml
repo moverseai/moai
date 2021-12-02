@@ -1,0 +1,39 @@
+# @package _global_
+
+openpose_root: ???
+
+data:
+  train:
+    iterator:      
+      datasets:
+        openpose:
+          image_glob: ${openpose_root}\images\*.jpg
+          keypoints_glob: ${openpose_root}\keypoints\*.json
+          load_face: true
+          load_hands: true
+          load_face_contour: false
+          single_person_only: true
+          invalid_joints: [1, 9, 12]
+
+  test:
+    iterator:
+      datasets:
+        openpose:
+          image_glob: ${openpose_root}\images\*.jpg
+          keypoints_glob: ${openpose_root}\keypoints\*.json
+          load_face: true
+          load_hands: true
+          load_face_contour: false
+          single_person_only: true
+          invalid_joints: [1, 9, 12]
+
+  val:
+    iterator:
+      openpose:
+          image_glob: ${openpose_root}\images\*.jpg
+          keypoints_glob: ${openpose_root}\keypoints\*.json
+          load_face: true
+          load_hands: true
+          load_face_contour: false
+          single_person_only: true
+          invalid_joints: [1, 9, 12]

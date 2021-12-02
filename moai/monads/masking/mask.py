@@ -1,3 +1,5 @@
+import functools
+import typing
 import torch
 import logging
 
@@ -31,3 +33,15 @@ class Mask(torch.nn.Module):
         else:
             tensor[m] = self.value
         return tensor
+
+class Index(torch.nn.Module):
+    def __init__(self,
+        indices:    typing.Sequence[int],
+        dim:        int=1,        
+    ):
+        super(Index, self).__init__()
+        self.index = functools.partial(torch.index_select, dim=dim)
+        self.register_buffer("indices", torch.tensor(list(indices), dtype=torch.long))
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+            return self.index(input=tensor, index=self.indices)

@@ -1,4 +1,3 @@
-import moai.checkpoint.lightning as mickpt
 import moai.log.lightning as milog
 
 import pytorch_lightning
@@ -17,10 +16,13 @@ class LightningTrainer(pytorch_lightning.Trainer):
         model_callbacks:            typing.Sequence[pytorch_lightning.Callback]=None,
         default_root_dir:           typing.Optional[str]=None,
         gradient_clip_val:          float=0.0,
+        gradient_clip_algorithm:    str='norm', #NOTE: @PTL1.5    
         process_position:           int=0,
         num_nodes:                  int=1,
         num_processes:              int=1,
+        devices:                    typing.Optional[typing.Union[typing.List[int], str, int]]=None,
         gpus:                       typing.Optional[typing.Union[typing.List[int], str, int]]=None,
+        # https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html#select-gpu-devices
         auto_select_gpus:           bool=False,
         tpu_cores:                  typing.Optional[typing.Union[typing.List[int], str, int]]=None,
         log_gpu_memory:             typing.Optional[str]=None,
@@ -37,31 +39,39 @@ class LightningTrainer(pytorch_lightning.Trainer):
         limit_train_batches:        typing.Union[int, float]=1.0,
         limit_val_batches:          typing.Union[int, float]=1.0,
         limit_test_batches:         typing.Union[int, float]=1.0,
+        limit_predict_batches:      typing.Union[int, float]=1.0, #NOTE: @PTL1.5
         val_check_interval:         typing.Union[int, float]=1.0,
         flush_logs_every_n_steps:   int=100,
         log_every_n_steps:          int=10,
         accelerator:                typing.Optional[typing.Union[str, pytorch_lightning.accelerators.Accelerator]]=None,
+        strategy:                   str=None,
         sync_batchnorm:             bool=False,
         precision:                  int=32,
+        enable_model_summary:       bool=True,
         weights_summary:            typing.Optional[str]='full',
         weights_save_path:          typing.Optional[str]=None,
         num_sanity_val_steps:       int=2,
-        truncated_bptt_steps:       typing.Optional[int]=None,
+         #NOTE: @PTL1.5 truncated_bptt_steps:       typing.Optional[int]=None,
         resume_from_checkpoint:     typing.Optional[str]=None,
         profiler:                   typing.Optional[typing.Union[pytorch_lightning.profiler.BaseProfiler, bool, str]]=None,
         benchmark:                  bool=False,
         deterministic:              bool=True,
         reload_dataloaders_every_epoch: bool=False,
-        auto_lr_find:               typing.Union[bool, str]=False,
+        reload_dataloaders_every_n_epochs: int=0,
+        auto_lr_find:               typing.Union[bool, str]=False,        
         replace_sampler_ddp:        bool=True,
-        terminate_on_nan:           bool=False,
+        detect_anomaly:             bool=False, #NOTE: @PTL1.5
         auto_scale_batch_size:      typing.Union[str, bool]=False,
         prepare_data_per_node:      bool=True,
         plugins:                    typing.Optional[list]=None,
         amp_backend:                str='native',
         amp_level:                  str='O2',
-        distributed_backend:        typing.Optional[str]=None,
-        automatic_optimization:     bool=True,
+        move_metrics_to_cpu:        bool=False, #NOTE: @PTL1.5
+        terminate_on_nan:           bool=False,
+        multiple_trainloader_mode:  str="max_size_cycle",
+        stochastic_weight_avg:      bool=False,                        
+        #NOTE: @PTL1.5 distributed_backend:        typing.Optional[str]=None,
+        #NOTE: @PTL1.5 automatic_optimization:     bool=True,
         **kwargs
     ):
         if logging and '_target_' not in logging: #TODO: needs a workaround for other viz types (e.g. not visdom) if they are moved to top level
@@ -87,8 +97,10 @@ class LightningTrainer(pytorch_lightning.Trainer):
             callbacks=pytl_callbacks,
             default_root_dir=None if not default_root_dir else default_root_dir,
             gradient_clip_val=gradient_clip_val,
+            gradient_clip_algorithm=gradient_clip_algorithm, #NOTE: @PTL1.5
             process_position=process_position,
             num_nodes=num_nodes,
+            devices=devices, #NOTE @PTL1.5 #TODO: check if needed
             gpus=gpus,
             auto_select_gpus=auto_select_gpus,
             tpu_cores=tpu_cores,
@@ -103,34 +115,44 @@ class LightningTrainer(pytorch_lightning.Trainer):
             min_epochs=min_epochs,
             max_steps=max_steps,
             min_steps=min_steps,
+            max_time=None, #NOTE @PTL1.5 #TODO: check if needed
             limit_train_batches=limit_train_batches,
             limit_val_batches=limit_val_batches,
             limit_test_batches=limit_test_batches,
+            limit_predict_batches=limit_predict_batches, #NOTE: @PTL1.5
             val_check_interval=val_check_interval,
             flush_logs_every_n_steps=flush_logs_every_n_steps,
             log_every_n_steps=log_every_n_steps,
             accelerator=accelerator,
+            strategy=strategy, #NOTE: @PTL1.5
             sync_batchnorm=sync_batchnorm,
             precision=precision,
+            enable_model_summary=enable_model_summary,
             weights_summary=weights_summary,
             weights_save_path=weights_save_path,
             num_sanity_val_steps=num_sanity_val_steps,
-            truncated_bptt_steps=truncated_bptt_steps,
+             #NOTE: @PTL1.5 truncated_bptt_steps=truncated_bptt_steps,
             resume_from_checkpoint=resume_from_checkpoint,
             profiler=profiler,
             benchmark=benchmark,
             deterministic=deterministic,
             reload_dataloaders_every_epoch=reload_dataloaders_every_epoch,
+            reload_dataloaders_every_n_epochs=reload_dataloaders_every_n_epochs,
             auto_lr_find=auto_lr_find,
+            detect_anomaly=detect_anomaly, #NOTE: @PTL1.5
             replace_sampler_ddp=replace_sampler_ddp,
             terminate_on_nan=terminate_on_nan,
             auto_scale_batch_size=auto_scale_batch_size,
             prepare_data_per_node=prepare_data_per_node,
             plugins=plugins,
             amp_backend=amp_backend,            
-            distributed_backend=distributed_backend,
+            #NOTE: @PTL1.5 fixdistributed_backend=distributed_backend,
             amp_level=amp_level,
-            automatic_optimization=automatic_optimization,
+            #NOTE: @PTL1.5 fixautomatic_optimization=automatic_optimization,
+            move_metrics_to_cpu=move_metrics_to_cpu,
+            multiple_trainloader_mode=multiple_trainloader_mode,
+            stochastic_weight_avg=stochastic_weight_avg,
+            num_processes=num_processes, #NOTE: @PTL1.5 fix
             **kwargs
         )
 

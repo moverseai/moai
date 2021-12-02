@@ -1,0 +1,82 @@
+# @package _global_
+
+remodel:
+    module_mode:
+      modules:
+        preprocess.vposer2: eval
+
+model:  
+  configuration:
+    mode: inference
+    io: 
+      joints2d: keypoints 
+      joints3d: body.joints
+      out: init_trans
+    assign:
+      # init_trans: postprocess.weak_perspective_camera.translation
+      init_trans: preprocess.translation.value
+    optimize_predictions:
+      fine_fit_stage1:
+        - init_trans
+
+  parameters:
+    initialization:
+      schemes:
+        vposer2:
+          ckpt: ${SMPLX_ROOT}\V02_05\V02_05\
+          cache: true
+        zero_params:
+          keys:
+            - preprocess.translation.value
+            - preprocess.smplx.global_orient
+            - preprocess.smplx.jaw_pose
+            - preprocess.smplx.leye_pose
+            - preprocess.smplx.reye_pose
+            - preprocess.smplx.expression
+            - preprocess.smplx.left_hand_pose
+            - preprocess.smplx.right_hand_pose
+            - preprocess.smplx.betas          
+            - preprocess.embedding.value
+
+  monads:
+    smplx:
+      pca_components: 12
+      use_translation: false
+      use_pose: false
+      joints_format: openpose_coco25
+      model_path: ${SMPLX_ROOT}\models_smplx_v1_1\models\smplx
+      num_betas: ${BETAS}
+    index:
+      indices: [9, 12, 2, 5]
+  feedforward:
+    preprocess:
+      embedding:
+        void: [color]
+        out: [embedding]
+      translation:
+        void: [color]
+        out: [translation]
+      vposer2:
+        decode: [embedding]
+        out: [decoded]
+      smplx:
+        pose: [decoded.pose]
+        out: [body]
+    postprocess:
+      weak_perspective_camera:
+        points: [body.joints]
+        translation: [translation]
+        image: [color]
+        out: [joints2d]
+      index:
+        tensor: [joints2d, keypoints]
+        out: [torso_joints2d, torso_keypoints]
+      ones:
+        tensor: [torso_keypoints]
+        out: [ones]
+      binary:
+        tensor: [init_trans, ones]
+        out: [z_mask, true_mask]
+      openpose_split:
+        all_joints: [joints2d, keypoints, confidence]
+        out: [split_joints2d, split_keypoints, split_confidence]

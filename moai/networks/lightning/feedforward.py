@@ -141,7 +141,8 @@ class FeedForward(pytorch_lightning.LightningModule):
         #NOTE: __NEEDED__ for loading checkpoint
         hparams = hyperparameters if hyperparameters is not None else { }
         hparams.update({'moai_version': miV})
-        self.hparams =  hparams
+        #NOTE: @PTL1.5 self.hparams =  hparams
+        self.hparams.update(hparams)
         self.global_test_step = 0
 
     def initialize_parameters(self) -> None:

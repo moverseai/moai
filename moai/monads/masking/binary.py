@@ -6,5 +6,5 @@ class Binary(torch.nn.Module):
     def __init__(self):
         super(Binary, self).__init__()
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return (x != 0.0).byte() #TODO: byte or bool?
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return (tensor != 0.0).bool() #TODO: byte or bool?

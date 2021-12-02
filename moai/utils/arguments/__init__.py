@@ -2,6 +2,7 @@ from moai.utils.arguments.common import (
     assert_numeric,
     assert_non_negative,
     assert_negative,
+    assert_positive,
 )
 from moai.utils.arguments.choices import (
     assert_choices,
@@ -26,6 +27,7 @@ __all__ = [
     "assert_sequence_size",
     "assert_non_negative",
     "assert_negative",
+    "assert_positive",
     "assert_path",
     "ensure_path",
 ]

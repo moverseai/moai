@@ -1,4 +1,5 @@
 import torch
+import typing
 
 __all__ = [
     "Scalar",
@@ -54,3 +55,16 @@ class Clone(torch.nn.Module):
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.clone()
+
+class Parameters(torch.nn.Module):
+    def __init__(self,
+        shape:          typing.Union[int, typing.Sequence[int]],
+        init:           str='zeros', # one of [zeros, ones, rand, randn],
+    ):
+        super(Parameters, self).__init__()
+        self.register_parameter('value', torch.nn.Parameter(
+            getattr(torch, init)(tuple(shape))) #TODO: check omegaconf's convert type annotation
+        )
+
+    def forward(self, void: torch.Tensor) -> torch.nn.parameter.Parameter:
+        return self.value

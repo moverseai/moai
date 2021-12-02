@@ -16,6 +16,8 @@ log = logging.getLogger(__name__)
 
 __all__ = ["Weighted"]
 
+from moai.monads.execution.cascade import _create_accessor
+
 class Weighted(torch.nn.ModuleDict):
     def __init__(self,
         losses: omegaconf.DictConfig,
@@ -29,7 +31,8 @@ class Weighted(torch.nn.ModuleDict):
         self.keyz = []
         for k, p in loop:
             self.add_module(k, hyu.instantiate(getattr(losses, k)))
-            last_module = toolz.last(self.modules()) # moduledict is ordered
+            # last_module = toolz.last(self.modules()) # moduledict is ordered
+            last_module = self[k]
             sig = inspect.signature(last_module.forward)
             p = toolz.valmap(ensure_string_list, p)
             if 'out' not in p:
@@ -43,10 +46,17 @@ class Weighted(torch.nn.ModuleDict):
             reduction = p['reduction'] if 'reduction' in p else 'mean'
             #TODO: there is a bug if you pass in keys that are not bracketed ([]), i.e. as a list, even for a single arg
             for keys in zip(*list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p.get(prop) is not None)):
-                self.execs.append(lambda tensor_dict, k=keys, p=sig.parameters.keys(), f=last_module:
+                accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys[:-1]]
+                self.execs.append(lambda tensor_dict, 
+                    acc=accessors, k=keys, p=sig.parameters.keys(), f=last_module:
                     tensor_dict.update({
                         k[-1]: f(**dict(zip(p, 
-                            list(tensor_dict[i] for i in k[:-1])
+                            # list(tensor_dict[i] for i in k[:-1])
+                            # list(tensor_dict.get(i, None) 
+                            list(
+                                a(tensor_dict) for a, i in zip(acc, k[:-1]) 
+                                if i is not None or None
+                            )
                         )))
                     })
                 )

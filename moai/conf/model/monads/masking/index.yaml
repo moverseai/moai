@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.masking.Index
+indices: ???
+dim: 1

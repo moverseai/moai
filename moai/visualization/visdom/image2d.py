@@ -8,6 +8,7 @@ import functools
 import typing
 import logging
 import numpy as np
+import math
 
 log = logging.getLogger(__name__)
 
@@ -15,20 +16,20 @@ __all__ = ["Image2d"]
 
 class Image2d(Base):
     def __init__(self,
-        keys:               typing.Union[str, typing.Sequence[str]],
-        types:              typing.Union[str, typing.Sequence[str]],
-        colormaps:          typing.Union[str, typing.Sequence[str]],
-        transforms:         typing.Union[str, typing.Sequence[str]],
+        image:             typing.Union[str, typing.Sequence[str]],
+        type:              typing.Union[str, typing.Sequence[str]],
+        colormap:          typing.Union[str, typing.Sequence[str]],
+        transform:         typing.Union[str, typing.Sequence[str]],
         batch_percentage:   float=1.0,
         name:               str="default",
         ip:                 str="http://localhost",
         port:               int=8097,   
     ):
         super(Image2d, self).__init__(name, ip, port)
-        self.keys = [keys] if type(keys) is str else list(keys)
-        self.types = [types] if type(types) is str else list(types)
-        self.transforms = [transforms] if type(transforms) is str else list(transforms)
-        self.colormaps = [colormaps] if type(colormaps) is str else list(colormaps)
+        self.keys = [image] if isinstance(image, str) else list(image)
+        self.types = [type] if isinstance(type, str) else list(type)
+        self.transforms = [transform] if isinstance(transform, str) else list(transform)
+        self.colormaps = [colormap] if isinstance(colormap, str) else list(colormap)
         self.batch_percentage = batch_percentage
         assert_numeric(log, 'batch percentage', batch_percentage, 0.0, 1.0)
         self.viz_map = {
@@ -53,7 +54,7 @@ class Image2d(Base):
             self.viz_map[t](
                 self.colorize_map[c](
                     self.transform_map[tf](
-                        tensors, k, int(self.batch_percentage * tensors[k].shape[0]),
+                        tensors, k, int(math.ceil(self.batch_percentage * tensors[k].shape[0])),
                         # tensors[k][:int(self.batch_percentage * tensors[k].shape[0])]
                     )
                 ), k, k, self.name
@@ -62,13 +63,13 @@ class Image2d(Base):
     @staticmethod
     def _viz_color(
         visdom: visdom.Visdom,
-        tensor: np.array,
+        array: np.array,
         key: str,
         win: str,
         env: str
     ) -> None:
         visdom.images(
-            tensor,
+            array,
             win=win,
             env=env,
             opts={

@@ -21,7 +21,7 @@ def assert_non_negative(
     name:               str,
     value:              typing.Union[float, int],
 ):
-    if value < 0.0:
+    if value is not None and value < 0.0:
         logger.error(f"Parameter {name} (value: {value}) should not be negative.")
 
 def assert_negative(
@@ -29,5 +29,13 @@ def assert_negative(
     name:               str,
     value:              typing.Union[float, int],
 ):
-    if value >= 0.0:
+    if value is not None and value >= 0.0:
         logger.error(f"Parameter {name} (value: {value}) should be negative.")
+
+def assert_positive(
+    logger:             logging.Logger,
+    name:               str,
+    value:              typing.Union[float, int],
+):
+    if value is not None and value <= 0.0:
+        logger.error(f"Parameter {name} (value: {value}) should be positive.")

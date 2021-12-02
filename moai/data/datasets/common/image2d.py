@@ -9,6 +9,7 @@ def load_color_image(
     output_space:   str='norm', # ['norm', 'ndc', 'pixel']
 ) -> torch.Tensor:
     img = torchvision.io.read_image(filename)
+    
     if output_space == 'norm':
         img = img / 255.0
     return img
@@ -29,4 +30,5 @@ def load_normal_image(
 def load_mask_image(
     filename:   str,
 ) -> torch.Tensor:
-    pass
+    img = torchvision.io.read_image(filename)
+    return img[0, ...] / 255.0

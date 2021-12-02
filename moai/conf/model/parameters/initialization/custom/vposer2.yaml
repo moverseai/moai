@@ -1,0 +1,5 @@
+# @package model.parameters.initialization.schemes._name_
+
+_target_: moai.parameters.initialization.custom.VPoser2
+ckpt: ???
+cache: false

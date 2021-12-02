@@ -1,0 +1,15 @@
+# @package model.monads._name_
+
+_target_: moai.monads.human.body.SMPLX
+model_path: ???
+joints_format: none
+gender: neutral
+age: adult
+use_global_orientation: true
+use_translation: true
+use_pose: true
+use_betas: true
+use_hands: true
+use_face: true
+pca_components: 6
+num_betas: 10

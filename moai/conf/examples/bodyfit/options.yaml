@@ -1,0 +1,51 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: smplify_fits
+  batch_size: 1
+  workers: 1
+
+fitter:
+  deterministic: false # required for index add ops
+  gpus: '0'
+
+logging:
+  name: ${experiment.name}
+  loggers:
+    visdom:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+
+visualization:
+  batch_interval: 1000
+  visualizers:
+    rendered_mesh:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      batch_percentage: 1.0
+      image: [color]
+      colormap: [none]
+      transform: [none]
+      vertices: [body.vertices]
+      faces: [body.faces]
+      translation: [translation]
+      rotation: null
+      scale: 0.25
+
+export:
+  batch_interval: 1
+  exporters:
+    pkl:
+      path: .
+      keys: 
+        - translation
+        - embedding
+        - body.betas
+        - body.rotation
+        - body.left_hand
+        - body.right_hand
+        - body.jaw
+        - body.pose
+        - body.expression
+      mode: append

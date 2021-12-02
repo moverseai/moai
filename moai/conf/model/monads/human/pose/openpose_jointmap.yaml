@@ -1,0 +1,8 @@
+# @package model.monads._name_
+
+_target_: moai.monads.human.pose.OpenposeJointMap
+model: smplx
+format: coco25
+with_hands: false
+with_face: false
+with_face_contour: false

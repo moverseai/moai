@@ -1,0 +1,10 @@
+# @package model.parameters.optimization.optimizers._name_
+
+_target_: moai.parameters.optimization.optimizers.LBFGS
+lr: 1.0
+max_iter: 20
+max_eval: null
+tolerance_grad: 1e-5
+tolerance_change: 1e-9
+history_size: 100
+line_search_fn: strong_Wolfe

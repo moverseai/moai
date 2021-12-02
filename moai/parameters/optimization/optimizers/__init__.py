@@ -42,6 +42,7 @@ from moai.parameters.optimization.optimizers.diffgrad import DiffGrad
 from moai.parameters.optimization.optimizers.fromage import Fromage
 from moai.parameters.optimization.optimizers.hypergrad_sgd import HypergradSGD
 from moai.parameters.optimization.optimizers.lamb import Lamb
+from moai.parameters.optimization.optimizers.lbfgsls import LBFGS
 from moai.parameters.optimization.optimizers.larc import LARCAdam
 from moai.parameters.optimization.optimizers.lars import LARS
 from moai.parameters.optimization.optimizers.madam import (
@@ -113,6 +114,7 @@ __all__ = [
     "Lamb",    
     "LARCAdam",
     "LARS",
+    "LBFGS",
     "Lookahead", #TODO: create factory optimizer
     "Madam",
     "NovoGrad",
