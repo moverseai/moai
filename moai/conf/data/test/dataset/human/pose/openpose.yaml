@@ -2,7 +2,6 @@
 
 _target_: moai.data.datasets.human.pose.OpenPoseInference
 image_glob: ???
-keypoints_glob: ???
 load_hands: false
 load_face: false
 load_face_contour: false

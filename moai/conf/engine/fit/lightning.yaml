@@ -54,8 +54,8 @@ detect_anomaly: false #NOTE: @PTL1.5
 ################
 ### log options
 ################
-flush_logs_every_n_steps: 100
-log_every_n_steps: 10    
+flush_logs_every_n_steps: 1 #TODO: remove from config to keep fixed?
+log_every_n_steps: 1 #TODO: remove from config to keep fixed?
 progress_bar_refresh_rate: 1 # How often to refresh progress bar (in steps). Value ``0`` disables progress bar. - NOTE: deprecated show_progress_bar: true # uses tqdm in cli
 # log_gpu_memory: all # requires nvidia-smi in path - NOTE: None, 'min_max', 'all'.  
 weights_summary: top # or full / null

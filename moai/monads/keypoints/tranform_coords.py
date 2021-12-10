@@ -10,7 +10,8 @@ __all__ = [
     "UpscaleCoords_x2",
     "UpscaleCoords_x4",
     "DownscaleCoords_x2",
-    "DownscaleCoords_x4"
+    "DownscaleCoords_x4",
+    "CoordsToNorm",
 ]
 
 #TODO: extract to generation/grid/conversions and refactor to support all cases with from/to arguments
@@ -23,7 +24,7 @@ class NormToCoords(torch.nn.Module):
         self.mode = mode
         self.flip = flip
 
-    def forward(self,coords: torch.Tensor, img: torch.Tensor) -> torch.Tensor:
+    def forward(self, coords: torch.Tensor, img: torch.Tensor) -> torch.Tensor:
         if self.flip:
             coords = coords * torch.Tensor([*img.shape[2:]]).flip(-1).to(coords).expand_as(coords)
         else:
@@ -87,6 +88,22 @@ class ScaleCoords(torch.nn.Module):
         else:
             return coords
 
+
+class CoordsToNorm(torch.nn.Module):
+    def __init__(self,
+        flip: bool= False,
+    ):
+        super(CoordsToNorm,self).__init__()
+        self.flip = flip
+
+    def forward(self,
+        coords: torch.Tensor,
+        grid:   torch.Tensor
+    ) -> torch.Tensor:
+        dims = torch.tensor(grid.shape[2:], dtype=torch.float32, device=coords.device)
+        if self.flip:
+            dims = dims.flip(-1)
+        return coords / dims.expand_as(coords)
 
 UpscaleCoords_x2 = functools.partial(
     ScaleCoords, 

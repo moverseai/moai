@@ -9,7 +9,7 @@ defaults:
   - engine/modules: manual_seed
 
   - engine/visualization: collection
-  - engine/visualization/visdom: rendered_mesh
+  - engine/visualization/visdom: vector
 
   - engine/export: collection
   - engine/export/exporter: pkl

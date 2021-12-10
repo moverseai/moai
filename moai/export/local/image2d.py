@@ -25,22 +25,22 @@ class Image2d(Callable):
 
     def __init__(self,
         path:       str,
-        keys:       typing.Union[str, typing.Sequence[str]],
-        types:      typing.Union[str, typing.Sequence[str]],
-        colormaps:  typing.Union[str, typing.Sequence[str]],
-        transforms: typing.Union[str, typing.Sequence[str]],
+        image:        typing.Union[str, typing.Sequence[str]],
+        type:       typing.Union[str, typing.Sequence[str]],
+        colormap:   typing.Union[str, typing.Sequence[str]],
+        transform:  typing.Union[str, typing.Sequence[str]],
         mode:       str="overwrite", # all"
-        extensions:  typing.Union[str, typing.Sequence[str]]=["png"], # jpg or png or exr
+        extension:  typing.Union[str, typing.Sequence[str]]=["png"], # jpg or png or exr
     ):
         self.mode = ensure_choices(log, "saving mode", mode, Image2d.__MODES__)
         folder = ensure_path(log, "output folder", path)
-        self.formats = [ensure_choices(log, "output format", ext, Image2d.__FORMATS__) for ext in extensions]
+        self.formats = [ensure_choices(log, "output format", ext, Image2d.__FORMATS__) for ext in extension]
         self.mode = mode
         self.index = 0
-        self.keys = [keys] if type(keys) is str else list(keys)
-        self.types = [types] if type(types) is str else list(types)
-        self.transforms = [transforms] if type(transforms) is str else list(transforms)
-        self.colormaps = [colormaps] if type(colormaps) is str else list(colormaps)
+        self.keys = [image] if type(image) is str else list(image)
+        self.types = [type] if type(type) is str else list(type)
+        self.transforms = [transform] if type(transform) is str else list(transform)
+        self.colormaps = [colormap] if type(colormap) is str else list(colormap)
         self.save_map = {
             'color': functools.partial(self._save_color, os.path.join(os.getcwd(), folder)),
             'depth': functools.partial(self._save_depth, os.path.join(os.getcwd(), folder)),

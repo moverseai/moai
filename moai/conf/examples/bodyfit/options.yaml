@@ -18,20 +18,13 @@ logging:
       ip: ${experiment.visdom_ip}
 
 visualization:
-  batch_interval: 1000
+  batch_interval: 1
   visualizers:
-    rendered_mesh:
+    vector:
       name: ${experiment.name}
       ip: ${experiment.visdom_ip}
-      batch_percentage: 1.0
-      image: [color]
-      colormap: [none]
-      transform: [none]
-      vertices: [body.vertices]
-      faces: [body.faces]
-      translation: [translation]
-      rotation: null
-      scale: 0.25
+      vector: [body.betas]
+      type: [box]
 
 export:
   batch_interval: 1

@@ -1,0 +1,15 @@
+# @package visualization.visualizers._name_
+
+_target_: moai.export.local.RenderedMesh
+path: ???
+vertices: ???
+faces: ???
+translation: ???
+rotation: ???
+image: ???
+colormap: ???
+transform: ???
+batch_percentage: 1.0
+focal_length: 5000.0
+scale: 1.0
+extension: ???

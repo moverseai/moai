@@ -1,4 +1,7 @@
-from moai.monads.human.pose.openpose import JointMap
+from moai.monads.human.pose.openpose import (
+    JointMap, 
+    _body_to_openpose
+)
 
 import toolz
 import torch
@@ -6,6 +9,8 @@ import smplx #TODO: try/except and error msg
 import numpy as np
 import functools
 import typing
+
+#NOTE: code from https://github.com/vchoutas/smplify-x
 
 __all__ = ["SMPLX"]
 

@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import colour
 import math
+import toolz
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +60,7 @@ class Pose2d(Base):
             'coord': lambda coord, img: coord,
             'norm': lambda coord, img: coord * torch.Tensor([*img.shape[2:]]).to(coord).expand_as(coord),
         }
+        self.access = lambda td, k: toolz.get_in(k.split('.'), td)
 
     @property
     def name(self) -> str:
@@ -69,14 +71,14 @@ class Pose2d(Base):
             self.images, self.poses, self.gt, self.pred, self.gt_masks, self.pred_masks,  [self.pose_structure, ],
             self.color_gt, self.color_pred, self.coords
         ):
-            gt_coord = tensors[gt].detach()
-            pred_coord = tensors[pred].detach()
-            gt_masks = tensors[gt_masks].detach()
-            pred_masks = tensors[pred_masks].detach()
+            gt_coord = self.access(tensors, gt).detach()
+            pred_coord = self.access(tensors, pred).detach()
+            gt_masks = self.access(tensors, gt_masks).detach()
+            pred_masks = self.access(tensors, pred_masks).detach()
             if self.reverse:
                 gt_coord = gt_coord.flip(-1)
                 pred_coord = pred_coord.flip(-1)
-            image = tensors[img].detach()
+            image = self.access(tensors, img).detach()
             self.viz_pose[poses](
                 image,
                 self.xforms[coord](gt_coord, image),
@@ -84,8 +86,10 @@ class Pose2d(Base):
                 gt_masks,
                 pred_masks,
                 pose_struct,
-                np.uint8(np.array(list(reversed(gt_c))) * 255),
-                np.uint8(np.array(list(reversed(pred_c))) * 255),
+                np.uint8(np.array(list(gt_c)) * 255),
+                np.uint8(np.array(list(pred_c)) * 255),
+                # np.uint8(np.array(list(reversed(gt_c))) * 255),
+                # np.uint8(np.array(list(reversed(pred_c))) * 255),
                 coord, img, img, self.name
             )    
     
@@ -162,7 +166,8 @@ class Pose2d(Base):
                 img = cv2.addWeighted(bg, transparency, img, 1 - transparency, 0)                
                 imgs[i, ...] = img.transpose(2, 0, 1) if not rotate else cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE).transpose(2, 0, 1)
         visdom.images(
-            np.flip(imgs, axis=1),
+            imgs,
+            # np.flip(imgs, axis=1),
             win=win,
             env=env,
             opts={

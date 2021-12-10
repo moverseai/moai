@@ -150,6 +150,23 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
                                 optim.param_groups.append({'params': params})
         pl_module.optimization_step = 0
 
+    def on_train_batch_end(
+        self,
+        trainer: pytorch_lightning.Trainer,
+        pl_module: pytorch_lightning.LightningModule,
+        outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Sequence[torch.Tensor], typing.Dict[str, torch.Tensor]]],
+        batch: typing.Dict[str, typing.Union[torch.Tensor, typing.Sequence[torch.Tensor], typing.Dict[str, torch.Tensor]]],
+        batch_idx: int,
+        unused: typing.Optional[int] = 0,
+    ) -> None:
+        """Called when the train batch ends."""        
+        metrics = pl_module.validation(batch)
+        pl_module.log_dict(metrics, prog_bar=True, logger=False, on_epoch=False, on_step=True, sync_dist=True)
+        log_metrics = toolz.keymap(lambda k: f"val_{k}", metrics)
+        pl_module.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=False, on_step=True, sync_dist=True)        
+        pl_module.visualizer(batch)
+        pl_module.exporter(batch)
+
 from moai.monads.execution.cascade import _create_accessor
 
 def _create_assigner(key: str) -> typing.Callable[[torch.nn.Module, torch.Tensor], None]:

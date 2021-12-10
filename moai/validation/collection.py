@@ -11,6 +11,8 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Metrics']
 
+from moai.monads.execution.cascade import _create_accessor
+
 class Metrics(torch.nn.ModuleDict):
     execs: typing.List[typing.Callable] = []
 
@@ -25,15 +27,21 @@ class Metrics(torch.nn.ModuleDict):
         #TODO: add message in case key is not found
         for k, p in loop:
             self.add_module(k, hyu.instantiate(getattr(metrics, k)))
-            last_module = toolz.last(self.modules()) # moduledict is ordered            
+            # last_module = toolz.last(self.modules()) # moduledict is ordered            
+            last_module = self[k]
             sig = inspect.signature(last_module.forward)
             if 'out' not in p:
                 p['out'] = [k]
             for keys in zip(*toolz.remove(lambda x: not x, list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p.get(prop) is not None))):
-                self.execs.append(lambda tensor_dict, metric_dict, k=keys, p=sig.parameters.keys(), f=last_module:
+                accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys[:-1]]
+                self.execs.append(lambda tensor_dict, metric_dict,
+                    acc=accessors, k=keys, p=sig.parameters.keys(), f=last_module:
                     metric_dict.update({
                         k[-1]: f(**dict(zip(p, 
-                            list(tensor_dict[i] for i in k[:-1])
+                            list(
+                                a(tensor_dict) for a, i in zip(acc, k[:-1])
+                                if i is not None or None
+                            )
                         )))
                     })
                 )

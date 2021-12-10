@@ -4,6 +4,8 @@ import typing
 from collections import namedtuple
 from human_body_prior.models.vposer_model import VPoser #TODO: try/except and error msg
 
+#NOTE: code from https://github.com/nghorbani/human_body_prior
+
 __all__ = ["VPoser2"]
 
 VPoser2InnerParams = namedtuple('VPoser2InnerParams', ['num_neurons', 'latentD'])
