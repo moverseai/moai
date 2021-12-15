@@ -20,7 +20,6 @@ OpenPoseParams = namedtuple('OpenPoseParams', ['load_hands', 'load_face', 'load_
 class OpenPoseInference(torch.utils.data.Dataset):
     def __init__(self,
         image_glob:                 str,
-        # keypoints_glob:             str,
         load_hands:                 bool=False,
         load_face:                  bool=False,
         load_face_contour:          bool=False,

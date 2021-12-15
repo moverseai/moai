@@ -2,13 +2,14 @@ from mesh_intersection.bvh_search_tree import BVH
 from mesh_intersection.filter_faces import FilterFaces
 import mesh_intersection.loss as collisions_loss
 #TODO: try/catch imports with error message
+
 import torch
 import logging
 import os
 import pickle
 import typing
 
-#NOTE: from https://github.com/vchoutas/torch-mesh-isect
+#NOTE: code from https://github.com/vchoutas/torch-mesh-isect
 
 __all__ = ['Interpenetration']
 
