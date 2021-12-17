@@ -40,8 +40,8 @@ defaults:
   - remodel: module_mode
 
   - model/feedforward: preprocess
-  - examples/smplify/embedding
-  - examples/smplify/translation
+  - examples/bodyfit/embedding
+  - examples/bodyfit/translation
   - model/monads/human/body: smplx
   - model/monads/human/body/prior: vposer2
 

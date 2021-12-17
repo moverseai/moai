@@ -4,6 +4,7 @@ from moai.monads.generation.tensor.torch import (
     Ones,
     Zeros,
     Clone,
+    Parameter,
     Parameters,
 )
 
@@ -13,5 +14,6 @@ __all__ = [
     "Ones",
     "Zeros",
     "Clone",
+    "Parameter",
     "Parameters",
 ]

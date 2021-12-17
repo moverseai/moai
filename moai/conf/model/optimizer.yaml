@@ -4,4 +4,4 @@ _target_: moai.networks.lightning.Optimizer
 configuration:
   mode: inference
   io: ???
-  assign: ???
+  assign: null

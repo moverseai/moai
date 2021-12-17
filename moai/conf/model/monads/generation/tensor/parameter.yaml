@@ -1,5 +1,5 @@
 # @package model.monads._name_
 
-_target_: moai.monads.generation.tensor.Parameters
+_target_: moai.monads.generation.tensor.Parameter
 shape: ???
 init: zeros # one of [zeros, ones, rand, randn]

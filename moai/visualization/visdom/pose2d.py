@@ -1,5 +1,6 @@
 from moai.visualization.visdom.base import Base
 from moai.utils.arguments import ensure_string_list
+from moai.utils.iterators import pairwise
 
 import torch
 import visdom
@@ -11,6 +12,7 @@ import cv2
 import colour
 import math
 import toolz
+from PIL import Image
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +36,8 @@ class Pose2d(Base):
         reverse_coords: bool=False,
         rotate_image:   bool=False,
         transparency:   float=0.4,
+        scale:          float=1.0,
+        use_mask:       bool=True,
     ):
         super(Pose2d, self).__init__(name, ip, port)
         self.images = ensure_string_list(images)
@@ -49,9 +53,14 @@ class Pose2d(Base):
         self.reverse = reverse_coords
         self.rotate = rotate_image
         self.transparency = transparency
+        self.scale = scale
+        self.use_mask = use_mask
         self.viz_pose = {
             'human_pose2d': functools.partial(self.__draw_human_pose2d, 
-                self.visualizer, marker=cv2.MARKER_DIAMOND, rotate=self.rotate, transparency=self.transparency),
+                self.visualizer, marker=cv2.MARKER_DIAMOND, 
+                rotate=self.rotate, transparency=self.transparency,
+                scale=self.scale
+            ),
         }
         self.xforms = { #TODO: extract these into a common module
             'ndc': lambda coord, img: torch.addcmul(
@@ -83,8 +92,8 @@ class Pose2d(Base):
                 image,
                 self.xforms[coord](gt_coord, image),
                 self.xforms[coord](pred_coord, image),
-                gt_masks,
-                pred_masks,
+                gt_masks if self.use_mask else torch.ones_like(gt_masks),
+                pred_masks if self.use_mask else torch.ones_like(pred_masks),
                 pose_struct,
                 np.uint8(np.array(list(gt_c)) * 255),
                 np.uint8(np.array(list(pred_c)) * 255),
@@ -110,10 +119,12 @@ class Pose2d(Base):
         env:                str,
         marker:             int,
         rotate:             bool,
-        transparency:       float
+        transparency:       float,
+        scale:              float,
     ):
-        imgs = np.zeros([images.shape[0], 3, images.shape[2], images.shape[3]], dtype=np.uint8) if not rotate \
-            else np.zeros([images.shape[0], 3, images.shape[3], images.shape[2]], dtype=np.uint8)
+        b, _, h, w = images.shape
+        imgs = np.zeros([b, 3, int(scale * h), int(scale * w)], dtype=np.uint8) if not rotate \
+            else np.zeros([b, 3, int(scale * w), int(scale * h)], dtype=np.uint8)
         gt_coords = gt_coordinates.cpu().int()
         pred_coords = pred_coordinates.cpu().int()
         gt_coords = torch.flip(gt_coords, dims=[-1])
@@ -121,11 +132,12 @@ class Pose2d(Base):
         gt_coords = gt_coords.numpy()
         pred_coords = pred_coords.numpy()
         diagonal = torch.norm(torch.Tensor([*imgs.shape[2:]]), p=2)
-        marker_size = int(0.005 * diagonal) #TODO: extract percentage param to config?
+        marker_size = int(0.025 * diagonal) #TODO: extract percentage param to config?
         line_size = int(0.01 * diagonal) #TODO: extract percentage param to config?
         for i in range(imgs.shape[0]):
             img = images[i, ...].cpu().numpy().transpose(1, 2, 0) * 255.0
-            img = img.copy().astype(np.uint8) if img.shape[2] > 1 else cv2.cvtColor(img.copy().astype(np.uint8), cv2.COLOR_GRAY2RGB)
+            img = img.copy().astype(np.uint8) if img.shape[2] > 1\
+                else cv2.cvtColor(img.copy().astype(np.uint8), cv2.COLOR_GRAY2RGB)
             bg = img.copy()
             for coords, color, masks in zip(
                 [gt_coords, pred_coords],
@@ -134,10 +146,11 @@ class Pose2d(Base):
             ):       
                 coord_i = coords[i, ...]
                 for kpts_group in pose_structure:
-                    for j in range(len(kpts_group) - 1):
-                        if torch.sum(masks[i, j]) and torch.sum(masks[i, j+1]):
-                            start_xy = tuple(coord_i[kpts_group[j]])
-                            end_xy = tuple(coord_i[kpts_group[j+1]])
+                    for (a, b) in pairwise(kpts_group):
+                    # for j in range(len(kpts_group) - 1):                    
+                        if torch.sum(masks[i, a]) and torch.sum(masks[i, b]):
+                            start_xy = tuple(coord_i[a])
+                            end_xy = tuple(coord_i[b])
                             X = (start_xy[0], end_xy[0])
                             Y = (start_xy[1], end_xy[1])
                             mX = np.mean(X)
@@ -145,10 +158,13 @@ class Pose2d(Base):
                             length = ((Y[0] - Y[1]) ** 2 + (X[0] - X[1]) ** 2) ** 0.5
                             angle = math.degrees(math.atan2(Y[0] - Y[1], X[0] - X[1]))
                             stickwidth = line_size
-                            polygon = cv2.ellipse2Poly((int(mX), int(mY)), (int(length/2), int(stickwidth)), int(angle), 0, 360, 1)                        
-                            cv2.fillConvexPoly(bg, polygon, color.tolist())
-                        
-                
+                            # polygon = cv2.ellipse2Poly(
+                            #     (int(mX or 0), int(mY or 0)),
+                            #     (int(length/2 or 1), int(stickwidth or 1)),
+                            #     int(angle), 0, 360, 1
+                            # )
+                            # cv2.fillConvexPoly(bg, polygon, color.tolist())
+                            cv2.line(img, start_xy, end_xy, color.tolist(), thickness=line_size)
                 for k, coord in enumerate(coord_i):
                     if torch.sum(masks[i, k]):
                         if marker < 0:
@@ -163,8 +179,14 @@ class Pose2d(Base):
                                 marker, marker_size, line_size
                             )
 
-                img = cv2.addWeighted(bg, transparency, img, 1 - transparency, 0)                
-                imgs[i, ...] = img.transpose(2, 0, 1) if not rotate else cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE).transpose(2, 0, 1)
+                img = cv2.addWeighted(bg, transparency, img, 1 - transparency, 0)
+            h, w = img.shape[:2]
+            if scale != 1.0:
+                img = np.array(Image.fromarray(img).resize(
+                    (int(w * scale), int(h * scale)), Image.ANTIALIAS
+                ))
+            imgs[i, ...] = img.transpose(2, 0, 1) if not rotate\
+                else cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE).transpose(2, 0, 1)
         visdom.images(
             imgs,
             # np.flip(imgs, axis=1),

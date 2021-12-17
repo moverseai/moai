@@ -221,17 +221,22 @@ class Optimizer(pytorch_lightning.LightningModule):
             self.model = self.model.eval()
             self.model.requires_grad_(False)
         self.data = _assign_data(data)
-        self.assigners = [(i, _create_assigner(o)) for i, o in configuration.assign.items()]
+        self.assigners = [
+            (i, _create_assigner(o)) for i, o in configuration.assign.items()
+        ] if configuration.assign is not None else []
         self.optimized_predictions = configuration.optimize_predictions
         self.initializer = parameters.initialization if parameters is not None else None
-        self.optimizer_configs = parameters.optimization.optimizers
-        self.parameter_selectors = parameters.selectors
-        self.scheduler_configs = parameters.optimization.schedulers or { }
+        self.preprocess = _create_processing_block(feedforward, "preprocess", monads=monads)
+        self.postprocess = _create_processing_block(feedforward, "postprocess", monads=monads)
+        self.optimizer_configs = toolz.get_in(['optimization', 'optimizers'], parameters) or []
+        self.parameter_selectors = parameters.selectors or []
+        self.scheduler_configs = toolz.get_in(['optimization', 'schedulers'], parameters) or { }
         self.supervision = torch.nn.ModuleDict()
         self.params_optimizers = []
         self.stages = []
-        log.info(f"Optimization with {len(parameters.optimization.process)} stages.")
-        for stage, cfg in parameters.optimization.process.items():
+        optimization_process = toolz.get_in(['optimization', 'process'], parameters) or { }
+        log.info(f"Optimization with {len(optimization_process)} stages.")
+        for stage, cfg in optimization_process.items():
             self.stages.append(stage)
             log.info(
                 f"Setting up the '{stage}' stage using the " + str(cfg.optimizer or "same") + " optimizer, "
@@ -246,9 +251,7 @@ class Optimizer(pytorch_lightning.LightningModule):
             self.supervision[stage] = _create_supervision_block(
                 omegaconf.OmegaConf.merge(supervision, objective)
             )
-        self.validation = _create_validation_block(validation) #TODO: change this, "empty processing block" is confusing
-        self.preprocess = _create_processing_block(feedforward, "preprocess", monads=monads)
-        self.postprocess = _create_processing_block(feedforward, "postprocess", monads=monads)
+        self.validation = _create_validation_block(validation) #TODO: change this, "empty processing block" is confusing        
         self.visualizer = _create_interval_block(visualization)
         self.exporter = _create_interval_block(export)        
         #NOTE: __NEEDED__ for loading checkpoint

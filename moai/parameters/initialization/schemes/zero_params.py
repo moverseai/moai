@@ -25,7 +25,7 @@ class ZeroParams(typing.Callable[[torch.nn.Module], None]):
                 m = toolz.reduce(_getattr, split, module)
                 if m is not None:
                     log.info(f"Zeroing out parameter: {key}.")
-                    with torch.no_grad():
+                    with torch.no_grad(): #TODO: remove this and add in root apply call
                         m.zero_()
             except:
                 break

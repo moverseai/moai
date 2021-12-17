@@ -28,8 +28,20 @@ class VPoser2(VPoser):
     ) -> typing.Mapping[str, torch.Tensor]:
         out = { }        
         if autoencode is not None:
-            out['embedding'] = self.encode(encode)
-            out['pose'] = self.decode(decode)
+            # decoded = super(VPoser2, self).forward(autoencode)
+            q_z = super(VPoser2, self).encode(autoencode)
+            # q_z_sample = q_z.rsample()
+            q_z_sample = q_z.mean
+            decoded = super(VPoser2, self).decode(q_z_sample)
+            decoded.update({
+                'poZ_body_mean': q_z.mean,
+                'poZ_body_std': q_z.scale,
+                'q_z': q_z}
+            )
+            out['pose'] = decoded['pose_body']
+            out['embedding'] = decoded['poZ_body_mean'] # decoded['q_z']
+            if self.flatten_pose:
+                out['pose'] = out['pose'].reshape(autoencode.shape[0], -1)
             return out
         if encode is not None:
             out['embedding'] = self.encode(encode)

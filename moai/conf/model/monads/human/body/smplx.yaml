@@ -11,5 +11,8 @@ use_pose: true
 use_betas: true
 use_hands: true
 use_face: true
+use_eyes: true
+use_hands_pca: true
 pca_components: 6
 num_betas: 10
+flat_hand_mean: false

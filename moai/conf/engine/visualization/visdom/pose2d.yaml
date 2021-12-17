@@ -15,3 +15,5 @@ coords: [ndc]
 color_gt: cyan
 color_pred: orange
 reverse_coords: false
+scale: 1.0
+use_mask: true

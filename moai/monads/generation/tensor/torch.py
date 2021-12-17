@@ -1,5 +1,6 @@
 import torch
 import typing
+import omegaconf.omegaconf
 
 __all__ = [
     "Scalar",
@@ -7,6 +8,8 @@ __all__ = [
     "Ones",
     "Zeros",
     "Clone",
+    "Parameter",
+    "Parameters",
 ]
 
 class Scalar(torch.nn.Module):
@@ -56,15 +59,28 @@ class Clone(torch.nn.Module):
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.clone()
 
-class Parameters(torch.nn.Module):
+class Parameter(torch.nn.Module):
     def __init__(self,
         shape:          typing.Union[int, typing.Sequence[int]],
         init:           str='zeros', # one of [zeros, ones, rand, randn],
     ):
-        super(Parameters, self).__init__()
+        super(Parameter, self).__init__()
         self.register_parameter('value', torch.nn.Parameter(
             getattr(torch, init)(tuple(shape))) #TODO: check omegaconf's convert type annotation
         )
 
     def forward(self, void: torch.Tensor) -> torch.nn.parameter.Parameter:
         return self.value
+
+class Parameters(torch.nn.Module):
+    def __init__(self,
+        parameters:         omegaconf.DictConfig,
+    ):
+        super(Parameters, self).__init__()
+        for name, param in parameters.items():
+            self.register_parameter(str(name), torch.nn.Parameter(
+                getattr(torch, param.init or 'zeros')(tuple(param.shape))) #TODO: check omegaconf's convert type annotation
+            )
+
+    def forward(self, void: torch.Tensor) -> torch.nn.parameter.Parameter:
+        return dict(self.named_parameters())

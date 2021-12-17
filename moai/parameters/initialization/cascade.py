@@ -21,4 +21,3 @@ class Initializers(mieng.Collection):
         for scheme in self.items():
             log.info(f"\tApplying {scheme.__class__.__name__}.")
             model.apply(scheme)
-
