@@ -1,0 +1,4 @@
+# @package fitter.callbacks._name_
+
+_target_: moai.monads.render.redner.Redner
+print_timings: false

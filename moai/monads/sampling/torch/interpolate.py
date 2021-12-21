@@ -8,7 +8,13 @@ import logging
 
 log = logging.getLogger(__name__)
 
-__all__ = ["Interpolate"]
+__all__ = [
+    "Interpolate",
+    "BilinearDownsample_x2",
+    "NearestDownsample_x2",
+    "BilinearDownsample",
+    "NearestDownsample",
+]
 
 #NOTE: align corners doc: https://discuss.pytorch.org/t/what-we-should-use-align-corners-false/22663/12
 
@@ -54,4 +60,13 @@ class Interpolate(torch.nn.Module):
 
 BilinearDownsample_x2 = functools.partial(Interpolate,
     mode='bilinear', scale=0.5,
+)
+NearestDownsample_x2 = functools.partial(Interpolate,
+    mode='nearest', scale=0.5,
+)
+BilinearSampling = functools.partial(Interpolate,
+    mode='bilinear',
+)
+NearestSampling = functools.partial(Interpolate,
+    mode='nearest',
 )

@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.sampling.NearestSampling
+align_corners:  false
+recompute_scale_factor: false

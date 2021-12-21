@@ -1,0 +1,9 @@
+# @package model.monads._name_
+
+_target_: moai.monads.render.redner.MeshSilhouette
+resolution: [512, 256]
+near_clip: 0.001
+samples: [16, 4]
+sample_pixel_center: false
+focal_length: 5000.0
+principal_point: null

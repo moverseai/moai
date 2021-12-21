@@ -1,4 +1,5 @@
 from moai.data.datasets.common import load_color_image
+from moai.data.datasets.common.image2d import load_depth_image, load_mask_image
 from moai.utils.arguments import ensure_string_list
 
 import torch
@@ -6,10 +7,20 @@ import glob
 import os
 import typing
 import logging
+import toolz
 
 __all__ = ["StructuredImages"]
 
 log = logging.getLogger(__name__)
+
+_LOADERS_ = {
+    'color':        load_color_image,
+    'image':        load_color_image,
+    'depth':        load_depth_image,
+    'range':        load_depth_image,
+    'mask':         load_mask_image,
+    'silhouette':   load_mask_image,
+}
 
 class StructuredImages(torch.utils.data.Dataset):
     def __init__(self,
@@ -17,14 +28,15 @@ class StructuredImages(torch.utils.data.Dataset):
         **kwargs:       typing.Mapping[str, typing.Mapping[str, typing.Any]],
     ):
         self.key_to_list = {}
-        self.key_to_xform = {}
+        self.key_to_params = {}
+        self.key_to_loader = {}
         for k, m in kwargs.items():
             glob_list = ensure_string_list(m['glob'])
             files = []
             for g in glob_list:
                 files += glob.glob(os.path.join(root, g))
             self.key_to_list[k] = list(map(lambda f: os.path.join(root, f), files))
-            self.key_to_xform[k] = m['output_space']
+            self.key_to_params[k] = toolz.dissoc(['type', 'glob'], m]
 
     def __len__(self) -> int:
         return len(next(iter(self.key_to_list.values())))

@@ -15,7 +15,12 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
-OpenPoseParams = namedtuple('OpenPoseParams', ['load_hands', 'load_face', 'load_face_contour', 'single_person_only'])
+OpenPoseParams = namedtuple('OpenPoseParams', [
+    'load_hands',
+    'load_face',
+    'load_face_contour',
+    'single_person_only',
+])
 
 class OpenPoseInference(torch.utils.data.Dataset):
     def __init__(self,
@@ -27,7 +32,9 @@ class OpenPoseInference(torch.utils.data.Dataset):
         invalid_joints:             typing.Sequence[int]=None,
     ):
         super(OpenPoseInference, self).__init__()
-        self.params = OpenPoseParams(load_hands, load_face, load_face_contour, single_person_only)
+        self.params = OpenPoseParams(load_hands, 
+            load_face, load_face_contour, single_person_only,
+        )
         image_filenames = glob.glob(image_glob)
         self.filenames = image_filenames
         self.invalid_joints = list(invalid_joints)

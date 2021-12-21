@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.sampling.BilinearSampling
+align_corners:  false
+recompute_scale_factor: false

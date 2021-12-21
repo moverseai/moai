@@ -17,8 +17,8 @@ class Blend2d(Base):
         left:           typing.Union[str, typing.Sequence[str]],
         right:          typing.Union[str, typing.Sequence[str]],
         blending:       typing.Union[float, typing.Sequence[float]],
-        colormaps:      typing.Union[str, typing.Sequence[str]],
-        transforms:     typing.Union[str, typing.Sequence[str]],
+        colormap:      typing.Union[str, typing.Sequence[str]],
+        transform:     typing.Union[str, typing.Sequence[str]],
         name:           str="default",
         ip:             str="http://localhost",
         port:           int=8097,   
@@ -27,8 +27,8 @@ class Blend2d(Base):
         self.left = [left] if type(left) is str else list(left)
         self.right = [right] if type(right) is str else list(right)
         self.blending = [blending] if type(blending) is float else list(blending)
-        self.transforms = [transforms] if type(transforms) is str else list(transforms)
-        self.colormaps = [colormaps] if type(colormaps) is str else list(colormaps)
+        self.transforms = [transform] if type(transform) is str else list(transform)
+        self.colormaps = [colormap] if type(colormap) is str else list(colormap)
         self.transform_map = {
             'none': functools.partial(self.__no_transform),
             'minmax': functools.partial(self.__minmax_normalization),

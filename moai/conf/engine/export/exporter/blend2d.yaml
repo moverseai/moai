@@ -2,8 +2,8 @@
 
 _target_: moai.export.local.Blend2d
 blending: [0.5]
-colormaps: [none] # bone, etc.
-transforms: [none] # minmax, etc.
+colormap: [none] # bone, etc.
+transform: [none] # minmax, etc.
 mode: overwrite # [all, overwrite]
 left: ???
 right: ???

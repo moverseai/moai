@@ -72,7 +72,7 @@ class Transformation(torch.nn.Module):
         else:
             rot = torch.transpose(rotation, 2, 1) if self.transpose else rotation
             trans = translation.reshape(b, 3, 1)
-        pts3d = self.convert_points_in(points)        
+        pts3d = self.convert_points_in(points)
         xformed = rot @ pts3d.view(b, 3, -1) + trans
         return self.convert_points_out(xformed, points.size())
         
