@@ -31,4 +31,4 @@ def load_mask_image(
     filename:   str,
 ) -> torch.Tensor:
     img = torchvision.io.read_image(filename)
-    return img[0, ...] / 255.0
+    return img[0:1, ...] / 255.0

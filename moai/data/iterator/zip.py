@@ -29,7 +29,7 @@ class Zipper(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         out = { }
         for d in self.datasets:
-            toolz.merge(out, d[index])
+            out = toolz.merge(out, d[index])
         return out
 
 class Zipped(torch.utils.data.Dataset):    

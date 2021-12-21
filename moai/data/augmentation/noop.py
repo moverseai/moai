@@ -11,7 +11,7 @@ class NoOp(torch.utils.data.Dataset):
     ):
         super(NoOp, self).__init__()
         self.inner = dataset
-        log.info("No data augmentation being used.")
+        log.info(f"No data augmentation being used.")
 
     def __len__(self):
         return len(self.inner)

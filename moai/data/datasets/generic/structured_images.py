@@ -36,7 +36,8 @@ class StructuredImages(torch.utils.data.Dataset):
             for g in glob_list:
                 files += glob.glob(os.path.join(root, g))
             self.key_to_list[k] = list(map(lambda f: os.path.join(root, f), files))
-            self.key_to_params[k] = toolz.dissoc(['type', 'glob'], m]
+            self.key_to_params[k] = toolz.dissoc(m, 'type', 'glob')
+            self.key_to_loader[k] = _LOADERS_[m['type']]
 
     def __len__(self) -> int:
         return len(next(iter(self.key_to_list.values())))
@@ -44,5 +45,5 @@ class StructuredImages(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         ret = { }
         for k, l in self.key_to_list.items():
-            ret[k] = load_color_image(l[index], self.key_to_xform[k])
+            ret[k] = self.key_to_loader[k](l[index], **self.key_to_params[k])
         return ret
