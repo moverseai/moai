@@ -19,6 +19,7 @@ class Blend2d(Base):
         blending:       typing.Union[float, typing.Sequence[float]],
         colormap:       typing.Union[str, typing.Sequence[str]],
         transform:      typing.Union[str, typing.Sequence[str]],
+        scale:          float=1.0,
         name:           str="default",
         ip:             str="http://localhost",
         port:           int=8097,   
@@ -29,6 +30,7 @@ class Blend2d(Base):
         self.blending = [blending] if type(blending) is float else list(blending)
         self.transforms = [transform] if type(transform) is str else list(transform)
         self.colormaps = [colormap] if type(colormap) is str else list(colormap)
+        self.scale = scale
         self.transform_map = {
             'none': functools.partial(self.__no_transform),
             'minmax': functools.partial(self.__minmax_normalization),
@@ -49,17 +51,24 @@ class Blend2d(Base):
                 left = left.cpu().detach().numpy() if left.is_cuda else left.detach().numpy()                
                 self.__viz_color(self.visualizer,
                     left * b + (1.0 - b) * self.colorize_map[c](
-                        self.transform_map[t](tensors[r])), n, n, self.name
+                        self.transform_map[t](tensors[r])), n, n, self.name,
+                    self.scale
                 )
 
     @staticmethod
     def __viz_color(
         visdom: visdom.Visdom,
-        array: numpy.array,
-        key: str,
-        win: str,
-        env: str
+        array:  numpy.array,
+        key:    str,
+        win:    str,
+        env:    str,
+        scale:  float,
     ) -> None:
+        if scale != 1.0:
+            array = torch.nn.functional.interpolate(
+                torch.from_numpy(array), mode='bilinear',
+                scale_factor=scale, 
+            ).numpy()
         visdom.images(
             numpy.clip(array, 0.0, 1.0),
             win=win,
