@@ -7,7 +7,7 @@ visdom
 hiplot==0.1.20
 opencv-python
 albumentations
-matplotlib=3.3.4
+matplotlib==3.3.4
 toolz
 tablib
 json2html
@@ -15,5 +15,5 @@ pysm==0.3.9
 colour
 parsedatetime==2.6
 deepdiff==4.0.9
-pandas
 rich
+pandas
