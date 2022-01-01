@@ -7,3 +7,4 @@ samples: [16, 4]
 sample_pixel_center: false
 focal_length: 5000.0
 principal_point: null
+opengl: true

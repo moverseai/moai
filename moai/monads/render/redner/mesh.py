@@ -1,5 +1,4 @@
 from collections import namedtuple
-from random import sample
 import torch
 import typing
 import logging
@@ -86,15 +85,20 @@ class Silhouette(torch.nn.Module):
         for i in range(b):
             f = indices[i].int().contiguous()
             v = vertices[i].contiguous()
+            v[..., 0] = -1.0 * v[..., 0] # v3
+            v[..., 1] = -1.0 * v[..., 1] # v3
+            v[..., 2] = -1.0 * v[..., 2] # v3
             if uvs is not None:
                 kwargs['uvs'] = uvs[i]
             else:
                 kwargs['colors'] = torch.ones_like(v)    
             obj = pyredner.Object(vertices=v, indices=f,**kwargs)
             pos = translation[i]
-            if self.params.opengl:
-                pos = pos * torch.tensor([-1.0, -1.0, 1.0]).to(pos)
-            up = (-1.0 if self.params.opengl else 1.0) * rotation[i][1]
+            # if self.params.opengl:
+                # # pos = pos * torch.tensor([-1.0, -1.0, 1.0]).to(pos)
+                # pos = pos * torch.tensor([-1.0, 1.0, 1.0]).to(pos) # v3
+            # up = (-1.0 if self.params.opengl else 1.0) * rotation[i][1]
+            up = rotation[i][1] # v3
             fwd = (-1.0 if self.params.opengl else 1.0) * rotation[i][2]
             cam = pyredner.Camera(
                 position=pos, up=up, look_at=pos + fwd,
