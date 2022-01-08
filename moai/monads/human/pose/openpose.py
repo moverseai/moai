@@ -13,7 +13,8 @@ log = logging.getLogger(__name__)
 __JOINT__FORMATS__ = {
     'none':             [118, 0, 0],
     'coco25':           [25, 21 * 2, 51],
-    'coco25_star':      [25, 0, 0]
+    'coco25_star':      [25, 0, 0],
+    'coco25_star+':      [25, 21 * 2, 0],
 }
 
 class Split(torch.nn.Module):
@@ -132,10 +133,35 @@ def _body_to_openpose(
                 15, 12, 17, 19, 21, 
                 16, 18, 20, 0, 2, 
                 5, 8, 1, 4, 7, 
-                15, 15, 15, 15, 10,
+                24, 25, 26, 27, 10,
                 10, 7, 11, 11, 8,
             ], dtype=np.int32)
             mapping = [body_mapping]
+            if use_hands:
+                lhand_mapping = np.array([
+                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 22,
+                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0,
+                    0
+                ], dtype=np.int32)
+                rhand_mapping = np.array([
+                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 23,
+                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0,
+                    0
+                ], dtype=np.int32)
+                mapping += [lhand_mapping, rhand_mapping]
+            if use_face: 
+                #NOTE: here we place the face landmarks to the original body mapping
+                mapping[0][15] = 25 # REye
+                mapping[0][16] = 26 # LEye
+                mapping[0][17] = 24 # REar
+                mapping[0][18] = 27 # LEar
+                #NOTE: currently not used anywhere, just a placeholder for the face landmarks
+                # face_mapping = np.arange(76, 127 + 17 * use_face_contour, dtype=np.int32)
+                # mapping += [face_mapping]
             return np.concatenate(mapping)
         else:
             log.error(f'Unknown model type: {model_type}')
@@ -216,8 +242,10 @@ class JointMap(torch.nn.Module):
     ):
         super(JointMap, self).__init__()
         self.register_buffer('indices', torch.from_numpy(
-            _body_to_openpose(model_type=model, openpose_format=format, 
-                use_hands=with_hands,use_face=with_face,
+            _body_to_openpose(model_type=model, 
+                openpose_format=format, 
+                use_hands=with_hands,
+                use_face=with_face,
                 use_face_contour=with_face_contour,
             )).long()
         )
