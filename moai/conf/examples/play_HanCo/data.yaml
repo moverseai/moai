@@ -1,0 +1,25 @@
+# @package _global_
+
+HanCo_root: ???
+
+data:
+  train:
+    iterator:
+      datasets:
+        HanCo:
+          root: ${HanCo_root}
+          data_types: ['color', 'mask_hand', 'mask_fg']
+
+  test:
+    iterator:
+      datasets:
+        HanCo:
+          root: ${HanCo_root}
+          data_types: ['color', 'mask_hand', 'mask_fg']
+
+  val:
+    iterator:
+      datasets:
+        HanCo:
+          root: ${HanCo_root}
+          data_types: ['color', 'mask_hand', 'mask_fg']
