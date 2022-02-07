@@ -8,18 +8,18 @@ data:
       datasets:
         HanCo:
           root: ${HanCo_root}
-          data_types: ['color', 'mask_hand', 'mask_fg']
+          data_types: ['color', 'keypoints3D', 'keypoints2D', 'mano']
 
   test:
     iterator:
       datasets:
         HanCo:
           root: ${HanCo_root}
-          data_types: ['color', 'mask_hand', 'mask_fg']
+          data_types: ['color', 'keypoints3D', 'keypoints2D', 'mano']
 
   val:
     iterator:
       datasets:
         HanCo:
           root: ${HanCo_root}
-          data_types: ['color', 'mask_hand', 'mask_fg']
+          data_types: ['color', 'keypoints3D', 'keypoints2D', 'mano']

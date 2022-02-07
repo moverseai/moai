@@ -4,7 +4,7 @@ experiment:
   visdom_ip: localhost
   name: HanCo_test_viz
   batch_size: 1
-  workers: 8
+  workers: 1
 
 visualization:
   batch_interval: 1
@@ -12,7 +12,7 @@ visualization:
     image2d:
       name: ${experiment.name}
       ip: ${experiment.visdom_ip}
-      image: [color, mask_hand, mask_fg]
-      type: [color, color, color]
-      colormap: [none, gray, gray]
-      transform: [none, none, none]
+      image: [color]
+      type: [color]
+      colormap: [none]
+      transform: [none]

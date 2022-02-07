@@ -3,5 +3,3 @@
 _target_: moai.data.datasets.hand.pose.HanCo
 root: ${HanCo_root}
 data_types: ???
-# load_keypoints: False
-# load_mano: False
