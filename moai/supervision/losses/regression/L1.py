@@ -22,8 +22,8 @@ class L1(torch.nn.Module):
         self.mode = L1.__MODES_MAP__[mode]
 
     def forward(self,
-        gt: torch.Tensor,
         pred: torch.Tensor,
+        gt: torch.Tensor,
         weights: torch.Tensor=None, # float tensor
         mask: torch.Tensor=None, # byte tensor
     ) -> torch.Tensor:

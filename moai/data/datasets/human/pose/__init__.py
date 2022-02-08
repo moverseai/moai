@@ -1,5 +1,5 @@
-from moai.data.datasets.human.pose.openpose import OpenPoseInference
+from moai.data.datasets.human.pose.openpose import OpenPoseInferred
 
 __all__ = [
-    'OpenPoseInference'
+    'OpenPoseInferred',
 ]

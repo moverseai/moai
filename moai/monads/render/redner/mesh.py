@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 try:
     import pyredner
+    from moai.monads.render.redner.render import render_g_buffer
 except:
     log.error(f"The pyredner package (`pip install pyredner`) is required to use the corresponding rendering monads.")
 
@@ -85,14 +86,15 @@ class Silhouette(torch.nn.Module):
         for i in range(b):
             f = indices[i].int().contiguous()
             v = vertices[i].contiguous()
-            v[..., 0] = -1.0 * v[..., 0] # v3
-            v[..., 1] = -1.0 * v[..., 1] # v3
-            v[..., 2] = -1.0 * v[..., 2] # v3
+            # v[..., 0] = -1.0 * v[..., 0] # v3
+            # v[..., 1] = -1.0 * v[..., 1] # v3
+            # v[..., 2] = -1.0 * v[..., 2] # v3
+            v_r = -v
             if uvs is not None:
                 kwargs['uvs'] = uvs[i]
             else:
                 kwargs['colors'] = torch.ones_like(v)    
-            obj = pyredner.Object(vertices=v, indices=f,**kwargs)
+            obj = pyredner.Object(vertices=v_r, indices=f,**kwargs)
             pos = translation[i]
             # if self.params.opengl:
                 # # pos = pos * torch.tensor([-1.0, -1.0, 1.0]).to(pos)
@@ -109,7 +111,7 @@ class Silhouette(torch.nn.Module):
             )
             scene = pyredner.Scene(camera=cam, objects=[obj])
             scenes.append(scene)
-        img = pyredner.render_g_buffer(scene=scenes, 
+        img = render_g_buffer(scene=scenes, 
             channels=[pyredner.channels.vertex_color], seed=None,                           
             num_samples=(self.params.samples[0], self.params.samples[1]),            
             sample_pixel_center=self.params.sample_pixel_center,

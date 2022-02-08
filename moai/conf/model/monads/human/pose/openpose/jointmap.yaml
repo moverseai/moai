@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.openpose__name_
 
 _target_: moai.monads.human.pose.OpenposeJointMap
 model: smplx

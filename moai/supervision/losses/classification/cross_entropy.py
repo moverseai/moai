@@ -15,7 +15,7 @@ class CrossEntropy(torch.nn.CrossEntropyLoss):
         )
 
     def forward(self, 
-        gt: torch.Tensor, # class ids [B, 1, ...]
         pred: torch.Tensor, # logits [B, C, ...] (i.e. raw predictions, no softmax applied -- see link above)
+        gt: torch.Tensor, # class ids [B, 1, ...]        
     ) -> torch.Tensor:
         return super(CrossEntropy, self).forward(pred, gt)

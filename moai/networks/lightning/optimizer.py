@@ -169,12 +169,16 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
 
 from moai.monads.execution.cascade import _create_accessor
 
+#TODO: vary w.r.t mode infer/predict to change clone/copy behaviour
 def _create_assigner(key: str) -> typing.Callable[[torch.nn.Module, torch.Tensor], None]:
-    split = key.split('.')
+    key_list = [key] if isinstance(key, str) else key
+    splits = [k.split('.') for k in key_list]
     def _assign(m: torch.nn.Module, t: torch.Tensor, keys: typing.Sequence[str]):
-         to_set = toolz.reduce(getattr, split, m)
-         to_set.copy_(t)
-    return functools.partial(_assign, keys=split)
+        for split in keys:
+            to_set = toolz.reduce(getattr, split, m)
+            to_set.copy_(t.clone())
+            # to_set.copy_(t)
+    return functools.partial(_assign, keys=splits)
 
 class Optimizer(pytorch_lightning.LightningModule):
     def __init__(self, 

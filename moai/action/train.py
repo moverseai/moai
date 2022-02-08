@@ -1,6 +1,5 @@
 import hydra
 import sys
-import os
 import omegaconf.omegaconf
 import logging
 import typing
@@ -24,6 +23,8 @@ def train(cfg):
         visualization=assign(cfg, "visualization"),
         export=assign(cfg, "export"),    
     )
+    for name, remodel in (assign(cfg, "remodel") or {}).items():
+        hydra.utils.instantiate(remodel)(model)
     model.initialize_parameters()    
     trainer = hydra.utils.instantiate(cfg.trainer, 
         logging=assign(cfg, "logging"),

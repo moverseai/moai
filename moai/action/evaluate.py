@@ -1,6 +1,5 @@
 import hydra
 import sys
-import os
 import omegaconf.omegaconf
 import logging
 import typing
@@ -23,6 +22,8 @@ def evaluate(cfg):
         visualization=assign(cfg, "visualization"),
         export=assign(cfg, "export"),    
     )
+    for name, remodel in (assign(cfg, "remodel") or {}).items():
+        hydra.utils.instantiate(remodel)(model)
     model.initialize_parameters()
     tester = hydra.utils.instantiate(cfg.tester, 
         logging=assign(cfg, "logging")

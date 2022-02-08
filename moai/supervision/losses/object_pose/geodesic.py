@@ -38,14 +38,10 @@ class Geodesic(torch.nn.Module):
         super(Geodesic, self).__init__()
 
     def forward(self,
-        gt: torch.Tensor, # b x 3 x 3
         pred: torch.Tensor, # b x 3 x 3
-    ) -> torch.Tensor:
-        
-        geo_loss = _compute_geodesic_loss(gt,pred)
-        
-        return geo_loss
-
+        gt: torch.Tensor, # b x 3 x 3        
+    ) -> torch.Tensor:        
+        return _compute_geodesic_loss(gt, pred)
 
 def _compute_geodesic_loss(gt_r_matrix, out_r_matrix):
     batch = gt_r_matrix.shape[0]

@@ -54,6 +54,6 @@ class Vector(Base):
     ) -> None:
         visdom.bar(
             array,
-            win=win,
+            win=f"{key}_{win}",
             env=env,
         )

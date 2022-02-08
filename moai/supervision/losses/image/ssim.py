@@ -17,8 +17,8 @@ class StructuralDisimilarity(kornia.losses.SSIM):
         )
 
     def forward(self, 
-        gt: torch.Tensor,
         pred: torch.Tensor,
+        gt: torch.Tensor,        
         weights: torch.Tensor=None,
         mask: torch.Tensor=None,
     ) -> torch.Tensor:                    

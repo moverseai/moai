@@ -1,6 +1,5 @@
 import hydra
 import sys
-import os
 import omegaconf.omegaconf
 import logging
 import typing
@@ -24,7 +23,7 @@ def fit(cfg):
         visualization=assign(cfg, "visualization"),
         export=assign(cfg, "export"),    
     )
-    for name, remodel in (cfg.remodel or {}).items():
+    for name, remodel in (assign(cfg ,"remodel") or {}).items():
         hydra.utils.instantiate(remodel)(model)
     fitter = hydra.utils.instantiate(cfg.fitter, 
         logging=assign(cfg, "logging"),

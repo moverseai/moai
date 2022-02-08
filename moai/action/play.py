@@ -1,6 +1,5 @@
 import moai.engine.lightning.play as miplay
 
-import os
 import sys
 import hydra
 import omegaconf.omegaconf

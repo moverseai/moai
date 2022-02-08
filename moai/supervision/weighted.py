@@ -18,6 +18,12 @@ __all__ = ["Weighted"]
 
 from moai.monads.execution.cascade import _create_accessor
 
+__REDUCTIONS__ = {
+    'sum': torch.sum,
+    'mean': torch.mean,
+    'iou': lambda t: torch.mean(1.0 - (t / t[0].numel())),
+}
+
 class Weighted(torch.nn.ModuleDict):
     def __init__(self,
         losses: omegaconf.DictConfig,
@@ -43,10 +49,14 @@ class Weighted(torch.nn.ModuleDict):
             else:
                 log.warning(f"{k} loss has no assigned weights, automatically reverting to a weight of one (1.0).")
                 wgts = itertools.cycle([1.0 / len(p['out'])])
-            reduction = p['reduction'] if 'reduction' in p else 'mean'
+            if 'reduction' in p:
+                reduction = iter(p['reduction'])
+            else:
+                log.warning(f"{k} loss has no assigned reduction, automatically reverting to mean reduction.")
+                reduction = itertools.cycle(['mean'])                
             #TODO: there is a bug if you pass in keys that are not bracketed ([]), i.e. as a list, even for a single arg
             for keys in zip(*list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p.get(prop) is not None)):
-                accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys[:-1]]
+                accessors = [_create_accessor(k if isinstance(k, str) else toolz.get(0, k, None)) for k in keys[:-1]]
                 self.execs.append(lambda tensor_dict, 
                     acc=accessors, k=keys, p=sig.parameters.keys(), f=last_module:
                     tensor_dict.update({
@@ -62,7 +72,7 @@ class Weighted(torch.nn.ModuleDict):
                 )
                 self.keyz.append(keys[-1])
                 self.weights.append(next(wgts)) #TODO: error if no weight has been set? or implicit 1.0 ?
-                self.reductions.append(reduction)
+                self.reductions.append(next(reduction))
             
     def forward(self,
         tensors: typing.Dict[str, torch.Tensor]
@@ -74,7 +84,8 @@ class Weighted(torch.nn.ModuleDict):
         per_error_map = { }
         for exe, w, k, r in zip(self.execs, self.weights, self.keyz, self.reductions):
             exe(tensors)
-            e = w * (torch.sum(tensors[k]) if r == 'sum' else torch.mean(tensors[k]))
+            # e = w * (torch.sum(tensors[k]) if r == 'sum' else torch.mean(tensors[k]))
+            e = w * __REDUCTIONS__[r](tensors[k])
             per_error_map[k] = e
             error += e
         return error, per_error_map

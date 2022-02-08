@@ -56,3 +56,9 @@ class SelectTensor(torch.nn.Module):
                        out_tensor = None
                 
                 return out_tensor
+class Detach(torch.nn.Module):
+    def __init__(self):
+        super(Detach, self).__init__()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return tensor.detach()

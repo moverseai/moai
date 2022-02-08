@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.generation.tensor.Random
+shape: ???
+mode: unit # one of [unit, normal]
+scale: 1.0

@@ -22,7 +22,7 @@ OpenPoseParams = namedtuple('OpenPoseParams', [
     'single_person_only',
 ])
 
-class OpenPoseInference(torch.utils.data.Dataset):
+class OpenPoseInferred(torch.utils.data.Dataset):
     def __init__(self,
         image_glob:                 str,
         load_hands:                 bool=False,
@@ -30,14 +30,15 @@ class OpenPoseInference(torch.utils.data.Dataset):
         load_face_contour:          bool=False,
         single_person_only:         bool=False,
         invalid_joints:             typing.Sequence[int]=None,
+        updates:                    typing.Mapping[str, bool]={},
     ):
-        super(OpenPoseInference, self).__init__()
+        super(OpenPoseInferred, self).__init__()
         self.params = OpenPoseParams(load_hands, 
             load_face, load_face_contour, single_person_only,
         )
         image_filenames = glob.glob(image_glob)
         self.filenames = image_filenames
-        self.invalid_joints = list(invalid_joints)
+        self.invalid_joints = list(invalid_joints or [])
 
     def __len__(self) -> int:
         return len(self.filenames)
@@ -66,11 +67,13 @@ class OpenPoseInference(torch.utils.data.Dataset):
         keypoints[..., 2].scatter_(dim=0, 
             index=torch.Tensor(self.invalid_joints).long(), value=0.0
         )[:, np.newaxis]
+        kpts = keypoints[..., :2]
+        conf = keypoints[..., 2][:, np.newaxis]
         return {
             'color': img,
-            'keypoints': keypoints[..., :2],
-            'confidence': keypoints[..., 2][:, np.newaxis],
-            'mask': (keypoints[..., 2] > 0.0).float()[:, np.newaxis]
+            'keypoints': kpts,
+            'confidence': conf,
+            'mask': (conf > 0.0).float()[:, np.newaxis]
         }
 
     def _read_keypoints(self,

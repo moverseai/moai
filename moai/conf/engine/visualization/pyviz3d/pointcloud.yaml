@@ -1,0 +1,8 @@
+# @package visualization.visualizers._name_
+
+_target_: moai.visualization.pyviz3d.PointCloud
+name: ${experiment.name}
+port: 8098
+points: ???
+color: ???
+batch_percentage: 1.0

@@ -6,7 +6,7 @@ from moai.visualization.visdom.pose2d import Pose2d
 from moai.visualization.visdom.image_grid2d import Image_grid2d
 from moai.visualization.visdom.rendered_mesh import RenderedMesh
 from moai.visualization.visdom.vector import Vector
-
+    
 __all__ = [
     "Image2d",
     "Blend2d",

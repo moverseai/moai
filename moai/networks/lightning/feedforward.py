@@ -181,7 +181,7 @@ class FeedForward(pytorch_lightning.LightningModule):
     def validation_step(self,
         batch: typing.Dict[str, torch.Tensor],
         batch_nb: int
-    ) -> dict:
+    ) -> dict:        
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
         outputs = self.postprocess(prediction)
@@ -192,7 +192,7 @@ class FeedForward(pytorch_lightning.LightningModule):
     def validation_epoch_end(self,
         outputs: typing.List[dict]
     ) -> None:
-        keys = next(iter(outputs), { }).keys()
+        keys = next(iter(outputs), { }).keys()        
         metrics = { }
         for key in keys:
             metrics[key] = numpy.mean(numpy.array(

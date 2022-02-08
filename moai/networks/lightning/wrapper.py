@@ -12,6 +12,8 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Wrapper']
 
+from moai.monads.execution.cascade import _create_accessor
+
 class Wrapper(minet.FeedForward):
     def __init__(self,
         inner:          omegaconf.DictConfig,
@@ -39,16 +41,17 @@ class Wrapper(minet.FeedForward):
         self.res_fill = [mirtp.get_result_fillers(self.model, out) for out in model_out]
         get_filler = iter(self.res_fill)
         for keys in model_in:
+            accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys]  
             self.fwds.append(lambda td,
                 tk=keys,
+                acc=accessors,
                 args=params.keys(),
                 model=self.model,
                 filler=next(get_filler):
                     filler(td, model(**dict(zip(args,
-                        list(
-                                td[k] if type(k) is str
+                        list(acc[i](td) if type(k) is str
                                 else list(td[j] for j in k)
-                            for k in tk
+                            for i, k in enumerate(tk)
                         )
                     ))))
             )

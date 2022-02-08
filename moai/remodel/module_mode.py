@@ -8,7 +8,13 @@ __all__ = ['ModuleMode']
 
 log = logging.getLogger(__name__)
 
-#TODO: check inference_mode from pytorch 1.10
+class nograd_mode(torch.no_grad):
+    def __init__(self, *args, **kwargs):
+        super(nograd_mode, self).__init__()
+
+class inference_mode(torch.inference_mode):
+    def __init__(self, *args, **kwargs):
+        super(inference_mode, self).__init__()
 
 class eval_mode(ContextDecorator):
     def __init__(self, module: torch.nn.Module):
@@ -34,6 +40,7 @@ class eval_nograd_mode(ContextDecorator):
     def __init__(self, module: torch.nn.Module):
         # super(eval_nograd_mode, self).__init__()
         self.module = module
+        self.module_grad_state = False
 
     def __enter__(self):
         # self.module_train_state = self.module.training
@@ -48,12 +55,15 @@ class eval_nograd_mode(ContextDecorator):
         exc_value: typing.Any,
         traceback: typing.Any
     ) -> None:
-        torch.set_grad_enabled(self.prev)
+        torch.set_grad_enabled(self.module_grad_state)
 
 class ModuleMode(typing.Callable[[torch.nn.Module], None]):
     
     __TYPE__ = {
-        'nograd':              torch.no_grad,
+        'nograd':              nograd_mode,
+        'no_grad':             nograd_mode,
+        'inference':           inference_mode,
+        'infer':               inference_mode,
         'eval':                eval_mode,
         'eval_nograd':         eval_nograd_mode,
         'nograd_eval':         eval_nograd_mode,

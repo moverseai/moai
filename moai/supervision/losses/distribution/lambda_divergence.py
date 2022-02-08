@@ -6,7 +6,7 @@ import functools
 __all__ = ["Lambda", "JS"]
 
 class Lambda(KL):
-    def __init__(self,        
+    def __init__(self,
         lamda: float=0.5, # default lambda for Jensen-Shannon Divergence
         is_input_log:   bool=False,
         is_target_log:  bool=False,
@@ -19,8 +19,8 @@ class Lambda(KL):
         self.epsilon = epsilon
 
     def forward(self,
+        pred: torch.Tensor,
         gt: torch.Tensor,
-        pred: torch.Tensor,        
     ) -> torch.Tensor:
         m = (
             self.lamda * (pred.exp() if self.is_input_log_ else pred)

@@ -1,0 +1,3 @@
+# @package model
+
+_target_: moai.networks.lightning.Null

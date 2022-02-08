@@ -10,7 +10,7 @@ __all__ = ["Loggers"]
 
 class Loggers(pytorch_lightning.loggers.base.LoggerCollection):
     def __init__(self,
-        loggers: omegaconf.DictConfig=None,
+        loggers: omegaconf.DictConfig={},
         name: str="Sequential",
         version: int=0
     ):

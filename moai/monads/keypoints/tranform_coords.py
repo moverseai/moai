@@ -1,5 +1,6 @@
 import torch
 
+import typing
 import functools
 
 __all__ = [
@@ -98,9 +99,11 @@ class CoordsToNorm(torch.nn.Module):
 
     def forward(self,
         coords: torch.Tensor,
-        grid:   torch.Tensor
+        grid:   typing.Optional[torch.Tensor]=None,
+        image:  typing.Optional[torch.Tensor]=None,
     ) -> torch.Tensor:
-        dims = torch.tensor(grid.shape[2:], dtype=torch.float32, device=coords.device)
+        dims_from = grid if grid is not None else image
+        dims = torch.tensor(dims_from.shape[2:], dtype=torch.float32, device=coords.device)
         if self.flip:
             dims = dims.flip(-1)
         return coords / dims.expand_as(coords)

@@ -89,8 +89,8 @@ class Berhu(torch.nn.Module):
             return torch.max(error)
 
     def forward(self, 
-        gt:         torch.Tensor,
         pred:       torch.Tensor,
+        gt:         torch.Tensor,        
         weights:    torch.Tensor=None,       # float tensor
         mask:       torch.Tensor=None,       # byte tensor
     ) -> torch.Tensor:        

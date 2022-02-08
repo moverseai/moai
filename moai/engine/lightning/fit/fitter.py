@@ -1,3 +1,4 @@
+from cmath import isfinite
 import moai.log.lightning as milog
 
 import pytorch_lightning
@@ -33,6 +34,13 @@ class OptimizationLoop(pytorch_lightning.loops.OptimizerLoop):
             for p in toolz.concat((g['params'] for g in param_groups))
         )
 
+    def is_any_param_nan(self, optimizer: torch.optim.Optimizer) -> bool:
+        for pg in optimizer.param_groups:
+                for p in pg['params']:
+                    if not torch.all(torch.isfinite(p)):
+                        return True
+        return False
+
     def advance(self,
         batch: typing.Any, *args: typing.Any, **kwargs: typing.Any
     ) -> None:
@@ -62,9 +70,11 @@ class OptimizationLoop(pytorch_lightning.loops.OptimizerLoop):
                 current_loss = self._outputs[i]['loss']
                 if (self.last_loss is not None and self.relative_check(
                     self.last_loss, current_loss
-                )) or self.gradient_check(self._optimizers[i].param_groups):
-                    log.warning(f"Optimization stage '{stage}' stopped at iteration {j}/{iters}.")
-                    break
+                )) or self.gradient_check(self._optimizers[i].param_groups)\
+                    or not torch.isfinite(current_loss)\
+                    or self.is_any_param_nan(optim):
+                        log.warning(f"Optimization stage '{stage}' stopped at iteration {j}/{iters}.")
+                        break
                 self.last_loss = current_loss
             self.last_loss = None
             self.optim_progress.optimizer_position = i + 1
@@ -135,6 +145,8 @@ class LightningFitter(pytorch_lightning.Trainer):
         stochastic_weight_avg:      bool=False,                        
         #NOTE: @PTL1.5 distributed_backend:        typing.Optional[str]=None,
         #NOTE: @PTL1.5 automatic_optimization:     bool=True,
+        relative_tolerance:         float=1e-9,
+        gradient_tolerance:         float=1e-9,
         **kwargs
     ):
         if logging and '_target_' not in logging: #TODO: needs a workaround for other viz types (e.g. not visdom) if they are moved to top level
@@ -221,7 +233,12 @@ class LightningFitter(pytorch_lightning.Trainer):
             num_processes=num_processes, #NOTE: @PTL1.5 fix
             **kwargs
         )
-        self.fit_loop.epoch_loop.batch_loop.connect(optimizer_loop=OptimizationLoop())
+        self.fit_loop.epoch_loop.batch_loop.connect(
+            optimizer_loop=OptimizationLoop(
+                relative_tolerance=relative_tolerance,
+                gradient_tolerance=gradient_tolerance,
+            )
+        )
 
     def run(self, model):
         self.fit(model)

@@ -11,9 +11,9 @@ log = logging.getLogger(__name__)
 __all__ = ["Named"]
 
 class Named(Cascade):
-    def __init__(self, 
-        schemes: omegaconf.DictConfig,
-        modules: omegaconf.DictConfig,
+    def __init__(self,         
+        schemes: omegaconf.DictConfig={},
+        modules: omegaconf.DictConfig={},        
     ):
         super(Named, self).__init__(schemes)
         self.inits = modules

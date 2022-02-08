@@ -20,7 +20,7 @@ class Metric(mieng.Single):
             items=metrics, 
             name="metric",
         )
-        loop = ((key, params) for key, params in kwargs.items() if hasattr(indicators, key))
+        loop = ((key, params) for key, params in kwargs.items() if hasattr(metrics, key))
         for k, p in loop:
             last_module = self.metric
             sig = inspect.signature(last_module.forward)

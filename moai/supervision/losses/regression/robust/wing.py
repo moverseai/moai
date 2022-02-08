@@ -167,12 +167,12 @@ class Wing(L1):
         return L1, omega2 * torch.log(1 + L1 / epsilon) + C        
 
     def forward(self,
-        gt:         torch.Tensor,
         pred:       torch.Tensor,
+        gt:         torch.Tensor,        
         weights:    torch.Tensor=None,
         mask:       torch.Tensor=None,
     ) -> torch.Tensor:
-        L1 = super(Wing, self).forward(gt, pred)    
+        L1 = super(Wing, self).forward(pred=pred, gt=gt)    
         branch_A, branch_B = self.branch(L1, gt)
         wing = torch.where(
             L1 < self.threshold,

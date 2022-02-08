@@ -161,7 +161,7 @@ class StandardNormalKL(torch.nn.Module):
 
     def forward(self,
         var: torch.Tensor,
-        mu: torch.Tensor
+        mu: torch.Tensor,
     ) -> torch.Tensor:
         self.num_iter += 1
         v = var if self.is_var_log else var.log()

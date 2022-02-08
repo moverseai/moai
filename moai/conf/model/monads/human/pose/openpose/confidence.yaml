@@ -1,0 +1,5 @@
+# @package model.monads.openpose__name_
+
+_target_: moai.monads.human.pose.OpenposeJointConfidence
+joints_to_ignore: []
+confidence_threshold: 0.0

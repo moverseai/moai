@@ -17,12 +17,12 @@ class Welsch(L1):
         self.v_sq = v * v
 
     def forward(self,
-        gt:         torch.Tensor,
         pred:       torch.Tensor,
+        gt:         torch.Tensor,        
         weights:    torch.Tensor=None, # float tensor
         mask:       torch.Tensor=None, # byte tensor
     ) -> torch.Tensor:
-        L1 = super(Welsch, self).forward(gt, pred)
+        L1 = super(Welsch, self).forward(pred=pred, gt=gt)
         welsch = 1.0 - torch.exp(-1.0 * torch.pow(L1, 2) / 2.0 * self.v_sq)
         if weights is not None:
             welsch = welsch * weights

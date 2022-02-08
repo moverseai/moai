@@ -6,15 +6,20 @@ import logging
 
 #NOTE: code from https://github.com/vchoutas/smplify-x
 
-__all__ = ["Split", "JointMap"]
+__all__ = [
+    "Split",
+    "JointMap",
+    "JointConfidence",
+    "MergeToes",
+]
 
 log = logging.getLogger(__name__)
 
-__JOINT__FORMATS__ = {
-    'none':             [118, 0, 0],
-    'coco25':           [25, 21 * 2, 51],
-    'coco25_star':      [25, 0, 0],
-    'coco25_star+':      [25, 21 * 2, 0],
+__JOINT_FORMATS__ = {
+    'none':                 [118,   0,          0],
+    'coco25':               [25,    21 * 2,     51],
+    'coco25_star':          [25,    0,          0],
+    'coco25_star+':         [25,    21 * 2,     0],
 }
 
 class Split(torch.nn.Module):
@@ -22,7 +27,7 @@ class Split(torch.nn.Module):
         format:             str='coco25',
     ):
         super(Split, self).__init__()
-        self.split_sections = __JOINT__FORMATS__[format]
+        self.split_sections = __JOINT_FORMATS__[format]
 
     def forward(self,
         all_joints:          torch.Tensor=None,
@@ -256,3 +261,55 @@ class JointMap(torch.nn.Module):
         vertices: torch.Tensor=None, #NOTE: for compatibility with current SMPLX implementation
     ) -> torch.Tensor:
         return self.index(joints, index=self.indices)
+
+class JointConfidence(torch.nn.Module):
+    def __init__(self,
+        joints_to_ignore:       typing.Sequence[int],
+        confidence_threshold:   float=0.0,
+    ):
+        super(JointConfidence, self).__init__()
+        self.register_buffer('ignore', torch.tensor(joints_to_ignore).long())
+        self.threshold = confidence_threshold
+
+    def forward(self, 
+        confidence: torch.Tensor
+    ) -> torch.Tensor:
+        ret = confidence.clone()
+        ret[:, self.ignore, ...] = 0.0
+        ret[ret < self.threshold] = 0.0
+        return ret
+
+class MergeToes(torch.nn.Module): #TODO: aug layer
+    def __init__(self):
+        super(MergeToes, self).__init__()
+
+    def forward(self,
+        keypoints:  torch.Tensor,
+        confidence: torch.Tensor,
+    ) -> typing.Dict[str, torch.Tensor]:
+        kpts = keypoints.detach().clone()
+        conf = confidence.detach().clone()
+        # right
+        right_toes_j = kpts[:, 22:24, :]
+        right_toes_w = conf[:, 22:24, :]
+        right_toe_w = right_toes_w.sum(dim=1, keepdim=True)
+        right_toe = (right_toes_j * right_toes_w).sum(dim=1, keepdim=True) / (right_toe_w + 1e-8)
+        kpts[:, 22, :] = right_toe
+        kpts[:, 23, :] = right_toe
+        right_toe_w = right_toe_w * 0.5
+        conf[:, 22, :] = right_toe_w
+        conf[:, 23, :] = right_toe_w
+        # left
+        left_toes_j = kpts[:, 19:21, :]
+        left_toes_w = conf[:, 19:21, :]
+        left_toe_w = left_toes_w.sum(dim=1, keepdim=True)
+        left_toe = (left_toes_j * left_toes_w).sum(dim=1, keepdim=True) / (left_toe_w + 1e-8)
+        kpts[:, 19, :] = left_toe
+        kpts[:, 20, :] = left_toe
+        left_toe_w = left_toe_w * 0.5
+        conf[:, 19, :] = left_toe_w
+        conf[:, 20, :] = left_toe_w
+        return {
+            'positions' : kpts,
+            'confidence': conf,
+        }

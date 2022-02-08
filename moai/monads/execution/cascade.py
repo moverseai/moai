@@ -59,7 +59,10 @@ __ACCESSORS__ = {
     '.': _dict,
 }
 
-def _create_accessor(key: typing.Union[str, typing.Sequence[str]]):
+#TODO: need a lexer/parser/grammar here...
+def _create_accessor(key: typing.Optional[typing.Union[str, typing.Sequence[str]]]):
+    if key is None:
+        return lambda _: None
     for k in __ACCESSORS__.keys():
         if k in key:
             return functools.partial(__ACCESSORS__[k], keys=key.split(k))
@@ -86,7 +89,7 @@ class Cascade(torch.nn.ModuleDict): #TODO: check if x: ['arg'] is the same as x:
             sig = inspect.signature(module.forward)
             props = [prop for prop in sig.parameters if p[prop] is not None]
             for keys in zip(*list(p[prop] for prop in itertools.chain(props, ['out']))):
-                accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys[:-1]]
+                accessors = [_create_accessor(k if isinstance(k, str) or k is None else k[0]) for k in keys[:-1]]
                 self.execs.append(lambda tensor_dict, 
                         acc=accessors, k=keys, p=props, f=module:
                     tensor_dict.update({

@@ -39,13 +39,13 @@ class CosineDistance(torch.nn.CosineSimilarity):
         self.epsilon = epsilon
 
     def forward(self,
-        gt: torch.Tensor,
         pred: torch.Tensor,
+        gt: torch.Tensor,        
         weights: torch.Tensor=None, # float tensor
         mask: torch.Tensor=None, # byte tensor
     ) -> torch.Tensor:        
         dot = torch.sum(gt * pred, dim=self.dim) if self.normalized\
-            else super(CosineDistance, self).forward(gt, pred)
+            else super(CosineDistance, self).forward(pred, gt)
         # return torch.acos(dot) / np.pi #NOTE: (eps) clamping should also fix the nan grad issue (traditional [-1, 1] clamping does not)
         # return torch.acos(torch.clamp(dot, min=-1.0 + self.epsilon, max=1.0 - self.epsilon)) / np.pi
         return _acos_safe(dot, eps=self.epsilon) / np.pi        

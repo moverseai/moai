@@ -1,6 +1,7 @@
 import torch
 import typing
 import omegaconf.omegaconf
+import functools
 
 __all__ = [
     "Scalar",
@@ -23,15 +24,27 @@ class Scalar(torch.nn.Module):
         return torch.scalar_tensor(self.value,
             dtype=tensor.dtype, device=tensor.device
         )
-
+torch.distributions.Normal
 class Random(torch.nn.Module):
-    def __init__(self):
+    __RANDOMS__ = {
+        'unit': torch.rand,
+        'normal': torch.randn,
+    }
+
+    def __init__(self,
+        shape:      typing.Sequence[int],
+        scale:      float=1.0,
+        mode:       str='unit', # one of [unit, normal]
+    ):
         super(Random, self).__init__()
+        self.generate = Random.__RANDOMS__[mode]
+        self.shape = shape
+        self.scale = scale
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        # return torch.rand_like(tensor)
-        return torch.rand(1, *tensor.shape[1:], 
-            dtype=tensor.dtype, device=tensor.device).expand_as(tensor)
+        b = tensor.shape[0]
+        generated = self.generate([b, *self.shape], device=tensor.device)
+        return generated * self.scale if self.scale != 1.0 else generated
 
 class Ones(torch.nn.Module):
     def __init__(self):

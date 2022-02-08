@@ -1,12 +1,8 @@
-from moai.monads.human.pose.openpose import (
-    JointMap, 
-    _body_to_openpose
-)
+from moai.monads.human.pose.openpose import JointMap
 
 import toolz
 import torch
 import smplx #TODO: try/except and error msg
-import numpy as np
 import functools
 import typing
 
@@ -50,10 +46,11 @@ class SMPLX(smplx.SMPLX):
         # create_left_eye_pose:   bool=True,
         # create_right_eye_pose:  bool=True,        
     ):
+        mapper = __JOINT__MAPPERS__.get(joints_format, None)
         super(SMPLX, self).__init__(
             model_path=model_path,
             joint_mapper=None if joints_format is None else\
-                __JOINT__MAPPERS__[joints_format](),
+                mapper() if mapper is not None else None,
             create_global_orient=use_global_orientation,
             create_body_pose=use_pose,
             create_betas=use_betas,
@@ -85,7 +82,7 @@ class SMPLX(smplx.SMPLX):
         jaw:            torch.Tensor=None,
         left_eye:       torch.Tensor=None,
         right_eye:      torch.Tensor=None,
-    ) -> typing.Mapping[str, torch.Tensor]:        
+    ) -> typing.Mapping[str, torch.Tensor]:
         body_output = super(SMPLX, self).forward(
             betas=shape,                    # betas -> [1, 10] # v_shaped -> [1, 10475, 3]
             body_pose=pose,                 # body_pose -> [1, 63] # joints -> [1, 118, 3]
@@ -101,7 +98,7 @@ class SMPLX(smplx.SMPLX):
             return_full_pose=True,          # full_pose -> [1, 165] => 54 joints * 3 + 3 global rotation
             return_verts=True,              # vertices -> [1, 10475, 3]
         )
-        b = body_output['vertices'].shape[0]
+        b = body_output['vertices'].shape[0]        
         return toolz.valfilter(lambda v: v is not None, {
             'vertices':     body_output['vertices'],
             'pose':         body_output['body_pose'],

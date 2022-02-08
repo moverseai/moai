@@ -26,7 +26,11 @@ auto_lr_find: false
 terminate_on_nan: false
 auto_scale_batch_size: false
 #NOTE: @PTL1.5 automatic_optimization: true
-
+################
+# optimization options
+################
+relative_tolerance: 1e-9
+gradient_tolerance: 1e-9
 ################
 # backend options
 ################

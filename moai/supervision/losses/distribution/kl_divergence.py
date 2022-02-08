@@ -11,6 +11,9 @@ class KL(torch.nn.KLDivLoss):
         super(KL, self).__init__(reduction='none', log_target=is_target_log)
         self.is_input_log = is_input_log
 
-    def forward(self, gt: torch.Tensor, pred: torch.Tensor) -> torch.Tensor:
+    def forward(self, 
+        pred: torch.Tensor,
+        gt: torch.Tensor,        
+    ) -> torch.Tensor:
         #NOTE: is eps numerical stabilization required?
         return super(KL, self).forward(pred if self.is_input_log else pred.log(), gt)
