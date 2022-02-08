@@ -7,13 +7,13 @@ defaults:
 
   # ###### DATA  
   - data/train/loader: torch
-  - data/train/dataset/synthesis: CelebA
+  - data/train/dataset/hand/pose: HanCo
   - data/test/loader: torch
-  - data/test/dataset/synthesis: CelebA
+  - data/test/dataset/hand/pose: HanCo
   - data/val/loader: torch
-  - data/val/dataset/synthesis: CelebA
+  - data/val/dataset/hand/pose: HanCo
 
-  - examples/play_CelebA/options
-  - examples/play_CelebA/data
+  - examples/play_HanCo/options
+  - examples/play_HanCo/data
 
-CelebA_root: ???
+HanCo_root: ???

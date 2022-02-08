@@ -37,7 +37,7 @@ class StructuredImages(torch.utils.data.Dataset):
                 files += glob.glob(os.path.join(root, g))
             self.key_to_list[k] = list(map(lambda f: os.path.join(root, f), files))
             self.key_to_params[k] = toolz.dissoc(m, 'type', 'glob')
-            self.key_to_loader[k] = _LOADERS_[m['type']]
+            self.key_to_loader[k] = _LOADERS_[k] #m['type']
 
     def __len__(self) -> int:
         return len(next(iter(self.key_to_list.values())))

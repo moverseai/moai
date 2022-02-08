@@ -67,7 +67,7 @@ def run(cfg: omegaconf.DictConfig):
         __MODES__[cfg.reprod](cfg)
 
 def moai():    
-    # os.environ['HYDRA_FULL_ERROR'] = '1'
+    os.environ['HYDRA_FULL_ERROR'] = '1'
     mode = sys.argv.pop(1)
     if mode not in __MODES__:
         log.error(f"Wrong moai execution mode ({mode}), supported modes are: {list(__MODES__.keys())}.")

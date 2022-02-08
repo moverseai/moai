@@ -4,7 +4,7 @@ import numpy
 from matplotlib import cm
 from matplotlib.colors import Colormap
 
-import moai.utils.color.turbo
+# import moai.utils.color.turbo @NOTE check if colormap turbo works with Matplotlib >= 3.3.0
 
 __all__ = [
     "get_colormap",

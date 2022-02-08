@@ -21,9 +21,9 @@ class LightningPlayer(pytorch_lightning.Trainer):
         limit_val_batches: float=1.0,
         limit_test_batches: float=1.0,
         val_check_interval: float=1.0,
-        distributed_backend: typing.Optional[str]=None,
+        #distributed_backend: typing.Optional[str]=None, NOTE: @PLT1.5
         weights_summary: typing.Optional[str]='full',
-        amp_level: str='O1',
+        amp_level: str='O2',
         **kwargs
     ):
         logger = hyu.instantiate(logging) if logging is not None else milog.NoOp()
@@ -40,7 +40,7 @@ class LightningPlayer(pytorch_lightning.Trainer):
             limit_val_batches=limit_val_batches,
             limit_test_batches=limit_test_batches,
             val_check_interval=val_check_interval,
-            distributed_backend=distributed_backend,
+            #distributed_backend=distributed_backend,
             weights_summary=weights_summary,
             amp_level=amp_level,
             **kwargs

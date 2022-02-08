@@ -15,7 +15,7 @@ num_nodes: 0 # only for the distributed case / number of GPU nodes for distribut
 # gpus: "1" # comment out or zero (0) for cpu mode, -1 means all available gpus, otherwise int or list of ints or comma separated string
 #distributed_backend: None # comment out to remove
 #num_tpu_cores: 0 #How many TPU cores to train on (1 or 8). - NOTE: keep commented out if not using    
-amp_level: O1
+amp_level: null #O1 #NOTE: PTL1.5 is optional
 terminate_on_nan: false
 num_sanity_val_steps: 0
 ################

@@ -1,0 +1,5 @@
+# @package data.test.iterator.datasets._name_
+
+_target_: moai.data.datasets.hand.pose.HanCo
+root: ${HanCo_root}
+data_types: ???

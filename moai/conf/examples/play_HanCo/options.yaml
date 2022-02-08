@@ -1,7 +1,8 @@
 # @package _global_
 
 experiment:
-  name: CelebA_dataset_vizualization
+  visdom_ip: localhost
+  name: HanCo_test_viz
   batch_size: 1
   workers: 1
 
@@ -10,8 +11,8 @@ visualization:
   visualizers:
     image2d:
       name: ${experiment.name}
-      ip: "localhost"
+      ip: ${experiment.visdom_ip}
       image: [color]
       type: [color]
       colormap: [none]
-      transform: [dataset]
+      transform: [none]
