@@ -25,7 +25,7 @@ class Image2d(Callable):
 
     def __init__(self,
         path:       str,
-        image:        typing.Union[str, typing.Sequence[str]],
+        image:      typing.Union[str, typing.Sequence[str]],
         type:       typing.Union[str, typing.Sequence[str]],
         colormap:   typing.Union[str, typing.Sequence[str]],
         transform:  typing.Union[str, typing.Sequence[str]],

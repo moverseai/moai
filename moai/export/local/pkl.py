@@ -35,15 +35,20 @@ class Pkl(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.Di
         for key in self.keys:
             split = key.split('.')
             arrays[key] = toolz.get_in(split, tensors).detach().cpu().numpy()
-        mode = 'ab' if self.mode == 'append' else 'b'
-        batch = toolz.get_in(['__moai__', 'batch_index'], tensors)
-        step = toolz.get_in(['__moai__', 'optimization_step'], tensors)
-        stage = toolz.get_in(['__moai__', 'optimization_stage'], tensors)
-        save = { 
-            'optimization_state': {
-                'iteration': str(step),
-                'stage': stage,
-            }, 'parameters_state': arrays
-        } if step else arrays
-        with open(os.path.join(self.folder, f"results_{batch:{self.fmt}}.pkl"), mode) as f:
-            pickle.dump(save, f)
+        if self.mode == 'append':
+            mode = 'ab'
+            batch = toolz.get_in(['__moai__', 'batch_index'], tensors)
+            step = toolz.get_in(['__moai__', 'optimization_step'], tensors)
+            stage = toolz.get_in(['__moai__', 'optimization_stage'], tensors)
+            save = { 
+                'optimization_state': {
+                    'iteration': str(step),
+                    'stage': stage,
+                }, 'parameters_state': arrays
+            } if step else arrays
+            with open(os.path.join(self.folder, f"results_{batch:{self.fmt}}.pkl"), mode) as f:
+                pickle.dump(save, f)
+        else:
+            mode = 'b'
+            log.error("Pickle exporting is not yet enabled in non append mode.")
+        

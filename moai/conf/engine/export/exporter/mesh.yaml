@@ -1,0 +1,9 @@
+# @package export.exporters._name_
+
+_target_: moai.export.local.trimesh.Mesh
+path: '.'
+vertices: ???
+faces: ???
+filetype: ???
+mode: overwrite # [all, overwrite]
+format: 05d
