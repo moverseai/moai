@@ -1,0 +1,14 @@
+# @package model.monads._name_
+
+_target_: moai.monads.human.hand.MANO
+model_path: ???
+joints_format: none
+is_right_hand: true
+use_global_orientation: true
+use_translation: true
+use_pose: true
+use_betas: true
+use_pca: true
+pca_components: 12
+num_betas: 10
+flat_hand_mean: false

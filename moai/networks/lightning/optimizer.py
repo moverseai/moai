@@ -258,7 +258,7 @@ class Optimizer(pytorch_lightning.LightningModule):
         self.validation = _create_validation_block(validation) #TODO: change this, "empty processing block" is confusing        
         self.visualizer = _create_interval_block(visualization)
         self.exporter = _create_interval_block(export)        
-        #NOTE: __NEEDED__ for loading checkpoint
+        #NOTE: __NEEDED__ for loading checkpoint?
         hparams = hyperparameters if hyperparameters is not None else { }
         hparams.update({'moai_version': miV})
         #NOTE: @PTL1.5 self.hparams =  hparams
@@ -323,12 +323,29 @@ class Optimizer(pytorch_lightning.LightningModule):
                 schedulers.append(schedulers[-1])
                 getattr(optimizers[-1], 'iterations').append(iterations)
                 getattr(optimizers[-1], 'name').append(name)
-            else:
+            elif isinstance(optimizer, str):
                 parameters = hyu.instantiate(self.parameter_selectors[params])(self) if isinstance(params, str) else\
                     list(toolz.concat(hyu.instantiate(self.parameter_selectors[p])(self) for p in params))
+                #TODO: parameter construction is very slow
                 optimizers.append(_create_optimization_block(
                     self.optimizer_configs[optimizer], parameters
+                ))#TODO: check if it works with a list of parameters
+                setattr(optimizers[-1], 'iterations', [iterations])
+                setattr(optimizers[-1], 'name', [name])
+                schedulers.append(_create_scheduling_block(
+                    self.scheduler_configs.get(schedule, None), [optimizers[-1]]
                 ))
+            else:
+                parameters = [
+                    hyu.instantiate(self.parameter_selectors[par])(self) if isinstance(par, str)
+                    else list(toolz.concat(hyu.instantiate(self.parameter_selectors[p])(self) for p in par))
+                    for par in params
+                ]
+                alternated = [_create_optimization_block(
+                        self.optimizer_configs[o], param  
+                    ) for o, param in zip(optimizer, parameters)
+                ]
+                optimizers.append(AlternatingOptimizer(alternated, toolz.concat(parameters)))
                 setattr(optimizers[-1], 'iterations', [iterations])
                 setattr(optimizers[-1], 'name', [name])
                 schedulers.append(_create_scheduling_block(
@@ -338,6 +355,19 @@ class Optimizer(pytorch_lightning.LightningModule):
             optimizers,
             list(map(lambda s: s.schedulers[0] if isinstance(s, NoScheduling) else s, schedulers))
         )
+
+    def optimizer_step(
+        self,
+        epoch: int,
+        batch_idx: int,
+        optimizer: typing.Union[torch.optim.Optimizer, pytorch_lightning.core.optimizer.LightningOptimizer],
+        optimizer_idx: int = 0,
+        optimizer_closure: typing.Optional[typing.Callable[[], typing.Any]] = None,
+        on_tpu: bool = False,
+        using_native_amp: bool = False,
+        using_lbfgs: bool = False,
+    ) -> None:        
+        optimizer.step(closure=optimizer_closure)
 
     def train_dataloader(self) -> torch.utils.data.DataLoader:
         #NOTE: we are in train mode as we may need to optimize weights,
@@ -357,3 +387,17 @@ class Optimizer(pytorch_lightning.LightningModule):
                 shuffle=False, batch_size=1
             )
         return test_loader
+
+class AlternatingOptimizer(torch.optim.Optimizer):
+    def __init__(self, 
+        optimizers: typing.Iterable[torch.optim.Optimizer],
+        parameters: typing.Iterable[torch.nn.parameter.Parameter],
+    ):
+        self.optimizers = optimizers
+        super(AlternatingOptimizer, self).__init__(
+            parameters, {'lr': 1.0}
+        )
+
+    def step(self, closure):
+        for o in self.optimizers:
+            o.step(closure)

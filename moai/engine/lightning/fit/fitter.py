@@ -39,7 +39,7 @@ class OptimizationLoop(pytorch_lightning.loops.OptimizerLoop):
                 for p in pg['params']:
                     if not torch.all(torch.isfinite(p)):
                         return True
-        return False
+        return
 
     def advance(self,
         batch: typing.Any, *args: typing.Any, **kwargs: typing.Any
