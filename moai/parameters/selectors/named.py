@@ -1,3 +1,5 @@
+from moai.utils.torch import get_submodule
+
 import torch
 import typing
 

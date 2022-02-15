@@ -133,11 +133,11 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
         pl_module.initialize_parameters()
         if batch_idx > 0:
             trainer.accelerator.setup_optimizers(trainer)        
-        if pl_module.mode == 'inference':
+        if 'inference' in pl_module.mode:
             with torch.no_grad():
                 pl_module.preprocess(batch)
                 pl_module(batch)
-                pl_module.assign(batch)
+                pl_module.initialize(batch)
             if pl_module.optimized_predictions:
                 for key, values in pl_module.optimized_predictions.items():
                     for optim in filter(lambda o: o.name == key, trainer.accelerator.optimizers):
@@ -177,7 +177,7 @@ def _create_assigner(key: str) -> typing.Callable[[torch.nn.Module, torch.Tensor
         for split in keys:
             to_set = toolz.reduce(getattr, split, m)
             to_set.copy_(t.clone())
-            # to_set.copy_(t)
+            # to_set.copy_(t)    
     return functools.partial(_assign, keys=splits)
 
 class Optimizer(pytorch_lightning.LightningModule):
@@ -225,9 +225,14 @@ class Optimizer(pytorch_lightning.LightningModule):
             self.model = self.model.eval()
             self.model.requires_grad_(False)
         self.data = _assign_data(data)
+        self.initializers = [
+            (i, _create_assigner(o)) for i, o in configuration.initialize.items()
+        ] if configuration.initialize is not None else []
         self.assigners = [
-            (i, _create_assigner(o)) for i, o in configuration.assign.items()
+            (i, _create_assigner(o)) for i, o in toolz.dissoc(configuration.assign, 'parameters').items()
         ] if configuration.assign is not None else []
+        self.assigned_params = toolz.get_in(['assign', 'parameters'], configuration)
+        self.assigned_params = [self.assigned_params] if isinstance(self.assigned_params, str) else self.assigned_params
         self.optimized_predictions = configuration.optimize_predictions
         self.initializer = parameters.initialization if parameters is not None else None
         self.preprocess = _create_processing_block(feedforward, "preprocess", monads=monads)
@@ -265,10 +270,17 @@ class Optimizer(pytorch_lightning.LightningModule):
         self.hparams.update(hparams)
         self.optimization_step = 0
         self.per_batch = PerBatch()
+        self.prediction_stages = []
 
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
         init(self)
+
+    def initialize(self,
+        tensors: typing.Dict[str, torch.Tensor]
+    ) -> None:
+        for i, a in self.initializers:
+            a(self, tensors[i])
 
     def assign(self,
         tensors: typing.Dict[str, torch.Tensor]
@@ -293,8 +305,9 @@ class Optimizer(pytorch_lightning.LightningModule):
         batch['__moai__'] = { 'batch_index': batch_idx }
         batch['__moai__']['optimization_stage'] = self.stages[optimizer_idx]
         td = self.preprocess(batch)
-        if self.mode == 'predict':
-            td = self(td)
+        if 'predict' in self.mode and\
+            self.stages[optimizer_idx] in self.prediction_stages: #TODO: only run in needed stages
+                td = self(td)
         td = self.postprocess(td)
         total_loss, losses = self.supervision[self.stages[optimizer_idx]](td)
         #TODO: should add loss maps as return type to be able to forward them for visualization
@@ -335,6 +348,9 @@ class Optimizer(pytorch_lightning.LightningModule):
                 schedulers.append(_create_scheduling_block(
                     self.scheduler_configs.get(schedule, None), [optimizers[-1]]
                 ))
+                if any(p in (self.assigned_params or []) for p in params):
+                    optimizers[-1].assign = self.assign
+                    self.prediction_stages.append(name)
             else:
                 parameters = [
                     hyu.instantiate(self.parameter_selectors[par])(self) if isinstance(par, str)
@@ -345,9 +361,14 @@ class Optimizer(pytorch_lightning.LightningModule):
                         self.optimizer_configs[o], param  
                     ) for o, param in zip(optimizer, parameters)
                 ]
-                optimizers.append(AlternatingOptimizer(alternated, toolz.concat(parameters)))
+                for ap in self.assigned_params or []:
+                    alternated[params.index(ap)].assign = self.assign
+                    self.prediction_stages.append(name)
+                optimizers.append(AlternatingOptimizer(
+                    alternated, toolz.concat(parameters))                    
+                )
                 setattr(optimizers[-1], 'iterations', [iterations])
-                setattr(optimizers[-1], 'name', [name])
+                setattr(optimizers[-1], 'name', [name])                
                 schedulers.append(_create_scheduling_block(
                     self.scheduler_configs.get(schedule, None), [optimizers[-1]]
                 ))
@@ -401,3 +422,6 @@ class AlternatingOptimizer(torch.optim.Optimizer):
     def step(self, closure):
         for o in self.optimizers:
             o.step(closure)
+            if hasattr(o, 'assign'):
+                with torch.no_grad():
+                    o.assign(closure.args[3]._step_fn.args[0])
