@@ -64,7 +64,7 @@ class MANO(smplx.MANO):
             global_orient=rotation,         # global_orient -> [1, 3]
             transl=translation,             # transl -> [1, 3]
             return_full_pose=True,          # full_pose -> [1, 48] => 15 joints * 3 + 3 * global rotation
-            return_verts=True,              # vertices -> [1, 700, 3]
+            return_verts=True,              # vertices -> [1, 778, 3]
         )
         b = betas.shape[0]
         return toolz.valfilter(lambda v: v is not None, {
@@ -76,7 +76,7 @@ class MANO(smplx.MANO):
             'shape':        hand_output['v_shaped'],
             'joints':       hand_output['joints'],
             'full_pose':    hand_output['full_pose'],
-            'faces':        self.faces_tensor.expand(b, -1, -1), # faces [1, ???, 3]
+            'faces':        self.faces_tensor.expand(b, -1, -1), # faces [1, 1538 3]
         })
 
 RightHandMANO = functools.partial(MANO, is_right_hand=True)
