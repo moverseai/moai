@@ -1,6 +1,6 @@
 # @package export.exporters._name_
 
-_target_: moai.export.local.Npy
+_target_: moai.export.local.Npz
 mode: all # [single, combined]
 keys: ???
 path: ???
