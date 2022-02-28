@@ -1,0 +1,8 @@
+# @package export.exporters._name_
+
+_target_: moai.export.local.Npz
+mode: all # [single, combined]
+keys: ???
+path: ???
+combined: False
+compressed: False
