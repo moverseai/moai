@@ -18,8 +18,9 @@ class Collection(Callable): #TODO: inherit from UserList as well, need to update
     ):
         self.name = name
         items = [hyu.instantiate(item) for item in items.values()]\
-            if not arguments else\
-                [hyu.instantiate(item, arg) for item, arg in zip(items.values(), arguments)]
+            if not arguments else [
+                hyu.instantiate(item, arg) for item, arg in zip(items.values(), arguments)
+            ]
         setattr(self, name, items)
         if arguments and len(items) != len(arguments):
             log.warning(f"Inconsistent item ({len(items)}) and argument ({len(arguments)}) count, the matching subset is only used.")

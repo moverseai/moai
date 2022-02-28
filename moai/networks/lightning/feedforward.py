@@ -136,7 +136,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         self.validation = _create_validation_block(validation) #TODO: change this, "empty processing block" is confusing
         self.preprocess = _create_processing_block(feedforward, "preprocess", monads=monads)
         self.postprocess = _create_processing_block(feedforward, "postprocess", monads=monads)
-        self.visualizer = _create_interval_block(visualization)
+        self.visualization = _create_interval_block(visualization)
         self.exporter = _create_interval_block(export)        
         #NOTE: __NEEDED__ for loading checkpoint
         hparams = hyperparameters if hyperparameters is not None else { }
@@ -172,8 +172,8 @@ class FeedForward(pytorch_lightning.LightningModule):
     def training_step_end(self, 
         train_outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]
     ) -> None:
-        if self.global_step and (self.global_step % self.visualizer.interval == 0):
-            self.visualizer(train_outputs['tensors'])
+        if self.global_step and (self.global_step % self.visualization.interval == 0):
+            self.visualization(train_outputs['tensors'])
         if self.global_step and (self.global_step % self.exporter.interval == 0):
             self.exporter(train_outputs['tensors'])
         return train_outputs['loss']
@@ -221,8 +221,8 @@ class FeedForward(pytorch_lightning.LightningModule):
         metrics, tensors = metrics_tensors
         if self.global_test_step and (self.global_test_step % self.exporter.interval == 0):
             self.exporter(tensors)
-        if self.global_test_step and (self.global_test_step % self.visualizer.interval == 0):
-            self.visualizer(tensors)
+        if self.global_test_step and (self.global_test_step % self.visualization.interval == 0):
+            self.visualization(tensors)
         return metrics
 
     def test_epoch_end(self, 

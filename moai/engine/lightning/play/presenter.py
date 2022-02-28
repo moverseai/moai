@@ -1,9 +1,9 @@
 from moai.data.iterator import Indexed
+from moai.statistics import NoOp as NoStatistics
 
 import moai.networks.lightning as minet
 
 import torch
-import pytorch_lightning 
 import hydra.utils as hyu
 import omegaconf.omegaconf
 import typing
@@ -19,11 +19,14 @@ class Presenter(minet.FeedForward):
         monads:             omegaconf.DictConfig=None,
         visualization:      omegaconf.DictConfig=None,
         data:               omegaconf.DictConfig=None,
+        statistics:         omegaconf.DictConfig=None,
     ):        
         super(Presenter, self).__init__(
             feedforward=feedforward, data=data,
             monads=monads, visualization=visualization,            
         )
+        self.statistics = hyu.instantiate(statistics) if statistics is not None else\
+            NoStatistics()
         self.param = torch.nn.Linear(1, 1) # dummy layer
         self.global_test_step = 0
 
@@ -40,14 +43,15 @@ class Presenter(minet.FeedForward):
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
         postprocessed = self.postprocess(prediction)
+        self.statistics(postprocessed)
         total_loss = torch.zeros(1, requires_grad=True)
         return { 'loss': total_loss, 'tensors': postprocessed }
 
     def training_step_end(self,
         train_outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]
     ) -> None:
-        if self.global_step and (self.global_step % self.visualizer.interval == 0):
-            self.visualizer(train_outputs['tensors'])
+        if self.global_step and (self.global_step % self.visualization.interval == 0):
+            self.visualization(train_outputs['tensors'])
         return train_outputs['loss']
 
     def validation_step(self,
@@ -57,6 +61,7 @@ class Presenter(minet.FeedForward):
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
         outputs = self.postprocess(prediction)
+        self.statistics(outputs)
         return None
 
     def validation_epoch_end(self,
@@ -71,6 +76,7 @@ class Presenter(minet.FeedForward):
         preprocessed = self.preprocess(batch)        
         prediction = self(preprocessed)
         outputs = self.postprocess(prediction)
+        self.statistics(outputs)
         self.global_test_step += 1
         return torch.zeros(1), outputs
 
@@ -80,8 +86,8 @@ class Presenter(minet.FeedForward):
         metrics, tensors = metrics_tensors
         if self.global_test_step and (self.global_test_step % self.exporter.interval == 0):
             self.exporter(tensors)
-        if self.global_test_step and (self.global_test_step % self.visualizer.interval == 0):
-            self.visualizer(tensors)
+        if self.global_test_step and (self.global_test_step % self.visualization.interval == 0):
+            self.visualization(tensors)
         return metrics
 
     def test_epoch_end(self, 

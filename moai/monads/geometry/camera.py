@@ -57,8 +57,8 @@ class WeakPerspective(torch.nn.Module): #NOTE: fixed focal/principal, optimized 
             with torch.no_grad():
                 self.principal_point[:, 0] = w // 2
                 self.principal_point[:, 1] = h // 2
-        R = rotation if rotation is not None else self.rotation
-        t = translation if translation is not None else self.translation
+        R = rotation if rotation is not None else self.rotation.expand(points.shape[0], 3, 3)
+        t = translation if translation is not None else self.translation.expand(points.shape[0], 3)
         camera_transform = torch.cat([
             torch.nn.functional.pad(R, [0, 0, 0, 1]),
             torch.nn.functional.pad(t.unsqueeze(dim=-1), [0, 0, 0, 1], value=1)

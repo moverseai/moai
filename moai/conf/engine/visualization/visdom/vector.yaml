@@ -6,3 +6,4 @@ name: ${experiment.name}
 ip: "localhost" # pay attention this __NEEDS__ to be a "string"
 port: 8097
 type: ???
+batch_percentage: 1.0

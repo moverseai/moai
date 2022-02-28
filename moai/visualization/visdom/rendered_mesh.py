@@ -25,6 +25,7 @@ class RenderedMesh(Image2d):
         translation:        typing.Union[str, typing.Sequence[str]]=None,
         rotation:           typing.Union[str, typing.Sequence[str]]=None,
         focal_length:       typing.Union[float, typing.Tuple[float, float]]=5000.0,
+        principal_point:    typing.Optional[typing.Union[float, typing.Tuple[float, float]]]=None,
         scale:              float=1.0,
         batch_percentage:   float=1.0,
         name:               str="default",
@@ -38,6 +39,8 @@ class RenderedMesh(Image2d):
         )
         self.focal_length = (float(focal_length), float(focal_length)) \
             if isinstance(focal_length, float) or isinstance(focal_length, int) else focal_length
+        self.principal_point = (float(principal_point), float(principal_point)) \
+            if isinstance(principal_point, float) or isinstance(principal_point, int) else principal_point
         self.material = pyrender.MetallicRoughnessMaterial(
             metallicFactor=0.0, alphaMode='OPAQUE', baseColorFactor=(1.0, 1.0, 0.9, 1.0)
         )
@@ -98,10 +101,18 @@ class RenderedMesh(Image2d):
                 camera_pose = np.eye(4)
                 camera_pose[:3, :3] = rotation
                 camera_pose[:3, 3] = translation
+                # camera_pose = np.linalg.inv(camera_pose)
 
+                if self.principal_point is None:
+                    cx = w // 2
+                    cy = h // 2
+                else:
+                    px, py = self.principal_point
+                    cx = px if px > 1.0 else px * w
+                    cy = py if py > 1.0 else py * h                    
                 camera = pyrender.camera.IntrinsicsCamera(
-                    fx=self.focal_length[0], cx=w // 2,
-                    fy=self.focal_length[1], cy=h // 2,
+                    fx=self.focal_length[0], cx=cx,
+                    fy=self.focal_length[1], cy=cy,
                 )
                 cam = self.scene.add(camera, pose=camera_pose)
 

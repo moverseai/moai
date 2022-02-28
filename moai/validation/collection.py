@@ -33,7 +33,7 @@ class Metrics(torch.nn.ModuleDict):
             if 'out' not in p:
                 p['out'] = [k]
             for keys in zip(*toolz.remove(lambda x: not x, list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p.get(prop) is not None))):
-                accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys[:-1]]
+                accessors = [_create_accessor(k if isinstance(k, str) else toolz.get(0, k, None)) for k in keys[:-1]]
                 self.execs.append(lambda tensor_dict, metric_dict,
                     acc=accessors, k=keys, p=sig.parameters.keys(), f=last_module:
                     metric_dict.update({

@@ -1,0 +1,37 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+  
+   ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+  - engine/modules: redner
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: pose2d
+  - engine/visualization/visdom: blend2d
+  - engine/visualization/visdom: density2d
+  # - engine/visualization/visdom: rendered_mesh
+
+  - engine/statistics: collection
+  - engine/statistics/aggregated: pairwise
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/dataset/human/body: SSP3D
+  - data/test/loader: torch
+  - data/test/dataset/human/body: SSP3D
+  - data/val/loader: torch
+  - data/val/dataset/human/body: SSP3D
+
+  # ###### PROCESS
+  - model/feedforward: preprocess
+  - model/monads/human/body: smpl
+  - model/monads/human/body: joint_regressor
+  - model/monads/render/redner: mesh_silhouette
+  - model/monads/geometry/projection: weak_perspective_camera
+
+  - examples/play_SSP3D/options
+  - examples/play_SSP3D/data
+  - examples/play_SSP3D/preproc

@@ -30,7 +30,7 @@ class OpenPoseInferred(torch.utils.data.Dataset):
         load_face_contour:          bool=False,
         single_person_only:         bool=False,
         invalid_joints:             typing.Sequence[int]=None,
-        updates:                    typing.Mapping[str, bool]={},
+        # updates:                    typing.Mapping[str, bool]={},
     ):
         super(OpenPoseInferred, self).__init__()
         self.params = OpenPoseParams(load_hands, 

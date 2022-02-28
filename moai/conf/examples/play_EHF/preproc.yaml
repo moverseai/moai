@@ -1,0 +1,34 @@
+# @package _global_
+
+model:
+  monads:
+    convert:
+      from_to: aa_mat
+    mesh_silhouette:
+      resolution: [300, 400] # [1200, 1600]
+      near_clip: 0.001
+      samples: 4
+      sample_pixel_center: true
+      focal_length: [1498.22426237, 1498.22426237]
+      principal_point: [790.263706, 578.90334]
+      opengl: true
+    bilinear_sampling:
+      width: 400
+      height: 300
+    nearest_sampling:
+      width: 400
+      height: 300
+  feedforward:
+    preprocess:
+      convert:
+        rotation: [camera_rotation]
+        out: [camera_rotation_3x3]
+      bilinear_sampling:
+        image: [color]
+        out: [color_down_x2]
+      mesh_silhouette:
+        vertices: [vertices]
+        indices: [faces]
+        camera_translation: [null]
+        image: [color]
+        out: [silhouette]

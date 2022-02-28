@@ -1,0 +1,3 @@
+# @package statistics
+
+_target_: moai.statistics.NoOp

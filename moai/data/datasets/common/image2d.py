@@ -33,8 +33,15 @@ def load_normal_image(
 def load_mask_image(
     filename:   str,
 ) -> torch.Tensor:
-    # img = torchvision.io.read_image(filename)
     img = torch.from_numpy(
         cv2.imread(filename).transpose(2, 0, 1)
-    ).flip(dims=[0])
+    )
     return img[0:1, ...] / 255.0
+
+def load_binary_image(
+    filename:   str,
+) -> torch.Tensor:
+    img = torch.from_numpy(
+        cv2.imread(filename).transpose(2, 0, 1)
+    )
+    return img[0:1, ...].float()

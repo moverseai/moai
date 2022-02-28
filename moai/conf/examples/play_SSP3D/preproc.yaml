@@ -1,0 +1,45 @@
+# @package _global_
+
+model:
+  monads:
+    smpl:
+      model_path: ${SMPL_ROOT}\smpl\models\basicmodel_neutral_lbs_10_207_0_v1.1.0.pkl
+      joints_format: none
+      gender: neutral
+      use_global_orientation: false
+      use_translation: true
+      use_pose: false
+      use_betas: false
+      num_betas: ${BETAS}
+      batch_size: ${experiment.batch_size}
+    joint_regressor:
+      weights_path: ${SMPL_ROOT}\smpl\J_regressor_h36m.npy
+    mesh_silhouette:
+      resolution: [512, 512]
+      near_clip: 0.001
+      samples: 4
+      sample_pixel_center: true
+      focal_length: 5000
+      opengl: true
+  feedforward:
+    preprocess:
+      smpl:
+        shape: [shape]
+        pose: [pose]
+        rotation: [global_orientation]
+        # translation: [camera_translation]
+        out: [body]
+      joint_regressor:
+        vertices: [body.vertices]
+        out: [joints3d]
+      weak_perspective_camera:
+        points: [joints3d]
+        translation: [camera_translation]
+        image: [color]
+        out: [joints2d]
+      mesh_silhouette:
+        vertices: [body.vertices]
+        indices: [body.faces]
+        camera_translation: [camera_translation]
+        image: [color]
+        out: [rendered_silhouette]

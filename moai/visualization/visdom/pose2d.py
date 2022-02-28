@@ -82,8 +82,8 @@ class Pose2d(Base):
         ):
             gt_coord = self.access(tensors, gt).detach()
             pred_coord = self.access(tensors, pred).detach()
-            gt_masks = self.access(tensors, gt_masks).detach()
-            pred_masks = self.access(tensors, pred_masks).detach()
+            gt_masks = self.access(tensors, gt_masks)
+            pred_masks = self.access(tensors, pred_masks)
             if self.reverse:
                 gt_coord = gt_coord.flip(-1)
                 pred_coord = pred_coord.flip(-1)
@@ -92,8 +92,8 @@ class Pose2d(Base):
                 image,
                 self.xforms[coord](gt_coord, image),
                 self.xforms[coord](pred_coord, image),
-                gt_masks if self.use_mask else torch.ones_like(gt_masks),
-                pred_masks if self.use_mask else torch.ones_like(pred_masks),
+                gt_masks.detach() if self.use_mask else torch.ones_like(gt_coord[..., 0:1]),
+                pred_masks.detach() if self.use_mask else torch.ones_like(gt_coord[..., 0:1]),
                 pose_struct,
                 np.uint8(np.array(list(gt_c)) * 255),
                 np.uint8(np.array(list(pred_c)) * 255),

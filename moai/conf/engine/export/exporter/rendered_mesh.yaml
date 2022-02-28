@@ -1,6 +1,6 @@
 # @package visualization.visualizers._name_
 
-_target_: moai.export.local.RenderedMesh
+_target_: moai.export.local.rendered_mesh.RenderedMesh
 path: ???
 vertices: ???
 faces: ???

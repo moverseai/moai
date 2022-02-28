@@ -1,0 +1,32 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+  
+   ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: pose2d
+  - engine/visualization/visdom: blend2d
+  - engine/visualization/visdom: rendered_mesh
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/dataset/human/body: EHF
+  - data/test/loader: torch
+  - data/test/dataset/human/body: EHF
+  - data/val/loader: torch
+  - data/val/dataset/human/body: EHF
+
+  # ###### PROCESS
+  - model/feedforward: preprocess
+  - model/monads/geometry/rotation: convert
+  - model/monads/render/redner: mesh_silhouette
+  - model/monads/sampling: bilinear_sampling
+  - model/monads/sampling: nearest_sampling
+
+  - examples/play_EHF/options
+  - examples/play_EHF/data
+  - examples/play_EHF/preproc

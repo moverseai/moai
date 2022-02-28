@@ -48,7 +48,7 @@ def _dict(
     tensor_dict: typing.Dict[str, torch.Tensor],
     keys: typing.Sequence[str],
 ) -> torch.Tensor:
-    return toolz.get_in(keys, tensor_dict)
+    return toolz.get_in(keys, tensor_dict, no_default=True) #NOTE: should crash if the key is not found
 
 __ACCESSORS__ = {
     ' * ': _mul,
@@ -79,7 +79,10 @@ class Cascade(torch.nn.ModuleDict): #TODO: check if x: ['arg'] is the same as x:
         super(Cascade, self).__init__()
         #TODO: first construct via monads and then create lambdas via kwargs
         loop = ((key, params) for key, params in kwargs.items() if key in monads.keys())
-        #TODO: add message in case key is not found
+        #NOTE: check for not found keys and notify the potential error
+        errors = [k for k in kwargs if k not in monads]
+        if errors:
+            log.error("Some monads were not found in the configuration and will be ignored!")
         self.execs = []
         for k, p in loop:
             #TODO: if instantiation fails, error out with message saying about adding it to the config file
