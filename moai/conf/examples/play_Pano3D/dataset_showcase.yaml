@@ -1,0 +1,25 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+  
+   ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+
+  - engine/statistics: collection
+  - engine/statistics/streaming: mean_std
+  
+  - engine/visualization: collection
+  - engine/visualization/visdom: image2d
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/dataset/spherical: Pano3D
+  - data/test/loader: torch
+  - data/test/dataset/spherical: Pano3D
+  - data/val/loader: torch
+  - data/val/dataset/spherical: Pano3D
+
+  - examples/play_Pano3D/options
+  - examples/play_Pano3D/data

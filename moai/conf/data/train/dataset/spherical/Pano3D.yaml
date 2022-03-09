@@ -1,0 +1,8 @@
+# @package data.train.iterator.datasets._name_
+
+_target_: moai.data.datasets.spherical.Pano3D
+root: ${Pano3D_root}
+part: ${Pano3D_part}
+split: ${data.train.iterator.datasets.Pano3D.root}\splits\${Pano3D_split}_train.yaml
+types: [color, depth]
+max_depth: 8.0

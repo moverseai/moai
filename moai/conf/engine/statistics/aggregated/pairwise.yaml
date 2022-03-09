@@ -1,0 +1,5 @@
+# @package statistics.calculators._name_
+
+_target_: moai.statistics.aggregated.Pairwise
+key: ???
+pair: ???

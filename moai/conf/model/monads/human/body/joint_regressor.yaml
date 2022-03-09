@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.human.body.JointRegressor
+weights_path: ???
+persistence: true

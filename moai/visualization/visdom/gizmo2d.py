@@ -107,16 +107,6 @@ class Gizmo2d(Base):
         diagonal = torch.norm(torch.Tensor([*imgs.shape[2:]]), p=2)
         line_size = int(0.005 * diagonal) #TODO: extract percentage param to config?
 
-        #denormalise coordinates
-        gt_coords[:,0] *= w
-        gt_coords[:,2] *= w
-        gt_coords[:,1] *= h
-        gt_coords[:,3] *= h
-        pred_coords[:,0] *= w
-        pred_coords[:,2] *= w
-        pred_coords[:,1] *= h
-        pred_coords[:,3] *= h
-
         for i in range(imgs.shape[0]):
             img = images[i, ...].detach().cpu().numpy().transpose(1, 2, 0) * 255.0
             img = img.copy().astype(np.uint8)  
@@ -125,14 +115,12 @@ class Gizmo2d(Base):
                 [gt_color, pred_color]
             ):
                 coord_i = coords[i, ...]
-                cx , cy , w , h = coord_i
-                min_x = cx - w / 2
-                min_y = cy - h / 2
-                max_x = cx + w / 2
-                max_y = cy + h / 2
+                pt1_x , pt1_y , w , h = coord_i
+                pt2_x= pt1_x + w   # bottom right
+                pt2_y = pt1_y + h   # bottom right
                 cv2.rectangle(img,
-                    (int(min_x), int(min_y)),
-                    (int(max_x), int(max_y)),
+                    (pt1_x, pt1_y),
+                    (pt2_x, pt2_y),
                     color.tolist(),
                     line_size
                 )

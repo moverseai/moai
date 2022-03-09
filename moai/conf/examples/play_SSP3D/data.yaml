@@ -1,0 +1,26 @@
+# @package _global_
+
+SSP3D_root: ???
+
+data:
+  train:
+    loader:
+      drop_last: true
+    iterator:
+      datasets:
+        SSP3D:
+          betas: ${BETAS}
+  test:
+    loader:
+      drop_last: true
+    iterator:
+      datasets:
+        SSP3D:
+          betas: ${BETAS}
+  val:
+    loader:
+      drop_last: true
+    iterator:
+      datasets:
+        SSP3D:
+          betas: ${BETAS}

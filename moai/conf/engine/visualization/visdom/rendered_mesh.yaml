@@ -1,6 +1,6 @@
 # @package visualization.visualizers._name_
 
-_target_: moai.visualization.visdom.RenderedMesh
+_target_: moai.visualization.visdom.rendered_mesh.RenderedMesh
 vertices: ???
 faces: ???
 translation: ???
@@ -13,4 +13,5 @@ ip: "localhost" # pay attention this __NEEDS__ to be a "string"
 port: 8097
 batch_percentage: 1.0
 focal_length: 5000.0
+principal_point: null
 scale: 1.0

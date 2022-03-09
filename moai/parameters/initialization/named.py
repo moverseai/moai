@@ -1,9 +1,9 @@
 from moai.parameters.initialization import Cascade
+from moai.utils.torch import get_submodule
 
 import torch
 import omegaconf.omegaconf
 import toolz
-import typing
 import logging
 
 log = logging.getLogger(__name__)
@@ -17,16 +17,13 @@ class Named(Cascade):
     ):
         super(Named, self).__init__(schemes)
         self.inits = modules
-        
+
     def __call__(self,
         module: torch.nn.Module
     ) -> None:
         found = []
         for k, v in self.inits.items():
-            split = k.split('.')
-            def _getattr(object: typing.Any, key: str):
-                return getattr(object, key, None)
-            m = toolz.reduce(_getattr, split, module)
+            m = get_submodule(module, k)
             if m is not None:
                 found += [k]
                 log.info(f"Initializing {k} from {v.ckpt} " + ("strictly." if v.strict else "relaxed."))

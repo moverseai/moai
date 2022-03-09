@@ -66,10 +66,10 @@ class Mesh(Callable):
                     shared_color=scenepic.Color(*c.rgb), layer_id=f"{l}",
                 )
                 mesh.add_mesh_without_normals(vertices[i], faces[i])
-                meshes[id].append(mesh)        
+                meshes[id].append(mesh)
         for k, m in meshes.items():
             frame = canvases[k].create_frame()
-            grouped = toolz.groupby(lambda x: x.layer_id, m)            
+            grouped = toolz.groupby(lambda x: x.layer_id, m)
             for l, m in grouped.items():
                 for j, mesh in enumerate(m):
                     xform = scenepic.Transforms.Translate(j * np.array([1.0, 0.0, 0.0]))

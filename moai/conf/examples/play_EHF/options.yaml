@@ -1,0 +1,56 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: EHF_viz
+  batch_size: 1
+  workers: 1
+
+visualization:
+  batch_interval: 1
+  visualizers:
+    blend2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      left: [color_down_x2] # [color]
+      right: [silhouette]
+      blending: 0.65
+      colormap: [viridis_r]
+      transform: [none]
+      scale: 1.0
+    pose2d:
+      name: ${experiment.name}
+      images: [color]
+      poses: [human_pose2d]
+      gt: [keypoints]
+      pred: [keypoints]
+      gt_masks: [confidence]
+      pred_masks: [confidence]
+      pose_structure:
+        - [0, 1, 8]
+        - [5, 6, 7, 34]
+        - [2, 3, 4, 55]
+        - [9, 10, 11, 22]
+        - [12, 13, 14, 19]
+        - [17, 15, 16, 18]
+      transparency: 0.5
+      coords: [coord]
+      color_gt: lime
+      color_pred: lime
+      reverse_coords: true
+      scale: 1.0
+      use_mask: false
+    rendered_mesh:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      batch_percentage: 1.0
+      image: [color]
+      colormap: [none]
+      transform: [none]
+      vertices: [vertices]
+      faces: [faces]
+      translation: [null] # [camera_translation]
+      rotation: [null] # [camera_rotation_3x3]
+      scale: 1.0
+      focal_length: [1498.22426237, 1498.22426237]
+      principal_point: [790.263706, 578.90334]

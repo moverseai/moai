@@ -1,6 +1,7 @@
 from moai.visualization.visdom.base import Base
 from moai.monads.execution.cascade import _create_accessor
 
+import math
 import torch
 import typing
 import logging
@@ -18,7 +19,8 @@ class Vector(Base):
         type:               typing.Union[str, typing.Sequence[str]],
         name:               str="default",
         ip:                 str="http://localhost",
-        port:               int=8097,  
+        port:               int=8097,
+        batch_percentage:   float=1.0,
     ):
         super(Vector, self).__init__(name=name, ip=ip, port=port)
         self.vector = [vector] if isinstance(vector, str) else list(vector)
@@ -27,6 +29,7 @@ class Vector(Base):
         self.viz_map = {
             'box': functools.partial(self._viz_box, self.visualizer),
         }
+        self.batch_percentage = batch_percentage
     
     @property
     def name(self) -> str:
@@ -37,7 +40,7 @@ class Vector(Base):
             self.vector, self.types
         ):
             vector = v(tensors)
-            b = vector.shape[0]
+            b = int(math.ceil(self.batch_percentage * vector.shape[0]))
             for i in range(b):
                 self.viz_map[t](
                     vector[i].detach().cpu().numpy(),

@@ -1,0 +1,13 @@
+# @package model.monads._name_
+
+_target_: moai.monads.human.body.SMPL
+model_path: ???
+joints_format: none
+gender: neutral
+age: adult
+use_global_orientation: true
+use_translation: true
+use_pose: true
+use_betas: true
+num_betas: 10
+batch_size: 1

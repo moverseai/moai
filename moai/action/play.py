@@ -1,3 +1,4 @@
+from moai.engine.callbacks import EngineCallbacks
 import moai.engine.lightning.play as miplay
 
 import sys
@@ -13,9 +14,15 @@ def play(cfg):
     model = miplay.Presenter(
         **(cfg.model if hasattr(cfg, "model") else {"monads": None}) ,
         data=cfg.data,
-        visualization=cfg.visualization
+        visualization=cfg.visualization,
+        statistics=cfg.statistics if hasattr(cfg, "statistics") else None,
     )
-    player = hydra.utils.instantiate(cfg.player)
+    player = hydra.utils.instantiate(cfg.player, 
+        engine_callbacks=EngineCallbacks(
+            visualization=model.visualization,
+            statistics=model.statistics
+        )
+    )
     log.info("Dataset showcase started.")
     player.play(model)
     log.info("Dataset showcase completed.")

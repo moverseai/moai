@@ -20,8 +20,9 @@ class Compose(torch.utils.data.Dataset):
         self.inner, self.inputs, self.outputs = dataset, inputs, outputs
         self.augmentations = []
         for k, v in augmentations.items():
-            log.info(f"Using {k} augmentation /w a {v.p * 100.0}% probability.")
-            self.augmentations.append(hyu.instantiate(v))
+            aug = hyu.instantiate(v)
+            log.info(f"Using {k} augmentation /w a {aug.p * 100.0}% probability.")
+            self.augmentations.append(aug)
         self.composition = albumentations.Compose(self.augmentations)
 
     def __len__(self) -> int:

@@ -11,23 +11,25 @@ __all__ = ["LightningPlayer"]
 
 class LightningPlayer(pytorch_lightning.Trainer):
     def __init__(self,
-        logging: omegaconf.DictConfig=None,
-        num_nodes: int=1,
-        gpus: typing.Optional[typing.Union[typing.List[int], str, int]]=None,
-        tpu_cores: typing.Optional[int]=None,
-        overfit_batches: float=0.0,
-        fast_dev_run: bool=False,
-        limit_train_batches: float=1.0,
-        limit_val_batches: float=1.0,
-        limit_test_batches: float=1.0,
-        val_check_interval: float=1.0,
+        engine_callbacks:       typing.Sequence[pytorch_lightning.Callback]=[],
+        logging:                omegaconf.DictConfig=None,
+        num_nodes:              int=1,
+        gpus:                   typing.Optional[typing.Union[typing.List[int], str, int]]=None,
+        tpu_cores:              typing.Optional[int]=None,
+        overfit_batches:        float=0.0,
+        fast_dev_run:           bool=False,
+        limit_train_batches:    float=1.0,
+        limit_val_batches:      float=1.0,
+        limit_test_batches:     float=1.0,
+        val_check_interval:     float=1.0,
         #distributed_backend: typing.Optional[str]=None, NOTE: @PLT1.5
-        weights_summary: typing.Optional[str]='full',
-        amp_level: str='O2',
+        weights_summary:        typing.Optional[str]='full',
+        amp_level:              str='O2',
         **kwargs
     ):
         logger = hyu.instantiate(logging) if logging is not None else milog.NoOp()
         super(LightningPlayer, self).__init__(
+            callbacks=engine_callbacks,
             logger=logger,      
             num_nodes=num_nodes,
             gpus=gpus,

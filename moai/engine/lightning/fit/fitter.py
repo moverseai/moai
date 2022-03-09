@@ -31,7 +31,8 @@ class OptimizationLoop(pytorch_lightning.loops.OptimizerLoop):
     def gradient_check(self, param_groups: typing.Sequence[typing.Dict[str, torch.nn.Parameter]]) -> bool:
         return all(
             p.grad.view(-1).max().abs().item() < self.gradient_tolerance 
-            for p in toolz.concat((g['params'] for g in param_groups))
+            for p in toolz.concat((g['params'] for g in param_groups)) 
+            if p.grad is not None
         )
 
     def is_any_param_nan(self, optimizer: torch.optim.Optimizer) -> bool:
@@ -39,7 +40,7 @@ class OptimizationLoop(pytorch_lightning.loops.OptimizerLoop):
                 for p in pg['params']:
                     if not torch.all(torch.isfinite(p)):
                         return True
-        return False
+        return
 
     def advance(self,
         batch: typing.Any, *args: typing.Any, **kwargs: typing.Any
@@ -68,6 +69,9 @@ class OptimizationLoop(pytorch_lightning.loops.OptimizerLoop):
                 super(OptimizationLoop, self).advance(batch, args, kwargs)
                 self.optim_progress.optimizer_position = i
                 current_loss = self._outputs[i]['loss']
+                if hasattr(optim, 'assign'):
+                    with torch.no_grad():
+                        optim.assign(batch)
                 if (self.last_loss is not None and self.relative_check(
                     self.last_loss, current_loss
                 )) or self.gradient_check(self._optimizers[i].param_groups)\

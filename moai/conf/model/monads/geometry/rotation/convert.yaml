@@ -1,0 +1,4 @@
+# @package model.monads._name_
+
+_target_: moai.monads.geometry.rotations.Convert
+from_to: ??? #NOTE: is a string '{from_type}_{to_type}'

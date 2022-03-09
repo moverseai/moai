@@ -155,9 +155,12 @@ class RenderFunction(torch.autograd.Function):
         args.append(num_shapes)
         args.append(num_materials)
         args.append(num_lights)
-        assert(cam.position is None or torch.isfinite(cam.position).all())
-        assert(cam.look_at is None or torch.isfinite(cam.look_at).all())
-        assert(cam.up is None or torch.isfinite(cam.up).all())
+        if not cam.position is None and not torch.isfinite(cam.position).all():
+            log.warning("Camera position is not finite !")
+        if not cam.look_at is None and not torch.isfinite(cam.look_at).all():
+            log.warning("Camera look at is not finite !")
+        if not cam.up is None and not torch.isfinite(cam.up).all():
+            log.warning("Camera up is not finite !")        
         assert(torch.isfinite(cam.intrinsic_mat_inv).all())
         assert(torch.isfinite(cam.intrinsic_mat).all())
         if cam.position is not None and cam.position.requires_grad:

@@ -34,6 +34,10 @@ class Weighted(torch.nn.ModuleDict):
         if not len(losses):
             log.warning("A weighted combination of losses is being used for supervising the model, but no losses have been assigned.")
         loop = ((key, params) for key, params in kwargs.items() if key in losses)
+        #NOTE: check for not found keys and notify the potential error
+        errors = [k for k in kwargs if k not in losses]
+        if errors:
+            log.error("Some losses were not found in the configuration and will be ignored!")
         self.keyz = []
         for k, p in loop:
             self.add_module(k, hyu.instantiate(getattr(losses, k)))

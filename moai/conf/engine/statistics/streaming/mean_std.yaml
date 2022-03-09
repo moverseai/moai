@@ -1,0 +1,6 @@
+# @package statistics.calculators._name_
+
+_target_: moai.statistics.streaming.MeanStd
+key: ???
+ddof: 0
+ignore_nan: false

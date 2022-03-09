@@ -1,0 +1,20 @@
+# @package _global_
+
+EHF_root: ???
+
+data:
+  train:
+    iterator:
+      datasets:
+        EHF:
+          load_jpg: true
+  test:
+    iterator:
+      datasets:
+        EHF:
+          load_jpg: true
+  val:
+    iterator:
+      datasets:
+        EHF:
+          load_jpg: true

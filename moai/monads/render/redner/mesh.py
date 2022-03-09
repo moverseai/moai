@@ -1,4 +1,5 @@
 from collections import namedtuple
+from turtle import width
 import torch
 import typing
 import logging
@@ -12,7 +13,7 @@ try:
     import pyredner
     from moai.monads.render.redner.render import render_g_buffer
 except:
-    log.error(f"The pyredner package (`pip install pyredner`) is required to use the corresponding rendering monads.")
+    log.error(f"The pyredner package (https://github.com/BachiLi/redner) is required to use the corresponding rendering monads. Install with `pip install pyredner`")
 
 RenderParams = namedtuple('RenderParams', [
     'samples',
@@ -39,8 +40,8 @@ class Silhouette(torch.nn.Module):
             samples=(samples, samples) if isinstance(samples, int) else samples,
             resolution=resolution, opengl=opengl,
             sample_pixel_center=sample_pixel_center, near_clip=near_clip,
-            focal_length=(focal_length, focal_length) if isinstance(focal_length, float) else focal_length, 
-            principal_point=(principal_point, principal_point) if isinstance(principal_point, float) else principal_point
+            focal_length=(float(focal_length), float(focal_length)) if isinstance(focal_length, (float, int)) else focal_length, 
+            principal_point=(float(principal_point), float(principal_point)) if isinstance(principal_point, (float, int)) else principal_point
         )
 
     def forward(self,
@@ -63,19 +64,36 @@ class Silhouette(torch.nn.Module):
                 ndc_width = 2.0 * resolution[-1]
                 width_scale = resolution[-1] / image.shape[-1]
                 height_scale = resolution[-2] / image.shape[-2]
-                intrinsics = torch.eye(3, device=vertices.device)[np.newaxis, ...].expand(b, 3, 3)
+                intrinsics = torch.eye(3, device=vertices.device)[np.newaxis, ...].expand(b, 3, 3).clone()
                 intrinsics[:, 0, 0] = (self.params.focal_length[0] / ndc_width) * width_scale
                 intrinsics[:, 1, 1] = (self.params.focal_length[1] / ndc_width) * height_scale
                 intrinsics[:, 0, 0] *= 4.0
                 intrinsics[:, 1, 1] *= 4.0
+                # intrinsics[:, 0, 2] = (
+                #     (self.params.principal_point[0] - resolution[-1] / 2)
+                #     /  (8.0 * resolution[-1])
+                #     # /  resolution[-1] / 2
+                # ) if self.params.principal_point is not None else 0.0 # resolution[-1] / 2
+                # intrinsics[:, 1, 2] = (
+                #     (self.params.principal_point[1] - resolution[-2] / 2)
+                #     # / resolution[-2] / 2
+                #     / (8.0 * resolution[-2])
+                # ) if self.params.principal_point is not None else 0.0 # resolution[-2] / 2
                 intrinsics[:, 0, 2] = (
-                    (self.params.principal_point[0] - resolution[-1] / 2)
-                    /  resolution[-1] / 2
-                ) if self.params.principal_point is not None else 0.0 # resolution[-1] / 2
+                    (0.5 * resolution[-1] - self.params.principal_point[0] * width_scale)
+                    / (0.5 * resolution[-1]) / 1.0
+                ) if self.params.principal_point is not None else 0.0
+                #NOTE: should be 1/aspect_ratio, thus normalized with width resolution
+                #NOTE: see https://github.com/BachiLi/redner/issues/83 
                 intrinsics[:, 1, 2] = (
-                    (self.params.principal_point[1] - resolution[-2] / 2)
-                    / resolution[-2] / 2
-                ) if self.params.principal_point is not None else 0.0 # resolution[-2] / 2
+                    (0.5 * resolution[-2] - self.params.principal_point[1] * height_scale)
+                    / (0.5 * resolution[-1]) / 1.0
+                ) if self.params.principal_point is not None else 0.0
+        # if self.params.resolution is not None and image is not None:
+        #     scale_y = image.shape[-2] / self.params.resolution[0]
+        #     scale_x = image.shape[-1] / self.params.resolution[1]
+        #     intrinsics[:, 0, :] *= scale_x
+        #     intrinsics[:, 1, :] *= scale_y
         kwargs = { 
             'material': pyredner.Material(
                 diffuse_reflectance=torch.ones_like(translation[0]),

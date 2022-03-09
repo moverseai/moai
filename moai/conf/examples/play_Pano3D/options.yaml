@@ -1,0 +1,25 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: Pano3D_viz_stats
+  batch_size: 1
+  workers: 1
+
+visualization:
+  batch_interval: 1
+  visualizers:
+    image2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      image: [color, depth, color_mean, color_std, depth_mean, depth_std, depth_p1std, depth_m1std]
+      type: [color, color, color, color, color, color, color, color]
+      colormap: [none, turbo, none, none, turbo, turbo, turbo, turbo]
+      transform: [none, minmax, none, minmax, minmax, minmax, minmax, minmax]
+
+statistics:
+  calculators:
+    mean_std:
+      key: [depth, color]
+      ddof: 0
+      ignore_nan: false
