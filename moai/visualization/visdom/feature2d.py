@@ -13,19 +13,19 @@ __all__ = ["Feature2d"]
 
 class Feature2d(Base):
     def __init__(self,
-        keys:           typing.Union[str, typing.Sequence[str]],
-        types:          typing.Union[str, typing.Sequence[str]],
-        colormaps:      typing.Union[str, typing.Sequence[str]],
-        transforms:     typing.Union[str, typing.Sequence[str]],
+        image:           typing.Union[str, typing.Sequence[str]],
+        type:          typing.Union[str, typing.Sequence[str]],
+        colormap:      typing.Union[str, typing.Sequence[str]],
+        transform:     typing.Union[str, typing.Sequence[str]],
         name:           str="default",
         ip:             str="http://localhost",
         port:           int=8097,   
     ):
         super(Feature2d, self).__init__(name, ip, port)
-        self.keys = [keys] if type(keys) is str else list(keys)
-        self.types = [types] if type(types) is str else list(types)
-        self.transforms = [transforms] if type(transforms) is str else list(transforms)
-        self.colormaps = [colormaps] if type(colormaps) is str else list(colormaps)
+        self.images = [image] if isinstance(image, str) else list(image)
+        self.types = [type] if isinstance(type, str) else list(type)
+        self.transforms = [transform] if isinstance(transform, str) else list(transform)
+        self.colormaps = [colormap] if isinstance(colormap, str) is str else list(colormap)
         self.viz_map = {
             'color': functools.partial(self.__viz_color, self.visualizer),
             'heatmap': functools.partial(self.__viz_heatmap, self.visualizer),
@@ -42,7 +42,7 @@ class Feature2d(Base):
         return self.env_name
         
     def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
-        for k, t, tf, c in zip(self.keys, self.types, self.transforms, self.colormaps):
+        for k, t, tf, c in zip(self.images, self.types, self.transforms, self.colormaps):
             if not k:
                 continue
             tensor = tensors[k]

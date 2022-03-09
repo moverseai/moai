@@ -292,10 +292,10 @@ def RGBToPyCmap(rgbdata):
     return mpl_data
 
 
-mpl_data = RGBToPyCmap(turbo_colormap_data)
-plt.register_cmap(name='turbo', data=mpl_data, lut=turbo_colormap_data.shape[0])
+# mpl_data = RGBToPyCmap(turbo_colormap_data)
+# plt.register_cmap(name='turbo', data=mpl_data, lut=turbo_colormap_data.shape[0])
 
-mpl_data_r = RGBToPyCmap(turbo_colormap_data[::-1,:])
-plt.register_cmap(name='turbo_r', data=mpl_data_r, lut=turbo_colormap_data.shape[0])
+# mpl_data_r = RGBToPyCmap(turbo_colormap_data[::-1,:])
+# plt.register_cmap(name='turbo_r', data=mpl_data_r, lut=turbo_colormap_data.shape[0])
 
 

@@ -6,7 +6,7 @@ kornia==0.6.3
 visdom
 hiplot==0.1.20              #TODO: update
 opencv-python
-albumentations              #TODO: update
+albumentations==1.1.0             
 matplotlib==3.3.4
 toolz
 tablib
