@@ -1,0 +1,5 @@
+# @package handlers.preprocess._name_
+
+_target_: moai.serve.handlers.ImageFileInput
+input_key: color
+output_key: color

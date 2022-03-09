@@ -13,6 +13,7 @@ import torch
 import torchvision
 import typing
 import logging
+import cv2
 
 __all__ = ["Image2d"]
 
@@ -37,10 +38,10 @@ class Image2d(Callable):
         self.formats = [ensure_choices(log, "output format", ext, Image2d.__FORMATS__) for ext in extension]
         self.mode = mode
         self.index = 0
-        self.keys = [image] if type(image) is str else list(image)
-        self.types = [type] if type(type) is str else list(type)
-        self.transforms = [transform] if type(transform) is str else list(transform)
-        self.colormaps = [colormap] if type(colormap) is str else list(colormap)
+        self.keys = [image] if isinstance(image, str) else list(image)
+        self.types = [type] if isinstance(type, str) else list(type)
+        self.transforms = [transform] if isinstance(transform, str) else list(transform)
+        self.colormaps = [colormap] if isinstance(colormap, str) else list(colormap)
         self.save_map = {
             'color': functools.partial(self._save_color, os.path.join(os.getcwd(), folder)),
             'depth': functools.partial(self._save_depth, os.path.join(os.getcwd(), folder)),
@@ -79,9 +80,13 @@ class Image2d(Callable):
     ) -> int:
         b, _, __, ___ = array.shape
         for i in range(b):
-           torchvision.utils.save_image(
-               torch.from_numpy(array)[i, :, :, :], 
-               f'{key}_{index + i}.{ext}'
+        #    torchvision.utils.save_image(
+        #        torch.from_numpy(array)[i, :, :, :], 
+        #        f'{key}_{index + i}.{ext}'
+        #     )
+            cv2.imwrite(
+                f'{key}_{index + i}.{ext}',
+                array[i, :, :, :].transpose(1, 2, 0),
             )
         return b
 
@@ -95,10 +100,14 @@ class Image2d(Callable):
     ) -> int:
         b, _, __, ___ = array.shape
         for i in range(b): #NOTE: change to cv2 to support .exr
-           torchvision.utils.save_image(
-               torch.from_numpy(array)[i, :, :, :], 
-               f'{key}_{index + i}.{ext}'
+            cv2.imwrite(
+                f'{key}_{index + i}.{ext}',
+                array[i, :, :, :].transpose(1, 2, 0),
             )
+        #    torchvision.utils.save_image(
+        #        torch.from_numpy(array)[i, :, :, :], 
+        #        f'{key}_{index + i}.{ext}'
+        #     )
         return b
 
     @staticmethod #TODO: refactor these into a common module

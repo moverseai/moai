@@ -10,6 +10,7 @@ data:
       datasets:
         SSP3D:
           betas: ${BETAS}
+          with_openpose: true
   test:
     loader:
       drop_last: true
@@ -17,6 +18,7 @@ data:
       datasets:
         SSP3D:
           betas: ${BETAS}
+          with_openpose: true
   val:
     loader:
       drop_last: true
@@ -24,3 +26,4 @@ data:
       datasets:
         SSP3D:
           betas: ${BETAS}
+          with_openpose: true

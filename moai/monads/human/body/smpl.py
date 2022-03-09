@@ -64,9 +64,9 @@ class SMPL(smplx.SMPL):
             transl=translation,             # transl -> [1, 3]
             pose2rot=True,
             return_full_pose=True,          # full_pose -> [1, 165] => 54 joints * 3 + 3 global rotation
-            return_verts=True,              # vertices -> [1, 10475, 3]
+            return_verts=True,              # vertices -> [1, 6890, 3]
         )
-        b = body_output['vertices'].shape[0]        
+        b = body_output['vertices'].shape[0]
         return toolz.valfilter(lambda v: v is not None, {
             'vertices':     body_output['vertices'],
             'pose':         body_output['body_pose'],

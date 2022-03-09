@@ -2,3 +2,4 @@
 
 _target_: moai.data.datasets.human.body.SSP3D
 root: ${SSP3D_root}
+with_openpose: false

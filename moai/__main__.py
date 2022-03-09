@@ -6,6 +6,7 @@ try:
     from moai.action.plot import plot
     from moai.action.reprod import reprod
     from moai.action.fit import fit
+    from moai.action.archive import archive
 except:
     from action.train import train
     from action.evaluate import evaluate
@@ -14,6 +15,7 @@ except:
     from action.plot import plot
     from action.reprod import reprod
     from action.fit import fit
+    from action.archive import archive
 
 import omegaconf.omegaconf
 import hydra
@@ -46,6 +48,7 @@ __MODES__ = {
     'debug': debug,
     'reprod': reprod,
     'fit': fit,
+    'archive': archive,
 }
 
 __MIN_ARGS_COUNT__ = {
@@ -57,6 +60,7 @@ __MIN_ARGS_COUNT__ = {
     'debug': 2,
     'reprod': 2,
     'fit': 2,
+    'archive': 2,
 }
 
 def run(cfg: omegaconf.DictConfig):

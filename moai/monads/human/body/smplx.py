@@ -98,6 +98,7 @@ class SMPLX(smplx.SMPLX):
             pose2rot=True,
             return_full_pose=True,          # full_pose -> [1, 165] => 54 joints * 3 + 3 global rotation
             return_verts=True,              # vertices -> [1, 10475, 3]
+            return_shaped=True,
         )
         b = body_output['vertices'].shape[0]        
         return toolz.valfilter(lambda v: v is not None, {

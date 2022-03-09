@@ -93,7 +93,7 @@ class Pose2d(Base):
                 self.xforms[coord](gt_coord, image),
                 self.xforms[coord](pred_coord, image),
                 gt_masks.detach() if self.use_mask else torch.ones_like(gt_coord[..., 0:1]),
-                pred_masks.detach() if self.use_mask else torch.ones_like(gt_coord[..., 0:1]),
+                pred_masks.detach() if self.use_mask else torch.ones_like(pred_coord[..., 0:1]),
                 pose_struct,
                 np.uint8(np.array(list(gt_c)) * 255),
                 np.uint8(np.array(list(pred_c)) * 255),

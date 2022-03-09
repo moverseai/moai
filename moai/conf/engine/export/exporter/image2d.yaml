@@ -1,10 +1,10 @@
 # @package export.exporters._name_
 
 _target_: moai.export.local.Image2d
-types: [color] # or depth
-colormaps: [none] # bone, etc.
-transforms: [none] # minmax, etc.
+type: [color] # or depth
+colormap: [none] # bone, etc.
+transform: [none] # minmax, etc.
 mode: overwrite # [all, overwrite]
-keys: ???
+image: ???
 path: ???
-extensions: ??? # [png, exr, jpg]
+extension: ??? # [png, exr, jpg]

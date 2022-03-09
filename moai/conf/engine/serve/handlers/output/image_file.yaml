@@ -1,0 +1,4 @@
+# @package handlers.postprocess._name_
+
+_target_: moai.serve.handlers.ImageFileOutput
+input_key: color
