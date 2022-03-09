@@ -1,4 +1,4 @@
-import albumentations.augmentations.transforms as aug
+import albumentations.augmentations.crops.transforms as aug
 import cv2
 
 __all__ = ["RandomSizedCrop"]
