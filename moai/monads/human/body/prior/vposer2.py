@@ -1,8 +1,8 @@
+from moai.monads.human.body.prior.human_body_prior import VPoser
+from collections import namedtuple
+
 import torch
 import typing
-
-from collections import namedtuple
-from human_body_prior.models.vposer_model import VPoser #TODO: try/except and error msg
 
 #NOTE: code from https://github.com/nghorbani/human_body_prior
 
