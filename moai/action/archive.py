@@ -13,6 +13,7 @@ import glob
 import os
 import zipfile
 import toolz
+import shutil
 
 log = logging.getLogger(__name__)
 
@@ -36,8 +37,9 @@ def dump_zipfile(
     files:      typing.Sequence[str],
 ):
     with zipfile.ZipFile(filename, "w", zipfile.ZIP_DEFLATED) as z:
-        for file in files:                        
-            arcname = os.path.join('.', file.replace(root, ''))
+        for file in files:
+            arcname = os.path.join("." if 'nt' in os.name else os.getcwd(), file.replace(root, ''))            
+            log.info(f"Adding file ({file}) with name: {arcname}")
             z.write(file, arcname)
 
 def dump_handlers(
@@ -77,10 +79,21 @@ def archive(cfg):
     if dump_handlers(cfg.archive.handlers, cfg.handlers):
         extra_files += ",handler_overrides.yaml"
     args += [f"--extra-files", extra_files]
-    # confs = [cfg.archive.conf] if isinstance(cfg.archive.conf, str) else cfg.archive.conf
-    # srcs = [cfg.archive.src] if isinstance(cfg.archive.src, str) else cfg.archive.src
-    # args += [f"--extra-files", ",".join(map(lambda p: os.path.join(cfg.archive.root, p, ''), confs + srcs))]
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=None, shell=True)
+    if cfg.archive.requirements:
+        requirements = cfg.archive.requirements if os.path.exists(cfg.archive.requirements)\
+            else os.path.join(cfg.archive.root, cfg.archive.requirements)                    
+        if not os.path.exists(requirements):
+            log.warning(f"Requirements file ({requirements}) not found, skipping its packaging.")
+        else:
+            basename = os.path.basename(requirements)
+            shutil.copyfile(requirements, os.path.join(os.getcwd(), basename))
+            args += ['-r', basename]
+    if cfg.archive.output_path:
+        if not os.path.exists(cfg.archive.output_path):
+            os.mkdirs(cfg.archive.output_path, exist_ok=True)
+        args += ['--export-path', cfg.archive.output_path]
+    log.info(f"Running: {args}")
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=None)# , shell=True)
     output = proc.communicate()[0].decode('UTF-8')
     if not output:
         log.info(f"Model successfully archived @ {os.getcwd()}")

@@ -1,5 +1,4 @@
 from moai.data.datasets.common import load_npz_files
-from moai.utils.arguments import ensure_string_list
 
 import torch
 import glob
