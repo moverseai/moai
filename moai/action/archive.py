@@ -81,7 +81,8 @@ def archive(cfg):
     args += [f"--extra-files", extra_files]
     if cfg.archive.requirements:
         requirements = cfg.archive.requirements if os.path.exists(cfg.archive.requirements)\
-            else os.path.join(cfg.archive.root, cfg.archive.requirements)                    
+            else os.path.join(cfg.archive.root, cfg.archive.requirements)
+        #NOTE: try hydra original cwd as well?
         if not os.path.exists(requirements):
             log.warning(f"Requirements file ({requirements}) not found, skipping its packaging.")
         else:

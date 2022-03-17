@@ -1,4 +1,4 @@
-from human_body_prior.models.vposer_model import VPoser
+from moai.monads.human.body.prior.human_body_prior import VPoser
 
 import toolz
 import torch
