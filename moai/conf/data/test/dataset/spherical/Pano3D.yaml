@@ -5,4 +5,4 @@ root: ${Pano3D_root}
 part: ${Pano3D_part}
 split: ${data.test.iterator.datasets.Pano3D.root}\splits\${Pano3D_split}_test.yaml
 types: [color, depth]
-max_depth: 8.0
+max_depth: 10.1
