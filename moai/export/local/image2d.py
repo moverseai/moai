@@ -73,7 +73,7 @@ class Image2d(Callable):
     @staticmethod
     def _save_color(
         path:               str,
-        array:              np.array,
+        array:              np.ndarray,
         key:                str,
         index:              int,
         ext:                str,
@@ -93,7 +93,7 @@ class Image2d(Callable):
     @staticmethod
     def _save_depth(
         path:               str,
-        array:              np.array,
+        array:              np.ndarray,
         key:                str,
         index:              int,
         ext:                str,

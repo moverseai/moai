@@ -305,7 +305,10 @@ class Optimizer(pytorch_lightning.LightningModule):
         batch_idx:              int,
         optimizer_idx:          int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
-        batch['__moai__'] = { 'batch_index': batch_idx }
+        if '__moai__' not in batch:
+            batch['__moai__'] = { 'batch_index': batch_idx }
+        else:
+            batch['__moai__']['batch_index'] = batch_idx
         batch['__moai__']['optimization_stage'] = self.stages[optimizer_idx]
         td = self.preprocess(batch)
         if 'predict' in self.mode and\

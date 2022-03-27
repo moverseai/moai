@@ -9,12 +9,10 @@ import moai.utils.color.colorize as mic
 import os
 import torch
 import torchvision
-import visdom
-import numpy
+import numpy as np
 import functools
 import typing
 import logging
-import cv2
 
 log = logging.getLogger(__name__)
 
@@ -73,7 +71,7 @@ class Blend2d(Callable):
     @staticmethod
     def _save_color(
         path:   str,
-        array:  numpy.array,
+        array:  np.ndarray,
         key:    str,
         index:  int,
         ext:    str,

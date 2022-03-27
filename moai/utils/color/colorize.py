@@ -1,6 +1,6 @@
 import functools
 import torch
-import numpy
+import numpy as np
 from matplotlib import cm
 from matplotlib.colors import Colormap
 
@@ -14,7 +14,7 @@ __all__ = [
 def _matplotlib_colormap(
     colormap: Colormap,
     tensor: torch.Tensor
-) -> numpy.array:
+) -> np.ndarray:
     data = tensor.cpu().detach().numpy() if tensor.is_cuda else tensor.detach().numpy()
     return colormap(data).squeeze(1).transpose(0, 3, 1, 2)[:, :3, :, :]
 

@@ -107,6 +107,7 @@ class ModelServer(BaseHandler):
     def postprocess(self,
         data: typing.Mapping[str, torch.Tensor]
     ) -> typing.Sequence[typing.Any]:
+        log.debug(f"Postprocessing outputs:\n{data['__moai__']}")
         outs = []
         for k, p in self.postproc.items():
             res = p(data, data['__moai__']['json'])

@@ -3,7 +3,7 @@ from moai.visualization.visdom.base import Base
 
 import torch
 import visdom
-import numpy
+import numpy as np
 import functools
 import typing
 import logging
@@ -58,7 +58,7 @@ class Blend2d(Base):
     @staticmethod
     def __viz_color(
         visdom: visdom.Visdom,
-        array:  numpy.array,
+        array:  np.ndarray,
         key:    str,
         win:    str,
         env:    str,
@@ -70,7 +70,7 @@ class Blend2d(Base):
                 scale_factor=scale, 
             ).numpy()
         visdom.images(
-            numpy.clip(array, 0.0, 1.0),
+            np.clip(array, 0.0, 1.0),
             win=win,
             env=env,
             opts={

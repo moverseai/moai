@@ -14,7 +14,7 @@ from moai.supervision import (
 from moai.data.iterator import Indexed
 
 import torch
-import numpy
+import numpy as np
 import pytorch_lightning
 import omegaconf.omegaconf 
 import hydra.utils as hyu
@@ -195,7 +195,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         keys = next(iter(outputs), { }).keys()        
         metrics = { }
         for key in keys:
-            metrics[key] = numpy.mean(numpy.array(
+            metrics[key] = np.mean(np.array(
                 [d[key].item() for d in outputs if key in d]
             ))        
         self.log_dict(metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
@@ -231,7 +231,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         keys = next(iter(outputs), { }).keys()
         metrics = { }
         for key in keys:
-            metrics[key] = numpy.mean(numpy.array(
+            metrics[key] = np.mean(np.array(
                 [d[key].item() for d in outputs]
             ))   
         self.log_dict(metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
