@@ -40,11 +40,13 @@ class ImageFileOutput(Callable):
     def __call__(self, 
         data:   typing.Mapping[str, torch.Tensor],
         json:   typing.Mapping[str, typing.Any],
-    ) -> typing.Dict[str, torch.Tensor]:
+    ) -> typing.Sequence[typing.Dict[str, torch.Tensor]]:
         image = data.get(self.input_key)
         image = image.detach().cpu().numpy()
+        outs = []
         for img, kvp in zip(image, json):
             filename = kvp['body'].get(self.input_key)
             log.info(f"Saving tensor [key: {self.input_key}] @ {filename}")
             cv2.imwrite(filename, img.transpose(1, 2, 0))
-        return { self.input_key: 'Success' } #NOTE: Object type should be JSON serializable
+            outs.append({ self.input_key: 'Success' }) #NOTE: Object type should be JSON serializable
+        return outs

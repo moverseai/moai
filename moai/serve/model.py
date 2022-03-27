@@ -109,7 +109,12 @@ class ModelServer(BaseHandler):
     ) -> typing.Sequence[typing.Any]:
         outs = []
         for k, p in self.postproc.items():
-            outs.append(p(data, data['__moai__']['json']))
+            res = p(data, data['__moai__']['json'])
+            if len(outs) == 0:
+                outs = res
+            else:                
+                for o, r in zip(outs, res):
+                    o = toolz.merge(o, r)
         return outs
 
     # def handle(self, data, context):

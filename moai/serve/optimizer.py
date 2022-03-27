@@ -3,7 +3,6 @@ from hydra.experimental import (
     compose,
     initialize,
 )
-from moai.networks.lightning import Optimizer
 from omegaconf.omegaconf import OmegaConf
 
 import hydra.utils as hyu
