@@ -1,6 +1,11 @@
 import torch
 import numpy as np
 
+__all__ = [
+    'VPoser_v2',
+    'VPoser_v1',
+]
+
 def _rotation_matrix_to_quaternion(rotation_matrix, eps=1e-6):
     """Convert 3x4 rotation matrix to 4d quaternion vector
 
@@ -193,9 +198,10 @@ class NormalDistDecoder(torch.nn.Module):
             self.mu(Xout), 
             torch.nn.functional.softplus(self.logvar(Xout))
         )
-class VPoser(torch.nn.Module):
+        
+class VPoser_v2(torch.nn.Module):
     def __init__(self, model_ps):
-        super(VPoser, self).__init__()
+        super(VPoser_v2, self).__init__()
         num_neurons, self.latentD = model_ps.model_params.num_neurons,\
             model_ps.model_params.latentD
         self.num_joints = 21
@@ -265,3 +271,95 @@ class VPoser(torch.nn.Module):
                 0., 1., size=(num_poses, self.latentD)
             ), dtype=dtype, device=device)
         return self.decode(Zgen)
+
+class VPoser_v1(torch.nn.Module):
+    def __init__(self, num_neurons, latentD, data_shape, use_cont_repr=True):
+        super(VPoser_v1, self).__init__()
+
+        self.latentD = latentD
+        self.use_cont_repr = use_cont_repr
+
+        n_features = np.prod(data_shape)
+        self.num_joints = data_shape[1]
+
+        self.bodyprior_enc_bn1 = torch.nn.BatchNorm1d(n_features)
+        self.bodyprior_enc_fc1 = torch.nn.Linear(n_features, num_neurons)
+        self.bodyprior_enc_bn2 = torch.nn.BatchNorm1d(num_neurons)
+        self.bodyprior_enc_fc2 = torch.nn.Linear(num_neurons, num_neurons)
+        self.bodyprior_enc_mu = torch.nn.Linear(num_neurons, latentD)
+        self.bodyprior_enc_logvar = torch.nn.Linear(num_neurons, latentD)
+        self.dropout = torch.nn.Dropout(p=.1, inplace=False)
+
+        self.bodyprior_dec_fc1 = torch.nn.Linear(latentD, num_neurons)
+        self.bodyprior_dec_fc2 = torch.nn.Linear(num_neurons, num_neurons)
+
+        if self.use_cont_repr:
+            self.rot_decoder = ContinousRotReprDecoder()
+
+        self.bodyprior_dec_out = torch.nn.Linear(num_neurons, self.num_joints* 6)
+
+    def encode(self, Pin):
+        '''
+
+        :param Pin: Nx(numjoints*3)
+        :param rep_type: 'matrot'/'aa' for matrix rotations or axis-angle
+        :return:
+        '''
+        Xout = Pin.view(Pin.size(0), -1)  # flatten input
+        Xout = self.bodyprior_enc_bn1(Xout)
+
+        Xout = torch.nn.functional.leaky_relu(self.bodyprior_enc_fc1(Xout), negative_slope=.2)
+        Xout = self.bodyprior_enc_bn2(Xout)
+        Xout = self.dropout(Xout)
+        Xout = torch.nn.functional.leaky_relu(self.bodyprior_enc_fc2(Xout), negative_slope=.2)
+        return torch.distributions.normal.Normal(
+            self.bodyprior_enc_mu(Xout), 
+            torch.nn.functional.softplus(self.bodyprior_enc_logvar(Xout))
+        )
+
+    def decode(self, Zin, output_type='matrot'):
+        assert output_type in ['matrot', 'aa']
+
+        Xout = torch.nn.functional.leaky_relu(self.bodyprior_dec_fc1(Zin), negative_slope=.2)
+        Xout = self.dropout(Xout)
+        Xout = torch.nn.functional.leaky_relu(self.bodyprior_dec_fc2(Xout), negative_slope=.2)
+        Xout = self.bodyprior_dec_out(Xout)
+        if self.use_cont_repr:
+            Xout = self.rot_decoder(Xout)
+        else:
+            Xout = torch.tanh(Xout)
+
+        Xout = Xout.view([-1, 1, self.num_joints, 9])
+        bs = Zin.shape[0]
+        if output_type == 'aa': return _matrot2aa(Xout.view(-1, 3, 3)).view(bs, -1, 3)
+        return Xout
+
+    def forward(self, Pin, input_type='matrot', output_type='matrot'):
+        '''
+
+        :param Pin: aa: Nx1xnum_jointsx3 / matrot: Nx1xnum_jointsx9
+        :param input_type: matrot / aa for matrix rotations or axis angles
+        :param output_type: matrot / aa
+        :return:
+        '''
+        assert output_type in ['matrot', 'aa']
+        # if input_type == 'aa': Pin = VPoser.aa2matrot(Pin)
+        # if Pin.size(3) == 3: Pin = VPoser.aa2matrot(Pin)
+        q_z = self.encode(Pin)
+        q_z_sample = q_z.rsample()
+        Prec = self.decode(q_z_sample)
+
+        results = {'mean':q_z.mean, 'std':q_z.scale}
+        bs = Pin.shape[0]
+        if output_type == 'aa': results['pose_aa'] = _matrot2aa(Prec.view(-1, 3, 3)).view(bs, -1, 3)
+        else: results['pose_matrot'] = Prec
+        return results
+
+    def sample_poses(self, num_poses, output_type='aa', seed=None):
+        np.random.seed(seed)
+        dtype = self.bodyprior_dec_fc1.weight.dtype
+        device = self.bodyprior_dec_fc1.weight.device
+        self.eval()
+        with torch.no_grad():
+            Zgen = torch.tensor(np.random.normal(0., 1., size=(num_poses, self.latentD)), dtype=dtype).to(device)
+        return self.decode(Zgen, output_type=output_type)

@@ -5,6 +5,7 @@ import torch
 import smplx #TODO: try/except and error msg
 import functools
 import typing
+import logging
 
 #NOTE: code from https://github.com/vchoutas/smplify-x
 
@@ -21,6 +22,8 @@ __JOINT__MAPPERS__ = {
         with_face=True, with_face_contour=False,
     ),
 }
+
+log = logging.getLogger(__name__)
 
 class SMPLX(smplx.SMPLX):
     def __init__(self,
@@ -71,6 +74,7 @@ class SMPLX(smplx.SMPLX):
             num_betas=num_betas,
             flat_hand_mean=flat_hand_mean,
         )
+        log.info(f"Created a {gender} SMPL-X body model monad.")
 
     def forward(self,
         shape:          torch.Tensor=None,

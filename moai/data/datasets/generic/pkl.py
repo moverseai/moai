@@ -5,6 +5,7 @@ import glob
 import os
 import typing
 import logging
+import toolz
 
 __all__ = ["Pkl"]
 
@@ -21,4 +22,6 @@ class Pkl(torch.utils.data.Dataset):
         return len(self.files)
 
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
-        return load_pkl_file(self.files[index])
+        return toolz.valmap(lambda t: t.detach() if isinstance(t, torch.Tensor) else t,
+            load_pkl_file(self.files[index])
+        )

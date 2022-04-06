@@ -45,8 +45,8 @@ class OptimizerServer(BaseHandler):
             else self.map_location
         )
         #NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
-        self.device = torch.device('cpu')
-        log.warning("IMPORTANT: Model explicitly set to CPU mode for debugging purposes!")
+        log.warning(f"IMPORTANT: Model explicitly set to CPU mode for debugging purposes! (was {self.device}).")
+        self.device = torch.device('cpu')        
         #NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
         main_conf = context.manifest['model']['modelName'].replace('_', '/')
         log.info(f"Loading the {main_conf} endpoint.")

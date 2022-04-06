@@ -1,4 +1,4 @@
-from moai.monads.human.body.prior.human_body_prior import VPoser
+from moai.monads.human.body.prior.human_body_prior import VPoser_v2
 from collections import namedtuple
 
 import torch
@@ -11,7 +11,7 @@ __all__ = ["VPoser2"]
 VPoser2InnerParams = namedtuple('VPoser2InnerParams', ['num_neurons', 'latentD'])
 VPoser2Params = namedtuple('VPoser2Params', ['model_params'])
 
-class VPoser2(VPoser):
+class VPoser2(VPoser_v2):
     def __init__(self,
         flatten_pose:       bool=True,
     ):

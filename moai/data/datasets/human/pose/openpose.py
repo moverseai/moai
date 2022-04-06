@@ -13,7 +13,7 @@ __all__ = [
     "OpenPoseInference",
 ]
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 OpenPoseParams = namedtuple('OpenPoseParams', [
     'load_hands',
@@ -39,6 +39,7 @@ class OpenPoseInferred(torch.utils.data.Dataset):
         image_filenames = glob.glob(image_glob)
         self.filenames = image_filenames
         self.invalid_joints = list(invalid_joints or [])
+        log.info(f"Loaded {len(self.filenames)} OpenPose inference results.")
 
     def __len__(self) -> int:
         return len(self.filenames)
