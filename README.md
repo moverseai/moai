@@ -65,7 +65,7 @@ The `reprod` action consumes a previously logged and resolved configuration file
 _moai_ stands on the shoulders of giants as it relies on various large scale open-source projects:
 
 1. [PyTorch](https://pytorch.org/) `> 1.7.0` needs to be customly installed on your system/environment.
-2. [Lightning](https://www.pytorchlightning.ai/) `> 1.0.0` is the currently supported training backend.
+2. [![Lightning](https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white)](https://pytorchlightning.ai) `> 1.0.0` is the currently supported training backend.
 3. [Hydra](https://hydra.cc/) `> 1.0` drives _moai_'s DML that sets up model configurations, and additionally manages the hyper-parameter complexity of modern AI models.
 4. [Visdom](https://github.com/fossasia/visdom) is the currently supported visualization engine.
 5. [HiPlot](https://github.com/facebookresearch/hiplot) drives _moai_'s inter-model analytics.
