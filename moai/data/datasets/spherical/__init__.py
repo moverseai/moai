@@ -63,7 +63,7 @@ class Pano3D(torch.utils.data.Dataset):
         part:       str,
         split:      typing.Union[str, pathlib.Path],
         types:      typing.Sequence[str],
-        max_depth:  float=8.0,
+        max_depth:  float=10.0,
     ):
         folder = self._get_folder(root, part)
         self.filenames = self._get_filenames(folder, split)

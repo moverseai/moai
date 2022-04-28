@@ -3,7 +3,6 @@ from hydra.experimental import (
     compose,
     initialize,
 )
-from moai.networks.lightning import Optimizer
 from omegaconf.omegaconf import OmegaConf
 
 import hydra.utils as hyu
@@ -46,8 +45,8 @@ class OptimizerServer(BaseHandler):
             else self.map_location
         )
         #NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
-        self.device = torch.device('cpu')
-        log.warning("IMPORTANT: Model explicitly set to CPU mode for debugging purposes!")
+        log.warning(f"IMPORTANT: Model explicitly set to CPU mode for debugging purposes! (was {self.device}).")
+        self.device = torch.device('cpu')        
         #NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
         main_conf = context.manifest['model']['modelName'].replace('_', '/')
         log.info(f"Loading the {main_conf} endpoint.")
@@ -92,7 +91,7 @@ class OptimizerServer(BaseHandler):
         data:   typing.Mapping[str, typing.Any],
     ) -> typing.Dict[str, torch.Tensor]:
         log.debug(f"Preprocessing input:\n{data}")
-        tensors = {}
+        tensors = { '__moai__': { 'json': data } }
         body = data[0].get('body') or data[0].get('raw')
         for k, p in self.preproc.items():
             tensors = toolz.merge(tensors, p(body, self.device))
@@ -169,8 +168,9 @@ class OptimizerServer(BaseHandler):
                     or self.is_any_param_nan(optim):
                         log.warning(f"Optimization stage '{stage}' stopped at iteration {j}/{iters}.")
                         break
+                self.last_loss = current_loss
             sched.step()
-            self.last_loss = current_loss
+            self.last_loss = None
             self.optimizer.optimization_step = 0
         return data 
        
@@ -180,7 +180,12 @@ class OptimizerServer(BaseHandler):
         log.debug(f"Postprocessing outputs:\n{data['__moai__']}")
         outs = []
         for k, p in self.postproc.items():
-            outs.append(p(data))
+            res = p(data, data['__moai__']['json'])
+            if len(outs) == 0:
+                outs = res
+            else:                
+                for o, r in zip(outs, res):
+                    o = toolz.merge(o, r)
         return outs
 
     # def handle(self, data, context):

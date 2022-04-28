@@ -182,8 +182,8 @@ def _create_assigner(key: str) -> typing.Callable[[torch.nn.Module, torch.Tensor
 
 class Optimizer(pytorch_lightning.LightningModule):
     def __init__(self, 
-        inner:              omegaconf.DictConfig,
         configuration:      omegaconf.DictConfig,
+        inner:              omegaconf.DictConfig=None,        
         data:               omegaconf.DictConfig=None,
         parameters:         omegaconf.DictConfig=None,
         feedforward:        omegaconf.DictConfig=None,
@@ -195,30 +195,33 @@ class Optimizer(pytorch_lightning.LightningModule):
         hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
     ):
         super(Optimizer, self).__init__()
-        self.model = hyu.instantiate(inner)
         self.fwds = []
-        params = inspect.signature(self.model.forward).parameters
-        model_in = list(zip(*[mirtp.force_list(configuration.io[prop]) for prop in params]))
-        model_out = mirtp.split_as(mirtp.resolve_io_config(configuration.io['out']), model_in)
-        self.res_fill = [mirtp.get_result_fillers(self.model, out) for out in model_out]
-        get_filler = iter(self.res_fill)
         self.predictions = { }
         self.setters = []
-        for keys in model_in:          
-            accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys]  
-            self.fwds.append(lambda td,
-                tk=keys,
-                acc=accessors,
-                args=params.keys(),
-                model=self.model,
-                filler=next(get_filler):
-                    filler(td, model(**dict(zip(args,
-                        list(acc[i](td) if type(k) is str
-                            else list(td[j] for j in k)
-                        for i, k in enumerate(tk))
-                    )))) # list(td[k] if type(k) is str
-            )
-            self.setters.extend(toolz.concat(model_out))
+        if inner is not None:
+            self.model = hyu.instantiate(inner)        
+            params = inspect.signature(self.model.forward).parameters
+            model_in = list(zip(*[mirtp.force_list(configuration.io[prop]) for prop in params]))
+            model_out = mirtp.split_as(mirtp.resolve_io_config(configuration.io['out']), model_in)
+            self.res_fill = [mirtp.get_result_fillers(self.model, out) for out in model_out]
+            get_filler = iter(self.res_fill)        
+            for keys in model_in:          
+                accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys]  
+                self.fwds.append(lambda td,
+                    tk=keys,
+                    acc=accessors,
+                    args=params.keys(),
+                    model=self.model,
+                    filler=next(get_filler):
+                        filler(td, model(**dict(zip(args,
+                            list(acc[i](td) if type(k) is str
+                                else list(td[j] for j in k)
+                            for i, k in enumerate(tk))
+                        )))) # list(td[k] if type(k) is str
+                )
+                self.setters.extend(toolz.concat(model_out))
+        else:
+            self.model = torch.nn.Identity()
         # self.mode = omegaconf.OmegaConf.select(configuration, 'mode', default='inference') #NOTE: update when omegaconf/hydra updates
         self.mode = omegaconf.OmegaConf.select(configuration, 'mode')
         if self.mode == 'inference':
@@ -302,7 +305,10 @@ class Optimizer(pytorch_lightning.LightningModule):
         batch_idx:              int,
         optimizer_idx:          int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
-        batch['__moai__'] = { 'batch_index': batch_idx }
+        if '__moai__' not in batch:
+            batch['__moai__'] = { 'batch_index': batch_idx }
+        else:
+            batch['__moai__']['batch_index'] = batch_idx
         batch['__moai__']['optimization_stage'] = self.stages[optimizer_idx]
         td = self.preprocess(batch)
         if 'predict' in self.mode and\

@@ -63,7 +63,7 @@ class Image2d(Base):
     @staticmethod
     def _viz_color(
         visdom: visdom.Visdom,
-        array: np.array,
+        array: np.ndarray,
         key: str,
         win: str,
         env: str

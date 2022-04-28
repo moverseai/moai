@@ -46,7 +46,7 @@ def _body_to_openpose(
     use_hands:          bool=True,
     use_face:           bool=True,
     use_face_contour:   bool=False,    
-) -> np.array:
+) -> np.ndarray:
     ''' Returns the indices of the permutation that maps OpenPose to SMPL
 
         Parameters

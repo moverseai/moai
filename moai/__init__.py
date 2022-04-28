@@ -1,4 +1,4 @@
-__version__ = '0.1.0a3'
+__version__ = '0.1.5a15'
 __author__ = 'AI-in-Motion Team'
 __author_email__ = 'moai@ai-in-motion.dev'
 __license__ = 'Apache-2.0'

@@ -1,6 +1,6 @@
 from moai.utils.color.colormap import colormap
 
-import numpy
+import numpy as np
 import visdom
 import pytorch_lightning
 import logging
@@ -38,9 +38,9 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
             'loss_plots': plots_key, 'epoch': epoch_key, 'step': step_key
         })
         # plotting
-        self.colors = colormap().astype(numpy.int32)
+        self.colors = colormap().astype(np.int32)
         # other
-        self.colors: numpy.array
+        self.colors: np.ndarray
         self.best_epoch_loss: typing.List[float]=[]
         self.best_epoch_step: typing.List[int]=[]
         self.best_epoch_val_loss: typing.Dict[str, typing.List[float]]={ }
@@ -73,12 +73,12 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
     ) -> None:
         if not self.keys['train'] in self.loss_plots.keys():
             self.loss_plots[self.keys['train']] = self.visualizer.line(
-                X=numpy.array([step,step]),
-                Y=numpy.array([value,value]),
+                X=np.array([step,step]),
+                Y=np.array([value,value]),
                 env=self.name,
                 name=self.keys['train'],
                 opts={
-                    'linecolor': numpy.array([self.colors[0]]), # first color
+                    'linecolor': np.array([self.colors[0]]), # first color
                     # 'legend': [str(self.keys['train']), str(self.keys['epoch'])],
                     'legend': [str(self.keys['train']), 'train_' + str(self.keys['epoch'])],
                     'title': str(self.keys['train']),
@@ -88,27 +88,27 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
             )
         else:
             self.visualizer.line(
-                X=numpy.array([step]),
-                Y=numpy.array([value]),
+                X=np.array([step]),
+                Y=np.array([value]),
                 win=self.loss_plots[self.keys['train']],
                 name=self.keys['train'], 
                 update='append',
             )
         while len(self.best_epoch_loss) <= epoch:
-            self.best_epoch_loss.append(numpy.Infinity)
+            self.best_epoch_loss.append(np.Infinity)
             self.best_epoch_step.append(step)        
         if value < self.best_epoch_loss[epoch]:
             self.best_epoch_loss[epoch] = value
             self.best_epoch_step[epoch] = step
             self.visualizer.line(
-                X=numpy.array(self.best_epoch_step),
-                Y=numpy.array(self.best_epoch_loss),
+                X=np.array(self.best_epoch_step),
+                Y=np.array(self.best_epoch_loss),
                 update='insert',
                 win=self.loss_plots[self.keys['train']],
                 name='train_' + self.keys['epoch'],
                 opts={
                     'markers': True,
-                    'linecolor': numpy.array([self.colors[-1]]) # last color
+                    'linecolor': np.array([self.colors[-1]]) # last color
                 }
             )
 
@@ -120,12 +120,12 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
         for i, (k, v) in enumerate(losses.items()):
             if not self.keys['loss_plots'] in self.loss_plots.keys():            
                 self.loss_plots[self.keys['loss_plots']] = self.visualizer.line(
-                    X=numpy.array([step_num,step_num]),
-                    Y=numpy.array([v,v]),
+                    X=np.array([step_num,step_num]),
+                    Y=np.array([v,v]),
                     env=self.name,
                     name=k,
                     opts={
-                        'linecolor': numpy.array([self.colors[2 + i]]), # second color and on
+                        'linecolor': np.array([self.colors[2 + i]]), # second color and on
                         'legend': [k for k in losses.keys()],
                         'title': self.keys['loss_plots'],
                         'xlabel': 'steps',
@@ -134,8 +134,8 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
                 )
             else:
                 self.visualizer.line(
-                    X=numpy.array([step_num]),
-                    Y=numpy.array([v]),
+                    X=np.array([step_num]),
+                    Y=np.array([v]),
                     win=self.loss_plots[self.keys['loss_plots']],
                     name=k, 
                     update='append',
@@ -150,12 +150,12 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
             value = metrics[key]
             if key not in self.metric_plots.keys():
                 self.metric_plots[key] = self.visualizer.line(
-                    X=numpy.array([step_num,step_num]),
-                    Y=numpy.array([value,value]),
+                    X=np.array([step_num,step_num]),
+                    Y=np.array([value,value]),
                     env=self.name,
                     name=key,
                     opts={
-                        'linecolor': numpy.array([self.colors[2 + i]]), # second color and on
+                        'linecolor': np.array([self.colors[2 + i]]), # second color and on
                         'legend': [k for k in metrics.keys() if k == key],
                         'title': key,
                         'xlabel':'steps',
@@ -164,8 +164,8 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
                 )
             else:
                 self.visualizer.line(
-                    X=numpy.array([step_num]),
-                    Y=numpy.array([value]),
+                    X=np.array([step_num]),
+                    Y=np.array([value]),
                     win=self.metric_plots[key],
                     name=key, 
                     update='append',
@@ -174,21 +174,21 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
                 self.best_epoch_val_loss[key] = []
                 self.best_epoch_val_step[key] = []
             while len(self.best_epoch_val_loss[key]) <= epoch:
-                self.best_epoch_val_loss[key].append(numpy.Infinity)
+                self.best_epoch_val_loss[key].append(np.Infinity)
                 self.best_epoch_val_step[key].append(step_num)
             if value < self.best_epoch_val_loss[key][epoch]:
                 self.best_epoch_val_loss[key][epoch] = value
                 self.best_epoch_val_step[key][epoch] = step_num
-                ind = numpy.isfinite(self.best_epoch_val_loss[key])
+                ind = np.isfinite(self.best_epoch_val_loss[key])
                 self.visualizer.line(
-                    X=numpy.array(self.best_epoch_val_step[key])[ind],
-                    Y=numpy.array(self.best_epoch_val_loss[key])[ind],
+                    X=np.array(self.best_epoch_val_step[key])[ind],
+                    Y=np.array(self.best_epoch_val_loss[key])[ind],
                     update='insert',
                     win=self.metric_plots[key],
                     name='val_' + self.keys['epoch'],
                     opts={
                         'markers': True,
-                        'linecolor': numpy.array([self.colors[2 + i]])
+                        'linecolor': np.array([self.colors[2 + i]])
                     }
                 )
 

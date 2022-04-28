@@ -50,7 +50,7 @@ class Vector(Base):
     @staticmethod
     def _viz_box(
         visdom: visdom.Visdom,
-        array: np.array,
+        array: np.ndarray,
         key: str,
         win: str,
         env: str
