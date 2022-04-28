@@ -1,4 +1,4 @@
-from moai.monads.human.pose.openpose import JointMap
+from moai.monads.human.pose.mediapipe import JointMap
 
 import toolz
 import torch
@@ -12,12 +12,8 @@ __all__ = ["MANO"]
 
 __JOINT__MAPPERS__ = {
     'none':             None,
-    'openpose_coco25':  functools.partial(JointMap, #NOTE: not implemented yet 
-        model='mano', format='coco25'
-    ),
-    'openpose_coco19':  functools.partial(JointMap, #NOTE: not implemented yet
-        model='mano', format='coco19'
-    ),
+    'mediapipe_hand':  functools.partial(JointMap,
+    model='mano', format='mediapipe_hand')
 }
 
 #NOTE: joints: https://github.com/otaheri/MANO/blob/master/mano/joints_info.py
