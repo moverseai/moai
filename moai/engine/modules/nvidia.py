@@ -2,7 +2,14 @@ import os
 import torch
 import logging
 
-__all__ = ['NvidiaSMI', 'DebugCUDA']
+__all__ = [
+    'NvidiaSMI',
+    'DebugCUDA',
+    'DisableCuDNN',
+    'BlockingCUDA',
+    'DisableTensorCores',
+    'DisableFP16Matmul',
+]
 
 log = logging.getLogger(__name__)
 class NvidiaSMI(object):
