@@ -65,6 +65,7 @@ class ModelServer(BaseHandler):
                     overrides=self._get_overrides()
                 )
                 self.model = hyu.instantiate(cfg.model)
+                self.engine = hyu.instantiate(cfg.engine)
         except Exception as e:
             log.error(f"An error has occured while loading the model:\n{e}")
         self.model = self.model.to(self.device)

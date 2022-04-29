@@ -65,6 +65,7 @@ class OptimizerServer(BaseHandler):
                     overrides=self._get_overrides()
                 )
                 self.optimizer = hyu.instantiate(cfg.model)
+                self.engine = hyu.instantiate(cfg.engine)
         except Exception as e:
             log.error(f"An error has occured while loading the model:\n{e}")
         self.optimizer = self.optimizer.to(self.device)
