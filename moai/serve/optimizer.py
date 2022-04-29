@@ -37,16 +37,23 @@ class OptimizerServer(BaseHandler):
 
     def initialize(self, context):        
         properties = context.system_properties
-        self.map_location = "cuda" if torch.cuda.is_available(
-        ) and properties.get("gpu_id") is not None else "cpu"
-        self.device = torch.device(
-            self.map_location + ":" + str(properties.get("gpu_id"))
-            if torch.cuda.is_available() and properties.get("gpu_id") is not None
-            else self.map_location
-        )
+        # self.map_location = "cuda" if torch.cuda.is_available() and properties.get("gpu_id") is not None else "cpu"
+        self.device = torch.device('cpu')
+        if torch.cuda.is_available():
+            gpu_id = properties.get("gpu_id")
+            if gpu_id is not None:
+                self.device = torch.device(f"cuda:{gpu_id}")
+            else:
+                self.device = torch.device("cuda")
+        # self.device = torch.device(
+        #     self.map_location + ":" + str(properties.get("gpu_id"))
+        #     if torch.cuda.is_available() and properties.get("gpu_id") is not None
+        #     else self.map_location
+        # )
+        log.info(f"Model set to run on a [{self.device}] device")
         #NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
-        log.warning(f"IMPORTANT: Model explicitly set to CPU mode for debugging purposes! (was {self.device}).")
-        self.device = torch.device('cpu')        
+        # log.warning(f"IMPORTANT: Model explicitly set to CPU mode for debugging purposes! (was {self.device}).")
+        # self.device = torch.device('cpu')        
         #NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
         main_conf = context.manifest['model']['modelName'].replace('_', '/')
         log.info(f"Loading the {main_conf} endpoint.")
@@ -58,6 +65,7 @@ class OptimizerServer(BaseHandler):
                     overrides=self._get_overrides()
                 )
                 self.optimizer = hyu.instantiate(cfg.model)
+                self.engine = hyu.instantiate(cfg.engine)
         except Exception as e:
             log.error(f"An error has occured while loading the model:\n{e}")
         self.optimizer = self.optimizer.to(self.device)
