@@ -30,8 +30,8 @@ class Mesh(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.D
         self.mode = ensure_choices(log, "saving mode", mode, Mesh.__MODES__)
         self.folder = ensure_path(log, "output folder", path)
         self.formats = [ensure_choices(log, "output format", ext, Mesh.__FORMATS__) for ext in filetype]
-        self.vertices = [vertices] if isinstance(vertices, str) else list(vertices)
-        self.vertices = [_create_accessor(k) for k in self.vertices]
+        self.names = [vertices] if isinstance(vertices, str) else list(vertices)
+        self.vertices = [_create_accessor(k) for k in self.names]
         self.faces = [faces] if isinstance(faces, str) else list(faces)
         self.faces = [_create_accessor(k) for k in self.faces]
         self.format = format
@@ -39,8 +39,8 @@ class Mesh(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.D
         self.index = 0
 
     def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
-        for v, f, ext in zip(
-            self.vertices, self.faces, self.formats
+        for n, v, f, ext in zip(
+            self.names, self.vertices, self.faces, self.formats
         ):
             verts = v(tensors).detach().cpu().numpy()
             indices = f(tensors).detach().cpu().numpy()
@@ -49,7 +49,7 @@ class Mesh(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.D
                 trimesh.Trimesh(
                     verts[i], indices[i], process=False
                 ).export(os.path.join(
-                    self.folder, f"mesh_{(self.index + i):{self.format}}.{ext}")
+                    self.folder, f"{n}_{(self.index + i):{self.format}}.{ext}")
                 )
         self.index = 0 if self.mode == "overwrite" else self.index + bs
 

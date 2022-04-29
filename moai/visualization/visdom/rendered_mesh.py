@@ -56,6 +56,7 @@ class RenderedMesh(Image2d):
             self.scene.add_node(light)
         self.translation = list(itertools.repeat('', len(self.keys)) if translation is None else\
             ([translation] if isinstance(translation, str) else list(translation)))
+        self.translation = [_create_accessor(t) for t in self.translation if t]
         self.rotation = list(itertools.repeat('', len(self.keys)) if rotation is None else\
             ([rotation] if isinstance(rotation, str) else list(rotation)))
         self.scale = scale
@@ -83,11 +84,11 @@ class RenderedMesh(Image2d):
             results = []
             for i in range(b):
                 rotation = tensors[r][i].detach().cpu().numpy().squeeze() if r else np.eye(3)
-                translation = tensors[t][i].detach().cpu().numpy().squeeze() if t else np.zeros(3)
+                translation = t(tensors)[i].detach().cpu().numpy().squeeze() if t else np.zeros(3)
 
                 tmesh = trimesh.Trimesh(
-                    v(tensors).detach().cpu().numpy().squeeze(),
-                    f(tensors).detach().cpu().numpy().squeeze(),
+                    v(tensors)[i].detach().cpu().numpy().squeeze(),
+                    f(tensors)[i].detach().cpu().numpy().squeeze(),
                     process=False
                 )
                 rot = trimesh.transformations.rotation_matrix(np.radians(180), [1, 0, 0])
