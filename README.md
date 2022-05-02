@@ -22,6 +22,8 @@ Since it is based on established [open-source packages](#Dependencies), it can b
 **_moai_** offers a set of data-driven workflow functionalities through specific integrated **actions**. These consume _moai_ **configuration files** that describe each action's executed context.
 As _moai_ is built around these configuration files that define its context and describe each model's details, it offers actions that support heavy data-driven workflows with inter-model analytics, knowledge extraction and meticulous reproduction.
 
+<!-- Dark/Light theme images: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#specifying-the-theme-an-image-is-shown-to , derived from here: https://github.community/t/support-theme-context-for-images-in-light-vs-dark-mode/147981/92 -->
+
 Details for each action follow:
 
 - _`moai`_ **`play`** `CONFIG_PATH`
