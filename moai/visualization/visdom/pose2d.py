@@ -134,6 +134,7 @@ class Pose2d(Base):
         diagonal = torch.norm(torch.Tensor([*imgs.shape[2:]]), p=2)
         marker_size = int(0.015 * diagonal) #TODO: extract percentage param to config?
         line_size = int(0.005 * diagonal) #TODO: extract percentage param to config?
+        line_size = int(np.clip(line_size, a_min=1, a_max=w*0.1))
         for i in range(imgs.shape[0]):
             img = images[i, ...].cpu().numpy().transpose(1, 2, 0) * 255.0
             img = img.copy().astype(np.uint8) if img.shape[2] > 1\
