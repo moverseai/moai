@@ -1,0 +1,8 @@
+# @package export.exporters._name_
+
+_target_: moai.export.local.trimesh.PointCloud
+path: '.'
+vertices: ???
+filetype: ???
+mode: overwrite # [all, overwrite]
+format: 05d

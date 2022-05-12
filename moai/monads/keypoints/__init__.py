@@ -19,6 +19,10 @@ from moai.monads.keypoints.visibility import (
     VisibilityHeatmap
 )
 
+from moai.monads.keypoints.gather2d import (
+    Gather2d
+)
+
 __all__ = [
     "NormToCoords",
     "NormToNdc",
@@ -31,5 +35,6 @@ __all__ = [
     "UpscaleCoords_x2",
     "UpscaleCoords_x4",
     "DownscaleCoords_x2",
-    "DownscaleCoords_x4"
+    "DownscaleCoords_x4",
+    "Gather2d"
 ]
