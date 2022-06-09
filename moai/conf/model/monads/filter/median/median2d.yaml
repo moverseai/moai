@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.filter.median.Median2d
+kernel_size: [5, 5]
+# border_type: reflect

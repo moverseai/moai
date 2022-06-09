@@ -12,8 +12,7 @@ __all__ = ["MANO"]
 
 __JOINT__MAPPERS__ = {
     'none':             None,
-    'mediapipe_hand':  functools.partial(JointMap,
-    model='mano', format='mediapipe_hand')
+    'mediapipe_hand':  functools.partial(JointMap, model='mano', format='mediapipe_hand'),
 }
 
 #NOTE: joints: https://github.com/otaheri/MANO/blob/master/mano/joints_info.py
@@ -30,13 +29,13 @@ class MANO(smplx.MANO):
         use_pose:               bool=True, # joint rotations, False when using VPoser
         use_betas:              bool=True, # shape        
         use_pca:                bool=True,
-        flat_hand_mean:         bool=False,       
+        flat_hand_mean:         bool=False,
+        with_tips:              bool=False,     
     ):
-        mapper = __JOINT__MAPPERS__.get(joints_format, None)
+        self.with_tips = with_tips
         super(MANO, self).__init__(
             model_path=model_path,
-            joint_mapper=None if joints_format is None else\
-                mapper() if mapper is not None else None,
+            joint_mapper=None,
             create_global_orient=use_global_orientation,
             create_hand_pose=use_pose,
             create_betas=use_betas,
@@ -47,7 +46,7 @@ class MANO(smplx.MANO):
             num_pca_comps=pca_components,
             num_betas=num_betas,
             flat_hand_mean=flat_hand_mean,
-            is_rhand=is_right_hand,
+            is_rhand=is_right_hand
         )
 
     def forward(self,
@@ -67,6 +66,18 @@ class MANO(smplx.MANO):
             return_verts=True,              # vertices -> [1, 778, 3]
         )
         b = betas.shape[0]
+        if self.with_tips:
+            joints = torch.cat(
+                [
+                    hand_output['joints'],
+                    hand_output['vertices'][:,744:745,:], #thumb 16
+                    hand_output['vertices'][:,320:321,:], #index 17
+                    hand_output['vertices'][:,443:444,:], #middle 18
+                    hand_output['vertices'][:,554:555,:], #ring 19
+                    hand_output['vertices'][:,671:672,:], #pinky 20
+                ], dim=-2)
+        else:
+            joints = hand_output['joints']
         return toolz.valfilter(lambda v: v is not None, {
             'vertices':     hand_output['vertices'],
             'pose':         hand_output['hand_pose'],
@@ -74,7 +85,7 @@ class MANO(smplx.MANO):
             'translation':  hand_output['transl'],
             'betas':        hand_output['betas'],
             'shape':        hand_output['v_shaped'],
-            'joints':       hand_output['joints'],
+            'joints':       joints,
             'full_pose':    hand_output['full_pose'],
             'faces':        self.faces_tensor.expand(b, -1, -1), # faces [1, 1538 3]
         })
