@@ -65,6 +65,7 @@ class OptimizerServer(BaseHandler):
                     overrides=self._get_overrides()
                 )
                 self.optimizer = hyu.instantiate(cfg.model)
+                self.engine = hyu.instantiate(cfg.engine)
         except Exception as e:
             log.error(f"An error has occured while loading the model:\n{e}")
         self.optimizer = self.optimizer.to(self.device)
@@ -132,7 +133,7 @@ class OptimizerServer(BaseHandler):
         data:       typing.Mapping[str, torch.Tensor],
     ):        
         self.last_loss = None
-        self.optimizer.initialize_parameters()                    
+        self.optimizer.initialize_parameters()
         optimizers, schedulers = self.optimizer.configure_optimizers()
         iters = list(toolz.mapcat(lambda o: o.iterations, toolz.unique(optimizers)))
         stages = list(toolz.mapcat(lambda o: o.name, toolz.unique(optimizers)))

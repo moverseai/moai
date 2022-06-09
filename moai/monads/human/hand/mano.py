@@ -56,9 +56,11 @@ class MANO(smplx.MANO):
         rotation:       torch.Tensor=None,
         translation:    torch.Tensor=None,
     ) -> typing.Mapping[str, torch.Tensor]:
+        if pose is not None and len(pose.shape) > 2:
+            pose = torch.flatten(pose, start_dim=1)
         hand_output = super(MANO, self).forward(
-            betas=betas,                    # betas -> [1, 10] # v_shaped -> [1, 10475, 3]
-            hand_pose=pose,                 # body_pose -> [1, 45] or [1, 12] # joints -> [1, 118, 3]
+            betas=betas,                    # betas -> [1, 10] # v_shaped -> [1, 778, 3]
+            hand_pose=pose,                 # body_pose -> [1, 45] or [1, 12] # joints -> [1, 15, 3]
             global_orient=rotation,         # global_orient -> [1, 3]
             transl=translation,             # transl -> [1, 3]
             return_full_pose=True,          # full_pose -> [1, 48] => 15 joints * 3 + 3 * global rotation
