@@ -19,5 +19,5 @@ __all__ = [
     "WeakPerspectiveCamera",
     "Rotate",
     "DepthFromStereo",
-    "Deprojection"
+    "Deprojection",
 ]
