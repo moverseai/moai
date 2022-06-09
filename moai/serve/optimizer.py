@@ -133,7 +133,7 @@ class OptimizerServer(BaseHandler):
         data:       typing.Mapping[str, torch.Tensor],
     ):        
         self.last_loss = None
-        self.optimizer.initialize_parameters()                    
+        self.optimizer.initialize_parameters()
         optimizers, schedulers = self.optimizer.configure_optimizers()
         iters = list(toolz.mapcat(lambda o: o.iterations, toolz.unique(optimizers)))
         stages = list(toolz.mapcat(lambda o: o.name, toolz.unique(optimizers)))
