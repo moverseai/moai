@@ -39,7 +39,7 @@ class ModelServer(BaseHandler):
         properties = context.system_properties
         # self.map_location = "cuda" if torch.cuda.is_available() and properties.get("gpu_id") is not None else "cpu"
         self.device = torch.device('cpu')
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and not 'FORCE_CPU' in os.environ:
             gpu_id = properties.get("gpu_id")
             if gpu_id is not None:
                 self.device = torch.device(f"cuda:{gpu_id}")

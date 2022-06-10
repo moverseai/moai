@@ -17,9 +17,9 @@ from moai.supervision.losses.regression.robust.adaptive import util
 import numpy as np
 import torch
 
-__all__ = ['lossfun']
+__all__ = ['loss']
 
-def lossfun(
+def loss(
     residual:       torch.Tensor,
     alpha:          torch.Tensor,
     scale:          torch.Tensor,

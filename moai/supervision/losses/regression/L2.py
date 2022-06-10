@@ -14,5 +14,5 @@ class L2(torch.nn.Module):
         if weights is not None:
             l2 = l2 * weights
         if mask is not None:
-            l2 = l2[mask]        
+            l2 = l2[mask]
         return l2

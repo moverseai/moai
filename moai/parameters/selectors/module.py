@@ -25,4 +25,5 @@ class ModuleParameterSelector(typing.Callable[[torch.nn.Module], typing.List[tor
         if self.force_grad:
             for p in parameters:            
                 p.requires_grad_(True)
-        return parameters
+        return { 'params': parameters }
+        # return parameters

@@ -77,7 +77,7 @@ class Pose2d(Base):
         
     def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
         for img, poses, gt, pred, gt_masks, pred_masks, pose_struct, gt_c, pred_c, coord in zip(
-            self.images, self.poses, self.gt, self.pred, self.gt_masks, self.pred_masks,  [self.pose_structure, ],
+            self.images, self.poses, self.gt, self.pred, self.gt_masks, self.pred_masks,  [self.pose_structure, ] * len(self.pred),
             self.color_gt, self.color_pred, self.coords
         ):
             gt_coord = self.access(tensors, gt).detach()
@@ -99,7 +99,7 @@ class Pose2d(Base):
                 np.uint8(np.array(list(pred_c)) * 255),
                 # np.uint8(np.array(list(reversed(gt_c))) * 255),
                 # np.uint8(np.array(list(reversed(pred_c))) * 255),
-                coord, img, img, self.name
+                coord, f"{img}_{pred}", f"{img}_{pred}", self.name
             )    
     
     @staticmethod

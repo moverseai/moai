@@ -45,6 +45,7 @@ class Barron(Distribution):
       assert_numeric(log, 'alpha high', alpha_range[1], 0.0, 2.0)
       assert_non_negative(log, 'scale low', scale_low)
       if alpha_range[0] == alpha_range[1]: # constant init alpha
+          log.info(f"Barron loss alpha set to fixed: {alpha_range[0]}.")
           self.fixed_alpha = torch.tensor(
               alpha_range[0])[np.newaxis, np.newaxis].repeat(1, count)
           self.alpha = lambda: self.fixed_alpha
@@ -59,10 +60,13 @@ class Barron(Distribution):
               )
           )
           self.get_alpha = lambda: util.affine_sigmoid(
-              self.alpha, low=alpha_range[0], hi=alpha_range[1]
+              self.alpha, low=alpha_range[0], high=alpha_range[1]
           )
       if scale_low == scale_init: # fix `scale` to be a constant.
-        self.fixed_scale = torch.tensor(scale_init)[np.newaxis, np.newaxis].float().repeat(1, count)
+        log.info(f"Barron loss scale set to fixed: {scale_init}.")
+        self.register_buffer('fixed_scale', 
+          torch.tensor(scale_init)[np.newaxis, np.newaxis].float().repeat(1, count)
+        )
         self.get_scale = lambda: self.fixed_scale
       else: # learnable scale
         self.register_parameter('scale', torch.nn.Parameter(
@@ -71,7 +75,7 @@ class Barron(Distribution):
             )
         )
         self.get_scale = lambda: util.affine_softplus(
-            self.latent_scale, low=scale_low, ref=scale_init
+            self.scale, low=scale_low, ref=scale_init
         )
       #TODO: use parameterizations instead of lambdas
 
@@ -108,7 +112,7 @@ class Student(torch.nn.Module):
                 torch.zeros((1, count)).float(), requires_grad=True
           ))
           self.get_scale = lambda: util.affine_softplus(
-              self.scale, lo=scale_low, ref=scale_init
+              self.scale, low=scale_low, ref=scale_init
           )
       #NOTE: explore parameterizations
       

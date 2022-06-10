@@ -2,33 +2,73 @@
 
 model:
   monads:
-    convert:
-      from_to: aa_mat
-    mesh_silhouette:
-      resolution: [300, 400] # [1200, 1600]
-      near_clip: 0.001
-      samples: 4
-      sample_pixel_center: true
+    ##################### START REDNER
+    # convert:
+    #   from_to: aa_mat    
+    # mesh_silhouette:
+    #   resolution: [300, 400] # [1200, 1600]
+    #   near_clip: 0.001
+    #   samples: 4
+    #   sample_pixel_center: true
+    #   focal_length: [1498.22426237, 1498.22426237]
+    #   principal_point: [790.263706, 578.90334]
+    #   opengl: true
+    ##################### STOP REDNER
+    ##################### START NVDIFFRAST
+    opengl:
       focal_length: [1498.22426237, 1498.22426237]
       principal_point: [790.263706, 578.90334]
-      opengl: true
+      width: 400 # 1600
+      height: 300 # 1200
+      rotation: null
+      translation: null
+      persistent: true
+    mesh_silhouette:      
+      width: 400 # 1600
+      height: 300 # 1200
+      position_gradient_scale: 1.0
+    ##################### STOP NVDIFFRAST
     bilinear_sampling:
       width: 400
       height: 300
-    nearest_sampling:
-      width: 400
-      height: 300
+    # nearest_sampling:
+    #   width: 400
+    #   height: 300
+    rotation3d:
+      rotations: [180@y, 180@z]
   feedforward:
     preprocess:
-      convert:
-        rotation: [camera_rotation]
-        out: [camera_rotation_3x3]
       bilinear_sampling:
         image: [color]
         out: [color_down_x2]
+      ##################### START REDNER
+      # convert:
+      #   rotation: [camera_rotation]
+      #   out: [camera_rotation_3x3]
+      # mesh_silhouette:
+      #   vertices: [vertices]
+      #   indices: [faces]
+      #   camera_translation: [null]
+      #   image: [color]
+      #   out: [silhouette]
+      ##################### STOP REDNER
+      ##################### START NVDIFFRAST
+      rotation3d:
+        tensor: [vertices]
+        out: [rotation]
+      rotate:
+        rotation: [rotation]
+        points: [vertices]
+        out: [rotated_vertices]
+      opengl:
+        points: [rotated_vertices]
+        translation: [null]
+        rotation: [null]
+        # image: [color]
+        nominal_image: [color]
+        out: [ndc_vertices]
       mesh_silhouette:
-        vertices: [vertices]
+        ndc_vertices: [ndc_vertices]
         indices: [faces]
-        camera_translation: [null]
-        image: [color]
         out: [silhouette]
+      ##################### STOP NVDIFFRAST

@@ -12,7 +12,7 @@ visualization:
     blend2d:
       name: ${experiment.name}
       ip: ${experiment.visdom_ip}
-      left: [color_down_x2] # [color]
+      left: [color_down_x2] # [color_down_x2] # [color]
       right: [silhouette]
       blending: 0.65
       colormap: [viridis_r]

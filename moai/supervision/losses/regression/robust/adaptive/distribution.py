@@ -199,7 +199,7 @@ class Distribution(torch.nn.Module):
         Returns:
         The NLLs for each element of x, in the same shape and precision as x.
         """
-        loss = generic.lossfun(residual, alpha, scale, approximate=False)
+        loss = generic.loss(residual, alpha, scale, approximate=False)
         log_partition = torch.log(scale) + self.log_base_partition_function(alpha)
         nll = loss + log_partition
         return nll

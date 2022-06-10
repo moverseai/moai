@@ -28,3 +28,4 @@ weights_summary: null
 ################
 fast_dev_run: false
 overfit_batches: 0.0
+gpus: null

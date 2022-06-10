@@ -7,6 +7,7 @@ from moai.monads.geometry.transform_ops import (
 )
 from moai.monads.geometry.camera import WeakPerspective as WeakPerspectiveCamera
 from moai.monads.geometry.rotate import Rotate
+from moai.monads.geometry.opengl import Camera as CameraOpenGL
 
 __all__ = [
     "Projection",
@@ -16,4 +17,5 @@ __all__ = [
     "Transpose",
     "WeakPerspectiveCamera",
     "Rotate",
+    'CameraOpenGL',
 ]

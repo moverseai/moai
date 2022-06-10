@@ -86,7 +86,7 @@ def _create_optimization_block(
         # cfg,
         #TODO: hack to get resolved values, should update when omegaconf 2.1 is out and explicit resolve is available
         omegaconf.OmegaConf.create(omegaconf.OmegaConf.to_container(cfg, resolve=True)),
-        params
+        [params] if isinstance(params, dict) else params
     ) if cfg else NoOptimization(params)
 
 def _create_scheduling_block(
@@ -344,7 +344,8 @@ class Optimizer(pytorch_lightning.LightningModule):
                 getattr(optimizers[-1], 'name').append(name)
             elif isinstance(optimizer, str):
                 parameters = hyu.instantiate(self.parameter_selectors[params])(self) if isinstance(params, str) else\
-                    list(toolz.concat(hyu.instantiate(self.parameter_selectors[p])(self) for p in params))
+                    list(hyu.instantiate(self.parameter_selectors[p])(self) for p in params)
+                    # list(toolz.concat(hyu.instantiate(self.parameter_selectors[p])(self) for p in params))                    
                 #TODO: parameter construction is very slow
                 optimizers.append(_create_optimization_block(
                     self.optimizer_configs[optimizer], parameters
@@ -360,7 +361,8 @@ class Optimizer(pytorch_lightning.LightningModule):
             else:
                 parameters = [
                     hyu.instantiate(self.parameter_selectors[par])(self) if isinstance(par, str)
-                    else list(toolz.concat(hyu.instantiate(self.parameter_selectors[p])(self) for p in par))
+                    # else list(toolz.concat(hyu.instantiate(self.parameter_selectors[p])(self) for p in par))
+                    else list(hyu.instantiate(self.parameter_selectors[p])(self) for p in par)
                     for par in params
                 ]
                 alternated = [_create_optimization_block(
@@ -370,9 +372,12 @@ class Optimizer(pytorch_lightning.LightningModule):
                 for ap in self.assigned_params or []:
                     alternated[params.index(ap)].assign = self.assign
                     self.prediction_stages.append(name)
+                if isinstance(toolz.first(parameters), dict) and len(parameters) > 1:
+                    parameters = toolz.mapcat(lambda d: d['params'], parameters)
                 optimizers.append(AlternatingOptimizer(
-                    alternated, toolz.concat(parameters))                    
-                )
+                    alternated, list(parameters)
+                    # alternated, list(toolz.concat(parameters))
+                ))
                 setattr(optimizers[-1], 'iterations', [iterations])
                 setattr(optimizers[-1], 'name', [name])                
                 schedulers.append(_create_scheduling_block(
