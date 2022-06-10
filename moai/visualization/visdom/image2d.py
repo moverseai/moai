@@ -87,8 +87,8 @@ class Image2d(Base):
         win: str,
         env: str
     ) -> None:
-        b, _, __, ___ = tensor.size() #NOTE: assumes [B, C, H, W], i.e. 2d train
-        heatmaps = torch.flip(tensor, dims=[2]).detach().cpu()
+        b, _, __, ___ = tensor.shape #NOTE: assumes [B, C, H, W], i.e. 2d train
+        heatmaps = np.flipud(tensor)
         for i in range(b):
             opts = (
             {

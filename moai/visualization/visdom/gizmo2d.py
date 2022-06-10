@@ -278,8 +278,8 @@ class Gizmo2d(Base):
         imgs = np.zeros([images.shape[0], 3, images.shape[2], images.shape[3]], dtype=np.uint8)
         gt_coords = gt_coordinates.cpu()
         pred_coords = pred_coordinates.cpu()
-        gt_coords = torch.flip(gt_coords, dims=[-1])
-        pred_coords = torch.flip(pred_coords, dims=[-1])
+        # gt_coords = torch.flip(gt_coords, dims=[-1])
+        # pred_coords = torch.flip(pred_coords, dims=[-1])
         gt_coords = gt_coords.numpy()
         pred_coords = pred_coords.numpy()
         diagonal = torch.norm(torch.Tensor([*imgs.shape[2:]]), p=2)
@@ -307,7 +307,8 @@ class Gizmo2d(Base):
                         )
                 imgs[i, ...] = img.transpose(2, 0, 1)
         visdom.images(
-            np.flip(imgs, axis=1),
+            imgs,
+            #np.flip(imgs, axis=1), #NOTE: Why flip?
             win=win,
             env=env,
             opts={

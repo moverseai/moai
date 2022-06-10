@@ -43,12 +43,13 @@ class SixD(torch.nn.Module):
         self,
         pts_gt: torch.Tensor,
         pts_est: torch.Tensor,
+        diagonal: torch.Tensor = None,
     ) -> torch.Tensor:
         return _calculate_add(
             pts_gt,
             pts_est,
             self.threshold,
-            self.diagonal
+            self.diagonal if diagonal is None else diagonal
         )
 
 SixD2 = functools.partial(

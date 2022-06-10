@@ -8,6 +8,8 @@ from moai.monads.geometry.transform_ops import (
 from moai.monads.geometry.camera import WeakPerspective as WeakPerspectiveCamera
 from moai.monads.geometry.rotate import Rotate
 from moai.monads.geometry.opengl import Camera as CameraOpenGL
+from moai.monads.geometry.stereo_depth import DepthFromStereo
+from moai.monads.geometry.deproject import Deprojection
 
 __all__ = [
     "Projection",
@@ -18,4 +20,6 @@ __all__ = [
     "WeakPerspectiveCamera",
     "Rotate",
     'CameraOpenGL',
+    "DepthFromStereo",
+    "Deprojection",
 ]

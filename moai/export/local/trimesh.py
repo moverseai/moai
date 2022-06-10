@@ -10,7 +10,10 @@ import typing
 import logging
 import os
 
-__all__ = ["Mesh"]
+__all__ = [
+    "Mesh",
+    "PointCloud"
+]
 
 log = logging.getLogger(__name__)
 
@@ -48,6 +51,47 @@ class Mesh(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.D
             for i in range(bs):
                 trimesh.Trimesh(
                     verts[i], indices[i], process=False
+                ).export(os.path.join(
+                    self.folder, f"{n}_{(self.index + i):{self.format}}.{ext}")
+                )
+        self.index = 0 if self.mode == "overwrite" else self.index + bs
+
+
+
+class PointCloud(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]], None]):
+
+    __MODES__ = ['all', 'overwrite']
+    __FORMATS__ = ['ply', 'obj']
+
+    def __init__(self,
+        path:              str,
+        vertices:          typing.Union[str, typing.Sequence[str]],
+        filetype:          typing.Union[str, typing.Sequence[str]],
+        mode:              str="overwrite", # all"
+        format:            str="05d",
+    ):
+        self.mode = ensure_choices(log, "saving mode", mode, PointCloud.__MODES__)
+        self.folder = ensure_path(log, "output folder", path)
+        self.formats = [ensure_choices(log, "output format", ext, PointCloud.__FORMATS__) for ext in filetype]
+        self.names = [vertices] if isinstance(vertices, str) else list(vertices)
+        self.vertices = [_create_accessor(k) for k in self.names]
+        self.format = format
+        log.info(f"Exporting pointclouds locally @ {self.folder}")
+        self.index = 0
+
+    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+        for n, v, ext in zip(
+            self.names, self.vertices, self.formats
+        ):
+            if v(tensors).shape[-1] is not 3:
+                b, c, w, h = v(tensors).shape
+                verts = v(tensors).permute(0,2,3,1).view(-1, w*h, c).detach().cpu().numpy()
+            else:
+                verts = v(tensors).detach().cpu().numpy()
+            bs = verts.shape[0]
+            for i in range(bs):
+                trimesh.points.PointCloud(
+                    verts[i], colors=None, metadata=None
                 ).export(os.path.join(
                     self.folder, f"{n}_{(self.index + i):{self.format}}.{ext}")
                 )

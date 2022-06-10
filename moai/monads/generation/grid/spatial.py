@@ -37,7 +37,7 @@ class Grid(torch.nn.Module):
     __XYZ__ = 'zyx'
 
     def __init__(self,
-        mode:           str='ndc', # 'ndc', 'coords', 'norm'
+        mode:           str='ndc', # 'ndc', 'coord', 'norm'
         width:          int=256,
         height:         int=1,
         depth:          int=1,
@@ -64,7 +64,7 @@ class Grid(torch.nn.Module):
 
 class MultiScaleGrid(torch.nn.Module):
     def __init__(self,
-        mode:           str='ndc', # 'ndc', 'coords', 'norm'
+        mode:           str='ndc', # 'ndc', 'coord', 'norm'
         width:          typing.Sequence[int]=256,
         height:         typing.Sequence[int]=1,
         depth:          typing.Sequence[int]=1,

@@ -7,5 +7,5 @@ class NoOp(torch.nn.ModuleDict):
 
     def forward(self, 
         tensors: typing.Dict[str, torch.Tensor]
-    ) -> typing.Dict[str, torch.Tensor]:
+    ) -> typing.Tuple[torch.Tensor, typing.Dict[str, torch.Tensor]]:
         return torch.scalar_tensor(0.0), { }

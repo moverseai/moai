@@ -8,7 +8,7 @@ from moai.engine.callbacks import ModelCallbacks
 
 log = logging.getLogger(__name__)
 
-def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any]:
+def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any,typing.Any]:
     return getattr(cfg, attr) if hasattr(cfg, attr) else None
 
 def train(cfg):
