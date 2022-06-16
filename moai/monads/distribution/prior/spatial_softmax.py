@@ -14,7 +14,7 @@ class SpatialSoftmax(torch.nn.Module):
         normalize:      bool=False, # normalize output
     ):
         super(SpatialSoftmax, self).__init__()
-        self.temp = temperature
+        self.temp = temperature #TODO: add 'auto' mode for learnable params
         self.alpha = alpha
         self.normalize = normalize
         #TODO: add inplace version / flag
