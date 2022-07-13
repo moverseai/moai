@@ -76,9 +76,11 @@ _moai_ stands on the shoulders of giants as it relies on various large scale ope
 1. [![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=PyTorch&logoColor=white)](https://pytorch.org/) `> 1.7.0` needs to be customly installed on your system/environment.
 2. [![Lightning](https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white)](https://pytorchlightning.ai) `> 1.0.0` is the currently supported training backend.
 3. [Hydra](https://hydra.cc/) `> 1.0` drives _moai_'s DML that sets up model configurations, and additionally manages the hyper-parameter complexity of modern AI models.
-4. [Visdom](https://github.com/fossasia/visdom) is the currently supported visualization engine.
-5. [HiPlot](https://github.com/facebookresearch/hiplot) drives _moai_'s inter-model analytics.
-6. [Various PyTorch Open Source Projects](#Dependencies):
+4. [![TorchServe](https://img.shields.io/badge/TorchServe-%23EE4C2C.svg?logo=PyTorch&logoColor=white)](https://pytorch.org/serve/) `> 0.5.3` is needed to deploy models as services.
+5. [![ONNX](https://img.shields.io/badge/ONNX-%23EE4C2C.svg?logo=onnx&logoColor=white&color=0EB0EC)](https://onnx.ai/) `> 1.11.0` is needed to export models in an exchangeable format.
+6. [Visdom](https://github.com/fossasia/visdom) is the currently supported visualization engine.
+7. [HiPlot](https://github.com/facebookresearch/hiplot) drives _moai_'s inter-model analytics.
+8. [Various PyTorch Open Source Projects](#Dependencies):
     
     - [Kornia](https://github.com/kornia/kornia) for a set of computer vision operations integrated as _moai_ monads.
     - [Albumentations](https://github.com/albumentations-team/albumentations) as the currently supported data augmentation framework.
