@@ -263,7 +263,7 @@ class Optimizer(pytorch_lightning.LightningModule):
             self.supervision[stage] = _create_supervision_block(
                 omegaconf.OmegaConf.merge(supervision, objective)
             )
-        self.validation = _create_validation_block(validation) #TODO: change this, "empty processing block" is confusing        
+        self.validation = _create_validation_block(validation) #TODO: change this, "empty processing block" is confusing
         self.visualizer = _create_interval_block(visualization)
         self.exporter = _create_interval_block(export)        
         #NOTE: __NEEDED__ for loading checkpoint?

@@ -57,6 +57,7 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
         nominal_image:      torch.Tensor=None,
         rotation:           torch.Tensor=None,
         translation:        torch.Tensor=None,
+        intrinsics:         torch.Tensor=None,
         #TODO: update with focal/principal inputs as well        
     ) -> torch.Tensor:
         fx, fy = self.focal_length
@@ -90,21 +91,33 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
                 [(w - 2.0 * px + 2 * x0) / w,   (h - 2.0 * py + 2.0 * y0) / h,        -(f + n) / (f - n),               -1.0],
                 [0,                                         0,                     -(2.0 * f * n) / (f - n),              0]
             ]]).to(points)
+        elif intrinsics is not None:
+            Ks = []
+            for K in intrinsics:
+                w, h = self.resolution
+                sx = 0.0
+                x0, y0 = (0.0, 0.0)
+                n, f = (0.1, 50.0)
+                fx, fy = K[0, 0], K[1, 1]
+                px, py = K[0, 2], K[1, 2]
+                Ks.append(torch.tensor([
+                    [2 * fx / w,                               0,                                  0,                                  0],
+                    [-2.0 * sx / w,                    -2.0 * fy / h,                             0,                                  0],
+                    [(w - 2.0 * px + 2 * x0) / w,   (h - 2.0 * py + 2.0 * y0) / h,        -(f + n) / (f - n),               -1.0],
+                    [0,                                         0,                     -(2.0 * f * n) / (f - n),              0]
+                ]).to(points))
+            proj = torch.stack(Ks)
         else:
             proj = self.mat
             w, h = self.resolution
         b = points.shape[0]
         Rt = torch.zeros(b, 4, 4).to(points.device)
         t = translation if translation is not None else self.translation.expand(b, 3)
-        # t[:, 0] = -1.0 * t[:, 0]
         R = rotation if rotation is not None else self.rotation.expand(b, 3, 3)
         Rt[:, :3, :3] = R
-        # Rt[:, 3, 0] = -1.0 * t[:, 0]
         Rt[:, 3, 0] = -1.0 * t[:, 0]
-        # Rt[:, 3, 1:3] = t[:, 1:]
         Rt[:, 3, 1] = 1.0 * t[:, 1]
         Rt[:, 3, 2] = 1.0 * t[:, 2]
-        # Rt[:, 3, 1:3] = -1.0 * t[:, 1:]
         Rt[:, 3, 3] = 1.0
         inv_Rt = torch.inverse(Rt)
         v = torch.nn.functional.pad(

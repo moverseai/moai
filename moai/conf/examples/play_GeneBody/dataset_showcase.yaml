@@ -8,17 +8,17 @@ defaults:
   - engine/play: lightning
 
   - engine/visualization: collection
-  - engine/visualization/visdom: pose2d
+  # - engine/visualization/visdom: pose2d
   - engine/visualization/visdom: blend2d
-  - engine/visualization/visdom: rendered_mesh
+  # - engine/visualization/visdom: rendered_mesh
 
   # ###### DATA  
   - data/train/loader: torch
-  - data/train/dataset/human/body: EHF
+  - data/train/dataset/human: GeneBody
   - data/test/loader: torch
-  - data/test/dataset/human/body: EHF
+  - data/test/dataset/human: GeneBody
   - data/val/loader: torch
-  - data/val/dataset/human/body: EHF
+  - data/val/dataset/human: GeneBody
 
   # ###### PROCESS
   - model/feedforward: preprocess
@@ -33,12 +33,14 @@ defaults:
   - model/monads/render/nvdiffrast: mesh_silhouette
   - model/monads/generation/matrix: rotation3d
   - model/monads/geometry/transformation: rotate
+  - model/monads/geometry/transformation: transform
+  - model/monads/geometry/transformation: inverse
   # ##################### STOP NVDIFFRAST
   ##################### START PYTORCH3D
   # - model/monads/render/pytorch3d: mesh_silhouette
   # - model/monads/generation/matrix: rotation3d
   # - model/monads/geometry/transformation: rotate
   ##################### STOP PYTORCH3D
-  - examples/play_EHF/options
-  - examples/play_EHF/data
-  - examples/play_EHF/preproc
+  - examples/play_GeneBody/options
+  - examples/play_GeneBody/data
+  - examples/play_GeneBody/preproc

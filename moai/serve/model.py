@@ -110,13 +110,15 @@ class ModelServer(BaseHandler):
         data:       typing.Mapping[str, torch.Tensor],
     ):
         metrics, tensors = self.model.test_step(data, batch_nb=0)
+        for k, v in metrics.items(): # self.context is set in base handler's handle method            
+            self.context.metrics.add_metric(name=k, value=float(v.detach().cpu().numpy()), unit='value')
         return tensors
        
     def postprocess(self,
         data: typing.Mapping[str, torch.Tensor]
     ) -> typing.Sequence[typing.Any]:
         log.debug(f"Postprocessing outputs:\n{data['__moai__']}")
-        outs = []
+        outs = [] #TODO: corner case with no postproc crashes, fix it
         for k, p in self.postproc.items():
             res = p(data, data['__moai__']['json'])
             if len(outs) == 0:
