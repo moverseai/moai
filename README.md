@@ -5,9 +5,6 @@
 ![Lightning](https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white)
 ![TorchServe](https://img.shields.io/badge/TorchServe-%23EE4C2C.svg?logo=PyTorch&logoColor=white)
 
-![PTDD21](https://github.com/ai-in-motion/moai/raw/main/docs/images/poster.jpeg#gh-light-mode-only)
-![PTDD21](https://github.com/ai-in-motion/moai/raw/main/docs/images/poster.jpeg#gh-dark-mode-only)
-
 # Overview
 
 **_moai_** is a [PyTorch](https://pytorch.org/)-based AI Model Development Kit (MDK) that aims to **improve data-driven model workflows, design and understanding**.
@@ -118,6 +115,10 @@ Examples can be found at [**conf/examples**](https://github.com/ai-in-motion/moa
 _moai_ is Apache 2.0 licenced, as found in the corresponding [LICENCE](https://github.com/ai-in-motion/moai/blob/main/LICENSE) file.
 
 However, some code integrated from external projects may carry their own licences.
+
+# PyTorch Developer's Day 2021
+![PTDD21](https://github.com/ai-in-motion/moai/raw/main/docs/images/poster.jpeg#gh-light-mode-only)
+![PTDD21](https://github.com/ai-in-motion/moai/raw/main/docs/images/poster.jpeg#gh-dark-mode-only)
 
 # Citation
 If you use _moai_ in your R&D workflows or find its code useful please consider citing:
