@@ -14,11 +14,11 @@ defaults:
 
   # ###### DATA  
   - data/train/loader: torch
-  - data/train/dataset/human: GeneBody
+  - data/train/dataset/human: genebody
   - data/test/loader: torch
-  - data/test/dataset/human: GeneBody
+  - data/test/dataset/human: genebody
   - data/val/loader: torch
-  - data/val/dataset/human: GeneBody
+  - data/val/dataset/human: genebody
 
   # ###### PROCESS
   - model/feedforward: preprocess

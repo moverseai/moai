@@ -1,0 +1,10 @@
+# @package _global_
+
+not_empty_config: true
+
+# model:
+#   # monads:
+
+#   feedforward:
+#     preprocess:
+      

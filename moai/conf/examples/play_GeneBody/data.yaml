@@ -1,23 +1,23 @@
 # @package _global_
 
-GeneBody_root: ???
+genebody_root: ???
 
 data:
   train:
     iterator:
       datasets:
-        GeneBody:
+        genebody:
           subjects: ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
           cameras: ['01', '13', '25', '37']
   test:
     iterator:
       datasets:
-          GeneBody:
+          genebody:
             subjects: ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
             cameras: ['01', '13', '25', '37']
   val:
     iterator:
       datasets:        
-        GeneBody:
+        genebody:
           subjects: ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
           cameras: ['01', '13', '25', '37']

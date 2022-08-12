@@ -55,6 +55,7 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
         points:             torch.Tensor,
         image:              torch.Tensor=None,
         nominal_image:      torch.Tensor=None,
+        aspect_image:       torch.Tensor=None,
         rotation:           torch.Tensor=None,
         translation:        torch.Tensor=None,
         intrinsics:         torch.Tensor=None,
@@ -78,6 +79,28 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
             w, h = self.resolution
             ow, oh = nominal_image.shape[-1], nominal_image.shape[-2]
             fx, fy = fx * (w / ow), fy * (h / oh)
+            sx = 0.0
+            x0, y0 = (0.0, 0.0)
+            n, f = (0.1, 50.0)
+            if not self.has_nominal_principal:
+                px, py = (px / ow) * w, (py / oh) * h
+            else:
+                px, py = 0.5 * w, 0.5 * h
+            proj = torch.tensor([[
+                [2 * fx / w,                               0,                                  0,                                  0],
+                [-2.0 * sx / w,                    -2.0 * fy / h,                             0,                                  0],
+                [(w - 2.0 * px + 2 * x0) / w,   (h - 2.0 * py + 2.0 * y0) / h,        -(f + n) / (f - n),               -1.0],
+                [0,                                         0,                     -(2.0 * f * n) / (f - n),              0]
+            ]]).to(points)
+        elif aspect_image is not None:
+            w, h = self.resolution
+            ow, oh = aspect_image.shape[-1], aspect_image.shape[-2]
+            if oh > ow:
+                fx, fy = fx * (w / ow) / ((h / w) / (oh / ow)), fy * (h / oh)
+                w = ow * (h / oh)
+            else:                
+                fx, fy = fx * (w / ow), fy * (h / oh) / ((h / w) / (oh / ow))
+                h = oh * (w / ow)
             sx = 0.0
             x0, y0 = (0.0, 0.0)
             n, f = (0.1, 50.0)

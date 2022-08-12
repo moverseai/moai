@@ -1,0 +1,7 @@
+# @package data.train.iterator.datasets._name_
+
+_target_: moai.data.datasets.human.pose.OpenPoseMultiviewKeypoints
+root: ${openpose_root}
+views: all
+types: 'all' # '**'
+single_person: false

@@ -65,37 +65,26 @@ class GeneBody(torch.utils.data.Dataset):
         data = np.load(filename, allow_pickle=True).item()
         return {
             'scale': torch.scalar_tensor(data['smplx_scale']).float(),             
-            'smplx': toolz.valmap(lambda v: v.squeeze().float(),
+            'params': toolz.valmap(lambda v: v.squeeze().float(),
                 toolz.valfilter(lambda v: isinstance(v, torch.Tensor), data['smplx'])
             ),
             'keypoints3d': torch.from_numpy(data['smplx']['keypoints3d']).squeeze().float()
         }
         
-
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         item = self.metadata['items'][index]
         mesh = trimesh.load(item['mesh'], process=False)
         smplx = self.load_smplx(item['smplx'])
-        data = toolz.merge(smplx, {
-            'mesh': {
-                'vertices': torch.from_numpy(mesh.vertices).float(),
-                'scaled_vertices': smplx['scale'] * torch.from_numpy(mesh.vertices).float(),
-                'faces': torch.from_numpy(mesh.faces).int() #NOTE: or long?
-            },
+        data = {
+            'smplx': toolz.merge(smplx, {
+                'mesh': {
+                    'vertices': torch.from_numpy(mesh.vertices).float(),
+                    'scaled_vertices': smplx['scale'] * torch.from_numpy(mesh.vertices).float(),
+                    'faces': torch.from_numpy(mesh.faces).int() #NOTE: or long?
+                },
+            }),
             'images': toolz.valmap(load_color_image, item['images']),
             'masks': toolz.valmap(load_mask_image, item['masks']),
             'cameras': item['cameras']
-        })
+        }
         return data
-
-if __name__ == '__main__':
-    ROOT = r'E:\Data\Datasets\Genebody'
-    # dataset = GeneBody(root=ROOT, subjects='amanda', cameras='00')
-    dataset = GeneBody(root=ROOT, 
-        subjects=['amanda', 'natacha'], 
-        cameras=['00', '08', '14', '40']
-    )
-    # for i in dataset.metadata['items']:
-    #     print(i)
-    for i, d in enumerate(dataset):
-        print(f"{i}: {d.keys()}")

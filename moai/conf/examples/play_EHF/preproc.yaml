@@ -1,5 +1,8 @@
 # @package _global_
 
+DOWN_WIDTH: 400
+DOWN_HEIGHT: 300
+
 model:
   monads:
     ##################### START REDNER
@@ -20,14 +23,14 @@ model:
     opengl:
       focal_length: [1498.22426237, 1498.22426237]
       principal_point: [790.263706, 578.90334]
-      width: 400 # 1600
-      height: 300 # 1200
+      width: ${DOWN_WIDTH} # 1600
+      height: ${DOWN_HEIGHT} # 1200
       rotation: null
       translation: null
       persistent: true
     mesh_silhouette:      
-      width: 400 # 1600
-      height: 300 # 1200
+      width: ${DOWN_WIDTH} # 1600
+      height: ${DOWN_HEIGHT} # 1200
       position_gradient_scale: 1.0
     rotation3d:
       rotations: [180@y, 180@z]
@@ -48,8 +51,9 @@ model:
     #   rotations: [180@x, 180@y]
     ##################### STOP PYTORCH3D
     bilinear_sampling:
-      width: 400
-      height: 300
+      width: ${DOWN_WIDTH}
+      height: ${DOWN_HEIGHT}
+      preserve_aspect_ratio: true
     # nearest_sampling:
     #   width: 400
     #   height: 300
@@ -83,12 +87,18 @@ model:
         translation: [null]
         rotation: [null]
         # image: [color]
-        nominal_image: [color]
+        # nominal_image: [color]
+        aspect_image: [color]
         out: [ndc_vertices]
       mesh_silhouette:
         ndc_vertices: [ndc_vertices]
         indices: [faces]
+        resolution_image: [color_down_x2]
         out: [silhouette]
+      # bilinear_sampling:
+      #   image: [color]
+      #   target: [silhouette]
+      #   out: [color_down_x2]
       # ##################### STOP NVDIFFRAST
       ##################### START PYTORCH3D
       # rotation3d:

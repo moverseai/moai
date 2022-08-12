@@ -20,12 +20,14 @@ class Silhouette(torch.nn.Module):
 
     def forward(self,
         ndc_vertices:       torch.Tensor,
-        indices:            torch.Tensor,        
+        indices:            torch.Tensor,
+        resolution_image:   torch.Tensor=None,
     ) -> torch.Tensor:
         f = indices[0] if len(indices.shape) > 2 else indices
         if f.dtype != torch.int32:
             f = f.int()
-        rast_out, _ = dr.rasterize(CONTEXT, ndc_vertices, f, resolution=self.resolution)
+        resolution = self.resolution if resolution_image is None else resolution_image.shape[2:]
+        rast_out, _ = dr.rasterize(CONTEXT, ndc_vertices, f, resolution=resolution)
         color   , _ = dr.interpolate(torch.ones_like(ndc_vertices[..., 0:1]), rast_out, f)
         color       = dr.antialias(color, rast_out, ndc_vertices, f)
         return color.permute(0, 3, 1, 2)#.contiguous()

@@ -27,13 +27,14 @@ class Mesh(Callable):
         batch_percentage: float=1.0,
         width:            int=600,
         height:           int=400,
+        point_size:       float=0.1,
         name:             str="default",        
     ):
-        self.name= name
+        self.name, self.point_size = name, point_size
         self.vertices = [vertices] if isinstance(vertices, str) else list(vertices)
         self.faces = [faces] if isinstance(faces, str) else list(faces)
         self.vertex_accessors = [_create_accessor(k) for k in self.vertices]        
-        self.face_accesors = [_create_accessor(k) for k in self.faces]
+        self.face_accesors = [(_create_accessor(k) if k else lambda _: None) for k in self.faces]
         self.ids = [canvas] if isinstance(canvas, int) else list(canvas)
         self.layers = [layer] if isinstance(layer, int) else list(layer)
         self.colors = [colour.Color(color)] if isinstance(color, str) else list(colour.Color(c) for c in color)
@@ -57,7 +58,9 @@ class Mesh(Callable):
             self.face_accesors, self.colors, self.layers, self.ids
         ):
             vertices = v(tensors).detach().cpu().numpy()
-            faces = f(tensors).detach().cpu().numpy()
+            faces = f(tensors)
+            if faces is not None:
+                faces = faces.detach().cpu().numpy()
             b = math.ceil(self.batch_percentage * vertices.shape[0])
             if id not in meshes:
                 meshes[id] = []
@@ -65,7 +68,12 @@ class Mesh(Callable):
                 mesh = scene.create_mesh(mesh_id=f"{n}_{i}",
                     shared_color=scenepic.Color(*c.rgb), layer_id=f"{l}",
                 )
-                mesh.add_mesh_without_normals(vertices[i], faces[i])
+                if faces is not None:
+                    mesh.add_mesh_without_normals(vertices[i], faces[i])
+                else:
+                    mesh.add_sphere()
+                    mesh.apply_transform(scenepic.Transforms.Scale(self.point_size)) 
+                    mesh.enable_instancing(positions=vertices[i]) 
                 meshes[id].append(mesh)
         for k, m in meshes.items():
             frame = canvases[k].create_frame()

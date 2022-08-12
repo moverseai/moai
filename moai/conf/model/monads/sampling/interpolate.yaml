@@ -7,3 +7,4 @@ height: -1 # -1 means invalid, either scale or dims need to be set
 mode: bilinear # one of ['nearest', 'linear', 'bilinear', 'area', 'bicubic', 'trilinear']            
 align_corners:  false
 recompute_scale_factor: false
+preserve_aspect_ratio: false
