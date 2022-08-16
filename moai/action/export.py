@@ -1,9 +1,11 @@
+from cmath import e
 import hydra
 import sys
 import omegaconf.omegaconf
 import typing
 import logging
 import pytorch_lightning as pl
+import blobconverter
 from moai.utils.torch import get_submodule
 import torch
 import os
@@ -73,8 +75,9 @@ def export(cfg):
     trwrapper.to(device)
     
     input_dict = {}
+
     for in_name in cfg.export.input_names:
-        input_dict[in_name] =torch.randn(tuple(cfg.export.input_tensor[in_name])).to(device).float()
+        input_dict[in_name] = torch.randn(tuple(cfg.export.input_tensor[in_name])).to(device).float()
 
     if cfg.export.mode == 'onnx':
         log.info("exporting model to onnx!")
@@ -105,6 +108,28 @@ def export(cfg):
         traced_model.save(
             os.path.join(cfg.export.output_path, f'{cfg.export.name}.pt')
         ) # Save
+    
+    elif cfg.export.mode == 'blob':
+        #first convert to onnx
+        log.info("exporting model to onnx!")
+        trwrapper.to_onnx(
+            os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'),
+            # {trwrapper.input_names[0]: input_sample},
+            input_dict, 
+            export_params=cfg.export.export_params, #bool 
+            opset_version=cfg.export.opset_version, #int; default is 12
+            input_names=trwrapper.input_names,
+            output_names=trwrapper.output_names,
+            verbose=True,
+        )
+        blob_path=blobconverter.from_onnx(
+            model=os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'),
+            data_type=cfg.export.data_type,
+            shaves=cfg.export.shaves,
+            output_dir=cfg.export.output_path
+        )
+        #delete onnx file?
+
 
     log.info(f"Model has been saved in {cfg.export.output_path}!")
 

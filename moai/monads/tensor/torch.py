@@ -32,12 +32,15 @@ class Split(torch.nn.Module): #TODO: optimize by returning the tuple
 
     def forward(self, 
         tensor: torch.Tensor,
-        index: torch.Tensor # scalar tensor denoting the split index
-    ) -> torch.Tensor:
+        # index: torch.Tensor # scalar tensor denoting the split index
+    ) -> typing.Dict[str, torch.Tensor]:
     # ) -> typing.Tuple[torch.Tensor, torch.Tensor]:
+        ret = {}
         size = self.split if self.split else tensor.shape[self.dim] // 2
-        ret = torch.split(tensor, size, dim=self.dim)[int(index)]
-        return ret.squeeze(self.dim) if ret.shape[self.dim] == 1 else ret
+        chunks = torch.split(tensor, size, dim=self.dim) #[int(index)]
+        for i in range(len(chunks)):
+            ret['chunk'+str(i)] = chunks[i]
+        return ret
 
 class SelectTensor(torch.nn.Module):
     def __init__(self):
