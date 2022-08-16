@@ -1,0 +1,46 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+  
+   ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+
+  - engine/visualization: collection
+  # - engine/visualization/visdom: pose2d
+  - engine/visualization/visdom: blend2d
+  # - engine/visualization/visdom: rendered_mesh
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/dataset/human: genebody
+  - data/test/loader: torch
+  - data/test/dataset/human: genebody
+  - data/val/loader: torch
+  - data/val/dataset/human: genebody
+
+  # ###### PROCESS
+  - model/feedforward: preprocess
+  # - model/monads/sampling: nearest_sampling
+  - model/monads/sampling: bilinear_sampling
+  ##################### START REDNER
+  # - model/monads/geometry/rotation: convert
+  # - model/monads/render/redner: mesh_silhouette
+  ##################### STOP REDNER
+  # ##################### START NVDIFFRAST
+  - model/monads/geometry/projection: opengl
+  - model/monads/render/nvdiffrast: mesh_silhouette
+  - model/monads/generation/matrix: rotation3d
+  - model/monads/geometry/transformation: rotate
+  - model/monads/geometry/transformation: transform
+  - model/monads/geometry/transformation: inverse
+  # ##################### STOP NVDIFFRAST
+  ##################### START PYTORCH3D
+  # - model/monads/render/pytorch3d: mesh_silhouette
+  # - model/monads/generation/matrix: rotation3d
+  # - model/monads/geometry/transformation: rotate
+  ##################### STOP PYTORCH3D
+  - examples/play_GeneBody/options
+  - examples/play_GeneBody/data
+  - examples/play_GeneBody/preproc

@@ -78,5 +78,5 @@ model:
         tensor: [init_trans, ones]
         out: [z_mask, true_mask]
       openpose_split:
-        all_joints: [joints2d, keypoints, confidence]
+        joints: [joints2d, keypoints, confidence]
         out: [split_joints2d, split_keypoints, split_confidence]

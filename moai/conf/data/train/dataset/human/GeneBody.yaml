@@ -1,0 +1,7 @@
+# @package data.train.iterator.datasets._name_
+
+_target_: moai.data.datasets.human.GeneBody
+root: ${genebody_root}
+split: train
+subjects: '**'
+cameras: ['01', '13', '25', '37']

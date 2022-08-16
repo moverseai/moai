@@ -1,5 +1,6 @@
 from moai.utils.color.colorize import get_colormap, COLORMAPS
 from moai.visualization.visdom.base import Base
+from moai.monads.execution.cascade import _create_accessor
 
 import torch
 import visdom
@@ -27,9 +28,18 @@ class Blend2d(Base):
         super(Blend2d, self).__init__(name, ip, port)                
         self.left = [left] if type(left) is str else list(left)
         self.right = [right] if type(right) is str else list(right)
+        self.names = [f"{l}_{r}" for l, r in zip(self.left, self.right)]
+        self.left = [_create_accessor(k) for k in self.left]        
+        self.right = [_create_accessor(k) for k in self.right]
         self.blending = [blending] if type(blending) is float else list(blending)
+        if len(self.blending) == 1 and len(self.names) > 1:
+            self.blending = self.blending * len(self.names)
         self.transforms = [transform] if type(transform) is str else list(transform)
+        if len(self.transforms) == 1 and len(self.names) > 1:
+            self.transforms = self.transforms * len(self.names)
         self.colormaps = [colormap] if type(colormap) is str else list(colormap)
+        if len(self.colormaps) == 1 and len(self.names) > 1:
+            self.colormaps = self.colormaps * len(self.names)
         self.scale = scale
         self.transform_map = {
             'none': functools.partial(self.__no_transform),
@@ -44,14 +54,15 @@ class Blend2d(Base):
         return self.env_name
         
     def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
-        for l, r, b, t, c in zip(self.left, self.right, self.blending, 
+        for n, l, r, b, t, c in zip(self.names, self.left, self.right, self.blending, 
             self.transforms, self.colormaps):
-                n = l + "_" + r
-                left = tensors[l]
-                left = left.cpu().detach().numpy() if left.is_cuda else left.detach().numpy()                
+                # n = l + "_" + r
+                left = l(tensors) # tensors[l]
+                left = left.cpu().detach().numpy() if left.is_cuda else left.detach().numpy()
                 self.__viz_color(self.visualizer,
                     left * b + (1.0 - b) * self.colorize_map[c](
-                        self.transform_map[t](tensors[r])), n, n, self.name,
+                        # self.transform_map[t](tensors[r])), n, n, self.name,
+                        self.transform_map[t](r(tensors))), n, n, self.name,
                     self.scale
                 )
 

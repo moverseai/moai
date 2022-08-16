@@ -59,6 +59,7 @@ class SelectTensor(torch.nn.Module):
                        out_tensor = None
                 
                 return out_tensor
+                
 class Detach(torch.nn.Module):
     def __init__(self):
         super(Detach, self).__init__()

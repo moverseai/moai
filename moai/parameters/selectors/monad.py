@@ -19,4 +19,5 @@ class MonadParameterSelector(typing.Callable[[torch.nn.Module], typing.List[torc
             # m = toolz.reduce(getattr, split, module)
             m = get_submodule(module, key)
             params.append(m.parameters())
-        return list(toolz.concat(params))
+        # return list(toolz.concat(params))
+        return { 'params': list(toolz.concat(params)) }

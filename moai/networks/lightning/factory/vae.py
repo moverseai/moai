@@ -111,7 +111,7 @@ class VariationalAutoencoder(minet.FeedForward):
 
     def encode(self,
         x: torch.Tensor
-    ) -> [torch.Tensor, torch.Tensor]:
+    ) -> typing.Tuple[torch.Tensor, torch.Tensor]:
         x = self.encoder(x)
         x = torch.flatten(x, start_dim=1)
         mu = self.linear_mu(x)

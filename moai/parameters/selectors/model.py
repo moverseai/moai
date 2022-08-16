@@ -15,4 +15,5 @@ class ModelParameterSelector(typing.Callable[[torch.nn.Module], typing.List[torc
             t = module.predictions[key]
             t.requires_grad_(True)
             params.append(t)
-        return params
+        return { 'params': params }
+        # return params

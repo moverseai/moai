@@ -1,5 +1,5 @@
 # PyTorch implementation of L-BFGS with Strong Wolfe line search
-
+import toolz
 import torch
 import typing
 from functools import reduce
@@ -208,6 +208,12 @@ class LBFGS(Optimizer):
         defaults = dict(lr=lr, max_iter=max_iter, max_eval=max_eval,
                         tolerance_grad=tolerance_grad, tolerance_change=tolerance_change,
                         history_size=history_size, line_search_fn=line_search_fn)
+        if isinstance(toolz.first(params), dict) and len(params) > 1:
+            params = list(toolz.mapcat(lambda g: list(g),
+                toolz.mapcat(
+                    lambda d: list(v for v in d.values()), 
+                params)
+            ))
         super(LBFGS, self).__init__(params, defaults)
 
         if len(self.param_groups) != 1:

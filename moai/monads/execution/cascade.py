@@ -16,9 +16,9 @@ __all__ = ["Cascade"]
 
 def _mul(
     tensor_dict: typing.Dict[str, torch.Tensor],
-    lhs_key: str, rhs_key: str
+    keys: typing.Sequence[str],
 ) -> torch.Tensor:
-    return tensor_dict[lhs_key] * tensor_dict[rhs_key]
+    return tensor_dict[keys[0]] * tensor_dict[keys[1]]
 
 def _add(
     tensor_dict: typing.Dict[str, torch.Tensor],

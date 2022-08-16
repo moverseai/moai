@@ -5,7 +5,10 @@ import typing
 import logging
 import toolz
 
-__all__ = ["Zipped"]
+__all__ = [
+    "Zipped",
+    "SubsetZipped"
+]
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +52,21 @@ class Zipped(torch.utils.data.Dataset):
 
     def __len__(self) -> int:
         return len(self.dataset)
+
+    def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
+        return self.dataset[index]
+
+class SubsetZipped(Zipped):
+    def __init__(self,
+        length:         int,
+        datasets:       omegaconf.DictConfig,
+        augmentation:   omegaconf.DictConfig=None,        
+    ):
+        super().__init__(datasets, augmentation)
+        self.length = length        
+
+    def __len__(self) -> int:
+        return min(self.length, len(self.dataset))
 
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         return self.dataset[index]

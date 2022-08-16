@@ -1,0 +1,10 @@
+# @package model.monads._name_
+
+_target_: moai.monads.geometry.CameraOpenGL
+focal_length: 5000.0
+principal_point: null
+width: null
+height: null
+rotation: null
+translation: null
+persistent: false

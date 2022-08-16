@@ -16,7 +16,7 @@ __JOINT__MAPPERS__ = {
 }
 
 #NOTE: joints: https://github.com/otaheri/MANO/blob/master/mano/joints_info.py
-
+#NOTE: see https://github.com/vchoutas/smplx/issues/48
 class MANO(smplx.MANO):
     def __init__(self,
         model_path:             str,

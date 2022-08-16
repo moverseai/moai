@@ -10,3 +10,4 @@ color: ???
 batch_percentage: 1.0
 width: 600
 height: 400
+point_size: 0.1

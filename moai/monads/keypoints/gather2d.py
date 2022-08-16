@@ -9,7 +9,8 @@ class Gather2d(torch.nn.Module):
         kpts:   torch.Tensor, # ASSUME N 2D keypoints with N X 2 shape (H x W)
         im:     torch.Tensor, # ASSUME a (B x C) x H x W image
     ) -> torch.Tensor:
-    
+        if kpts.shape[-1] > 2:
+            kpts = kpts[..., :2]
         if len(im.shape) <= 3:
             im = im.unsqueeze(0).clone()
         b, c, h, w = im.shape

@@ -77,7 +77,7 @@ class Pose2d(Base):
         
     def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
         for img, poses, gt, pred, gt_masks, pred_masks, pose_struct, gt_c, pred_c, coord in zip(
-            self.images, self.poses, self.gt, self.pred, self.gt_masks, self.pred_masks,  [self.pose_structure, ],
+            self.images, self.poses, self.gt, self.pred, self.gt_masks, self.pred_masks,  [self.pose_structure, ] * len(self.pred),
             self.color_gt, self.color_pred, self.coords
         ):
             gt_coord = self.access(tensors, gt).detach()
@@ -99,7 +99,7 @@ class Pose2d(Base):
                 np.uint8(np.array(list(pred_c)) * 255),
                 # np.uint8(np.array(list(reversed(gt_c))) * 255),
                 # np.uint8(np.array(list(reversed(pred_c))) * 255),
-                coord, img, img, self.name
+                coord, f"{img}_{pred}", f"{img}_{pred}", self.name
             )    
     
     @staticmethod
@@ -134,6 +134,7 @@ class Pose2d(Base):
         diagonal = torch.norm(torch.Tensor([*imgs.shape[2:]]), p=2)
         marker_size = int(0.015 * diagonal) #TODO: extract percentage param to config?
         line_size = int(0.005 * diagonal) #TODO: extract percentage param to config?
+        line_size = int(np.clip(line_size, a_min=1, a_max=w*0.1))
         for i in range(imgs.shape[0]):
             img = images[i, ...].cpu().numpy().transpose(1, 2, 0) * 255.0
             img = img.copy().astype(np.uint8) if img.shape[2] > 1\
