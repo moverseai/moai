@@ -9,8 +9,12 @@ import json
 import numpy as np
 from collections import namedtuple
 
+from moai.utils.arguments.path import assert_path
+
 __all__ = [
     "OpenPoseInference",
+    "OpenPoseKeypoints",
+    "OpenPoseMultiviewKeypoints",
 ]
 
 log = logging.getLogger(__name__)
@@ -108,3 +112,134 @@ class OpenPoseInferred(torch.utils.data.Dataset):
             'gender_pd': gender_pd,
             'gender_gt': gender_gt, 
         }
+
+class OpenPoseKeypoints(torch.utils.data.Dataset):
+
+    __ALL_TYPES__ = ['body', 'face', 'hands', 'face_contour', 'gender']
+
+    def __init__(self,
+        root:           str,
+        types:          typing.Union[typing.List[str], str]='all',
+        single_person:  bool=True,
+    ) -> None:
+        assert_path(log, 'openpose root', root)        
+        self.filenames = glob.glob(os.path.join(root, '*.json'))
+        self.types = OpenPoseKeypoints.__ALL_TYPES__ if types == 'all' or types == '**' else types
+        self.single_person = single_person
+        log.info(f"Loaded {len(self.filenames)} OpenPose keypoint estimations.")
+
+    def __len__(self) -> int:
+        return len(self.filenames)
+
+    def _load_keypoints(self, filename: str) -> dict:
+        with open(filename) as keypoint_file:
+            data = json.load(keypoint_file)
+        return data
+
+    def _extract_data(self, data: dict) -> typing.Dict[str, torch.Tensor]:
+        persons = []
+        for person in data['people']:
+            persons.append({})
+            body = np.array(person['pose_keypoints_2d'], dtype=np.float32)
+            body = torch.from_numpy(body.reshape([-1, 3]))
+            persons[-1]['body'] = { 'keypoints': body[:, :2], 'confidence': body[:, 2:3] }
+            persons[-1]['all'] = { 'keypoints': body[:, :2], 'confidence': body[:, 2:3] }
+            if 'hands' in self.types:
+                left_hand = np.array(person['hand_left_keypoints_2d'], dtype=np.float32).reshape([-1, 3])
+                right_hand = np.array(person['hand_right_keypoints_2d'], dtype=np.float32).reshape([-1, 3])
+                # body = np.concatenate([body, left_hand, right_hand], axis=0)
+                left_hand = torch.from_numpy(left_hand)
+                right_hand = torch.from_numpy(right_hand)
+                persons[-1]['hands'] = { 
+                    'left': {
+                        'keypoints': left_hand[:, :2],
+                        'confidence': left_hand[:, 2:3],
+                     },
+                     'right': {
+                        'keypoints': right_hand[:, :2],
+                        'confidence': right_hand[:, 2:3],
+                     }  
+                }
+                persons[-1]['all']['keypoints'] = torch.cat([
+                    persons[-1]['all']['keypoints'], 
+                    persons[-1]['hands']['left']['keypoints'],
+                    persons[-1]['hands']['right']['keypoints'],
+                ], dim=0)
+                persons[-1]['all']['confidence'] = torch.cat([
+                    persons[-1]['all']['confidence'], 
+                    persons[-1]['hands']['left']['confidence'],
+                    persons[-1]['hands']['right']['confidence'],
+                ], dim=0)
+            if 'face' in self.types:
+                face = np.array(person['face_keypoints_2d'], dtype=np.float32).reshape([-1, 3])[17: 17 + 51, :]
+                face = torch.from_numpy(face)
+                persons[-1]['face'] = { 'keypoints': face[:, :2], 'confidence': face[:, 2:3] }
+                # contour_keyps = np.array([], dtype=body.dtype).reshape(0, 3)
+                persons[-1]['all']['keypoints'] = torch.cat([
+                    persons[-1]['all']['keypoints'], 
+                    persons[-1]['face']['keypoints'],
+                ], dim=0)
+                persons[-1]['all']['confidence'] = torch.cat([
+                    persons[-1]['all']['confidence'], 
+                    persons[-1]['face']['confidence'],
+                ], dim=0)
+                if 'face_contour' in self.types:
+                    contour_keyps = np.array(person['face_keypoints_2d'], dtype=np.float32).reshape([-1, 3])[:17, :]
+                    contour_keyps = torch.from_numpy(contour_keyps)
+                    persons[-1]['face_contour'] = { 'keypoints': contour_keyps[:, :2], 'confidence': contour_keyps[:, 2:3] }
+                    persons[-1]['all']['keypoints'] = torch.cat([
+                        persons[-1]['all']['keypoints'], 
+                        persons[-1]['face_contour']['keypoints'],
+                    ], dim=0)
+                    persons[-1]['all']['confidence'] = torch.cat([
+                        persons[-1]['all']['confidence'], 
+                        persons[-1]['face_contour']['confidence'],
+                    ], dim=0)
+                # body = np.concatenate([body, face, contour_keyps], axis=0)
+            if 'gender' in self.types:
+                gender = person.get('gender_gt', None) or person.get('gender', None) or person.get('gender_pd', None)
+                if gender is not None:
+                    persons[-1]['gender']
+        if not self.single_person:
+            return persons
+        else:            
+            def _get_area(person: typing.Dict[str, torch.Tensor]) -> float:
+                keypoints = person['body']['keypoints']
+                confidence = person['body']['confidence']
+                min_x = keypoints[..., 0].min()
+                min_y = keypoints[..., 1].min()
+                max_x = keypoints[..., 0].max()
+                max_y = keypoints[..., 1].max()
+                return (max_x - min_x) * (max_y - min_y) * confidence.sum()
+            person = max(persons, key=_get_area)
+            return person
+
+    def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
+        filename = self.filenames[index]
+        data = self._load_keypoints(filename)
+        return self._extract_data(data)
+
+class OpenPoseMultiviewKeypoints(OpenPoseKeypoints):
+    def __init__(self,
+        root:           str,
+        views:          typing.Union[typing.List[str], str],
+        types:          typing.Union[typing.List[str], str]='all',
+        single_person:  bool=True,
+    ):
+        assert_path(log, 'openpose root', root)
+        if isinstance(views, str) and (views == 'all' or views == '**'):
+            views = [d for d in os.listdir(root) if os.path.isdir(d)]
+        self.filenames = { }
+        for view in views:
+            self.filenames[view] = glob.glob(os.path.join(root, view, "*.json"))
+        self.single_person = single_person
+        self.types = OpenPoseMultiviewKeypoints.__ALL_TYPES__ if types == 'all' or types == '**' else types
+        
+    def __len__(self) -> int:
+        return len(next(iter(self.filenames.values()), []))
+
+    def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
+        data = { }
+        for k, v in self.filenames.items():
+            data[k] = super()._extract_data(super()._load_keypoints(v[index]))
+        return data

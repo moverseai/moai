@@ -1,4 +1,4 @@
-from moai.utils.torch import get_submodule
+from moai.utils.torch import get_parameter # get_submodule
 
 import torch
 import toolz
@@ -25,11 +25,13 @@ class ZeroParams(typing.Callable[[torch.nn.Module], None]):
                 # def _getattr(object: typing.Any, key: str):
                 #     return getattr(object, key, None)
                 # m = toolz.reduce(_getattr, split, module)
-                m = get_submodule(module, key)
+                # m = get_submodule(module, key)
+                m = get_parameter(module, key)                
                 if m is not None:
                     log.info(f"Zeroing out parameter: {key}.")
                     with torch.no_grad(): #TODO: remove this and add in root apply call
                         m.zero_()
+                        m.grad = None
             except:
                 break
             

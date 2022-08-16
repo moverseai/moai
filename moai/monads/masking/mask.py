@@ -44,4 +44,4 @@ class Index(torch.nn.Module):
         self.register_buffer("indices", torch.tensor(list(indices), dtype=torch.long))
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-            return self.index(input=tensor, index=self.indices)
+        return self.index(input=tensor, index=self.indices)

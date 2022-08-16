@@ -1,0 +1,27 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+  
+   ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: vector
+  - engine/visualization/scenepic: mesh
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/dataset/human: AMASS
+  - data/test/loader: torch
+  - data/test/dataset/human: AMASS
+  - data/val/loader: torch
+  - data/val/dataset/human: AMASS
+
+  # ###### PROCESS
+  - model/feedforward: preprocess
+  
+  - examples/play_AMASS/options
+  - examples/play_AMASS/data
+  - examples/play_AMASS/preproc

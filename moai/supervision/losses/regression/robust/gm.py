@@ -19,11 +19,12 @@ class GemanMcClure(L2):
 
     def forward(self,
         pred:       torch.Tensor,
-        gt:         torch.Tensor,        
+        gt:         torch.Tensor=None,
         weights:    torch.Tensor=None, # float tensor
         mask:       torch.Tensor=None, # byte tensor
     ) -> torch.Tensor:
-        L2 = super(GemanMcClure, self).forward(pred=pred, gt=gt)
+        L2 = super(GemanMcClure, self).forward(pred=pred, gt=gt)\
+            if gt is not None else pred
         gm = L2 / (L2 + self.rho_sq) * self.rho_sq
         if weights is not None:
             gm = gm * weights

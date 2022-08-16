@@ -11,6 +11,9 @@ import typing
 import itertools
 import toolz
 import logging
+import numpy as np
+import collections
+from operator import add
 
 log = logging.getLogger(__name__)
 
@@ -29,17 +32,28 @@ __REDUCTIONS__ = {
 class Homoscedastic(torch.nn.ModuleDict):
     def __init__(self,
         losses: omegaconf.DictConfig,
+        tasks:  omegaconf.DictConfig,
         **kwargs: typing.Mapping[str, typing.Any]
     ):
         super(Homoscedastic, self).__init__()
         self.execs, self.weights, self.reductions = [], [], []
+        self.tasks, self.scales = collections.defaultdict(list), {}
+        for task, details in tasks.items():
+            sigma = float(details.sigma if isinstance(details.sigma, (float, int))\
+                else np.random.uniform(*details.sigma))
+            self.register_parameter(task, torch.nn.parameter.Parameter(
+                torch.scalar_tensor(sigma ** 2)
+            ))
+            self.scales[task] = details.get('scale', 1.0) 
+            self.tasks[task] += [details.losses] if isinstance(details.losses, str) else details.losses
         if not len(losses):
             log.warning("A weighted combination of losses is being used for supervising the model, but no losses have been assigned.")
-        loop = ((key, params) for key, params in kwargs.items() if key in losses)
-        #NOTE: check for not found keys and notify the potential error
+        if not len(tasks):
+            log.warning("A multi-task supervision scheme is being used but no task-specific details have been assigned.")
+        loop = ((key, params) for key, params in kwargs.items() if key in losses)        
         errors = [k for k in kwargs if k not in losses]
         if errors:
-            log.error("Some losses were not found in the configuration and will be ignored!")
+            log.error(f"Some losses [{''.join(errors)}] were not found in the configuration and will be ignored!")
         self.keyz = []
         for k, p in loop:
             self.add_module(k, hyu.instantiate(getattr(losses, k)))
@@ -89,9 +103,16 @@ class Homoscedastic(torch.nn.ModuleDict):
         error = torch.tensor(0.0, dtype=torch.float32, device=device)
         per_error_map = { }
         for exe, w, k, r in zip(self.execs, self.weights, self.keyz, self.reductions):
-            exe(tensors)
-            # e = w * (torch.sum(tensors[k]) if r == 'sum' else torch.mean(tensors[k]))
+            exe(tensors)            
             e = w * __REDUCTIONS__[r](tensors[k])
             per_error_map[k] = e
-            error += e
+        for n, p in self.named_parameters():
+            weight = (1.0 / (2.0 * p))
+            loss = sum((per_error_map.get(l, 0.0) for l in self.tasks[n]), 0.0)
+            scale = self.scales[n]
+            is_float_zero = isinstance(loss, (float)) and loss == 0.0
+            is_unoptimized = isinstance(loss, torch.Tensor) and not loss.requires_grad
+            if not is_float_zero and not is_unoptimized:
+                error += ((weight * (scale * loss)) + torch.log(p))
+                per_error_map[f"{n}_uncertainty"] = p
         return error, per_error_map

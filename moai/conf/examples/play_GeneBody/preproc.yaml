@@ -1,0 +1,126 @@
+# @package _global_
+
+selected_cam: '25'
+
+model:
+  monads:
+    ##################### START REDNER
+    # convert:
+    #   from_to: aa_mat    
+    # mesh_silhouette:
+    #   resolution: [300, 400] # [1200, 1600]
+    #   near_clip: 0.001
+    #   samples: 4
+    #   sample_pixel_center: true
+    #   focal_length: [1498.22426237, 1498.22426237]
+    #   principal_point: [790.263706, 578.90334]
+    #   opengl: true
+    # rotation3d:
+    #   rotations: [180@y, 180@z]
+    ##################### STOP REDNER
+    ##################### START NVDIFFRAST
+    opengl:
+      focal_length: [1498.22426237, 1498.22426237]
+      principal_point: [790.263706, 578.90334]
+      width: 2448 # 1600
+      height: 2048 # 1200
+      rotation: null
+      translation: null
+      persistent: true
+    mesh_silhouette:      
+      width: 2448 # 1600
+      height: 2048 # 1200
+      position_gradient_scale: 1.0
+    transform:
+      xyz_in_at: row
+      xyz_out_at: row
+      transpose: false
+    rotation3d:
+      rotations: [180@y, 180@z]
+    ##################### STOP NVDIFFRAST
+    # ##################### START PYTORCH3D
+    # mesh_silhouette:      
+    #   focal_length: [1498.22426237, 1498.22426237]
+    #   principal_point: [790.263706, 578.90334]
+    #   width: 400
+    #   height: 300
+    #   z_reflection: true
+    #   faces_per_pixel: 10
+    #   blend_sigma: 1e-4
+    #   blend_gamma: 1e-4
+    #   raster_bin_size: null
+    #   raster_blur_radius: 1e-4
+    # rotation3d:
+    #   rotations: [180@x, 180@y]
+    # ##################### STOP PYTORCH3D
+    bilinear_sampling:
+      width: 400
+      height: 300
+    # nearest_sampling:
+    #   width: 400
+    #   height: 300
+
+  feedforward:
+    preprocess:
+      bilinear_sampling:
+        image: 
+          - images.${selected_cam}
+        out: 
+          - image_${selected_cam}_down2
+      ##################### START REDNER
+      # convert:
+      #   rotation: [camera_rotation]
+      #   out: [camera_rotation_3x3]
+      # mesh_silhouette:
+      #   vertices: [vertices]
+      #   indices: [faces]
+      #   camera_translation: [null]
+      #   image: [color]
+      #   out: [silhouette]
+      ##################### STOP REDNER
+      ##################### START NVDIFFRAST
+      inverse:
+        x: 
+          - cameras.${selected_cam}.c2w
+        out: [w2c]
+      transform:
+        transform: [w2c]
+        points: [mesh.scaled_vertices]
+        out: [transformed_vertices]
+      rotation3d:
+        tensor: [transformed_vertices] # [mesh.scaled_vertices]
+        out: [rotation]
+      rotate:
+        rotation: [rotation]
+        points: [transformed_vertices] # [mesh.scaled_vertices]
+        out: [rotated_vertices]
+      opengl:
+        points: [rotated_vertices]
+        # translation: [cameras.01.c2w_T]
+        # rotation: [cameras.01.c2w_R]
+        # image: [color]
+        # nominal_image: [color]
+        intrinsics: 
+          - cameras.${selected_cam}.K
+        out: [ndc_vertices]
+      mesh_silhouette:
+        ndc_vertices: [ndc_vertices]
+        indices: [mesh.faces]
+        out: [silhouette]
+      ##################### STOP NVDIFFRAST
+      ##################### START PYTORCH3D
+      # rotation3d:
+      #   tensor: [vertices]
+      #   out: [rotation]
+      # rotate:
+      #   rotation: [rotation]
+      #   points: [vertices]
+      #   out: [rotated_vertices]
+      # mesh_silhouette:
+      #   vertices: [rotated_vertices]
+      #   faces: [faces]
+      #   translation: [null] # is already translated in camera space
+      #   rotation: [null]
+      #   nominal_image: [color]
+      #   out: [silhouette]
+      ##################### STOP PYTORCH3D

@@ -45,7 +45,7 @@ class Metrics(torch.nn.ModuleDict):
                         )))
                     })
                 )
-
+    #NOTE: consider outputting per batch item metrics
     def forward(self,
         tensors: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
@@ -55,4 +55,4 @@ class Metrics(torch.nn.ModuleDict):
         returned = { }
         for k, m in metrics.items():
             returned[f'{k}'] = m
-        return returned
+        return returned #TODO: just return metrics?

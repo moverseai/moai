@@ -28,12 +28,17 @@ defaults:
   # - model/monads/geometry/rotation: convert
   # - model/monads/render/redner: mesh_silhouette
   ##################### STOP REDNER
-  ##################### START NVDIFFRAST
+  # ##################### START NVDIFFRAST
   - model/monads/geometry/projection: opengl
   - model/monads/render/nvdiffrast: mesh_silhouette
   - model/monads/generation/matrix: rotation3d
   - model/monads/geometry/transformation: rotate
-  ##################### STOP NVDIFFRAST
+  # ##################### STOP NVDIFFRAST
+  ##################### START PYTORCH3D
+  # - model/monads/render/pytorch3d: mesh_silhouette
+  # - model/monads/generation/matrix: rotation3d
+  # - model/monads/geometry/transformation: rotate
+  ##################### STOP PYTORCH3D
   - examples/play_EHF/options
   - examples/play_EHF/data
   - examples/play_EHF/preproc
