@@ -1,0 +1,5 @@
+# @package model.modules.reparametrization
+
+_target_: moai.modules.lightning.reparametrization.NormalPrior
+
+mode: ???
