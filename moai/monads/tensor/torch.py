@@ -42,6 +42,7 @@ class Split(torch.nn.Module): #TODO: optimize by returning the tuple
             ret['chunk'+str(i)] = chunks[i]
         return ret
 
+
 class SelectTensor(torch.nn.Module):
     def __init__(self):
 

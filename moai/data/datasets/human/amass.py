@@ -126,6 +126,6 @@ class AMASS(torch.utils.data.Dataset):
                     'vertices': body.vertices[0],                
                     'faces': self.bodies[gender].faces_tensor,
                     },
-                'joints': body.joints[0],
+                'joints': body.joints[0,:25,:],
             })
         return out
