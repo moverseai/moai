@@ -60,10 +60,28 @@ class SelectTensor(torch.nn.Module):
                        out_tensor = None
                 
                 return out_tensor
-                
+
 class Detach(torch.nn.Module):
     def __init__(self):
         super(Detach, self).__init__()
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.detach()
+
+class Flatten(torch.nn.Module):
+    def __init__(self):
+        super(Flatten, self).__init__()
+        self.flatten = torch.nn.Flatten()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return self.flatten(tensor)
+5
+class ReshapeAs(torch.nn.Module):
+    def __init__(self):
+        super(ReshapeAs, self).__init__()
+
+    def forward(self,
+        tensor: torch.Tensor,
+        shape: torch.Tensor,
+    ) -> torch.Tensor:
+        return tensor.reshape_as(shape)
