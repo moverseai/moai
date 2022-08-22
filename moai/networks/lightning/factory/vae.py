@@ -145,35 +145,35 @@ class VariationalAutoencoder(minet.FeedForward):
         #     self.exporter(train_outputs['tensors'])
         return train_outputs['loss']
 
-    def val_dataloader(self) -> torch.utils.data.DataLoader:
-        pass
-        # log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
-        # validation_loader = Repeater(self.latent_dim, self.repeat_val)
-        # return validation_loader
+    # def val_dataloader(self) -> torch.utils.data.DataLoader:
+    #     pass
+    #     # log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
+    #     # validation_loader = Repeater(self.latent_dim, self.repeat_val)
+    #     # return validation_loader
 
-    def validation_step(self,
-        batch: typing.Dict[str, torch.Tensor],
-        batch_nb: int
-    ) -> typing.Dict[str, torch.Tensor]:
-        pass
-        # traversal_value = self.traversal_init_value
-        # img_list = []
-        # for i in range(self.traversal_len):
-        #     if self.traversal_dim < 0:
-        #         batch[:] = traversal_value
-        #     else:
-        #         batch[self.traversal_dim] = traversal_value
-        #     generated = self.decode(batch)
-        #     img_list.append(generated)
-        #     traversal_value += self.traversal_step
-        # generated = torch.stack(img_list, 1)
-        # return generated.squeeze(0)
+    # def validation_step(self,
+    #     batch: typing.Dict[str, torch.Tensor],
+    #     batch_nb: int
+    # ) -> typing.Dict[str, torch.Tensor]:
+    #     pass
+    #     # traversal_value = self.traversal_init_value
+    #     # img_list = []
+    #     # for i in range(self.traversal_len):
+    #     #     if self.traversal_dim < 0:
+    #     #         batch[:] = traversal_value
+    #     #     else:
+    #     #         batch[self.traversal_dim] = traversal_value
+    #     #     generated = self.decode(batch)
+    #     #     img_list.append(generated)
+    #     #     traversal_value += self.traversal_step
+    #     # generated = torch.stack(img_list, 1)
+    #     # return generated.squeeze(0)
 
-    def validation_epoch_end(self,
-        tensors: typing.Dict[str, torch.Tensor]
-    ) -> None:
-        pass
-        # self.visualizer.latent_visualizers[0](torch.stack(tensors, 1))
+    # def validation_epoch_end(self,
+    #     tensors: typing.Dict[str, torch.Tensor]
+    # ) -> None:
+    #     pass
+    #     # self.visualizer.latent_visualizers[0](torch.stack(tensors, 1))
 
 
 class Reparametrizer(torch.nn.Module):
@@ -220,18 +220,18 @@ class Reparametrizer(torch.nn.Module):
         return z_reshaped, mu, logvar
 
 
-class Repeater(torch.utils.data.Dataset):
-    def __init__(self,
-        z_dim:   int,     
-        repeat:  int
-    ):
-        super().__init__()
-        self.repeat = repeat
-        self.z_dim = z_dim
-        self.total_z = torch.randn(self.repeat, self.z_dim)
+# class Repeater(torch.utils.data.Dataset):
+#     def __init__(self,
+#         z_dim:   int,     
+#         repeat:  int
+#     ):
+#         super().__init__()
+#         self.repeat = repeat
+#         self.z_dim = z_dim
+#         self.total_z = torch.randn(self.repeat, self.z_dim)
 
-    def __len__(self) -> int:
-        return self.repeat
+#     def __len__(self) -> int:
+#         return self.repeat
 
-    def __getitem__(self, index: int) -> torch.Tensor:
-        return self.total_z[index]
+#     def __getitem__(self, index: int) -> torch.Tensor:
+#         return self.total_z[index]
