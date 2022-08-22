@@ -1,5 +1,6 @@
 from moai.visualization.visdom.base import Base
 from moai.utils.arguments import ensure_string_list
+from moai.monads.execution.cascade import _create_accessor
 
 import torch
 import visdom
@@ -32,7 +33,9 @@ class Gizmo2d(Base):
         self.images = ensure_string_list(images)
         self.gizmos = ensure_string_list(gizmos)
         self.gt = ensure_string_list(gt)
+        self.gt = [_create_accessor(k) for k in self.gt]
         self.pred = ensure_string_list(pred)
+        self.pred = [_create_accessor(k) for k in self.pred]
         self.color_gt = list(map(colour.web2rgb, ensure_string_list(color_gt)))
         self.color_pred = list(map(colour.web2rgb, ensure_string_list(color_pred)))
         self.coords = ensure_string_list(coords)
@@ -70,8 +73,10 @@ class Gizmo2d(Base):
             self.images, self.gizmos, self.gt, self.pred,
             self.color_gt, self.color_pred, self.coords
         ):
-            gt_coord = tensors[gt].detach()
-            pred_coord = tensors[pred].detach()
+            #gt_coord = tensors[gt].detach()
+            #pred_coord = tensors[pred].detach()
+            gt_coord = gt(tensors).detach()
+            pred_coord = pred(tensors).detach()
             if self.reverse:
                 gt_coord = gt_coord.flip(-1)
                 pred_coord = pred_coord.flip(-1)
@@ -80,8 +85,8 @@ class Gizmo2d(Base):
                 image,
                 self.xforms[coord](gt_coord, image),
                 self.xforms[coord](pred_coord, image),
-                np.uint8(np.array(list(reversed(gt_c))) * 255),
-                np.uint8(np.array(list(reversed(pred_c))) * 255),             
+                np.uint8(np.array(list((gt_c))) * 255),
+                np.uint8(np.array(list((pred_c))) * 255),             
                 coord, img, img, self.name
             )
     
@@ -284,7 +289,7 @@ class Gizmo2d(Base):
         pred_coords = pred_coords.numpy()
         diagonal = torch.norm(torch.Tensor([*imgs.shape[2:]]), p=2)
         marker_size = int(0.02 * diagonal) #TODO: extract percentage param to config?
-        line_size = int(0.005 * diagonal) #TODO: extract percentage param to config?
+        line_size = max(1,int(0.005 * diagonal)) #TODO: extract percentage param to config?
         for i in range(imgs.shape[0]):
             img = images[i, ...].cpu().numpy().transpose(1, 2, 0) * 255.0
             img = img.copy().astype(np.uint8) if img.shape[2] > 1 else cv2.cvtColor(img.copy().astype(np.uint8), cv2.COLOR_GRAY2RGB)
@@ -314,6 +319,6 @@ class Gizmo2d(Base):
             opts={
                 'title': key,
                 'caption': key,
-                'jpgquality': 50,
+                'jpgquality': 100,
             }
         )

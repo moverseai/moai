@@ -276,7 +276,10 @@ class JointConfidence(torch.nn.Module):
         confidence: torch.Tensor
     ) -> torch.Tensor:
         ret = confidence.clone()
-        ret[:, self.ignore, ...] = 0.0
+        if len(ret.shape) == 3:
+            ret[:, self.ignore, ...] = 0.0
+        else:
+           ret[self.ignore, ...] = 0.0 
         ret[ret < self.threshold] = 0.0
         return ret
 

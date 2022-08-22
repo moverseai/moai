@@ -74,7 +74,7 @@ class Cascade(torch.nn.ModuleDict): #TODO: check if x: ['arg'] is the same as x:
 
     def __init__(self, 
         monads: omegaconf.DictConfig,
-        **kwargs: typing.Mapping[str, typing.Any]
+        **kwargs: typing.Mapping[str, typing.Any],
     ):
         super(Cascade, self).__init__()
         #TODO: first construct via monads and then create lambdas via kwargs
