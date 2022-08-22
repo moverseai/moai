@@ -50,7 +50,7 @@ class VariationalAutoencoder(minet.FeedForward):
         flatten = hyu.instantiate(flatten) if flatten else torch.nn.Flatten()
         prior = toolz.get_in(['reparametrization'], modules)        
         prior = hyu.instantiate(prior) if prior else NormalPrior()
-        self.reparemetrizer = Reparametrizer(configuration, prior, flatten) 
+        self.reparametrizer = Reparametrizer(configuration, prior, flatten) 
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
         self.enc_fwds, self.dec_fwds, self.rep_fwds = [], [], []
@@ -77,18 +77,18 @@ class VariationalAutoencoder(minet.FeedForward):
                     ))))
             )
 
-        params = inspect.signature(self.reparemetrizer.forward).parameters
+        params = inspect.signature(self.reparametrizer.forward).parameters
         rep_in = list(zip(*[mirtp.force_list(io.reparametrization[prop]) for prop in params]))
         rep_out = mirtp.split_as(mirtp.resolve_io_config(io.reparametrization['out']), enc_in)
 
-        self.rep_res_fill = [mirtp.get_result_fillers(self.reparemetrizer, out) for out in rep_out]        
+        self.rep_res_fill = [mirtp.get_result_fillers(self.reparametrizer, out) for out in rep_out]        
         get_rep_filler = iter(self.rep_res_fill)
         
         for keys in rep_in:
             self.rep_fwds.append(lambda td,
                 tk=keys,
                 args=params.keys(),
-                rep=self.reparemetrizer,
+                rep=self.reparametrizer,
                 filler=next(get_rep_filler):
                     filler(td, rep(**dict(zip(args,
                         list(
@@ -120,14 +120,19 @@ class VariationalAutoencoder(minet.FeedForward):
                         )
                     ))))
             )
+    def decode(self,
+        tensor: torch.Tensor
+    ):
+        return self.decoder(tensor)
 
     def forward(self, 
         td: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
-        for e, d, r in zip(self.enc_fwds, self.dec_fwds, self.rep_fwds):
+        for e, r in zip(self.enc_fwds, self.rep_fwds):
             e(td)
             r(td)
-            d(td)
+        out = self.decode(td[f"z_reshaped"])
+        td[f"x_hat"] = out
         return td
 
     def training_step_end(self, 
@@ -135,6 +140,7 @@ class VariationalAutoencoder(minet.FeedForward):
     ) -> None:
         if self.global_step and (self.global_step % self.visualization.interval == 0):
             self.visualization.visualizers[0](train_outputs['tensors'])
+            self.visualization.visualizers[1](train_outputs['tensors'])
         # if self.global_step and (self.global_step % self.exporter.interval == 0):
         #     self.exporter(train_outputs['tensors'])
         return train_outputs['loss']
