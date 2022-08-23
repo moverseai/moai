@@ -3,5 +3,6 @@
 _target_: moai.data.datasets.human.AMASS
 data_root: ${amass_root}
 smplx_root: ${smplx_root}
+device: ${trainer.gpus}
 parts: '**'
 downsample_factor: 1
