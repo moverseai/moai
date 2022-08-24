@@ -11,6 +11,7 @@ __all__ = [
     "make_linear_op",
     "make_linear_block",
     "make_linear_relu_bn",
+    "make_linear_lrelu_bn",
     "make_linear_elu",
     "make_linear_sigmoid",
     "make_linear_tanh",
@@ -83,6 +84,18 @@ make_linear_relu_bn = functools.partial(make_linear_block,
     block_type="linear",
     linear_type="linear",
     activation_type="relu_bn",
+)
+
+make_linear_lrelu_bn = functools.partial(make_linear_block,
+    block_type="linear",
+    linear_type="linear",
+    activation_type="lrelu_bn",
+)
+
+make_linear_lrelu = functools.partial(make_linear_block,
+    block_type="linear",
+    linear_type="linear",
+    activation_type="lrelu",
 )
 
 make_linear_elu = functools.partial(make_linear_block,

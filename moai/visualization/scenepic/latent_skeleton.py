@@ -1,5 +1,5 @@
 from moai.utils.arguments import assert_numeric
-from moai.monads.execution.cascade import _create_accessor
+# from moai.monads.execution.cascade import _create_accessor
 from collections.abc import Callable
 
 import scenepic
@@ -2306,7 +2306,7 @@ __skel_vertices__ =[
  [0.155,-0.024,-0.988],
 ]
 
-__all__ = ['Mesh']
+__all__ = ['LatentSkeleton']
 
 
 def calTransformation(v_i, v_j, r, adaptr=False, ratio=10):
@@ -2380,13 +2380,11 @@ def _draw_skeleton(
     return verts_final
 
 
-class Mesh(Callable):    
+class LatentSkeleton(Callable):    
     
     __LAMBDA_MAP__ = { '': lambda _: None, 'skeleton': lambda _: 'skeleton'}
 
     def __init__(self,
-        vertices:         typing.Union[str, typing.Sequence[str]],
-        faces:            typing.Union[str, typing.Sequence[str]],
         canvas:           typing.Union[int, typing.Sequence[int]],
         layer:            typing.Union[int, typing.Sequence[int]],
         color:            typing.Union[str, typing.Sequence[str]],
@@ -2400,10 +2398,6 @@ class Mesh(Callable):
         joint_radius:      float=0.02,      
     ):
         self.name, self.point_size = name, point_size
-        self.vertices = [vertices] if isinstance(vertices, str) else list(vertices)
-        self.faces = [faces] if isinstance(faces, str) else list(faces)
-        self.vertex_accessors = [_create_accessor(k) for k in self.vertices]        
-        self.face_accesors = [(_create_accessor(k) if k not in Mesh.__LAMBDA_MAP__ else Mesh.__LAMBDA_MAP__[k]) for k in self.faces]
         self.ids = [canvas] if isinstance(canvas, int) else list(canvas)
         self.layers = [layer] if isinstance(layer, int) else list(layer)
         self.colors = [colour.Color(color)] if isinstance(color, str) else list(colour.Color(c) for c in color)
@@ -2426,49 +2420,33 @@ class Mesh(Callable):
             for _ in toolz.unique(self.ids)
         ]
         
-        for n, v, f, c, l, id in zip(self.vertices, self.vertex_accessors,
-            self.face_accesors, self.colors, self.layers, self.ids
+        for c, l, id in zip(self.colors, 
+            self.layers, self.ids
         ):
-            draw_skeleton = False
-            vertices = v(tensors).detach().cpu().numpy()
-            faces = f(tensors)
-            if faces is not None and faces != 'skeleton':
-                faces = faces.detach().cpu().numpy()
-            else:
-                if faces == 'skeleton':
-                    draw_skeleton = True
-                    faces = np.array(__skel_faces__,dtype=int)
-                    skel_vertices = np.array(__skel_vertices__)
-                    faces_all = []
-                    for nj in range(self.nJoints):
-                        faces_all.append(faces + nj*skel_vertices.shape[0])
-                    for nk in range(len(self.kintree)):
-                        faces_all.append(faces + self.nJoints*skel_vertices.shape[0] + nk*skel_vertices.shape[0])
-                    faces = np.vstack(faces_all)
+            vertices = tensors.detach().cpu().numpy()
+            faces = np.array(__skel_faces__,dtype=int)
+            skel_vertices = np.array(__skel_vertices__)
+            faces_all = []
+            for nj in range(self.nJoints):
+                faces_all.append(faces + nj*skel_vertices.shape[0])
+            for nk in range(len(self.kintree)):
+                faces_all.append(faces + self.nJoints*skel_vertices.shape[0] + nk*skel_vertices.shape[0])
+            faces = np.vstack(faces_all)
             b = math.ceil(self.batch_percentage * vertices.shape[0])
             if id not in meshes:
                 meshes[id] = []
             for i in range(b):
-                mesh = scene.create_mesh(mesh_id=f"{n}_{i}",
+                mesh = scene.create_mesh(mesh_id=f"{b}_{i}",
                     shared_color=scenepic.Color(*c.rgb), layer_id=f"{l}",
                 )
-                if draw_skeleton:
-                    #draw lines with correct positions
-                    vertices_ = _draw_skeleton(
-                        vertices[i],
-                        skel_vertices,
-                        self.kintree,
-                        self.nJoints,
-                        self.joint_radius,
-                    )
-                    mesh.add_mesh_without_normals(vertices_[0], faces)
-                else:
-                    if faces is not None:
-                        mesh.add_mesh_without_normals(vertices[i], faces[i])
-                    else:
-                        mesh.add_sphere()
-                        mesh.apply_transform(scenepic.Transforms.Scale(self.point_size)) 
-                        mesh.enable_instancing(positions=vertices[i]) 
+                vertices_ = _draw_skeleton(
+                    vertices[i],
+                    skel_vertices,
+                    self.kintree,
+                    self.nJoints,
+                    self.joint_radius,
+                )
+                mesh.add_mesh_without_normals(vertices_[0], faces)
                 meshes[id].append(mesh)
         for k, m in meshes.items():
             frame = canvases[k].create_frame()

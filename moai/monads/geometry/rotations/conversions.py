@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 __all__ = [
     "Convert",
     "AxisAngle",
+    "RotMat",
 ]
 
 #TODO: make_from, convert_to
@@ -25,6 +26,22 @@ class AxisAngle(torch.nn.Module):
 
     def forward(self,angle_axis: torch.Tensor) -> torch.Tensor:
         return self.convert_func(angle_axis)
+
+class RotMat(torch.nn.Module):
+    def __init__(self,
+        to:    str = "axis_angle", #"quat" , "ortho6d", "euler_angles" , etc.        
+    ):
+        super().__init__()
+        if to == "axis_angle":
+            self.convert_func = kn.geometry.conversions.rotation_matrix_to_angle_axis
+        elif to == "quat":
+            #(x, y, z, w) format of quaternion
+            self.convert_func = kn.geometry.conversions.rotation_matrix_to_quaternion
+        else:
+            log.error(f"The selected rotational convertion {to} is not supported. Please enter a valid one to continue.")
+
+    def forward(self,rot_mat: torch.Tensor) -> torch.Tensor:
+        return self.convert_func(rot_mat)
 
 class Convert(torch.nn.Module):
     __MAPPING__ = {

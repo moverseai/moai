@@ -1,0 +1,16 @@
+# @package model.modules.decoder
+
+_target_: moai.modules.lightning.MLP
+
+configuration:
+  in_features: ???
+  out_features: ???
+  blocks: ???
+  linear:
+    type: ???
+    activation:
+      type: ???
+  prediction:
+    type: ???
+    activation:
+      type: ???
