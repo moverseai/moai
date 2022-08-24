@@ -1,4 +1,3 @@
-from turtle import down
 from moai.utils.arguments import assert_path
 from collections import OrderedDict
 
