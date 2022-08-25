@@ -37,6 +37,7 @@ class Fit3D(torch.utils.data.Dataset):
         smplx_root:         str='',
         subjects:           typing.Union[typing.List[str], str]='**',
         downsample_factor:  int=1,
+        device:            list=[-1],
     ) -> None:
         super().__init__()
         assert_path(log, 'Fit3D data root path', data_root)
@@ -44,6 +45,7 @@ class Fit3D(torch.utils.data.Dataset):
         is_all_parts = isinstance(subjects, str) and ('all' == subjects or '**' == subjects)
         subjects = os.listdir(data_root) if is_all_parts else subjects
         subjects = [subjects] if isinstance(subjects, str) else subjects
+        self.device = device[0] if device[0] >= 0 else 'cpu'
         self.data = {
             'transl': torch.empty((0, 3)),
             'global_orient': torch.empty((0, 9)),
@@ -67,14 +69,15 @@ class Fit3D(torch.utils.data.Dataset):
                         self.data[k], 
                         torch.from_numpy(np.array(v, dtype=np.float32).squeeze())[::downsample_factor, ...].flatten(1)
                     ])                                        
+        model_path = os.path.join(smplx_root, 'smplx')
         self.body = smplx.SMPLXLayer(
-            model_path=smplx_root, model_type='smplx',
+            model_path=model_path, model_type='smplx',
             num_expression_coeffs=10, batch_size=1, age='adult', 
             use_pca=False, flat_hand_mean=False,
             num_betas=10, gender='neutral'
-        )
+        ).to(self.device)
         self.body.requires_grad_(False)
-        log.info(f"Loaded {len(self)} AMASS samples.")
+        log.info(f"Loaded {len(self)} Fit3D samples.")
 
     def __len__(self) -> int:
         return len(self.data['betas'])
@@ -100,22 +103,22 @@ class Fit3D(torch.utils.data.Dataset):
         }
         with torch.no_grad():
             body = self.body.forward(
-                global_orient=out['smplx']['params']['global_orient'][np.newaxis, ...],
-                betas=out['smplx']['params']['betas'][np.newaxis, ...],
-                body_pose=out['smplx']['params']['body_pose'][np.newaxis, ...],
-                left_hand_pose=out['smplx']['params']['left_hand_pose'][np.newaxis, ...],
-                right_hand_pose=out['smplx']['params']['right_hand_pose'][np.newaxis, ...],
-                jaw_pose=out['smplx']['params']['jaw_pose'][np.newaxis, ...],
-                leye_pose=out['smplx']['params']['left_eye_pose'][np.newaxis, ...],
-                reye_pose=out['smplx']['params']['right_eye_pose'][np.newaxis, ...],
-                transl=out['smplx']['params']['transl'][np.newaxis, ...],
+                global_orient=out['smplx']['params']['global_orient'][np.newaxis, ...].to(self.device),
+                betas=out['smplx']['params']['betas'][np.newaxis, ...].to(self.device),
+                body_pose=out['smplx']['params']['body_pose'][np.newaxis, ...].to(self.device),
+                left_hand_pose=out['smplx']['params']['left_hand_pose'][np.newaxis, ...].to(self.device),
+                right_hand_pose=out['smplx']['params']['right_hand_pose'][np.newaxis, ...].to(self.device),
+                jaw_pose=out['smplx']['params']['jaw_pose'][np.newaxis, ...].to(self.device),
+                leye_pose=out['smplx']['params']['left_eye_pose'][np.newaxis, ...].to(self.device),
+                reye_pose=out['smplx']['params']['right_eye_pose'][np.newaxis, ...].to(self.device),
+                transl=out['smplx']['params']['transl'][np.newaxis, ...].to(self.device),
                 pose2rot=False,
             )
             out['smplx'].update({
                 'mesh': {
-                    'vertices': body.vertices[0],                
-                    'faces': self.body.faces_tensor,
+                    'vertices': body.vertices[0].cpu(),                
+                    'faces': self.body.faces_tensor.cpu(),
                     },
-                'joints': body.joints[0],
+                'joints': body.joints[0,:25,:].cpu(),
             })
         return out

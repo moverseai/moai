@@ -4,4 +4,5 @@ _target_: moai.data.datasets.human.Fit3D
 data_root: ${fit3d_root}
 smplx_root: ${smplx_root}
 subjects: '**'
+device: ${trainer.gpus}
 downsample_factor: 1

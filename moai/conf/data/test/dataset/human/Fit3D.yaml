@@ -3,5 +3,6 @@
 _target_: moai.data.datasets.human.Fit3D
 data_root: ${fit3d_root}
 smplx_root: ${smplx_root}
+device: -1
 subjects: '**'
 downsample_factor: 1
