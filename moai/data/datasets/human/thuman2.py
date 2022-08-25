@@ -86,6 +86,6 @@ class THuman2(torch.utils.data.Dataset):
                     'vertices': body.vertices[0],                
                     'faces': self.body.faces_tensor,
                     },
-                'joints': body.joints[0],
+                'joints': body.joints[0,:25,:],
             })
         return out
