@@ -1,0 +1,27 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+  
+   ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: vector
+  - engine/visualization/scenepic: mesh
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/dataset/human: THuman2
+  - data/test/loader: torch
+  - data/test/dataset/human: THuman2
+  - data/val/loader: torch
+  - data/val/dataset/human: THuman2
+
+  # ###### PROCESS
+  - model/feedforward: preprocess
+  
+  - examples/play_THuman2.0/options
+  - examples/play_THuman2.0/data
+  - examples/play_THuman2.0/preproc

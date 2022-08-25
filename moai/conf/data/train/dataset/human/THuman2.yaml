@@ -1,0 +1,5 @@
+# @package data.train.iterator.datasets._name_
+
+_target_: moai.data.datasets.human.THuman2
+data_root: ${thuman2_root}
+smplx_root: ${smplx_root}
