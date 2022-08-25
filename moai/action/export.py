@@ -1,17 +1,20 @@
-from cmath import e
+from moai.utils.torch import get_submodule
+
 import hydra
 import sys
 import omegaconf.omegaconf
 import typing
 import logging
 import pytorch_lightning as pl
-import blobconverter
-from moai.utils.torch import get_submodule
 import torch
 import os
 
 log = logging.getLogger(__name__)
 
+try:
+    import blobconverter
+except:
+    log.warning("The `blobconverter` package was not found, exporting to OpenVivo is disabled.")
 
 class TraceWrapper(pl.LightningModule):
     def __init__(self,

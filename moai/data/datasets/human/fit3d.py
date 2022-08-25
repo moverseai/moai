@@ -34,7 +34,7 @@ except:
 class Fit3D(torch.utils.data.Dataset):
     def __init__(self,
         data_root:          str,
-        smplx_root:         str='',
+        smplx_root:         str,
         subjects:           typing.Union[typing.List[str], str]='**',
         downsample_factor:  int=1,
         device:            list=[-1],
@@ -69,9 +69,8 @@ class Fit3D(torch.utils.data.Dataset):
                         self.data[k], 
                         torch.from_numpy(np.array(v, dtype=np.float32).squeeze())[::downsample_factor, ...].flatten(1)
                     ])                                        
-        model_path = os.path.join(smplx_root, 'smplx')
         self.body = smplx.SMPLXLayer(
-            model_path=model_path, model_type='smplx',
+            model_path=os.path.join(smplx_root, 'smplx'), model_type='smplx',
             num_expression_coeffs=10, batch_size=1, age='adult', 
             use_pca=False, flat_hand_mean=False,
             num_betas=10, gender='neutral'
