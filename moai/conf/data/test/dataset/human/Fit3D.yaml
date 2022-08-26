@@ -3,6 +3,7 @@
 _target_: moai.data.datasets.human.Fit3D
 data_root: ${fit3d_root}
 smplx_root: ${smplx_root}
-device: ${tester.gpus}
+device: [-1]
 subjects: '**'
+actions: '**'
 downsample_factor: 1

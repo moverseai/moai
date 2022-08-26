@@ -36,16 +36,25 @@ class Fit3D(torch.utils.data.Dataset):
         data_root:          str,
         smplx_root:         str,
         subjects:           typing.Union[typing.List[str], str]='**',
+        actions:            typing.Union[typing.List[str], str]='**',
         downsample_factor:  int=1,
-        device:            list=[-1],
+        device:             typing.Union[int, typing.Sequence[int]]=[-1],
     ) -> None:
         super().__init__()
         assert_path(log, 'Fit3D data root path', data_root)
         assert_path(log, 'SMPLX data path', smplx_root)
-        is_all_parts = isinstance(subjects, str) and ('all' == subjects or '**' == subjects)
-        subjects = os.listdir(data_root) if is_all_parts else subjects
+        is_all_subjects = isinstance(subjects, str) and ('all' == subjects or '**' == subjects)
+        subjects = os.listdir(data_root) if is_all_subjects else subjects
         subjects = [subjects] if isinstance(subjects, str) else subjects
-        self.device = device[0] if device[0] >= 0 else 'cpu'
+        is_all_actions = isinstance(actions, str) and ('all' == actions or '**' == actions)
+        actions = list(map(lambda fn: os.path.splitext(fn)[0], 
+            toolz.unique(map(
+                os.path.basename, 
+                glob.glob(os.path.join(data_root, '**', 'smplx', '*.json'))
+            ))
+        )) if is_all_actions else actions
+        actions = [actions] if isinstance(actions, str) else actions
+        self.device = f"cuda:{device[0]}" if isinstance(device, typing.Sequence) and device[0] >= 0 else 'cpu'
         self.data = {
             'transl': torch.empty((0, 3)),
             'global_orient': torch.empty((0, 9)),
@@ -63,6 +72,8 @@ class Fit3D(torch.utils.data.Dataset):
                 glob.glob(os.path.join(data_root, subj, 'smplx', "*.json")),
                 desc='Loading Fit3D subject actions'
             ):
+                if os.path.splitext(os.path.basename(action_fn))[0] not in actions:
+                    continue
                 data = _load_json(action_fn)
                 for k, v in data.items():
                     self.data[k] = torch.cat([
