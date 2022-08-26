@@ -118,6 +118,8 @@ class Fit3D(torch.utils.data.Dataset):
                     'vertices': body.vertices[0].cpu(),                
                     'faces': self.body.faces_tensor.cpu(),
                     },
-                'joints': body.joints[0,:25,:].cpu(),
+                #'joints': body.joints[0,:25,:].cpu(),
+                'joints': body.joints[0,:,:].cpu(),
+
             })
         return out

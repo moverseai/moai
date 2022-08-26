@@ -6,6 +6,7 @@ from moai.monads.tensor.torch import (
     Detach,
     Flatten,
     ReshapeAs,
+    Slice,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     'Detach',
     'Flatten',
     'ReshapeAs',
+    'Slice'
 ]
