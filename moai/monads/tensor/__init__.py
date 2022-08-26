@@ -17,5 +17,5 @@ __all__ = [
     'Detach',
     'Flatten',
     'ReshapeAs',
-    'Slice'
+    'Slice',
 ]

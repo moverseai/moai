@@ -75,10 +75,8 @@ class THuman2(torch.utils.data.Dataset):
         new_global_orientation = R.from_matrix(
             (r.as_matrix() @ R.from_rotvec(item['global_orient']).as_matrix())
         ).as_rotvec()
-        #new_translation = r@()
         with torch.no_grad():
             body = self.body.forward(
-                #global_orient=out['smplx']['params']['global_orient'][np.newaxis, ...],
                 global_orient=torch.from_numpy(new_global_orientation).float()[np.newaxis, ...],
                 betas=out['smplx']['params']['betas'][np.newaxis, ...],
                 body_pose=out['smplx']['params']['body_pose'][np.newaxis, ...],
@@ -95,7 +93,6 @@ class THuman2(torch.utils.data.Dataset):
                     'vertices': body.vertices[0],                
                     'faces': self.body.faces_tensor,
                     },
-                # 'joints': body.joints[0,:25,:],
-                'joints': body.joints[0,:,:],
+                'joints': body.joints[0, ...],
             })
         return out

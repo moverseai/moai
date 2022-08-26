@@ -7,6 +7,7 @@ from moai.validation.metrics.common.accuracy import (
     TopAccuracy,
     Top5Accuracy,
 )
+from moai.validation.metrics.common.distance_accuracy import DistanceAccuracy
 
 __all__ = [
     "RMSE",
@@ -16,4 +17,5 @@ __all__ = [
     "Accuracy",
     "TopAccuracy",
     "Top5Accuracy",
+    "DistanceAccuracy",
 ]
