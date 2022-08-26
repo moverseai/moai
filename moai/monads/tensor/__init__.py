@@ -4,6 +4,9 @@ from moai.monads.tensor.torch import (
     Split,
     SelectTensor,
     Detach,
+    Flatten,
+    ReshapeAs,
+    Slice,
 )
 
 __all__ = [
@@ -12,4 +15,7 @@ __all__ = [
     'Split',
     'SelectTensor',
     'Detach',
+    'Flatten',
+    'ReshapeAs',
+    'Slice',
 ]

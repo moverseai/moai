@@ -20,10 +20,13 @@ class Presenter(minet.FeedForward):
         visualization:      omegaconf.DictConfig=None,
         data:               omegaconf.DictConfig=None,
         statistics:         omegaconf.DictConfig=None,
+        export:         omegaconf.DictConfig=None,
+
     ):        
         super(Presenter, self).__init__(
             feedforward=feedforward, data=data,
-            monads=monads, visualization=visualization,            
+            monads=monads, visualization=visualization,
+            export=export            
         )
         self.statistics = hyu.instantiate(statistics) if statistics is not None else\
             NoStatistics()
@@ -52,6 +55,8 @@ class Presenter(minet.FeedForward):
     ) -> None:
         if self.global_step and (self.global_step % self.visualization.interval == 0):
             self.visualization(train_outputs['tensors'])
+        if self.global_step and (self.global_step % self.exporter.interval == 0):
+            self.exporter(train_outputs['tensors'])
         return train_outputs['loss']
 
     def validation_step(self,

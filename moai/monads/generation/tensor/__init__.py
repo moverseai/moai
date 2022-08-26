@@ -7,6 +7,7 @@ from moai.monads.generation.tensor.torch import (
     Parameter,
     Parameters,
 )
+from moai.monads.generation.tensor.npy import Npy
 
 __all__ = [
     "Scalar",
@@ -16,4 +17,5 @@ __all__ = [
     "Clone",
     "Parameter",
     "Parameters",
+    "Npy",
 ]

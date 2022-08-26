@@ -39,7 +39,7 @@ class OptimizerServer(BaseHandler):
         properties = context.system_properties
         # self.map_location = "cuda" if torch.cuda.is_available() and properties.get("gpu_id") is not None else "cpu"
         self.device = torch.device('cpu')
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and not 'FORCE_CPU' in os.environ:
             gpu_id = properties.get("gpu_id")
             if gpu_id is not None:
                 self.device = torch.device(f"cuda:{gpu_id}")
@@ -74,7 +74,7 @@ class OptimizerServer(BaseHandler):
         log.info(f"Model ({type(self.optimizer.model)}) loaded successfully.")
         self.gradient_tolerance = cfg.fitter.gradient_tolerance
         self.relative_tolerance = cfg.fitter.relative_tolerance
-        try:
+        try: #TODO: extract pre/post overrides to each merge as it currently crashes when finding overrides for pre/post that do not exist in the post/pre merged/instantiated config.
             handler_overrides = None
             if os.path.exists('handler_overrides.yaml'):
                 with open('handler_overrides.yaml') as f:
@@ -133,7 +133,7 @@ class OptimizerServer(BaseHandler):
         data:       typing.Mapping[str, torch.Tensor],
     ):        
         self.last_loss = None
-        self.optimizer.initialize_parameters()                    
+        self.optimizer.initialize_parameters()
         optimizers, schedulers = self.optimizer.configure_optimizers()
         iters = list(toolz.mapcat(lambda o: o.iterations, toolz.unique(optimizers)))
         stages = list(toolz.mapcat(lambda o: o.name, toolz.unique(optimizers)))
@@ -180,13 +180,16 @@ class OptimizerServer(BaseHandler):
             sched.step()
             self.last_loss = None
             self.optimizer.optimization_step = 0
+        metrics = self.optimizer.validation(data)
+        for k, v in metrics.items(): # self.context is set in base handler's handle method            
+            self.context.metrics.add_metric(name=k, value=float(v.detach().cpu().numpy()), unit='value')
         return data 
        
     def postprocess(self,
         data: typing.Mapping[str, torch.Tensor]
     ) -> typing.Sequence[typing.Any]:
         log.debug(f"Postprocessing outputs:\n{data['__moai__']}")
-        outs = []
+        outs = [] #TODO: corner case with no postproc crashes, fix it
         for k, p in self.postproc.items():
             res = p(data, data['__moai__']['json'])
             if len(outs) == 0:

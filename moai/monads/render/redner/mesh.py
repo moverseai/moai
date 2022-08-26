@@ -1,5 +1,4 @@
 from collections import namedtuple
-from turtle import width
 import torch
 import typing
 import logging
@@ -52,7 +51,7 @@ class Silhouette(torch.nn.Module):
         camera_rotation:    torch.Tensor=None,
         image:              torch.Tensor=None,
         intrinsics:         torch.Tensor=None,
-    ) -> typing.Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         b, n, _ = vertices.shape
         translation = camera_translation if camera_translation is not None\
             else torch.zeros(b, 3, device=vertices.device)

@@ -1,0 +1,6 @@
+# @package data.val.iterator.datasets._name_
+
+_target_: moai.data.datasets.human.pose.OpenPoseKeypoints
+root: ${openpose_root}
+types: 'all' # '**'
+single_person: false

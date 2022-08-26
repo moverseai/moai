@@ -1,0 +1,27 @@
+# @package _global_
+
+fit3d_root: ???
+smplx_root: ???
+
+data:
+  train:    
+    iterator:      
+      datasets:
+        Fit3D:
+          subjects: '**'
+          actions: '**'
+          downsample_factor: 2
+  test:
+    iterator:
+      datasets:
+        Fit3D:
+          subjects: '**'
+          actions: '**'
+          downsample_factor: 5
+  val:
+    iterator:
+      datasets:
+        Fit3D:
+          subjects: '**'
+          actions: '**'
+          downsample_factor: 10

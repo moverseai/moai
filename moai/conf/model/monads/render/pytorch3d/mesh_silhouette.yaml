@@ -1,0 +1,14 @@
+# @package model.monads._name_
+
+_target_: moai.monads.render.pytorch3d.MeshSilhouette
+focal_length: 5000.0
+principal_point: null
+width: 512
+height: 256
+z_reflection: true
+faces_per_pixel: 1
+blend_sigma: 1e-7
+blend_gamma: 1e-7
+persistent: false
+raster_bin_size: null
+raster_blur_radius: 1e-4

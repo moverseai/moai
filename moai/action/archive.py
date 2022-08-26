@@ -89,7 +89,7 @@ def archive(cfg):
             basename = os.path.basename(requirements)
             shutil.copyfile(requirements, os.path.join(os.getcwd(), basename))
             args += ['-r', basename]
-    if cfg.archive.output_path:
+    if cfg.archive.output_path: #NOYTE
         if not os.path.exists(cfg.archive.output_path):
             os.mkdirs(cfg.archive.output_path, exist_ok=True)
         args += ['--export-path', cfg.archive.output_path]
@@ -97,7 +97,7 @@ def archive(cfg):
     proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=None)# , shell=True)
     output = proc.communicate()[0].decode('UTF-8')
     if not output:
-        log.info(f"Model successfully archived @ {os.getcwd()}")
+        log.info(f"Model successfully archived @ {cfg.archive.output_path if cfg.archive.output_path  else os.getcwd()}")
     else:
         log.error(f"An error has occured while archiving the model:\n{output}")
     

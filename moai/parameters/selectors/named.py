@@ -33,4 +33,5 @@ class NamedParameterSelector(typing.Callable[[torch.nn.Module], typing.List[torc
                 params.append(m)
             else:
                 log.warning(f"Parameter {k} not found!")
-        return params
+        # return params
+        return { 'params': params }

@@ -16,4 +16,5 @@ use_hands_pca: true
 pca_components: 6
 num_betas: 10
 flat_hand_mean: false
+use_face_contour: false
 batch_size: 1

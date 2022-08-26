@@ -2,3 +2,5 @@
 
 _target_: moai.data.datasets.human.body.EHF
 root: ${EHF_root}
+load_jpg: false
+use_face_contour: false

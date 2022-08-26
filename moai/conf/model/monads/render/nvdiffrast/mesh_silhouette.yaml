@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.render.nvdiffrast.MeshSilhouette
+width: 512
+height: 256
+position_gradient_scale: 1.0

@@ -1,0 +1,28 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: Fit3D_viz
+  batch_size: 16
+  workers: 0
+
+visualization:
+  batch_interval: 50
+  visualizers:
+    vector:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}      
+      vector: [smplx.params.betas]
+      type: [box]
+      batch_percentage: 1.0
+    mesh:
+      name: ${experiment.name}
+      width: 1200
+      height: 900
+      vertices: [smplx.mesh.vertices, smplx.joints]
+      canvas: [0, 0]
+      layer: ['verts', 'j3d']
+      faces: [smplx.mesh.faces, '']
+      color: [green, 'cyan']
+      point_size: 0.025
+      batch_percentage: 1.0

@@ -1,0 +1,24 @@
+# @package _global_
+
+amass_root: ???
+smplx_root: ???
+
+data:
+  train:    
+    iterator:      
+      datasets:
+        AMASS:
+          parts: ['ACCAD']
+          downsample_factor: 2
+  test:
+    iterator:
+      datasets:
+        AMASS:
+          parts: ['SOMA']
+          downsample_factor: 5
+  val:
+    iterator:
+      datasets:
+        AMASS:
+          parts: ['HumanEva']
+          downsample_factor: 10

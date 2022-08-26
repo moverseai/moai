@@ -14,13 +14,15 @@ def play(cfg):
     model = miplay.Presenter(
         **(cfg.model if hasattr(cfg, "model") else {"monads": None}) ,
         data=cfg.data,
-        visualization=cfg.visualization,
+        visualization=cfg.visualization if hasattr(cfg, "visualization") else None,
         statistics=cfg.statistics if hasattr(cfg, "statistics") else None,
+        export=cfg.export if hasattr(cfg, "export") else None,
     )
     player = hydra.utils.instantiate(cfg.player, 
         engine_callbacks=EngineCallbacks(
             visualization=model.visualization,
-            statistics=model.statistics
+            statistics=model.statistics,
+            export=model.exporter,
         )
     )
     log.info("Dataset showcase started.")

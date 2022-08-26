@@ -27,7 +27,7 @@ class WeakPerspective(torch.nn.Module): #NOTE: fixed focal/principal, optimized 
             assert_positive(logger, "width", width)
             assert_positive(logger, "height", height)
             center[:, 0] = width // 2
-            center[:, 1] =  height // 2
+            center[:, 1] = height // 2
         else:
             center[:, 0] = torch.scalar_tensor(
                 principal_point if isinstance(principal_point, float) else principal_point[0]

@@ -21,7 +21,7 @@ from moai.monads.execution.cascade import _create_accessor
 __REDUCTIONS__ = {
     'sum': torch.sum,
     'mean': torch.mean,
-    'iou': lambda t: torch.mean(1.0 - (t / t[0].numel())),
+    'iou': lambda t: torch.mean(1.0 - (t / t[0].numel())), #NOTE: this reduction is only correct for batch size = 1?
 }
 
 class Weighted(torch.nn.ModuleDict):

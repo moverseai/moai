@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 __JOINT_FORMATS__ = {
     'none':                 [118,   0,          0],
     'coco25':               [25,    21 * 2,     51],
+    'coco25_face':          [25,    21 * 2,     51 + 17],
     'coco25_star':          [25,    0,          0],
     'coco25_star+':         [25,    21 * 2,     0],
 }
@@ -30,10 +31,10 @@ class Split(torch.nn.Module):
         self.split_sections = __JOINT_FORMATS__[format]
 
     def forward(self,
-        all_joints:          torch.Tensor=None,
+        joints:          torch.Tensor=None,
     ) -> typing.Mapping[str, torch.Tensor]:
         s = sum(self.split_sections)
-        body, hands, face = torch.split(all_joints[..., :s, :], self.split_sections, dim=-2)
+        body, hands, face = torch.split(joints[..., :s, :], self.split_sections, dim=-2)
         return {
             'body':     body,
             'hands':    hands,
@@ -275,7 +276,10 @@ class JointConfidence(torch.nn.Module):
         confidence: torch.Tensor
     ) -> torch.Tensor:
         ret = confidence.clone()
-        ret[:, self.ignore, ...] = 0.0
+        if len(ret.shape) == 3:
+            ret[:, self.ignore, ...] = 0.0
+        else:
+           ret[self.ignore, ...] = 0.0 
         ret[ret < self.threshold] = 0.0
         return ret
 

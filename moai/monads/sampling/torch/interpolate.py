@@ -31,6 +31,7 @@ class Interpolate(torch.nn.Module):
         mode:                   str='bilinear', # one of ['nearest', 'linear', 'bilinear', 'area', 'bicubic', 'trilinear']            
         align_corners:          bool=False,
         recompute_scale_factor: bool=False,
+        preserve_aspect_ratio:  bool=False,
     ):
         super(Interpolate, self).__init__()
         assert_choices(log, "interpolation mode", mode, Interpolate.__MODES__)
@@ -49,14 +50,30 @@ class Interpolate(torch.nn.Module):
                 recompute_scale_factor=recompute_scale_factor,
             )
         self.params = Interpolate.STATIC_PARAMS(mode, align_corners, recompute_scale_factor)
+        self.preserve_aspect_ratio = preserve_aspect_ratio
+        self.resolution = [height, width]
+
+    def _calc_size(self, input_shape, target_shape):
+        if self.preserve_aspect_ratio:
+            h, w = target_shape
+            if h > w:
+                return h, int(input_shape[1] * (h / input_shape[0]))
+            else:
+                return int(input_shape[0] * (w / input_shape[1])), w
+        else:
+            return target_shape
 
     def forward(self,
         image:  torch.Tensor,
         target: torch.Tensor=None,
     ) -> torch.Tensor:
-        return self.func(image) if target is None else torch.nn.functional.interpolate(
-            image, size=target.shape[2:], **self.params._asdict()
-        )#TODO: create a common func for spatial dims as tuple/list
+        return self.func(image) if target is None and not self.preserve_aspect_ratio\
+            else torch.nn.functional.interpolate(
+                image, size=self._calc_size(
+                    image.shape[2:],
+                    target.shape[2:] if target is not None else self.resolution
+                ), **self.params._asdict()
+            )#TODO: create a common func for spatial dims as tuple/list
 
 BilinearDownsample_x2 = functools.partial(Interpolate,
     mode='bilinear', scale=0.5,

@@ -1,0 +1,8 @@
+# @package model.supervision.losses._name_
+
+_target_: moai.supervision.losses.regression.robust.adaptive.Barron
+alpha_range: [0.001, 1.999]
+scale_low: 1e-5
+scale_init: 1.0
+alpha_init: null
+count: ??? # int, num of values to regress

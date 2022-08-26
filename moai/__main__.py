@@ -7,6 +7,7 @@ try:
     from moai.action.reprod import reprod
     from moai.action.fit import fit
     from moai.action.archive import archive
+    from moai.action.export import export
 except:
     from action.train import train
     from action.evaluate import evaluate
@@ -16,6 +17,7 @@ except:
     from action.reprod import reprod
     from action.fit import fit
     from action.archive import archive
+    from action.export import export
 
 import omegaconf.omegaconf
 import hydra
@@ -24,6 +26,7 @@ import sys
 import os
 
 from rich.traceback import install
+
 install(width=120, extra_lines=5, theme=None,
     word_wrap=True, show_locals=False, indent_guides=True,    
 )
@@ -49,6 +52,7 @@ __MODES__ = {
     'reprod': reprod,
     'fit': fit,
     'archive': archive,
+    'export': export,
 }
 
 __MIN_ARGS_COUNT__ = {
@@ -61,6 +65,7 @@ __MIN_ARGS_COUNT__ = {
     'reprod': 2,
     'fit': 2,
     'archive': 2,
+    'export': 2,
 }
 
 def run(cfg: omegaconf.DictConfig):

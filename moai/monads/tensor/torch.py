@@ -32,13 +32,34 @@ class Split(torch.nn.Module): #TODO: optimize by returning the tuple
 
     def forward(self, 
         tensor: torch.Tensor,
-        index: torch.Tensor # scalar tensor denoting the split index
-    ) -> torch.Tensor:
+        # index: torch.Tensor # scalar tensor denoting the split index
+    ) -> typing.Dict[str, torch.Tensor]:
     # ) -> typing.Tuple[torch.Tensor, torch.Tensor]:
+        ret = {}
         size = self.split if self.split else tensor.shape[self.dim] // 2
-        ret = torch.split(tensor, size, dim=self.dim)[int(index)]
-        return ret.squeeze(self.dim) if ret.shape[self.dim] == 1 else ret
+        chunks = torch.split(tensor, size, dim=self.dim) #[int(index)]
+        for i in range(len(chunks)):
+            ret['chunk'+str(i)] = chunks[i]
+        return ret
 
+
+class Slice(torch.nn.Module):
+    def __init__(self,
+        dim: int=0, # at which dim to slice
+        start : int=0, #the index to start with
+        length: int=1, #the index to end with
+    ):
+        super(Slice, self).__init__()
+        self.dim = dim
+        self.start = start
+        self.length = length
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return torch.narrow(input = tensor,dim=self.dim,start = self.start, length = self.length)
+
+
+
+#TODO: Is this really needed?
 class SelectTensor(torch.nn.Module):
     def __init__(self):
 
@@ -56,9 +77,28 @@ class SelectTensor(torch.nn.Module):
                        out_tensor = None
                 
                 return out_tensor
+
 class Detach(torch.nn.Module):
     def __init__(self):
         super(Detach, self).__init__()
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.detach()
+
+class Flatten(torch.nn.Module):
+    def __init__(self):
+        super(Flatten, self).__init__()
+        self.flatten = torch.nn.Flatten()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return self.flatten(tensor)
+5
+class ReshapeAs(torch.nn.Module):
+    def __init__(self):
+        super(ReshapeAs, self).__init__()
+
+    def forward(self,
+        tensor: torch.Tensor,
+        shape: torch.Tensor,
+    ) -> torch.Tensor:
+        return tensor.reshape_as(shape)

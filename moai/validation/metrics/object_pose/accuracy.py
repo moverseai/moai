@@ -27,6 +27,7 @@ def _calculate_acc(
     b, _, __  = gt_rot.shape
     rotation_error = _angular_error(gt_rot, pr_rot, radians=False)
     translation_error = torch.linalg.norm(gt_pos - pr_pos, ord=2, dim=-1) * 100.0 # in cm
+    #translation_error = torch.linalg.norm(gt_pos - pr_pos, ord=2, dim=-1) / 10.0 # convert to cm
     #count correct threshold
     condition_thres = torch.where(
         (rotation_error < threshold) & (translation_error < threshold),

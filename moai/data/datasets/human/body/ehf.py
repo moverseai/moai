@@ -17,8 +17,9 @@ __all__ = ['EHF']
 
 class EHF(torch.utils.data.Dataset):
     def __init__(self,
-        root:           str,
-        load_jpg:       bool=False,
+        root:               str,
+        load_jpg:           bool=False,
+        use_face_contour:   bool=False,
         # load_scans:     bool=False,
     ) -> None:
         super().__init__()
@@ -29,7 +30,7 @@ class EHF(torch.utils.data.Dataset):
         if load_jpg:
             self.images = glob.glob(os.path.join(root, 'images', '*.jp*g'))
         else:
-            self.images = glob.glob(os.path.join(root, 'png', '*.png'))        
+            self.images = glob.glob(os.path.join(root, 'png', '*.png'))
         self.focal_length = torch.Tensor([1498.22426237, 1498.22426237]).float()
         self.principal_point = torch.Tensor([790.263706, 578.90334]).float()
         self.camera_translation = torch.Tensor([-0.03609917,  0.43416458,  2.37101226]).float()
@@ -42,7 +43,8 @@ class EHF(torch.utils.data.Dataset):
         xform = np.eye(4, dtype=np.float32)
         xform[:3, :3] = cv2.Rodrigues(self.camera_rotation.numpy())[0]
         xform[3, :3] = self.camera_translation.numpy().copy()
-        self.extrinsics = torch.from_numpy(xform)        
+        self.extrinsics = torch.from_numpy(xform)
+        self.load_face_contour = use_face_contour
         
     def __len__(self) -> int:
         return len(self.fits)
@@ -90,7 +92,7 @@ class EHF(torch.utils.data.Dataset):
         if True: # load_face:
             face = np.array(person['face_keypoints_2d'], dtype=np.float32).reshape([-1, 3])[17: 17 + 51, :]
             contour_keyps = np.array([], dtype=body.dtype).reshape(0, 3)
-            if False: # load_face_contour:
+            if self.load_face_contour:
                 contour_keyps = np.array(person['face_keypoints_2d'], dtype=np.float32).reshape([-1, 3])[:17, :]
             body = np.concatenate([body, face, contour_keyps], axis=0)            
         return torch.from_numpy(body[:, :2]), torch.from_numpy(body[:, 2:3])

@@ -7,6 +7,8 @@ from moai.nn.activation.torch import (
     LReLu_BN2d,
     BN2d_LReLu,
     Normalize,
+    LReLu_BN_Drop,
+    LReLu_BN2d_Drop2d,
 )
 from moai.nn.activation.snake import Snake
 from moai.monads.math import Abs
@@ -28,10 +30,13 @@ __ACTIVATION_FACTORY__ = {
     "bn2d_relu":                BN2d_ReLu,
     "relu_bn2d":                ReLu_BN2d,
     "lrelu_bn":                 LReLu_BN,
+    "lrelu_bn_drop":            LReLu_BN_Drop,
     "bn2d_lrelu":               BN2d_ReLu,
     "lrelu_bn2d":               LReLu_BN2d,
+    "lrelu_bn2d_drop2d":        LReLu_BN2d_Drop2d,
     "elu":                      torch.nn.ELU,
     "relu":                     torch.nn.ReLU,
+    "lrelu":                    torch.nn.LeakyReLU,
     "abs":                      Abs,
     "none":                     torch.nn.Identity,
     "identity":                 torch.nn.Identity,

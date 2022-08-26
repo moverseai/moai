@@ -1,0 +1,27 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+  
+   ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: vector
+  - engine/visualization/scenepic: mesh
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/dataset/human: Fit3D
+  - data/test/loader: torch
+  - data/test/dataset/human: Fit3D
+  - data/val/loader: torch
+  - data/val/dataset/human: Fit3D
+
+  # ###### PROCESS
+  - model/feedforward: preprocess
+  
+  - examples/play_Fit3D/options
+  - examples/play_Fit3D/data
+  - examples/play_Fit3D/preproc

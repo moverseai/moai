@@ -17,6 +17,10 @@ __JOINT__MAPPERS__ = {
         model='smplx', format='coco25', with_hands=True,
         with_face=True, with_face_contour=False,
     ),
+    'openpose_coco25_face':  functools.partial(JointMap, 
+        model='smplx', format='coco25', with_hands=True,
+        with_face=True, with_face_contour=True,
+    ),
     'openpose_coco19':  functools.partial(JointMap,
         model='smplx', format='coco19', with_hands=True,
         with_face=True, with_face_contour=False,
@@ -42,6 +46,7 @@ class SMPLX(smplx.SMPLX):
         use_eyes:               bool=True,
         use_hands_pca:          bool=True,
         flat_hand_mean:         bool=False,
+        use_face_contour:       bool=False,
         batch_size:             int=1,
         # create_left_hand_pose:  bool=True,
         # create_right_hand_pose: bool=True,
@@ -73,6 +78,7 @@ class SMPLX(smplx.SMPLX):
             num_pca_comps=pca_components,
             num_betas=num_betas,
             flat_hand_mean=flat_hand_mean,
+            use_face_contour=use_face_contour,
         )
         log.info(f"Created a {gender} SMPL-X body model monad.")
 

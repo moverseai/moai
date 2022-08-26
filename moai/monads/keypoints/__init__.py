@@ -36,5 +36,5 @@ __all__ = [
     "UpscaleCoords_x4",
     "DownscaleCoords_x2",
     "DownscaleCoords_x4",
-    "Gather2d"
+    "Gather2d",
 ]

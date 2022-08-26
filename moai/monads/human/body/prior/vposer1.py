@@ -8,7 +8,7 @@ import typing
 
 #NOTE: code from https://github.com/nghorbani/human_body_prior
 
-__all__ = ["VPoser2"]
+__all__ = ["VPoser1"]
 
 class VPoser1(VPoser_v1):
     def __init__(self,
@@ -59,36 +59,3 @@ class VPoser1(VPoser_v1):
             if self.flatten_pose:
                 out['pose'] = out['pose'].reshape(decode.shape[0], -1)
         return out
-
-if __name__ == '__main__':
-    vposer1 = VPoser1(True)
-    emb = vposer1.forward(encode=torch.zeros(1, 21, 3))['embedding']
-    aa = vposer1.forward(decode=torch.zeros(1, 32))['pose']
-    ae = vposer1.forward(autoencode=torch.zeros(1, 21, 3))['pose']
-    print(emb.mean.shape)
-    print(aa.shape)
-    print(ae.shape)
-    vposer1 = VPoser1(False)
-    emb = vposer1.forward(encode=torch.zeros(1, 21, 3))['embedding']
-    aa = vposer1.forward(decode=torch.zeros(1, 32))['pose']
-    ae = vposer1.forward(autoencode=torch.zeros(1, 21, 3))['pose']
-    print(emb.mean.shape)
-    print(aa.shape)
-    print(ae.shape)
-
-    ckpt = torch.load(r"E:/Data\SMPL/vposer_v1_0/snapshots/TR00_E096.pt")
-    vposer1 = VPoser1(True)
-    vposer1.load_state_dict(ckpt)
-    emb = vposer1.forward(encode=torch.zeros(1, 21, 3))['embedding']
-    aa = vposer1.forward(decode=torch.zeros(1, 32))['pose']
-    ae = vposer1.forward(autoencode=torch.zeros(1, 21, 3))['pose']
-    print(emb.mean.shape)
-    print(aa.shape)
-    print(ae.shape)
-    vposer1 = VPoser1(False)
-    emb = vposer1.forward(encode=torch.zeros(1, 21, 3))['embedding']
-    aa = vposer1.forward(decode=torch.zeros(1, 32))['pose']
-    ae = vposer1.forward(autoencode=torch.zeros(1, 21, 3))['pose']
-    print(emb.mean.shape)
-    print(aa.shape)
-    print(ae.shape)
