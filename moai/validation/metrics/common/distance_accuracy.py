@@ -13,6 +13,6 @@ class DistanceAccuracy(torch.nn.Module):
     def forward(self,
         distance: torch.Tensor #distance between gt and predicted kpts
     ) -> torch.Tensor:
-        total = np.prod(*distance.shape[1:])
+        total = np.prod(list(distance.shape)[1:])
         acc = (distance.flatten(1) < self.threshold).sum(1) / total
-        return acc
+        return acc.mean()
