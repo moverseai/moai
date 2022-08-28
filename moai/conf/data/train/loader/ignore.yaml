@@ -6,3 +6,4 @@ shuffle: true
 num_workers: ${experiment.workers}
 pin_memory: true
 drop_last: false
+ignore_keys: ???
