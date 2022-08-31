@@ -43,6 +43,23 @@ class Split(torch.nn.Module): #TODO: optimize by returning the tuple
         return ret
 
 
+class Slice(torch.nn.Module):
+    def __init__(self,
+        dim: int=0, # at which dim to slice
+        start : int=0, #the index to start with
+        length: int=1, #the index to end with
+    ):
+        super(Slice, self).__init__()
+        self.dim = dim
+        self.start = start
+        self.length = length
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return torch.narrow(input = tensor,dim=self.dim,start = self.start, length = self.length)
+
+
+
+#TODO: Is this really needed?
 class SelectTensor(torch.nn.Module):
     def __init__(self):
 

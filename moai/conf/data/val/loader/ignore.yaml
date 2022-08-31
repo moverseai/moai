@@ -2,7 +2,8 @@
 
 _target_: moai.data.loader.ignore.Ignore
 batch_size: ${experiment.batch_size}
-shuffle: true
+shuffle: false
 num_workers: ${experiment.workers}
 pin_memory: true
 drop_last: false
+ignore_keys: ???

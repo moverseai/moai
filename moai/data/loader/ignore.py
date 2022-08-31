@@ -2,6 +2,7 @@ import torch
 import toolz
 from torch.utils.data.dataloader import default_collate
 from functools import partial
+import typing
 
 def _collate_fn(batch,ingore_keys):    
     batch_ = []
@@ -15,22 +16,20 @@ def _collate_fn(batch,ingore_keys):
 
 class Ignore(torch.utils.data.DataLoader):
     def __init__(self,
-    dataset,
-    batch_size,
-    shuffle,
-    num_workers,
-    pin_memory,
-    drop_last,
-    ingore_keys = ['aug_markers','normalized_aug_markers']
+        dataset:        torch.utils.data.Dataset,
+        batch_size:     int,
+        shuffle:        bool,
+        num_workers:    int,
+        pin_memory:     bool,
+        drop_last:      bool,
+        ignore_keys:    typing.Sequence[str]
     ) -> None:
         super(Ignore, self).__init__(
-                dataset,
-                batch_size=batch_size,
-                shuffle=shuffle,
-                num_workers=num_workers,
-                pin_memory=pin_memory,
-                drop_last=drop_last,
-                collate_fn = partial(_collate_fn, ingore_keys = ingore_keys),
+            dataset,
+            batch_size=batch_size, shuffle=shuffle,
+            num_workers=num_workers, pin_memory=pin_memory,
+            drop_last=drop_last,
+            collate_fn=partial(_collate_fn, ingore_keys=ignore_keys),
         )
 
 

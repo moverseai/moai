@@ -1,8 +1,9 @@
 # @package data.val.iterator.datasets._name_
 
-_target_: moai.data.datasets.human.AMASS
-data_root: ${amass_root}
+_target_: moai.data.datasets.human.Fit3D
+data_root: ${fit3d_root}
 smplx_root: ${smplx_root}
+subjects: '**'
+actions: '**'
 device: ${trainer.gpus}
-parts: '**'
 downsample_factor: 1
