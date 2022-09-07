@@ -13,7 +13,6 @@ __all__ = [
 
 log = logging.getLogger(__name__)
 
-
 class ImageFileInput(Callable):
     def __init__(self,
         input_key:          str='color',
