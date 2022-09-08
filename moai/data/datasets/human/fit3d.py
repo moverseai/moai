@@ -1,3 +1,4 @@
+from sys import maxsize
 from moai.utils.arguments import assert_path
 
 import functools
@@ -10,26 +11,29 @@ import typing
 import logging
 import tqdm
 import smplx
+from methodtools import lru_cache
+import orjson
 
 log = logging.getLogger(__name__)
 
 __all__ = ['Fit3D']
 
-try:
-    import orjson
-    @functools.lru_cache(maxsize=None)
-    def _load_json(filename: str) -> dict:
-        with open(filename, 'rb') as f:
-            data = orjson.loads(f.read())
-        return data
-except:
-    log.warning("Could not load the `orjson` package which will improve loading speeds, please consider `pip install orjson`.")
-    import json
-    @functools.lru_cache(maxsize=None)
-    def _load_json(filename: str) -> dict:
-        with open(filename, 'rb') as f:
-            data = json.load(f)
-        return data
+# try:
+#     import orjson
+#     @lru_cache(maxsize=None)
+#     #@functools.lru_cache(maxsize=None)
+#     def _load_json(filename: str) -> dict:
+#         with open(filename, 'rb') as f:
+#             data = orjson.loads(f.read())
+#         return data
+# except:
+#     log.warning("Could not load the `orjson` package which will improve loading speeds, please consider `pip install orjson`.")
+#     import json
+#     @functools.lru_cache(maxsize=None)
+#     def _load_json(filename: str) -> dict:
+#         with open(filename, 'rb') as f:
+#             data = json.load(f)
+#         return data
 
 class Fit3D(torch.utils.data.Dataset):
     def __init__(self,
@@ -39,6 +43,7 @@ class Fit3D(torch.utils.data.Dataset):
         actions:            typing.Union[typing.List[str], str]='**',
         downsample_factor:  int=1,
         device:             typing.Union[int, typing.Sequence[int]]=[-1],
+        reconstruct:        bool=False,
     ) -> None:
         super().__init__()
         assert_path(log, 'Fit3D data root path', data_root)
@@ -67,6 +72,7 @@ class Fit3D(torch.utils.data.Dataset):
             'reye_pose': torch.empty((0, 9)),
             'expression': torch.empty((0, 10)),
          }
+        self._load_json = functools.lru_cache()(self.__load_json)
         for subj in tqdm.tqdm(subjects, desc='Loading Fit3D subjects'):                        
             for action_fn in tqdm.tqdm(
                 glob.glob(os.path.join(data_root, subj, 'smplx', "*.json")),
@@ -74,21 +80,29 @@ class Fit3D(torch.utils.data.Dataset):
             ):
                 if os.path.splitext(os.path.basename(action_fn))[0] not in actions:
                     continue
-                data = _load_json(action_fn)
+                data = self._load_json(action_fn)
                 for k, v in data.items():
                     self.data[k] = torch.cat([
                         self.data[k], 
                         torch.from_numpy(np.array(v, dtype=np.float32).squeeze())[::downsample_factor, ...].flatten(1)
                     ])                                        
-        self.body = smplx.SMPLXLayer(
-            model_path=os.path.join(smplx_root, 'smplx'), model_type='smplx',
-            num_expression_coeffs=10, batch_size=1, age='adult', 
-            use_pca=False, flat_hand_mean=False,
-            num_betas=10, gender='neutral'
-        ).to(self.device)
-        self.body.requires_grad_(False)
+        self.reconstruct = reconstruct
+        if self.reconstruct:
+            self.body = smplx.SMPLXLayer(
+                model_path=os.path.join(smplx_root, 'smplx'), model_type='smplx',
+                num_expression_coeffs=10, batch_size=1, age='adult', 
+                use_pca=False, flat_hand_mean=False,
+                num_betas=10, gender='neutral'
+            ).to(self.device)
+            self.body.requires_grad_(False)
         log.info(f"Loaded {len(self)} Fit3D samples.")
 
+    def __load_json(self,filename: str) -> dict:
+        with open(filename, 'rb') as f:
+            data = orjson.loads(f.read())
+        return data
+
+    
     def __len__(self) -> int:
         return len(self.data['betas'])
 
@@ -109,27 +123,29 @@ class Fit3D(torch.utils.data.Dataset):
                     'left_eye_pose': item['leye_pose'],
                     'right_eye_pose': item['reye_pose'],
                 },
+                'dataset': 'Fit3D'
             }
         }
-        with torch.no_grad():
-            body = self.body.forward(
-                global_orient=out['smplx']['params']['global_orient'][np.newaxis, ...].to(self.device),
-                betas=out['smplx']['params']['betas'][np.newaxis, ...].to(self.device),
-                body_pose=out['smplx']['params']['body_pose'][np.newaxis, ...].to(self.device),
-                left_hand_pose=out['smplx']['params']['left_hand_pose'][np.newaxis, ...].to(self.device),
-                right_hand_pose=out['smplx']['params']['right_hand_pose'][np.newaxis, ...].to(self.device),
-                jaw_pose=out['smplx']['params']['jaw_pose'][np.newaxis, ...].to(self.device),
-                leye_pose=out['smplx']['params']['left_eye_pose'][np.newaxis, ...].to(self.device),
-                reye_pose=out['smplx']['params']['right_eye_pose'][np.newaxis, ...].to(self.device),
-                transl=out['smplx']['params']['transl'][np.newaxis, ...].to(self.device),
-                pose2rot=False,
-            )
-            out['smplx'].update({
-                'mesh': {
-                    'vertices': body.vertices[0].cpu(),                
-                    'faces': self.body.faces_tensor.cpu(),
-                    },                
-                'joints': body.joints[0, ...].cpu(),
+        if self.reconstruct:
+            with torch.no_grad():
+                body = self.body.forward(
+                    global_orient=out['smplx']['params']['global_orient'][np.newaxis, ...].to(self.device),
+                    betas=out['smplx']['params']['betas'][np.newaxis, ...].to(self.device),
+                    body_pose=out['smplx']['params']['body_pose'][np.newaxis, ...].to(self.device),
+                    left_hand_pose=out['smplx']['params']['left_hand_pose'][np.newaxis, ...].to(self.device),
+                    right_hand_pose=out['smplx']['params']['right_hand_pose'][np.newaxis, ...].to(self.device),
+                    jaw_pose=out['smplx']['params']['jaw_pose'][np.newaxis, ...].to(self.device),
+                    leye_pose=out['smplx']['params']['left_eye_pose'][np.newaxis, ...].to(self.device),
+                    reye_pose=out['smplx']['params']['right_eye_pose'][np.newaxis, ...].to(self.device),
+                    transl=out['smplx']['params']['transl'][np.newaxis, ...].to(self.device),
+                    pose2rot=False,
+                )
+                out['smplx'].update({
+                    'mesh': {
+                        'vertices': body.vertices[0].cpu(),                
+                        'faces': self.body.faces_tensor.cpu(),
+                        },                
+                    'joints': body.joints[0, ...].cpu(),
 
-            })
+                })
         return out

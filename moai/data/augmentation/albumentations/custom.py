@@ -40,19 +40,22 @@ class Custom(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         item = self.inner[index]
         for i, o, k, e in zip(self.inputs, self.outputs, self.keys, self.extra):
-            if isinstance(k, str):
-                data = {k: i(item).numpy()}# numpy conversion overhead is insignificant
+            if isinstance(k, str): 
+                data = {k: i(item) if isinstance(i(item),dict) else i(item).numpy()}# numpy conversion overhead is insignificant
                 for ek, ev in e.items():
                     data[ek] = ev(item).numpy()
                 augmented = self.composition(**data)
                 if augmented[k] is not None:
-                    item[o] = torch.from_numpy(augmented[k])
+                    item[o] = augmented[k] if isinstance(augmented[k],dict) else torch.from_numpy(augmented[k]) 
             else: # list
                 data = {kk: i[j](item).numpy() for j, kk in enumerate(k)}
                 for ek, ev in e.items():
-                    data[ek] = ev(item).numpy()
+                    data[ek] = ev(item) if isinstance(ev(item),dict) \
+                             else ev(item).numpy()
                 augmented = self.composition(**data)
                 for kk, oo in zip(k, o):
                     if augmented[kk] is not None:
-                        item[oo] = torch.from_numpy(augmented[kk])
+                        #item[oo] = torch.from_numpy(augmented[kk])
+                        item[oo] = augmented[kk] if isinstance(augmented[kk],dict) else \
+                            torch.from_numpy(augmented[kk])
         return item
