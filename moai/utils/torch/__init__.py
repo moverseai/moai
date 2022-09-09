@@ -2,7 +2,10 @@ import torch
 import toolz
 import typing
 
-__all__ = ['get_submodule']
+__all__ = [
+    'get_submodule',
+    'cross_product',
+]
 
 def get_submodule_pt_ge_110(
     module: torch.nn.Module,
@@ -39,3 +42,8 @@ if (int(v[0]), int(v[1])) >= (1, 10):
     get_parameter = get_parameter_pt_ge_110
 else:
     get_parameter = get_child_pt_lt_110
+
+if (int(v[0]), int(v[1])) >= (1, 12):
+    cross_product = torch.linalg.cross
+else:
+    cross_product = torch.cross

@@ -2459,4 +2459,4 @@ class LatentSkeleton(Callable):
                 (str(n), {'opacity': 0.5}) for n in toolz.unique(self.layers)
             ))
         scene.link_canvas_events(*canvases)
-        scene.save_as_html(os.path.join('scenepic', "index.html"), title=f"{self.name}")
+        scene.save_as_html(os.path.join('scenepic', "traversals.html"), title=f"{self.name}")
