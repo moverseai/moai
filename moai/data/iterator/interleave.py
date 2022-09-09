@@ -23,8 +23,8 @@ class Interleaved(torch.utils.data.Dataset):
     """
     def __init__(self,
         datasets:       omegaconf.DictConfig,
-        probabilities: typing.List[float],
         size: int,
+        probabilities: typing.List[float]=[],
         augmentation:   omegaconf.DictConfig=None,
         extracted_keys: typing.List[str]=[],
     ):
