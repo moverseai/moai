@@ -76,8 +76,8 @@ class THuman2(torch.utils.data.Dataset):
                     'left_eye_pose': item['leye_pose'],
                     'right_eye_pose': item['reye_pose'],
                 },
-                'dataset': 'THuman2.0'
-            }
+            },
+            '__moai__': type(self).__name__
         }
         if self.reconstruct:
             with torch.no_grad():

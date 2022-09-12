@@ -6,7 +6,7 @@ import hydra.utils as hyu
 import omegaconf.omegaconf
 import typing
 import logging
-import toolz
+import numpy as np
 
 log = logging.getLogger(__name__)
 
@@ -41,21 +41,25 @@ class Custom(torch.utils.data.Dataset):
         item = self.inner[index]
         for i, o, k, e in zip(self.inputs, self.outputs, self.keys, self.extra):
             if isinstance(k, str): 
-                data = {k: i(item) if isinstance(i(item),dict) else i(item).numpy()}# numpy conversion overhead is insignificant
+                data = {k: i(item).numpy() if isinstance(i(item),torch.Tensor) else i(item)}# numpy conversion overhead is insignificant
                 for ek, ev in e.items():
-                    data[ek] = ev(item).numpy()
+                    data[ek] = ev(item).numpy() if isinstance(ev(item),torch.Tensor) \
+                               else ev(item)
                 augmented = self.composition(**data)
                 if augmented[k] is not None:
-                    item[o] = augmented[k] if isinstance(augmented[k],dict) else torch.from_numpy(augmented[k]) 
+                    item[o] = torch.from_numpy(augmented[k]) if isinstance(augmented[k],np.ndarray) else augmented[k] 
+                    #item[o] = augmented[k] if isinstance(augmented[k],dict) else torch.from_numpy(augmented[k]) 
             else: # list
-                data = {kk: i[j](item).numpy() for j, kk in enumerate(k)}
+                data = {kk: i[j](item).numpy() if isinstance(i[j](item),torch.Tensor) else i[j](item) for j, kk in enumerate(k)}
                 for ek, ev in e.items():
-                    data[ek] = ev(item) if isinstance(ev(item),dict) \
-                             else ev(item).numpy()
+                    data[ek] = ev(item).numpy() if isinstance(ev(item),torch.Tensor) \
+                             else ev(item)
                 augmented = self.composition(**data)
                 for kk, oo in zip(k, o):
                     if augmented[kk] is not None:
                         #item[oo] = torch.from_numpy(augmented[kk])
-                        item[oo] = augmented[kk] if isinstance(augmented[kk],dict) else \
-                            torch.from_numpy(augmented[kk])
+                        item[oo] = torch.from_numpy(augmented[kk]) if isinstance(augmented[kk],np.ndarray) \
+                            else augmented[kk]
+                        # item[oo] = augmented[kk] if isinstance(augmented[kk],dict) else \
+                        #     torch.from_numpy(augmented[kk])
         return item

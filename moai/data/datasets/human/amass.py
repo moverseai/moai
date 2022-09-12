@@ -111,8 +111,8 @@ class AMASS(torch.utils.data.Dataset):
                     'left_eye_pose': leye[frame].float().clone(), # 3
                     'right_eye_pose': reye[frame].float().clone(), # 3
                 },
-                'dataset': 'AMASS'
             },
+            '__moai__': type(self).__name__
         }
         if self.reconstruct:
             body = self.bodies[gender].forward(

@@ -7,3 +7,4 @@ subjects: '**'
 actions: '**'
 device: ${trainer.gpus}
 downsample_factor: 1
+reconstruct: False
