@@ -18,7 +18,7 @@ class Interleaved(torch.utils.data.Dataset):
 
     Args:
         datasets (sequence): DictConfig of datasets to be concatenated
-        probabilities (sequence): List of probabilities to create sampling
+        probabilities (sequence): DictConfig of probabilities to create sampling
         size (int): Output size of concatenated dataset
     """
     def __init__(self,
@@ -40,7 +40,6 @@ class Interleaved(torch.utils.data.Dataset):
         if np.sum(list(probabilities.values())) != 1.0:
             log.warning(f"Probabilities do not sum up to unity ({np.sum(list(probabilities.values()))}), they will be normalized to unity.")
             probabilities = toolz.valmap(lambda x: x /np.sum(list(probabilities.values())),probabilities)
-            #probabilities /= np.sum(probabilities)
         if augmentation is not None:
             for (key, dataset) in zip(datasets.keys(),datasets.values()):
                 self.datasets[key] = (hyu.instantiate(

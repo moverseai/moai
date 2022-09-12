@@ -9,16 +9,16 @@ data:
     iterator:
       datasets:
         Pano3D:
-          types: [color, depth, color_up, depth_right]
+          types: [color, depth]
 
   test:
     iterator:
       datasets:
         Pano3D:
-          types: [color, depth, color_up, depth_right]
+          types: [color, depth]
 
   val:
     iterator:
       datasets:
         Pano3D:
-          types: [color, depth, color_up, depth_right]
+          types: [color, depth]
