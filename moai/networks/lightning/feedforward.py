@@ -12,6 +12,7 @@ from moai.supervision import (
     Weighted as DefaultSupervision,
 )
 from moai.data.iterator import Indexed
+from collections import defaultdict
 
 import torch
 import numpy as np
@@ -178,8 +179,9 @@ class FeedForward(pytorch_lightning.LightningModule):
         return train_outputs['loss']
 
     def validation_step(self,
-        batch: typing.Dict[str, torch.Tensor],
-        batch_nb: int
+        batch:              typing.Dict[str, torch.Tensor],
+        batch_nb:           int,
+        dataloader_index:   int=0,
     ) -> dict:        
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
@@ -189,17 +191,22 @@ class FeedForward(pytorch_lightning.LightningModule):
         return metrics
 
     def validation_epoch_end(self,
-        outputs: typing.List[dict]
+        outputs: typing.Union[typing.List[typing.List[dict]], typing.List[dict]]
     ) -> None:
-        keys = next(iter(outputs), { }).keys()        
-        metrics = { }
-        for key in keys:
-            metrics[key] = np.mean(np.array(
-                [d[key].item() for d in outputs if key in d]
-            ))        
-        self.log_dict(metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
-        log_metrics = toolz.keymap(lambda k: f"val_{k}", metrics)
-        self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
+        list_of_outputs = [outputs] if isinstance(toolz.get([0, 0], outputs)[0], dict) else outputs
+        all_metrics = defaultdict(list)
+        for i, o in enumerate(list_of_outputs):
+            keys = next(iter(o), { }).keys()        
+            metrics = { }
+            for key in keys:
+                metrics[key] = np.mean(np.array(
+                    [d[key].item() for d in o if key in d]
+                ))
+                all_metrics[key].append(metrics[key])            
+            log_metrics = toolz.keymap(lambda k: f"val_{k}/{list(self.data.val.iterator.datasets.keys())[i]}", metrics)
+            self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
+        all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_metrics)
+        self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
     
     def test_step(self, 
         batch: typing.Dict[str, torch.Tensor],
@@ -259,17 +266,21 @@ class FeedForward(pytorch_lightning.LightningModule):
     def val_dataloader(self) -> torch.utils.data.DataLoader:
         if hasattr(self.data.val.iterator, '_target_'):
             log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
-            val_iterator = hyu.instantiate(self.data.val.iterator)
+            val_iterators = [hyu.instantiate(self.data.val.iterator)]
         else:
-            val_iterator = Indexed(
-                self.data.val.iterator.datasets,
+            val_iterators = [Indexed(
+                {k: v }, # self.data.val.iterator.datasets,
                 self.data.val.iterator.augmentation if hasattr(self.data.val.iterator, 'augmentation') else None,
-            )
+            ) for k, v in self.data.val.iterator.datasets.items()]
         if not hasattr(self.data.val, 'loader'):
             log.error("Validation data loader missing. Please add a data loader (i.e. \'- data/val/loader: torch\') entry in the configuration.")
         else:
-            validation_loader = hyu.instantiate(self.data.val.loader, val_iterator)
-        return validation_loader
+            validation_loaders = [
+                hyu.instantiate(self.data.val.loader, val_iterator)
+                for val_iterator in val_iterators
+            ]
+        # return validation_loaders[0] if len(validation_loaders) == 1 else validation_loaders
+        return validation_loaders
 
     def test_dataloader(self) -> torch.utils.data.DataLoader:
         if hasattr(self.data.test.iterator, '_target_'):

@@ -1,0 +1,114 @@
+# @package _global_
+
+depth_threshold: ???
+
+conv_type: conv2d
+
+model:
+  monads:
+    clamp:
+      max_value: 15.0
+    threshold:
+      value: ${depth_threshold}
+    interpolate:
+      scale: 0.5
+      mode: nearest
+    equirectangular_grid:
+      width: 512
+      mode: pi
+      long_offset_pi: -0.5    
+  
+  parameters:
+    initialization:
+      schemes:
+        prediction_bias:
+          bias: 3.0
+          out_channels: 1
+          kernel_size: 1
+    optimization:
+      optimizers:
+        adam:
+          lr: 2.0e-4
+  
+  configuration:
+    block_features: [32, 64, 128, 256, 512]    
+    in_features: 3
+    out_features: 1
+    input: [color]
+    output: [depth_t_0]
+    encoder:
+      blocks: [2, 2, 2, 2, 2]
+      convolution:
+        type: conv2d
+        params:
+          kernel_size: 3
+          stride: 1
+          padding: 1
+      activation: 
+        type: relu_bn2d
+        params:
+          inplace: true
+      downscale: 
+        type: maxpool2d_aa
+        # params:
+    bottleneck: 
+      blocks: 2
+      features: 1024
+      convolution:
+        type: conv2d
+        params:
+          kernel_size: 3
+          stride: 1
+          padding: 1
+      activation: 
+        type: relu_bn2d
+        params:
+          inplace: true
+    decoder:
+      convolution:
+        type: conv2d
+        params:
+          kernel_size: 3
+          stride: 1
+          padding: 1
+      activation: 
+        type: relu_bn2d
+        params:
+          inplace: true
+      upscale:
+        type: upsample2d
+        # params:
+    prediction:
+      convolution:
+        type: conv2d
+        params:
+          kernel_size: 1
+          stride: 1
+          padding: 0
+      activation: 
+        type: relu
+        params:
+          inplace: true
+
+  feedforward:
+    preprocess:      
+      clamp:
+        x: [depth]
+        out: [depth]
+      threshold:
+        x: [depth]
+        out: [mask]
+    postprocess:
+      equirectangular_grid:
+        tensor: [color]
+        out: [sgrid]
+      equirectangular_deprojection:
+        depth: [depth_t_0,depth]
+        sgrid: [sgrid,sgrid]
+        out: [pcloud,pcloud_gt]
+      # equirectangular_weights:
+      #   tensor: [color]
+      #   out: [sweights]
+      normal_estimation2d:
+        points: [pcloud,pcloud_gt]
+        out: [normal,normal_gt]

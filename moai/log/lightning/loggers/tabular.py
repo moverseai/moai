@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import tablib
 import toolz
 import pytorch_lightning
@@ -17,11 +19,12 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
         self._version = version
         self.file_name = name
         self.train_logs = tablib.Dataset()
-        self.val_logs = tablib.Dataset()
+        self.val_logs = defaultdict(tablib.Dataset)
         self.test_logs = tablib.Dataset()
         self.train_headers_written = False
-        self.val_headers_written = False
+        self.val_headers_written = defaultdict(bool)
         self.test_headers_written = False
+        self.val_headers = { }
 
     @property
     def name(self) -> str:
@@ -47,20 +50,21 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
         ))
         
     def _append_val_loss(self, 
+        dataset:        str,
         metrics:        typing.Dict[str, typing.Any],
         epoch:          int,
         step:           int,
     ) -> None:
-        if self.val_logs.headers is None and not self.val_headers_written:
-            self.val_logs.headers = list(toolz.concat([
+        if self.val_logs[dataset].headers is None and not self.val_headers_written[dataset]:
+            self.val_logs[dataset].headers = list(toolz.concat([
                 [str('epoch'), str('iteration')],
                 [k for k in metrics.keys()]
             ]))
-            self.val_headers = self.val_logs.headers
-        self.val_logs.append(list(
+            self.val_headers[dataset] = self.val_logs[dataset].headers
+        self.val_logs[dataset].append(list(
             toolz.concat([
                 [epoch, step],
-                [metrics[k] for k in self.val_headers if k in metrics]
+                [metrics[k] for k in self.val_headers[dataset] if k in metrics]
             ])
         ))
 
@@ -105,7 +109,16 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
             self._append_test_metrics(test_metrics, step)
             return
         if val_metrics:
-            self._append_val_loss(val_metrics, metrics['epoch'], step)
+            dataset_val_metrics = toolz.valmap(
+                lambda v: toolz.keymap(lambda k: k.split('/')[0], dict(v)), 
+                # toolz.groupby(lambda k: k[0].split('/')[-1], val_metrics.items())
+                toolz.groupby(
+                    lambda k: toolz.get(1, k[0].split('/'), 'metrics'),
+                    val_metrics.items()
+                )
+            )
+            for k, v in dataset_val_metrics.items():
+                self._append_val_loss(k, v, metrics['epoch'], step)
 
     @pytorch_lightning.loggers.base.rank_zero_only
     def log_hyperparams(self,
@@ -129,15 +142,16 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
             if not self.train_headers_written and self.train_logs.headers is not None:
                 self.train_headers_written = True
             self.train_logs.wipe()        
-        if self.val_logs.height:
+        if self.val_logs:
             """Save val log data"""
-            with open(self.name + "_val.csv", 'a', newline='') as f:
-                f.write(self.val_logs.export('csv'))
-            if not self.val_headers_written and self.val_logs.headers is not None:
-                self.val_headers_written = True
-            self.val_logs.wipe()
+            for k, d in self.val_logs.items():
+                with open(f"{self.name}_{k}_val.csv", 'a', newline='') as f:
+                    f.write(d.export('csv'))
+                if not self.val_headers_written[k] and d.headers is not None:
+                    self.val_headers_written[k] = True
+                d.wipe()
         if self.test_logs.height:
-            """Save val log data"""
+            """Save test log data"""
             with open(self.name + "_test.csv", 'a', newline='') as f:
                 f.write(self.test_logs.export('csv'))
             if not self.test_headers_written and self.test_logs.headers is not None:

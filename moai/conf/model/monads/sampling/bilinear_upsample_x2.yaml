@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.sampling.BilinearUpsample_x2
+align_corners:  false
+recompute_scale_factor: false
+preserve_aspect_ratio: false

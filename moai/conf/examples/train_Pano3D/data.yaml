@@ -1,0 +1,24 @@
+# @package _global_
+
+Pano3D_root: ???
+Pano3D_part: ???
+Pano3D_split: ???
+
+data:
+  train:
+    iterator:
+      datasets:
+        Pano3D:
+          types: [color, depth, color_up, depth_right]
+
+  test:
+    iterator:
+      datasets:
+        Pano3D:
+          types: [color, depth, color_up, depth_right]
+
+  val:
+    iterator:
+      datasets:
+        Pano3D:
+          types: [color, depth, color_up, depth_right]
