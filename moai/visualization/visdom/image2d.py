@@ -23,7 +23,8 @@ class Image2d(Base):
         batch_percentage:   float=1.0,
         name:               str="default",
         ip:                 str="http://localhost",
-        port:               int=8097,   
+        port:               int=8097,
+        jpeg_quality:       int=50,
     ):
         super(Image2d, self).__init__(name, ip, port)
         self.keys = [image] if isinstance(image, str) else list(image)
@@ -33,7 +34,7 @@ class Image2d(Base):
         self.batch_percentage = batch_percentage
         assert_numeric(log, 'batch percentage', batch_percentage, 0.0, 1.0)
         self.viz_map = {
-            'color': functools.partial(self._viz_color, self.visualizer),
+            'color': functools.partial(self._viz_color, self.visualizer, jpeg_quality=jpeg_quality),
             'heatmap': functools.partial(self._viz_heatmap, self.visualizer),
         }
         self.transform_map = {
@@ -62,11 +63,12 @@ class Image2d(Base):
 
     @staticmethod
     def _viz_color(
-        visdom: visdom.Visdom,
-        array: np.ndarray,
-        key: str,
-        win: str,
-        env: str
+        visdom:         visdom.Visdom,
+        array:          np.ndarray,
+        key:            str,
+        win:            str,
+        env:            str,
+        jpeg_quality:   int=50,
     ) -> None:
         visdom.images(
             array,
@@ -75,7 +77,7 @@ class Image2d(Base):
             opts={
                 'title': key,
                 'caption': key,
-                'jpgquality': 50,
+                'jpgquality': jpeg_quality,
             }
         )
 

@@ -9,3 +9,4 @@ image: [color]
 type: [color]
 colormap: [none]
 transform: [none]
+jpeg_quality: 50

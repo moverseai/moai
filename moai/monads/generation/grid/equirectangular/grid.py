@@ -3,7 +3,7 @@ from moai.monads.generation.grid import Grid
 import torch
 import numpy as np
 
-class Spherical(Grid):
+class Equirectangular(Grid):
     __GRID_MAP__ = {
         'pi':               'ndc',
         'tau':              'norm', 
@@ -31,14 +31,16 @@ class Spherical(Grid):
         inclusive:          bool=False,
         order:              str='longlat', # one of ['longlat', 'latlong']
         long_offset_pi:     float=0.0, # offset for longitude, relative to pi
+        persistent:         bool=True,
     ):
-        super(Spherical, self).__init__(
-            mode=Spherical.__GRID_MAP__[mode],
+        super(Equirectangular, self).__init__(
+            mode=Equirectangular.__GRID_MAP__[mode],
             width=width, height=width // 2, depth=1,
             inclusive=inclusive,
-            order=Spherical.__ORDER_MAP__[order],
+            order=Equirectangular.__ORDER_MAP__[order],
+            persistent=persistent,
         )
-        scale = torch.Tensor([Spherical.__SCALE_MAP__[order][mode]])
+        scale = torch.Tensor([Equirectangular.__SCALE_MAP__[order][mode]])
         self.grid = self.grid * scale.unsqueeze(-1).unsqueeze(-1)
         if long_offset_pi != 0.0:
             dim = 0 if order.startswith('long') else 1

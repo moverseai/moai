@@ -1,0 +1,8 @@
+# @package data.val.iterator.datasets._name_
+
+_target_: moai.data.datasets.spherical.Pano3D
+root: ${Pano3D_root}
+part: M3D_low_filmic
+split: ${data.val.iterator.datasets.Pano3D.root}\splits\M3D_v1_test.yaml
+types: [color, depth]
+max_depth: 10.1
