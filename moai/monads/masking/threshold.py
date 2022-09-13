@@ -1,5 +1,6 @@
 import torch
 import logging
+import functools
 
 log = logging.getLogger(__name__)
 
@@ -28,3 +29,6 @@ class Threshold(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.cast_op(self.comp_op(x, self.threshold))
+
+LowerThan = functools.partial(Threshold, comparison='lower')
+HigherThan = functools.partial(Threshold, comparison='greater')

@@ -10,7 +10,7 @@ from moai.monads.geometry.rotate import Rotate
 from moai.monads.geometry.opengl import Camera as CameraOpenGL
 from moai.monads.geometry.stereo_depth import DepthFromStereo
 from moai.monads.geometry.deproject import Deprojection
-from moai.monads.geometry.get_uv import GetUV
+from moai.monads.geometry.normal_estimation2d import NormalEstimation2d
 
 __all__ = [
     "Projection",
@@ -23,5 +23,5 @@ __all__ = [
     'CameraOpenGL',
     "DepthFromStereo",
     "Deprojection",
-    "GetUV"
+    "NormalEstimation2d",
 ]

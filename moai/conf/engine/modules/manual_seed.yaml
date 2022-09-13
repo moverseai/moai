@@ -2,4 +2,4 @@
 
 _target_: moai.engine.modules.ManualSeed
 seed: 1337
-deterministic: true
+deterministic: true #TODO: this is not necessary since lightning handles it

@@ -87,3 +87,9 @@ BilinearSampling = functools.partial(Interpolate,
 NearestSampling = functools.partial(Interpolate,
     mode='nearest',
 )
+NearestUpsample_x2 = functools.partial(Interpolate, 
+    scale=2.0, mode='nearest'
+)
+BilinearUpsample_x2 = functools.partial(Interpolate,
+    scale=2.0, mode='bilinear'
+)
