@@ -1,0 +1,43 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: Pano3D_UNet
+  batch_size: 2
+  workers: 0
+
+engine:
+  modules:    
+    manual_seed:
+      seed: 1337
+      deterministic: false
+
+trainer:
+  gpus: [0]
+  max_epochs: 60
+  weights_summary: top
+  deterministic: false
+  checkpoint:
+    monitor: mixed
+    filename: '{epoch}-{mixed:.6f}'
+
+logging:
+  name: ${experiment.name}
+  loggers:
+    visdom:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      clear_window: False
+    tabular:
+      name: ${experiment.name}
+
+visualization:
+  batch_interval: 50
+  visualizers:
+    image2d:
+      name: ${experiment.name}
+      ip: ${experiment.visdom_ip}
+      image: [color, depth, depth_t_0]
+      type: [color, color, color]
+      colormap: [none, turbo, turbo]
+      transform: [none, minmax, minmax]

@@ -1,0 +1,9 @@
+# @package model.monads.equirectangular__name_
+
+_target_: moai.monads.generation.grid.equirectangular.EquirectangularGrid
+mode: pi # one of ['pi', 'tau']
+width: 512 # int, x coord dimension
+inclusive: false
+order: longlat # one of ['longlat', 'latlong']
+long_offset_pi: 0.0 # offset for longitude, relative to pi
+persistent: true

@@ -62,3 +62,14 @@ The examples found at [**conf/examples**](https://github.com/ai-in-motion/moai/t
 
 ## API
 The API documentation is currently a **work-in-progress**.
+
+## How-to extend moai with custom functionalities (external project)
+In the case one needs to create a project beyond the existing functionality of the framework, he/she can go beyond the standard configuration.
+Custom modules can be developed and integrated to the framework.
+
+To do so, the steps below should be followed:
+
+*  Create a folder where the custom code lives ({custom_project}).
+*  In this folder, create a configuration folder (e.g. '{custom_project}/conf'), to place the .yaml files of the new moduldes.
+*  Create a source folder (e.g. '{custom_project}/src'), to place the implementations of the new modules.
+*  

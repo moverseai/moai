@@ -125,6 +125,7 @@ class VariationalAutoencoder(minet.FeedForward):
                         )
                     ))))
             )
+            
     def decode(self,
         tensor: torch.Tensor
     ):

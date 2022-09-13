@@ -1,0 +1,10 @@
+# @package engine.modules._name_
+
+_target_: moai.engine.modules.clearml.ClearML
+project_name: ???
+task_name: ???
+uri: null
+tags: null
+connect_args: false
+connect_libs: false
+connect_res: true  

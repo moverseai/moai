@@ -104,7 +104,7 @@ class OpenPoseInferred(torch.utils.data.Dataset):
                     contour_keyps = np.array(person['face_keypoints_2d'], dtype=np.float32).reshape([-1, 3])[:17, :]
                 body = np.concatenate([body, face, contour_keyps], axis=0)
 
-            gender_pd.append(person.get('gender_pd', None))
+            gender_pd.append(person.get('gender_pd', None) or person.get('gender', None))
             gender_gt.append(person.get('gender_gt', None))
             keypoints.append(torch.from_numpy(body))
         return {

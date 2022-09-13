@@ -1,0 +1,26 @@
+# @package _global_
+
+model:
+  validation:
+    rmse:
+      gt: [depth]
+      pred: [depth_t_0]
+      weights: [mask]
+    rmsle:
+      gt: [depth]
+      pred: [depth_t_0]
+      weights: [mask]
+    absrel:
+      gt: [depth]
+      pred: [depth_t_0]
+      weights: [mask]
+    sqrel:
+      gt: [depth]
+      pred: [depth_t_0]
+      weights: [mask]
+    delta1:
+      gt: [depth]
+      pred: [depth_t_0]
+      weights: [mask]
+    indicators:
+      mixed: '(1.0 - [delta1]) * [rmse]'

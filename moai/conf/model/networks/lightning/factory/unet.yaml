@@ -1,0 +1,64 @@
+# @package model
+
+_target_: moai.networks.lightning.factory.UNet
+configuration:
+  block_features: [32, 64, 128, 256, 512]
+  
+  in_features: ???
+  out_features: ???
+  input: ???
+  output: ???
+
+  encoder:
+    blocks: [2, 2, 2, 2, 2]
+    convolution:
+      type: conv2d
+      params:
+        kernel_size: 3
+        stride: 1
+        padding: 1
+    activation: 
+      type: relu_bn2d
+      params:
+        inplace: true
+    downscale: 
+      type: maxpool2d_aa
+      # params:
+  bottleneck: 
+    blocks: 2
+    features: 1024
+    convolution:
+      type: conv2d
+      params:
+      kernel_size: 3
+      stride: 1
+      padding: 1
+    activation: 
+      type: relu_bn2d
+      params:
+        inplace: true
+  decoder:
+    convolution:
+      type: conv2d
+      params:
+        kernel_size: 3
+        stride: 1
+        padding: 1
+    activation: 
+      type: relu_bn2d
+      params:
+        inplace: true
+    upscale:
+      type: upsample2d
+      # params:
+  prediction:
+    convolution:
+      type: conv2d
+      params:
+        kernel_size: 1
+        stride: 0
+        padding: 0
+    activation: 
+      type: relu
+      params:
+        inplace: true

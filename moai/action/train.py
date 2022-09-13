@@ -13,10 +13,10 @@ def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any,typi
 
 def train(cfg):
     hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
+    with open("config.yaml", 'w') as f:
+        f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False))    
     with open("config_resolved.yaml", 'w') as f:
         f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=True, sort_keys=False))
-    with open("config.yaml", 'w') as f:
-        f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False))
     engine = hydra.utils.instantiate(cfg.engine)
     model = hydra.utils.instantiate(cfg.model,
         data=cfg.data,

@@ -4,6 +4,7 @@ from moai.networks.lightning.factory.vae import VariationalAutoencoder
 from moai.networks.lightning.factory.multibranch import MultiBranch
 from moai.networks.lightning.factory.hrnet import HRNet
 from moai.networks.lightning.factory.cascade import Cascade
+from moai.networks.lightning.factory.unet import UNet
 
 __all__ = [
     "Autoencoder",
@@ -11,5 +12,6 @@ __all__ = [
     "MultiBranch",
     "StackedHourglass",
     "VariationalAutoencoder",
-    "Cascade"
+    "Cascade",
+    "UNet",
 ]
