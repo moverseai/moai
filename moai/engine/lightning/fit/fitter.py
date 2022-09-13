@@ -1,4 +1,3 @@
-from cmath import isfinite
 import moai.log.lightning as milog
 
 import pytorch_lightning
