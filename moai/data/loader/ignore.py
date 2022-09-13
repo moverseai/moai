@@ -12,6 +12,7 @@ def _collate_fn(batch,ingore_keys):
             d_ = toolz.dicttoolz.dissoc(b,*ingore_keys)
             batch_.append(d_)
 
+    del batch
     return default_collate(batch_)
 
 class Ignore(torch.utils.data.DataLoader):

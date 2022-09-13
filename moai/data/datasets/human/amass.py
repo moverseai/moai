@@ -22,7 +22,8 @@ class AMASS(torch.utils.data.Dataset):
         smplx_root:         str='',
         device:            list=[-1],
         parts:              typing.Union[typing.List[str], str]='**',
-        downsample_factor:  int=1,      
+        downsample_factor:  int=1,
+        reconstruct:        bool=False,      
     ) -> None:
         super().__init__()
         assert_path(log, 'AMASS data root path', data_root)
@@ -55,8 +56,8 @@ class AMASS(torch.utils.data.Dataset):
                     }
                     del data
         self.frame_keys = list(self.items.keys())
-        self.reconstruct = False
-        if smplx_root:
+        self.reconstruct = reconstruct
+        if self.reconstruct:
             with torch.no_grad():
                 smplx_create = functools.partial(smplx.create, 
                     model_path=smplx_root, model_type='smplx',
@@ -77,7 +78,6 @@ class AMASS(torch.utils.data.Dataset):
                 del smplx_create
             for v in self.bodies.values():
                 v.requires_grad_(False)
-            self.reconstruct = True
         log.info(f"Loaded {len(self)} AMASS samples.")
 
     def __len__(self) -> int:
@@ -111,7 +111,8 @@ class AMASS(torch.utils.data.Dataset):
                     'left_eye_pose': leye[frame].float().clone(), # 3
                     'right_eye_pose': reye[frame].float().clone(), # 3
                 },
-            }
+            },
+            '__moai__': type(self).__name__
         }
         if self.reconstruct:
             body = self.bodies[gender].forward(
@@ -130,6 +131,6 @@ class AMASS(torch.utils.data.Dataset):
                     'vertices': body.vertices[0].cpu(),                
                     'faces': self.bodies[gender].faces_tensor.cpu(),
                     },
-                'joints': body.joints.cpu(),
+                'joints': body.joints[0].cpu(),
             })
         return out
