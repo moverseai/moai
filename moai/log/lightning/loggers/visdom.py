@@ -125,7 +125,7 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
                     env=self.name,
                     name=k,
                     opts={
-                        'linecolor': np.array([self.colors[2 + i]]), # second color and on
+                        'linecolor': np.array([self.colors[(2 + i) % (len(self.colors))]]), # second color and on
                         'legend': [k for k in losses.keys()],
                         'title': self.keys['loss_plots'],
                         'xlabel': 'steps',
@@ -155,7 +155,7 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
                     env=self.name,
                     name=key,
                     opts={
-                        'linecolor': np.array([self.colors[2 + i]]), # second color and on
+                        'linecolor': np.array([self.colors[(2 + i) % (len(self.colors))]]), # second color and on
                         'legend': [k for k in metrics.keys() if k == key],
                         'title': key,
                         'xlabel':'steps',
@@ -188,7 +188,7 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
                     name='val_' + self.keys['epoch'],
                     opts={
                         'markers': True,
-                        'linecolor': np.array([self.colors[2 + i]])
+                        'linecolor': np.array([self.colors[(2 + i) % (len(self.colors))]])
                     }
                 )
 

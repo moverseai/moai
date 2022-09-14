@@ -11,7 +11,6 @@ import typing
 import logging
 import tqdm
 import smplx
-from methodtools import lru_cache
 import orjson
 
 log = logging.getLogger(__name__)
