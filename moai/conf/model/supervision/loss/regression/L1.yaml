@@ -2,3 +2,4 @@
 
 _target_: moai.supervision.losses.regression.L1
 mode: raw # one of [raw, ln, log]
+bias: 0.0

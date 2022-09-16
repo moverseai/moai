@@ -1,4 +1,3 @@
-from sys import maxsize
 from moai.utils.arguments import assert_path
 
 import functools
@@ -101,7 +100,6 @@ class Fit3D(torch.utils.data.Dataset):
             data = orjson.loads(f.read())
         return data
 
-    
     def __len__(self) -> int:
         return len(self.data['betas'])
 
