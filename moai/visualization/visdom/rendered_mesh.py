@@ -31,11 +31,13 @@ class RenderedMesh(Image2d):
         name:               str="default",
         ip:                 str="http://localhost",
         port:               int=8097,
+        jpeg_quality:       int=75,
     ):
         super(RenderedMesh, self).__init__(
             image=image, name=name, ip=ip, port=port,
             type=list(itertools.repeat('color', len([vertices] if isinstance(vertices, str) else vertices))),
             transform=transform, batch_percentage=batch_percentage, colormap=colormap,
+            jpeg_quality=jpeg_quality
         )
         self.focal_length = (float(focal_length), float(focal_length)) \
             if isinstance(focal_length, float) or isinstance(focal_length, int) else focal_length

@@ -28,6 +28,7 @@ class Gizmo2d(Base):
         ip:             str="http://localhost",
         port:           int=8097,
         reverse_coords: bool=False,
+        jpeg_quality:       int=70,
     ):
         super(Gizmo2d, self).__init__(name, ip, port)
         self.images = ensure_string_list(images)
@@ -42,18 +43,18 @@ class Gizmo2d(Base):
         self.reverse = reverse_coords
         self.gizmo_render = {
             'marker_circle': functools.partial(self.__draw_markers, 
-                self.visualizer, marker=-1),
+                self.visualizer, marker=-1, jpeg_quality=jpeg_quality),
             'marker_diamond': functools.partial(self.__draw_markers, 
-                self.visualizer, marker=cv2.MARKER_DIAMOND),
+                self.visualizer, marker=cv2.MARKER_DIAMOND, jpeg_quality=jpeg_quality),
             'marker_star': functools.partial(self.__draw_markers, 
-                self.visualizer, marker=cv2.MARKER_STAR),
+                self.visualizer, marker=cv2.MARKER_STAR, jpeg_quality=jpeg_quality),
             'marker_cross': functools.partial(self.__draw_markers, 
-                self.visualizer, marker=cv2.MARKER_CROSS),
+                self.visualizer, marker=cv2.MARKER_CROSS, jpeg_quality=jpeg_quality),
             'marker_square': functools.partial(self.__draw_markers, 
-                self.visualizer, marker=cv2.MARKER_SQUARE),
-            'bbox2d': functools.partial(self.__draw_2dbox, self.visualizer),
-            'bbox3d': functools.partial(self.__draw_3dbox, self.visualizer),
-            'axes': functools.partial(self.__draw_axes, self.visualizer),
+                self.visualizer, marker=cv2.MARKER_SQUARE, jpeg_quality=jpeg_quality),
+            'bbox2d': functools.partial(self.__draw_2dbox, self.visualizer, jpeg_quality=jpeg_quality),
+            'bbox3d': functools.partial(self.__draw_3dbox, self.visualizer, jpeg_quality=jpeg_quality),
+            'axes': functools.partial(self.__draw_axes, self.visualizer, jpeg_quality=jpeg_quality),
             #TODO: axes to only receive a scale parameter and have the axis points hardcoded here
         }
         self.xforms = { #TODO: extract these into a common module
@@ -217,7 +218,8 @@ class Gizmo2d(Base):
         coord:              str,
         key:                str,
         win:                str,
-        env:                str
+        env:                str,
+        jpeg_quality:       int=50,
     ) -> None:
         b , c , h , w = images.size()
         imgs = np.zeros(images.shape, dtype=np.uint8)
@@ -262,7 +264,7 @@ class Gizmo2d(Base):
             opts={
                 'title': key,
                 'caption': key,
-                'jpgquality': 50,
+                'jpgquality': jpeg_quality,
             }
         ) 
     
@@ -279,6 +281,7 @@ class Gizmo2d(Base):
         win:                str,
         env:                str,
         marker:             int,
+        jpeg_quality:       int=50,
     ):
         imgs = np.zeros([images.shape[0], 3, images.shape[2], images.shape[3]], dtype=np.uint8)
         gt_coords = gt_coordinates.cpu()
@@ -319,6 +322,6 @@ class Gizmo2d(Base):
             opts={
                 'title': key,
                 'caption': key,
-                'jpgquality': 100,
+                'jpgquality': jpeg_quality,
             }
         )

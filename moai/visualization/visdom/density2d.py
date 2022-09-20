@@ -1,8 +1,6 @@
 from moai.visualization.visdom.base import Base
-from moai.utils.arguments import assert_numeric
 from moai.monads.execution.cascade import _create_accessor
 
-from matplotlib import pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 

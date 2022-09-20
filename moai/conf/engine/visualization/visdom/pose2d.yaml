@@ -17,3 +17,4 @@ color_pred: orange
 reverse_coords: false
 scale: 1.0
 use_mask: true
+jpeg_quality: 50

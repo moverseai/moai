@@ -38,6 +38,7 @@ class Pose2d(Base):
         transparency:   float=0.4,
         scale:          float=1.0,
         use_mask:       bool=True,
+        jpeg_quality:       int=50,
     ):
         super(Pose2d, self).__init__(name, ip, port)
         self.images = ensure_string_list(images)
@@ -59,7 +60,7 @@ class Pose2d(Base):
             'human_pose2d': functools.partial(self.__draw_human_pose2d, 
                 self.visualizer, marker=cv2.MARKER_DIAMOND, 
                 rotate=self.rotate, transparency=self.transparency,
-                scale=self.scale
+                scale=self.scale, jpeg_quality=jpeg_quality
             ),
         }
         self.xforms = { #TODO: extract these into a common module
@@ -121,6 +122,7 @@ class Pose2d(Base):
         rotate:             bool,
         transparency:       float,
         scale:              float,
+        jpeg_quality:       int=50,
     ):
         b, _, h, w = images.shape
         imgs = np.zeros([b, 3, int(scale * h), int(scale * w)], dtype=np.uint8) if not rotate \
@@ -196,6 +198,6 @@ class Pose2d(Base):
             opts={
                 'title': key,
                 'caption': key,
-                'jpgquality': 50,
+                'jpgquality': jpeg_quality,
             }
         )

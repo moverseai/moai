@@ -51,7 +51,7 @@ def _init_task(
             deferred_init=False,
         )
         if tags:
-            __CLEARML_TASK__.add_tags(tags)
+            __CLEARML_TASK__.add_tags(list(tags))
         __CLEARML_TASK__.connect_configuration("config_resolved.yaml", name='hydra')
     return __CLEARML_TASK__
 

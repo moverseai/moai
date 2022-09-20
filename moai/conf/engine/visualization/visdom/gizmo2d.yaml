@@ -11,3 +11,4 @@ coords: [ndc] # one of [ndc, coord, norm]
 color_gt: cyan
 color_pred: orange
 reverse_coords: false
+jpeg_quality: 75
