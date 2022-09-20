@@ -15,3 +15,4 @@ batch_percentage: 1.0
 focal_length: 5000.0
 principal_point: null
 scale: 1.0
+jpeg_quality: 75

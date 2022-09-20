@@ -1,4 +1,4 @@
-from moai.utils.color.colorize import get_colormap, COLORMAPS
+from moai.utils.color.colorize import COLORMAPS
 from moai.visualization.visdom.base import Base
 from moai.monads.execution.cascade import _create_accessor
 
@@ -24,8 +24,10 @@ class Blend2d(Base):
         name:           str="default",
         ip:             str="http://localhost",
         port:           int=8097,   
+        jpeg_quality:       int=50,
     ):
-        super(Blend2d, self).__init__(name, ip, port)                
+        super(Blend2d, self).__init__(name, ip, port)
+        self.jpeg_quality = jpeg_quality
         self.left = [left] if type(left) is str else list(left)
         self.right = [right] if type(right) is str else list(right)
         self.names = [f"{l}_{r}" for l, r in zip(self.left, self.right)]
@@ -63,7 +65,7 @@ class Blend2d(Base):
                     left * b + (1.0 - b) * self.colorize_map[c](
                         # self.transform_map[t](tensors[r])), n, n, self.name,
                         self.transform_map[t](r(tensors))), n, n, self.name,
-                    self.scale
+                    self.scale, jpeg_quality=self.jpeg_quality
                 )
 
     @staticmethod
@@ -74,6 +76,7 @@ class Blend2d(Base):
         win:    str,
         env:    str,
         scale:  float,
+        jpeg_quality:   int=50,
     ) -> None:
         if scale != 1.0:
             array = torch.nn.functional.interpolate(
@@ -87,7 +90,7 @@ class Blend2d(Base):
             opts={
                 'title': key,
                 'caption': key,
-                'jpgquality': 50,
+                'jpgquality': jpeg_quality,
             }
         )
 

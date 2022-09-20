@@ -2,6 +2,7 @@ from moai.utils.arguments import (
     ensure_numeric_list,
     ensure_string_list,
 )
+from collections import OrderedDict
 
 import torch
 import hydra.utils as hyu
@@ -30,7 +31,7 @@ class Weighted(torch.nn.ModuleDict):
         **kwargs: typing.Mapping[str, typing.Any]
     ):
         super(Weighted, self).__init__()
-        self.execs, self.weights, self.reductions = [], [], []
+        self.execs, self.weights, self.reductions = [], OrderedDict(), [] # [], []
         if not len(losses):
             log.warning("A weighted combination of losses is being used for supervising the model, but no losses have been assigned.")
         loop = ((key, params) for key, params in kwargs.items() if key in losses)
@@ -75,7 +76,8 @@ class Weighted(torch.nn.ModuleDict):
                     })
                 )
                 self.keyz.append(keys[-1])
-                self.weights.append(next(wgts)) #TODO: error if no weight has been set? or implicit 1.0 ?
+                # self.weights.append(next(wgts)) #TODO: error if no weight has been set? or implicit 1.0 ?
+                self.weights[keys[-1]] = next(wgts)
                 self.reductions.append(next(reduction))
             
     def forward(self,
@@ -86,7 +88,8 @@ class Weighted(torch.nn.ModuleDict):
         )).device
         error = torch.tensor(0.0, dtype=torch.float32, device=device)
         per_error_map = { }
-        for exe, w, k, r in zip(self.execs, self.weights, self.keyz, self.reductions):
+        # for exe, w, k, r in zip(self.execs, self.weights, self.keyz, self.reductions):
+        for exe, (_, w), k, r in zip(self.execs, self.weights.items(), self.keyz, self.reductions):
             exe(tensors)
             # e = w * (torch.sum(tensors[k]) if r == 'sum' else torch.mean(tensors[k]))
             e = w * __REDUCTIONS__[r](tensors[k])

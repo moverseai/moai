@@ -19,6 +19,7 @@ class Scalar(torch.nn.Module):
     ):
         super(Scalar, self).__init__()
         self.value = value
+        #TODO: make it a scalar buffer
     
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return torch.scalar_tensor(self.value,
