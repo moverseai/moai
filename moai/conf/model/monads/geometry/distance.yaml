@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.supervision.losses.regression.Distance
+mode: default
+order: 2.0
+dim: -1
