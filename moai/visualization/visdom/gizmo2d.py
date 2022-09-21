@@ -69,7 +69,10 @@ class Gizmo2d(Base):
     def name(self) -> str:
         return self.env_name
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         for img, gzm, gt, pred, gt_c, pred_c, coord in zip(
             self.images, self.gizmos, self.gt, self.pred,
             self.color_gt, self.color_pred, self.coords

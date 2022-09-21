@@ -44,7 +44,10 @@ class Image_grid2d(Base):
     def name(self) -> str:
         return self.env_name
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         _, _, ch, w, h = tensors.shape
         for t, tf, c in zip(self.types, self.transforms, self.colormaps):
             self.viz_map[t](

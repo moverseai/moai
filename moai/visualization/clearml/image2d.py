@@ -1,9 +1,9 @@
-from moai.visualization.visdom.base import Base
-from moai.utils.color.colorize import get_colormap, COLORMAPS
+from moai.engine.modules.clearml import _get_logger
+from moai.utils.color.colorize import COLORMAPS
 from moai.utils.arguments import assert_numeric
 
 import torch
-import visdom
+import clearml
 import functools
 import typing
 import logging
@@ -14,19 +14,20 @@ log = logging.getLogger(__name__)
 
 __all__ = ["Image2d"]
 
-class Image2d(Base):
+class Image2d(object):
     def __init__(self,
-        image:             typing.Union[str, typing.Sequence[str]],
-        type:              typing.Union[str, typing.Sequence[str]],
-        colormap:          typing.Union[str, typing.Sequence[str]],
-        transform:         typing.Union[str, typing.Sequence[str]],
-        batch_percentage:   float=1.0,
-        name:               str="default",
-        ip:                 str="http://localhost",
-        port:               int=8097,
-        jpeg_quality:       int=50,
-    ):
-        super(Image2d, self).__init__(name, ip, port)
+        project_name:       str,
+        task_name:          str,
+        image:              typing.Union[str, typing.Sequence[str]],
+        type:               typing.Union[str, typing.Sequence[str]],
+        colormap:           typing.Union[str, typing.Sequence[str]],
+        transform:          typing.Union[str, typing.Sequence[str]],
+        uri:                typing.Optional[str]=None,
+        tags:               typing.Optional[typing.Union[str, typing.Sequence[str]]]=None,        
+        batch_percentage:   float=1.0,        
+        max_history:        int=50,
+    ):        
+        self.logger = _get_logger(project_name, task_name, uri, tags)
         self.keys = [image] if isinstance(image, str) else list(image)
         self.types = [type] if isinstance(type, str) else list(type)
         self.transforms = [transform] if isinstance(transform, str) else list(transform)
@@ -34,8 +35,8 @@ class Image2d(Base):
         self.batch_percentage = batch_percentage
         assert_numeric(log, 'batch percentage', batch_percentage, 0.0, 1.0)
         self.viz_map = {
-            'color': functools.partial(self._viz_color, self.visualizer, jpeg_quality=jpeg_quality),
-            'heatmap': functools.partial(self._viz_heatmap, self.visualizer),
+            'color': functools.partial(self._viz_color, self.logger, max_history=max_history),
+            'heatmap': functools.partial(self._viz_heatmap, self.logger),
         }
         self.transform_map = {
             'none': functools.partial(self._passthrough),            
@@ -43,8 +44,9 @@ class Image2d(Base):
             'ndc': functools.partial(self._ndc_to_one),
             'dataset': functools.partial(self._dataset_normalization),
         }
-        self.colorize_map = { "none": lambda x: x }
+        self.colorize_map = { "none": lambda x: x.detach().cpu().numpy() }
         self.colorize_map.update(COLORMAPS)
+        self.env_name = project_name
 
     @property
     def name(self) -> str:
@@ -59,34 +61,38 @@ class Image2d(Base):
                 self.colorize_map[c](
                     self.transform_map[tf](
                         tensors, k, int(math.ceil(self.batch_percentage * tensors[k].shape[0])),
-                        # tensors[k][:int(self.batch_percentage * tensors[k].shape[0])]
                     )
-                ), k, k, self.name
+                ), k, step, self.name
             )
 
     @staticmethod
     def _viz_color(
-        visdom:         visdom.Visdom,
+        logger:         clearml.Logger,
         array:          np.ndarray,
         key:            str,
-        win:            str,
+        step:           int,
         env:            str,
-        jpeg_quality:   int=50,
+        max_history:    int=50,
     ) -> None:
-        visdom.images(
-            array,
-            win=win,
-            env=env,
-            opts={
-                'title': key,
-                'caption': key,
-                'jpgquality': jpeg_quality,
-            }
-        )
+        for i, img in enumerate(array):
+            logger.report_image(
+                title=env, series=f"{key}_{i}", iteration=step, 
+                image=img.transpose(1, 2, 0), max_image_history=max_history
+            )
+        # visdom.images(
+        #     array,
+        #     win=win,
+        #     env=env,
+        #     opts={
+        #         'title': key,
+        #         'caption': key,
+        #         'jpgquality': jpeg_quality,
+        #     }
+        # )
 
     @staticmethod
     def _viz_heatmap(
-        visdom: visdom.Visdom,
+        logger:         clearml.Logger,
         tensor: torch.Tensor,
         key: str,
         win: str,
@@ -100,7 +106,7 @@ class Image2d(Base):
                 'title': key + "_" + str(i),
                 'colormap': 'Viridis'
             })
-            visdom.heatmap(heatmaps[i, :, :, :].squeeze(), opts=opts, win=win + str(i))
+            # visdom.heatmap(heatmaps[i, :, :, :].squeeze(), opts=opts, win=win + str(i))        
 
     @staticmethod #TODO: refactor these into a common module
     def _passthrough(

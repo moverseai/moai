@@ -14,8 +14,7 @@ class Passthrough(torch.nn.Module):
     ):
         super(Passthrough, self).__init__()
         assert_choices(log, "mode", mode, Passthrough.__MODES__)
-        self.fwd_func = lambda t: t if mode == 'minimize'\
-            else lambda t: -t
+        self.fwd_func = (lambda t: t) if mode == 'minimize' else (lambda t: -t)
 
     def forward(self, error: torch.Tensor) -> torch.Tensor:
         return self.fwd_func(error)

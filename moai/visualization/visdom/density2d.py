@@ -41,7 +41,10 @@ class Density2d(Base, pytorch_lightning.Callback):
     def name(self) -> str:
         return self.env_name
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         for n, k in zip(self.names, self.keys):
             self.cache[n] = k(tensors)
             

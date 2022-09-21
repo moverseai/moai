@@ -1,0 +1,13 @@
+# @package visualization.visualizers._name_
+
+_target_: moai.visualization.clearml.Image2d
+project_name: ${engine.modules.clearml.project_name}
+task_name: ${engine.modules.clearml.task_name}
+tags: ${engine.modules.clearml.tags}
+uri: ${engine.modules.clearml.uri}
+batch_percentage: 1.0
+image: [color]
+type: [color]
+colormap: [none]
+transform: [none]
+max_history: 50

@@ -42,7 +42,10 @@ class Feature2d(Base):
     def name(self) -> str:
         return self.env_name
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         for k, t, tf, c in zip(self.images, self.types, self.transforms, self.colormaps):
             if not k:
                 continue

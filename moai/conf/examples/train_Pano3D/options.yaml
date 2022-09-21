@@ -17,9 +17,9 @@ trainer:
   max_epochs: 60
   weights_summary: top
   deterministic: false
-  checkpoint:
-    monitor: mixed
-    filename: '{epoch}-{mixed:.6f}'
+  # checkpoint:
+  #   monitor: mixed
+  #   filename: '{epoch}-{mixed:.6f}'
 
 logging:
   name: ${experiment.name}
@@ -32,12 +32,17 @@ logging:
       name: ${experiment.name}
 
 visualization:
-  batch_interval: 50
+  batch_interval: 5
   visualizers:
-    image2d:
+    image2d: # visdom
       name: ${experiment.name}
       ip: ${experiment.visdom_ip}
       image: [color, depth, depth_t_0]
       type: [color, color, color]
       colormap: [none, turbo, turbo]
       transform: [none, minmax, minmax]
+    # image2d: # clearml      
+    #   image: [color, depth, depth_t_0]
+    #   type: [color, color, color]
+    #   colormap: [none, turbo, turbo]
+    #   transform: [none, minmax, minmax]

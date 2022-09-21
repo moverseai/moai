@@ -28,6 +28,9 @@ class Collection(Callable): #TODO: inherit from UserList as well, need to update
     def items(self) -> typing.Iterable[typing.Any]:
         return getattr(self, self.name)
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:        
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,
+    ) -> None:        
         for item in self.items():
-            item(tensors)
+            item(tensors, step)

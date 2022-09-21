@@ -55,7 +55,10 @@ class Blend2d(Base):
     def name(self) -> str:
         return self.env_name
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         for n, l, r, b, t, c in zip(self.names, self.left, self.right, self.blending, 
             self.transforms, self.colormaps):
                 # n = l + "_" + r

@@ -76,7 +76,10 @@ class Pose2d(Base):
     def name(self) -> str:
         return self.env_name
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None    
+    ) -> None:
         for img, poses, gt, pred, gt_masks, pred_masks, pose_struct, gt_c, pred_c, coord in zip(
             self.images, self.poses, self.gt, self.pred, self.gt_masks, self.pred_masks,  [self.pose_structure, ] * len(self.pred),
             self.color_gt, self.color_pred, self.coords

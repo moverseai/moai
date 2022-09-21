@@ -11,13 +11,14 @@ defaults:
   
   - engine/visualization: collection
   - engine/visualization/visdom: image2d
+  # - engine/visualization/clearml: image2d
 
   - engine/log/lightning: collection
   - engine/log/lightning/logger: visdom
   - engine/log/lightning/logger: tabular
-  # - engine/log/lightning/logger: clearml
+  - engine/log/lightning/logger: clearml
 
-  - engine/checkpoint/lightning: default
+  # - engine/checkpoint/lightning: default
 
   # ###### DATA  
   - data/train/loader: torch    

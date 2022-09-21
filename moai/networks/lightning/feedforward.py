@@ -173,7 +173,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         train_outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]
     ) -> None:
         if self.global_step and (self.global_step % self.visualization.interval == 0):
-            self.visualization(train_outputs['tensors'])
+            self.visualization(train_outputs['tensors'], self.global_step)
         if self.global_step and (self.global_step % self.exporter.interval == 0):
             self.exporter(train_outputs['tensors'])
         return train_outputs['loss']
@@ -228,7 +228,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         if self.global_test_step and (self.global_test_step % self.exporter.interval == 0):
             self.exporter(tensors)
         if self.global_test_step and (self.global_test_step % self.visualization.interval == 0):
-            self.visualization(tensors)
+            self.visualization(tensors, self.global_test_step)
         return metrics
 
     def test_epoch_end(self, 
