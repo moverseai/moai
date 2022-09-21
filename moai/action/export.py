@@ -36,7 +36,6 @@ class TraceWrapper(pl.LightningModule):
     def forward(self,
         x: typing.Dict[str, torch.Tensor],
     ) -> typing.Dict[str, torch.Tensor]:
-        #do something
         for module in self.exported_module_names:
             try:
                 m = get_submodule(self, module) if module != "model" \

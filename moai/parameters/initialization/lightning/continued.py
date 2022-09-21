@@ -48,8 +48,11 @@ class Continued(Callback):
         elif trainer.amp_backend == AMPType.APEX and 'amp_scaling_state' in checkpoint:
             amp.load_state_dict(checkpoint['amp_scaling_state'])
 
-        trainer.global_step = checkpoint['global_step']
-        trainer.current_epoch = checkpoint['epoch']
+        trainer.model.load_state_dict(checkpoint['state_dict'], strict=True)
+        trainer.fit_loop.global_step = checkpoint['global_step']
+        trainer.fit_loop.current_epoch = checkpoint['epoch']
+        #trainer.global_step = checkpoint['global_step']
+        #trainer.current_epoch = checkpoint['epoch']
 
         # crash if max_epochs is lower then the current epoch from the checkpoint
         if trainer.current_epoch > trainer.max_epochs:
@@ -82,6 +85,8 @@ class Continued(Callback):
                     for k, v in state.items():
                         if isinstance(v, torch.Tensor):
                             state[k] = v.cuda(trainer.root_gpu)
+            optimizer.param_groups[0]['capturable'] = True #TODO: bug, https://github.com/pytorch/pytorch/issues/80809
+
 
         # restore the lr schedulers
         lr_schedulers = checkpoint['lr_schedulers']
