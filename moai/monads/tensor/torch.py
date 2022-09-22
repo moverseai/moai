@@ -92,7 +92,7 @@ class Flatten(torch.nn.Module):
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return self.flatten(tensor)
-5
+
 class ReshapeAs(torch.nn.Module):
     def __init__(self):
         super(ReshapeAs, self).__init__()

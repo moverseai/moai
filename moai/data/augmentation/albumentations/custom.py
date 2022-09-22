@@ -58,8 +58,8 @@ class Custom(torch.utils.data.Dataset):
                 for kk, oo in zip(k, o):
                     if augmented[kk] is not None:
                         #item[oo] = torch.from_numpy(augmented[kk])
-                        item[oo] = torch.from_numpy(augmented[kk]) if isinstance(augmented[kk],np.ndarray) \
-                            else augmented[kk]
+                        item[oo] = torch.from_numpy(augmented[kk])\
+                            if isinstance(augmented[kk], np.ndarray) else augmented[kk]
                         # item[oo] = augmented[kk] if isinstance(augmented[kk],dict) else \
                         #     torch.from_numpy(augmented[kk])
         return item

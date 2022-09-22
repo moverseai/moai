@@ -1,6 +1,5 @@
 from moai.visualization.visdom.base import Base
-from moai.utils.color.colorize import get_colormap, COLORMAPS
-from moai.utils.arguments import assert_numeric
+from moai.utils.color.colorize import COLORMAPS
 from torchvision.utils import make_grid
 
 import torch
@@ -22,7 +21,8 @@ class Image_grid2d(Base):
         transforms:     typing.Union[str, typing.Sequence[str]],
         name:           str="default",
         ip:             str="http://localhost",
-        port:           int=8097,   
+        port:           int=8097,
+        jpeg_quality:       int=50,
     ):
         super(Image_grid2d, self).__init__(name, ip, port)
         self.keys = [keys] if type(keys) is str else list(keys)
@@ -30,7 +30,7 @@ class Image_grid2d(Base):
         self.transforms = [transforms] if type(transforms) is str else list(transforms)
         self.colormaps = [colormaps] if type(colormaps) is str else list(colormaps)
         self.viz_map = {
-            'color_grid': functools.partial(self.__viz_color, self.visualizer)
+            'color_grid': functools.partial(self.__viz_color, self.visualizer, jpeg_quality=jpeg_quality)
         }
         self.transform_map = {
             'none': functools.partial(self.__no_transform),
@@ -44,7 +44,10 @@ class Image_grid2d(Base):
     def name(self) -> str:
         return self.env_name
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         _, _, ch, w, h = tensors.shape
         for t, tf, c in zip(self.types, self.transforms, self.colormaps):
             self.viz_map[t](
@@ -61,7 +64,8 @@ class Image_grid2d(Base):
         tensor: torch.Tensor,
         key: str,
         win: str,
-        env: str
+        env: str,
+        jpeg_quality:   int=50,
     ) -> None:
         visdom.images(
             tensor,
@@ -70,7 +74,7 @@ class Image_grid2d(Base):
             opts={
                 'title': key,
                 'caption': key,
-                'jpgquality': 50,
+                'jpgquality': jpeg_quality,
             }
         )
 

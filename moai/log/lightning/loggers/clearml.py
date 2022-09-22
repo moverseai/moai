@@ -42,9 +42,9 @@ class ClearML(pytorch_lightning.loggers.base.LightningLoggerBase):
         e = int(metrics['epoch'])
         if train_metrics:            
             loss = float(metrics['total_loss'])
-            self.logger.report_scalar('train', 'loss', loss, e)
+            self.logger.report_scalar('train', 'loss', loss, step)
             for k, v in train_metrics.items():
-                self.logger.report_scalar('train', k, v, e)
+                self.logger.report_scalar('train', k, v, step)
         elif test_metrics:
             return #TODO: test case 
         if val_metrics:            

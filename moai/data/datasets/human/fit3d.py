@@ -1,4 +1,3 @@
-from sys import maxsize
 from moai.utils.arguments import assert_path
 
 import functools
@@ -11,7 +10,6 @@ import typing
 import logging
 import tqdm
 import smplx
-from methodtools import lru_cache
 import orjson
 
 log = logging.getLogger(__name__)
@@ -102,7 +100,6 @@ class Fit3D(torch.utils.data.Dataset):
             data = orjson.loads(f.read())
         return data
 
-    
     def __len__(self) -> int:
         return len(self.data['betas'])
 

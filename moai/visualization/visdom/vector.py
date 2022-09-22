@@ -35,7 +35,10 @@ class Vector(Base):
     def name(self) -> str:
         return self.env_name
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         for v, t in zip(
             self.vector, self.types
         ):

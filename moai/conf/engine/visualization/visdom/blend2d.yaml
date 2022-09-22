@@ -9,3 +9,4 @@ blending: ??? # float
 colormap: ???
 transform: ???
 scale: 1.0
+jpeg_quality: 50

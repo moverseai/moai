@@ -1,5 +1,4 @@
 from pytorch_lightning.callbacks import Callback
-import omegaconf.omegaconf
 import numpy as np
 import logging
 import torch

@@ -9,6 +9,7 @@ __all__ = [
     'LReLu_BN',
     'BN2d_LReLu',
     'LReLu_BN2d',
+    'LReLu_Drop',
     'Normalize',
     'LReLu_BN_Drop',
     'LReLu_BN2d_Drop2d',
@@ -95,6 +96,19 @@ class LReLu_BN_Drop(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.dropout(self.bn(self.activation(x)))
+
+class LReLu_Drop(torch.nn.Module):
+    def __init__(self,
+        inplace: bool=True,
+        negative_slope:  float=0.01,
+        p:  float=0.1,
+    ):
+        super(LReLu_BN_Drop, self).__init__()
+        self.activation = torch.nn.LeakyReLU(negative_slope=negative_slope, inplace=inplace)
+        self.dropout = torch.nn.Dropout(p=p)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.dropout(self.activation(x))
 
 class BN2d_LReLu(torch.nn.Module):
     def __init__(self,

@@ -28,5 +28,8 @@ class Base(Callable):
         )
         return self.viz
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         raise NotImplementedError()

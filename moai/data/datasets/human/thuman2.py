@@ -1,4 +1,5 @@
 from moai.utils.arguments import assert_path
+from scipy.spatial.transform import Rotation as R
 
 import pickle
 import toolz
@@ -10,8 +11,6 @@ import typing
 import logging
 import tqdm
 import smplx
-from scipy.spatial.transform import Rotation as R
-
 
 log = logging.getLogger(__name__)
 

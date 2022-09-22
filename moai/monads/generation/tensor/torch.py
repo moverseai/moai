@@ -1,7 +1,7 @@
 import torch
 import typing
+import numpy as np
 import omegaconf.omegaconf
-import functools
 
 __all__ = [
     "Scalar",
@@ -19,12 +19,25 @@ class Scalar(torch.nn.Module):
     ):
         super(Scalar, self).__init__()
         self.value = value
+        #TODO: make it a scalar buffer
     
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return torch.scalar_tensor(self.value,
             dtype=tensor.dtype, device=tensor.device
         )
-torch.distributions.Normal
+
+class Vector(torch.nn.Module):
+    def __init__(self,
+        shape:      typing.Tuple[int],
+        values:     typing.Sequence[float],
+    ) -> None:
+        super(Vector, self).__init__()
+        self.register_buffer('vector', torch.from_numpy(np.array(values, dtype=np.float32)).reshape(tuple(shape)))
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        b = tensor.shape[0]
+        return self.vector.expand(b, *self.vector.shape)
+
 class Random(torch.nn.Module):
     __RANDOMS__ = {
         'unit': torch.rand,

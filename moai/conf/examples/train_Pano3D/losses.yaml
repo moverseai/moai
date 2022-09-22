@@ -6,7 +6,9 @@ model:
       berhu:
         threshold: 1.0
         adaptive: true
-        image_wide: false    
+        image_wide: false
+      L1:
+        bias: 1.0
     L1:    
       gt: [depth]
       pred: [depth_t_0]

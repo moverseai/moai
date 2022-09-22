@@ -1,5 +1,5 @@
 from moai.visualization.visdom.base import Base
-from moai.utils.color.colorize import get_colormap, COLORMAPS
+from moai.utils.color.colorize import COLORMAPS
 
 import torch
 import visdom
@@ -20,6 +20,7 @@ class Feature2d(Base):
         name:           str="default",
         ip:             str="http://localhost",
         port:           int=8097,   
+        jpeg_quality:       int=50,
     ):
         super(Feature2d, self).__init__(name, ip, port)
         self.images = [image] if isinstance(image, str) else list(image)
@@ -27,7 +28,7 @@ class Feature2d(Base):
         self.transforms = [transform] if isinstance(transform, str) else list(transform)
         self.colormaps = [colormap] if isinstance(colormap, str) is str else list(colormap)
         self.viz_map = {
-            'color': functools.partial(self.__viz_color, self.visualizer),
+            'color': functools.partial(self.__viz_color, self.visualizer, jpeg_quality=jpeg_quality),
             'heatmap': functools.partial(self.__viz_heatmap, self.visualizer),
         }
         self.transform_map = {
@@ -41,7 +42,10 @@ class Feature2d(Base):
     def name(self) -> str:
         return self.env_name
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None
+    ) -> None:
         for k, t, tf, c in zip(self.images, self.types, self.transforms, self.colormaps):
             if not k:
                 continue
@@ -62,7 +66,8 @@ class Feature2d(Base):
         tensor: torch.Tensor,
         key: str,
         win: str,
-        env: str
+        env: str,
+        jpeg_quality:   int=50,
     ) -> None:
         visdom.images(
             tensor,

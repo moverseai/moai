@@ -54,6 +54,11 @@ class VariationalAutoencoder(minet.FeedForward):
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
         self.enc_fwds, self.dec_fwds, self.rep_fwds = [], [], []
+        hparams = {}
+        hparams[f"configuration"] = configuration 
+        hparams[f"io"] = io 
+        hparams[f"modules"] = modules 
+        self.hparams.update(hparams)
 
         params = inspect.signature(self.encoder.forward).parameters
         enc_in = list(zip(*[mirtp.force_list(io.encoder[prop]) for prop in params]))
@@ -188,20 +193,3 @@ class Reparametrizer(torch.nn.Module):
         z_reshaped = z.reshape_as(features)
 
         return z_reshaped, mu, logvar
-
-
-# class Repeater(torch.utils.data.Dataset):
-#     def __init__(self,
-#         z_dim:   int,     
-#         repeat:  int
-#     ):
-#         super().__init__()
-#         self.repeat = repeat
-#         self.z_dim = z_dim
-#         self.total_z = torch.randn(self.repeat, self.z_dim)
-
-#     def __len__(self) -> int:
-#         return self.repeat
-
-#     def __getitem__(self, index: int) -> torch.Tensor:
-#         return self.total_z[index]
