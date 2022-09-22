@@ -8,6 +8,7 @@ try:
     from moai.action.fit import fit
     from moai.action.archive import archive
     from moai.action.export import export
+    from moai.action.resume import resume
 except:
     from action.train import train
     from action.evaluate import evaluate
@@ -18,6 +19,7 @@ except:
     from action.fit import fit
     from action.archive import archive
     from action.export import export
+    from action.resume import resume
 
 import omegaconf.omegaconf
 import hydra
@@ -53,6 +55,7 @@ __MODES__ = {
     'fit': fit,
     'archive': archive,
     'export': export,
+    'resume': resume,
 }
 
 __MIN_ARGS_COUNT__ = {
@@ -66,6 +69,7 @@ __MIN_ARGS_COUNT__ = {
     'fit': 2,
     'archive': 2,
     'export': 2,
+    'resume': 1,
 }
 
 def run(cfg: omegaconf.DictConfig):
@@ -87,7 +91,10 @@ def moai():
     config = sys.argv.pop(1) if min_args > 1 else f"tools/{mode}.yaml" 
     other_args = []
     if min_args > 1 or mode == 'plot':
-        output_dir = "hydra.run.dir=actions/" + mode + "/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}"
+        output_dir = "hydra.run.dir=actions/" + mode + "/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}" 
+        other_args.append(output_dir)
+    elif mode == 'resume':
+        output_dir =  f"hydra.run.dir={sys.argv.pop(1)}"
         other_args.append(output_dir)
     else:
         other_args.append("+hydra.hydra_logging.root.handles=[]")
