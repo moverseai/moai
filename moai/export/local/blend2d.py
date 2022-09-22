@@ -55,7 +55,10 @@ class Blend2d(Callable):
         self.colorize_map.update(mic.COLORMAPS)
         log.info(f"Exporting blended images @ {self.folder}/[left]_[right]_index.[format].")
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,
+    ) -> None:
         for l, r, b, t, c, f in zip(self.left, self.right, self.blending, 
             self.transforms, self.colormaps, self.formats):
                 n = l + "_" + r

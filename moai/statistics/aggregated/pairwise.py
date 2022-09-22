@@ -22,7 +22,10 @@ class Pairwise(Callable):
         self.keys = [_create_accessor(k) for k in self.names]
         self.pairs = pair
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,
+    ) -> None:
         for n, k, p in zip(self.names, self.keys, self.pairs):
             t = k(tensors)
             id = f"{n}_{p[0]}-{p[1]}"

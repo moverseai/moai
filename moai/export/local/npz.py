@@ -34,7 +34,10 @@ class Npz(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.Di
         self.dict_mode = combined
         self.compressed = compressed
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,
+    ) -> None:
         arrays = { }
         for key in self.keys:
             split = key.split('.')

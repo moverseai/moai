@@ -66,7 +66,10 @@ class RenderedMesh(Image2d):
                 )                    
         return self.renderer
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,
+    ) -> None:
         for v, f, r, t, k, _, tf, c, fmt in zip(
             self.vertices, self.faces, self.rotation, self.translation,
             self.keys, self.types, self.transforms, self.colormaps, self.formats

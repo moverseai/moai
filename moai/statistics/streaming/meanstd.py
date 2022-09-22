@@ -35,7 +35,10 @@ class MeanStd(Callable):
         self.avg = []
         self.std = []
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,    
+    ) -> None:
         if not hasattr(self, 'tensors'):
             self.tensors = tensors
             for name, k, a in zip(self.names, self.keys):

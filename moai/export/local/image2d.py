@@ -55,7 +55,10 @@ class Image2d(Callable):
         self.colorize_map = { "none": lambda x: x.cpu().numpy() }
         self.colorize_map.update(mic.COLORMAPS)
         
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self,
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,
+    ) -> None:
         for k, t, tf, c, f in zip(
             self.keys,
             self.types,

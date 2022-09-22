@@ -41,7 +41,10 @@ class Mesh(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.D
         log.info(f"Exporting meshes locally @ {self.folder}")
         self.index = 0
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,
+    ) -> None:
         for n, v, f, ext in zip(
             self.names, self.vertices, self.faces, self.formats
         ):

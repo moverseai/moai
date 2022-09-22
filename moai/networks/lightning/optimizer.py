@@ -164,8 +164,8 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
         pl_module.log_dict(metrics, prog_bar=True, logger=False, on_epoch=False, on_step=True, sync_dist=True)
         log_metrics = toolz.keymap(lambda k: f"val_{k}", metrics)
         pl_module.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=False, on_step=True, sync_dist=True)        
-        pl_module.visualizer(batch)
-        pl_module.exporter(batch)
+        pl_module.visualizer(batch, pl_module.optimization_step)
+        pl_module.exporter(batch, pl_module.optimization_step)
 
 from moai.monads.execution.cascade import _create_accessor
 
@@ -328,9 +328,9 @@ class Optimizer(pytorch_lightning.LightningModule):
     ) -> None:
         train_outputs['tensors']['__moai__']['optimization_step'] = self.optimization_step
         if (self.optimization_step + 1) and (self.optimization_step % self.visualizer.interval == 0):
-            self.visualizer(train_outputs['tensors'])
+            self.visualizer(train_outputs['tensors'], self.optimization_step)
         if (self.optimization_step + 1) and (self.optimization_step % self.exporter.interval == 0):
-            self.exporter(train_outputs['tensors'])
+            self.exporter(train_outputs['tensors'], self.optimization_step)
         return train_outputs['loss']
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:

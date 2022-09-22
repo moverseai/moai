@@ -175,7 +175,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         if self.global_step and (self.global_step % self.visualization.interval == 0):
             self.visualization(train_outputs['tensors'], self.global_step)
         if self.global_step and (self.global_step % self.exporter.interval == 0):
-            self.exporter(train_outputs['tensors'])
+            self.exporter(train_outputs['tensors'], self.global_step)
         return train_outputs['loss']
 
     def validation_step(self,
@@ -226,7 +226,7 @@ class FeedForward(pytorch_lightning.LightningModule):
     ) -> None:
         metrics, tensors = metrics_tensors
         if self.global_test_step and (self.global_test_step % self.exporter.interval == 0):
-            self.exporter(tensors)
+            self.exporter(tensors, self.global_test_step)
         if self.global_test_step and (self.global_test_step % self.visualization.interval == 0):
             self.visualization(tensors, self.global_test_step)
         return metrics
