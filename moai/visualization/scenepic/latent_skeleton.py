@@ -2412,7 +2412,10 @@ class LatentSkeleton(Callable):
         log.info(f"Scenepic visualization enabled @ {scenepic_folder}.")
         log.warning(f"[scenepic]: For automatic refreshing @ `http://localhost:5555' use `httpwatcher -r {scenepic_folder}` (`pip install httpwatcher` if not available)")
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors: typing.Dict[str, torch.Tensor],
+        step: typing.Optional[int]=None
+    ) -> None:
         meshes = {}
         scene = scenepic.Scene()
         canvases = [
