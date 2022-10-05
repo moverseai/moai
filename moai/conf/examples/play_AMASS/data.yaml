@@ -10,15 +10,18 @@ data:
         AMASS:
           parts: ['ACCAD']
           downsample_factor: 2
+          reconstruct: true
   test:
     iterator:
       datasets:
         AMASS:
           parts: ['SOMA']
           downsample_factor: 5
+          reconstruct: true
   val:
     iterator:
       datasets:
         AMASS:
-          parts: ['HumanEva']
+          parts: ['SOMA']
           downsample_factor: 10
+          reconstruct: true

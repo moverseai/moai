@@ -80,7 +80,10 @@ class Mesh(Callable):
             mesh.add_sphere(transform = tranform_sphere,add_wireframe = self.add_wireframe)
     
     
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+        tensors:    typing.Dict[str, torch.Tensor],
+        step:       typing.Optional[int]=None,
+    ) -> None:
         meshes = {}
         scene = scenepic.Scene()
         canvases = [

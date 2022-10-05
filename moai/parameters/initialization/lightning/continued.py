@@ -1,8 +1,7 @@
 from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.utilities.cloud_io import load as pl_load
 from pytorch_lightning.utilities.upgrade_checkpoint import KEYS_MAPPING as DEPRECATED_CHECKPOINT_KEYS
-from pytorch_lightning.utilities import AMPType, rank_zero_warn
-from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities import AMPType
 
 try:
     from apex import amp

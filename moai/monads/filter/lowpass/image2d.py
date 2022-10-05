@@ -4,7 +4,6 @@ from kornia.filters import (
 
 import torch
 import logging
-import functools
 import typing
 
 log = logging.getLogger(__name__)

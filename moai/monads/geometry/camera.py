@@ -50,6 +50,7 @@ class WeakPerspective(torch.nn.Module): #NOTE: fixed focal/principal, optimized 
         image:              torch.Tensor=None,
         rotation:           torch.Tensor=None,
         translation:        torch.Tensor=None,
+        intrinsics:         torch.Tensor=None,
         #TODO: update with focal/principal inputs as well        
     ) -> torch.Tensor:
         if image is not None:
@@ -71,6 +72,12 @@ class WeakPerspective(torch.nn.Module): #NOTE: fixed focal/principal, optimized 
         img_points = torch.div(projected_points[:, :, :2],
             projected_points[:, :, 2].unsqueeze(dim=-1)
         )
-        img_points = torch.einsum('bki,bji->bjk', [self.mat, img_points]) \
-            + self.principal_point.unsqueeze(dim=1) #TODO: add principal in mat
+        if intrinsics is not None:
+            mat = intrinsics[:, :2, :2]
+            principal_point = intrinsics[:, :2, 2]
+        else:
+            mat = self.mat
+            principal_point = self.principal_point
+        img_points = torch.einsum('bki,bji->bjk', [mat, img_points]) \
+            + principal_point.unsqueeze(dim=1) #TODO: add principal in mat
         return img_points

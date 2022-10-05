@@ -75,5 +75,8 @@ if "adaptive" not in __DOWNSAMPLE_FACTORY__.keys():
     _update_downsample_op("adaptive1d_avg", midsad.AdaptiveAvgPool1d)
     _update_downsample_op("adaptive2d_avg", midsad.AdaptiveAvgPool2d)
     _update_downsample_op("adaptive3d_avg", midsad.AdaptiveAvgPool3d)
+    _update_downsample_op("global1d_avg", midsad.GlobalAvgPool1d)
+    _update_downsample_op("global2d_avg", midsad.GlobalAvgPool2d)
+    _update_downsample_op("global3d_avg", midsad.GlobalAvgPool3d)
 
 del midsad

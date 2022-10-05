@@ -22,7 +22,7 @@ class Zipper(torch.utils.data.Dataset):
                 return f"{d.__class__.__name__}: {len(d)}"
             logger.warning(
                 f"Zipped datasets are of unequal lengths ("
-                f"{map(_name_key, self.datasets)}),"
+                f"{list(map(_name_key, self.datasets))}),"
                 f" will reduce length to smallest one ({min(map(len, self.datasets))})."
             )
 

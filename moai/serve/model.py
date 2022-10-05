@@ -66,12 +66,16 @@ class ModelServer(BaseHandler):
                 )
                 self.model = hyu.instantiate(cfg.model)
                 self.engine = hyu.instantiate(cfg.engine)
+                if hasattr(cfg, 'remodel'):
+                    log.info(f"Remodeling...")
+                    for k, v in cfg.remodel.items():
+                        hyu.instantiate(v)(self.model)
         except Exception as e:
             log.error(f"An error has occured while loading the model:\n{e}")
         self.model = self.model.to(self.device)
         self.model.eval()
         self.initialized = True
-        log.info(f"Model ({type(self.model.inner if hasattr(self.model, 'inner') else self.model)}) loaded successfully.")        
+        log.info(f"Model ({type(self.model.model if hasattr(self.model, 'model') else self.model)}) loaded successfully.")
         try:
             handler_overrides = None
             if os.path.exists('handler_overrides.yaml'):

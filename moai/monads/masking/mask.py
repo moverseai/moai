@@ -41,6 +41,7 @@ class Index(torch.nn.Module):
     ):
         super(Index, self).__init__()
         self.index = functools.partial(torch.index_select, dim=dim)
+        indices = [indices] if isinstance(indices, int) else indices
         self.register_buffer("indices", torch.tensor(list(indices), dtype=torch.long))
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:

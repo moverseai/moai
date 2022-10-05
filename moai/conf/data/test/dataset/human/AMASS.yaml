@@ -3,7 +3,7 @@
 _target_: moai.data.datasets.human.AMASS
 data_root: ${amass_root}
 smplx_root: ${smplx_root}
-device: [-1]
+device: [0]
 parts: '**'
 downsample_factor: 1
-reconstruct: False
+reconstruct: false

@@ -1,4 +1,3 @@
-from pytorch_lightning.callbacks import Callback
 import moai.utils.engine as mieng
 
 import omegaconf.omegaconf

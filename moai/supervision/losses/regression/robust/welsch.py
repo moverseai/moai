@@ -23,7 +23,7 @@ class Welsch(L1):
         mask:       torch.Tensor=None, # byte tensor
     ) -> torch.Tensor:
         L1 = super(Welsch, self).forward(pred=pred, gt=gt)
-        welsch = 1.0 - torch.exp(-1.0 * torch.pow(L1, 2) / 2.0 * self.v_sq)
+        welsch = 1.0 - torch.exp(-1.0 * torch.pow(L1, 2) / (2.0 * self.v_sq))
         if weights is not None:
             welsch = welsch * weights
         if mask is not None:

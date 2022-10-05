@@ -63,6 +63,9 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
     ) -> torch.Tensor:
         fx, fy = self.focal_length
         px, py = self.principal_point
+        if intrinsics is not None and intrinsics.shape[0] == 1:
+            fx, fy = intrinsics[0, 0, 0], intrinsics[0, 1, 1]
+            px, py = intrinsics[0, 0, 2], intrinsics[0, 1, 2]
         if image is not None:            
             w, h = image.shape[-1], image.shape[-2]
             sx = 0.0
@@ -82,7 +85,7 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
             sx = 0.0
             x0, y0 = (0.0, 0.0)
             n, f = (0.1, 50.0)
-            if not self.has_nominal_principal:
+            if not self.has_nominal_principal or intrinsics is not None:
                 px, py = (px / ow) * w, (py / oh) * h
             else:
                 px, py = 0.5 * w, 0.5 * h

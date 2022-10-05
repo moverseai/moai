@@ -78,6 +78,14 @@ class Zeros(torch.nn.Module):
         return torch.zeros(1, *tensor.shape[1:], 
             dtype=tensor.dtype, device=tensor.device).expand_as(tensor)
 
+class ZerosLike(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        # return torch.zeros_like(tensor)
+        return torch.zeros_like(tensor)
+
 class Clone(torch.nn.Module):
     def __init__(self):
         super(Clone, self).__init__()
