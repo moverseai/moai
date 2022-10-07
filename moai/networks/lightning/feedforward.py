@@ -125,7 +125,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         validation:         omegaconf.DictConfig=None,        
         visualization:      omegaconf.DictConfig=None,
         export:             omegaconf.DictConfig=None,
-        hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
+        # hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
     ):
         super(FeedForward, self).__init__()        
         self.data = _assign_data(data)
@@ -139,10 +139,10 @@ class FeedForward(pytorch_lightning.LightningModule):
         self.visualization = _create_interval_block(visualization)
         self.exporter = _create_interval_block(export)        
         #NOTE: __NEEDED__ for loading checkpoint
-        hparams = hyperparameters if hyperparameters is not None else { }
-        hparams.update({'moai_version': miV})
+        # hparams = hyperparameters if hyperparameters is not None else { }        
+        # hparams.update({'moai_version': miV})
         #NOTE: @PTL1.5 self.hparams =  hparams
-        self.hparams.update(hparams)
+        # self.hparams.update(hparams)
         self.global_test_step = 0
 
     def initialize_parameters(self) -> None:

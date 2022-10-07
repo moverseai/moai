@@ -18,7 +18,7 @@ defaults:
   - engine/log/lightning/logger: tabular
   # - engine/log/lightning/logger: clearml
 
-  # - engine/checkpoint/lightning: default
+  - engine/checkpoint/lightning: default
 
   # ###### DATA  
   - data/train/loader: torch    
@@ -36,7 +36,7 @@ defaults:
 # ###### MODEL
   - model/networks/lightning/factory: unet
   - model/modules/unet: sqex
-  
+
   - model/feedforward: preprocess
   - model/monads/math: clamp
   - model/monads/masking: threshold

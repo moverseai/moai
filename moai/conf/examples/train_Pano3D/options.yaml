@@ -17,9 +17,9 @@ trainer:
   max_epochs: 60
   weights_summary: top
   deterministic: false
-  # checkpoint:
-  #   monitor: mixed
-  #   filename: '{epoch}-{mixed:.6f}'
+  checkpoint:
+    monitor: mixed
+    filename: '{epoch}-{mixed:.6f}'
 
 logging:
   name: ${experiment.name}
