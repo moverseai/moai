@@ -1,3 +1,5 @@
+from moai import __version__ as miV
+
 import hydra
 import sys
 import omegaconf.omegaconf
@@ -55,6 +57,8 @@ def resume(cfg):
         visualization=assign(cfg, "visualization"),
         export=assign(cfg, "export"),    
     )
+    model.hparams.update(omegaconf.OmegaConf.to_container(cfg, resolve=True))
+    model.hparams['__moai__'] = { 'version': miV }
     for name, remodel in (assign(cfg, "remodel") or {}).items():
         hydra.utils.instantiate(remodel)(model)
     model_callbacks = ModelCallbacks(model=model)
