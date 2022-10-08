@@ -1,6 +1,6 @@
 # @package model.modules.skip
 
-_target_: moai.modules.lightning.unet.SqueezeExcite
+_target_: moai.modules.lightning.unet.SqueezeExciteSkip
 squeeze:  
   type: average2d
 excite: 

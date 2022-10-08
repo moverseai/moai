@@ -1,9 +1,11 @@
-from moai.modules.lightning.unet.sqex import SqueezeExcite
-from moai.modules.lightning.unet.attention import AttentionSkip as Attention
-from moai.modules.lightning.unet.conv_gate import BottleneckGate as ConvGate
+from moai.modules.lightning.unet.skip.sqex import SqueezeExcite as SqueezeExciteSkip
+from moai.modules.lightning.unet.skip.attention import Attention as AttentionSkip
+from moai.modules.lightning.unet.gate.conv import BottleneckGate as ConvGate
+from moai.modules.lightning.unet.skip.residual import Residual as ResidualSkip
 
 __all__ = [
-    'SqueezeExcite',
-    'Attention',
+    'SqueezeExciteSkip',
+    'AttentionSkip',
     'ConvGate',
+    'ResidualSkip',
 ]
