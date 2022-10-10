@@ -14,17 +14,15 @@ class Concatenated(torch.utils.data.Dataset):
     ):
         super().__init__()
         self.datasets = []
+        for dataset in datasets.values():
+            self.datasets.append(hyu.instantiate(dataset))
         if augmentation is not None:
-            for dataset in datasets.values():
-                self.datasets.append(hyu.instantiate(
-                    augmentation,
-                    hyu.instantiate(dataset)
-                ))
+            self.dataset = hyu.instantiate(augmentation,
+                torch.utils.data.ConcatDataset(self.datasets)
+            )
         else:
             from moai.data.augmentation import NoOp
-            for dataset in datasets.values():
-                self.datasets.append(NoOp(hyu.instantiate(dataset)))
-        self.dataset = torch.utils.data.ConcatDataset(self.datasets)
+            self.dataset = NoOp(torch.utils.data.ConcatDataset(self.datasets))
         self.keys = [k.split('.') for k in extracted_keys]
 
     def __len__(self) -> int:

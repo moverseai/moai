@@ -106,6 +106,7 @@ class StandardNormalKL(torch.nn.Module):
         beta:           float=1.0, #hyperparameter for the betaVAE case
         C_max:          int=0, #total capacity hyperparameter for the disentangled betaVAE case
         C_max_iter:     int=1e5, #hyperparameter for the disentangled betaVAE (capacity) case
+        persistent:     bool=True,
     ):
         super(StandardNormalKL, self).__init__()
         assert_numeric(log, 'C_max', C_max, 0.0, None)
@@ -114,7 +115,7 @@ class StandardNormalKL(torch.nn.Module):
         self.beta = beta
         self.C_max_iter = C_max_iter
         self.num_iter = 0
-        self.register_buffer("C_max", torch.Tensor([C_max]))
+        self.register_buffer("C_max", torch.Tensor([C_max]), persistent=persistent)
         self.loss = self.loss_disentangled_beta if mode == 'capacity'\
             else (self.loss_robust_charbonnier if mode == 'robust'\
                 else self.loss_beta
