@@ -87,7 +87,7 @@ class MultiScaleGrid(torch.nn.Module):
             grid = torch.flip(grid, dims=[1])
             self.register_buffer("x".join(map(str, reversed(size))), grid, persistent=persistent)
 
-    def forward(self, tensor: torch.Tensor) -> typing.Dict[torch.Tensor]:
+    def forward(self, tensor: torch.Tensor) -> typing.Dict[str, torch.Tensor]:
         b = tensor.shape[0]
         ret = {k: v for k, v in self.named_buffers()}
         return toolz.valmap(lambda d: d.expand(b, *d.shape[1:]), ret)
