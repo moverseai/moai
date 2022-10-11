@@ -40,7 +40,7 @@ class VariationalAutoencoder(minet.FeedForward):
             supervision=supervision, validation=validation,
             export=export, parameters=parameters,
         )
-        self.latent_dim = configuration.reparametrization.latent_dim
+        self.latent_dim = configuration.features_head.latent_dim
         self.repeat_val = configuration.repeat_val
         self.traversal_len = configuration.traversal_len
         self.traversal_step = configuration.traversal_step
@@ -50,10 +50,11 @@ class VariationalAutoencoder(minet.FeedForward):
         flatten = hyu.instantiate(flatten) if flatten else torch.nn.Flatten()
         prior = toolz.get_in(['reparametrization'], modules)        
         prior = hyu.instantiate(prior) if prior else NormalPrior()
-        self.reparametrizer = Reparametrizer(configuration, prior, flatten) 
+        self.feature_head = Feature2MuStd(configuration, flatten)
+        self.reparametrizer = Reparametrizer(prior) 
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
-        self.enc_fwds, self.dec_fwds, self.rep_fwds = [], [], []
+        self.enc_fwds, self.dec_fwds, self.f2mu_std_fwds, self.rep_fwds = [], [], [], []
         hparams = {}
         hparams[f"configuration"] = configuration 
         hparams[f"io"] = io 
@@ -81,6 +82,28 @@ class VariationalAutoencoder(minet.FeedForward):
                         )
                     ))))
             )
+
+        params = inspect.signature(self.feature_head.forward).parameters
+        rep_in = list(zip(*[mirtp.force_list(io.features_head[prop]) for prop in params]))
+        rep_out = mirtp.split_as(mirtp.resolve_io_config(io.features_head['out']), enc_in)
+
+        self.fhead_res_fill = [mirtp.get_result_fillers(self.feature_head, out) for out in rep_out]        
+        get_fhead_filler = iter(self.fhead_res_fill)
+        
+        for keys in rep_in:
+            self.f2mu_std_fwds.append(lambda td,
+                tk=keys,
+                args=params.keys(),
+                rep=self.feature_head,
+                filler=next(get_fhead_filler):
+                    filler(td, rep(**dict(zip(args,
+                        list(
+                                td[k] if type(k) is str
+                                else list(td[j] for j in k)
+                            for k in tk
+                        )
+                    ))))
+            ) 
 
         params = inspect.signature(self.reparametrizer.forward).parameters
         rep_in = list(zip(*[mirtp.force_list(io.reparametrization[prop]) for prop in params]))
@@ -134,10 +157,11 @@ class VariationalAutoencoder(minet.FeedForward):
     def forward(self, 
         td: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
-        for e, r in zip(self.enc_fwds, self.rep_fwds):
+        for e, f, r in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds):
             e(td)
+            f(td)
             r(td)
-        out = self.decode(td[f"z_reshaped"])
+        out = self.decode(td[f"z"])
         td[f"x_hat"] = out
         return td
 
@@ -150,46 +174,48 @@ class VariationalAutoencoder(minet.FeedForward):
         return train_outputs['loss']
 
 
-
-class Reparametrizer(torch.nn.Module):
+class Feature2MuStd(torch.nn.Module):
     def __init__(self,
-        configuration:    omegaconf.DictConfig,
-        prior:            torch.nn.Module,
+        configuration:  omegaconf.DictConfig,
         flatten:          torch.nn.Module,
-    )-> None:
-        super(Reparametrizer, self).__init__()
-        self.reparametrize = prior
+    ) -> None:
+        super(Feature2MuStd, self).__init__()
         self.flatten = flatten
+        
         self.linear_mu = mil.make_linear_block(
             block_type=configuration.linear.type,
             linear_type="linear",
             activation_type = configuration.linear.activation.type,
-            in_features=configuration.reparametrization.enc_out_dim,
-            out_features=configuration.reparametrization.latent_dim
+            in_features=configuration.features_head.enc_out_dim,
+            out_features=configuration.features_head.latent_dim
         )
         self.linear_logvar = mil.make_linear_block(
             block_type=configuration.linear.type,
             linear_type="linear",
             activation_type = configuration.linear.activation.type,
-            in_features=configuration.reparametrization.enc_out_dim,
-            out_features=configuration.reparametrization.latent_dim
-        )
-        self.linear_to_dec = mil.make_linear_block(
-            block_type=configuration.dec_linear.type,
-            linear_type="linear",
-            activation_type = configuration.linear.activation.type,
-            in_features=configuration.reparametrization.latent_dim,
-            out_features=configuration.reparametrization.enc_out_dim
+            in_features=configuration.features_head.enc_out_dim,
+            out_features=configuration.features_head.latent_dim
         )
 
     def forward(self,
         features:   torch.Tensor,
-    ) -> typing.Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> typing.Tuple[torch.Tensor, torch.Tensor]:
         x_flat = self.flatten(features)
         mu = self.linear_mu(x_flat)
         logvar = self.linear_logvar(x_flat)
-        z = self.reparametrize(mu, logvar)
-        z = self.linear_to_dec(z)
-        z_reshaped = z.reshape_as(features)
 
-        return z_reshaped, mu, logvar
+        return mu, logvar,
+
+class Reparametrizer(torch.nn.Module):
+    def __init__(self,
+        prior:            torch.nn.Module,
+    )-> None:
+        super(Reparametrizer, self).__init__()
+        self.reparametrize = prior
+
+    def forward(self,
+        mu:     torch.Tensor,
+        logvar: torch.Tensor,
+    ) -> torch.Tensor:
+
+        return self.reparametrize(mu, logvar)
