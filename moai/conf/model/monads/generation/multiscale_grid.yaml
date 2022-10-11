@@ -1,0 +1,9 @@
+# @package model.monads._name_
+
+_target_: moai.monads.generation.grid.MultiScaleGrid
+mode: ndc # ndc, coord, norm
+width: [512, 256] # int, x coord dimension
+height: [256, 128] # int, y coord dimension
+depth: [1, 1] # int, z coord dimension
+inclusive: true
+persistent: true
