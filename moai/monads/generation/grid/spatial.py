@@ -3,6 +3,7 @@ from moai.monads.utils import expand_spatial_dims
 
 import torch
 import typing
+import toolz
 
 __all__ = ["Grid"]
 
@@ -69,7 +70,7 @@ class MultiScaleGrid(torch.nn.Module):
         height:         typing.Sequence[int]=1,
         depth:          typing.Sequence[int]=1,
         inclusive:      bool=True,
-        reverse:        bool=False,
+        persistent:     bool=True, # save and re-use the grid buffer
     ):
         super(MultiScaleGrid, self).__init__()
         sizes = []
@@ -78,20 +79,15 @@ class MultiScaleGrid(torch.nn.Module):
             ensure_numeric_list(height),
             ensure_numeric_list(depth)
         ):
-            sizes += [n for n in [d, h, w] if n > 1]
+            sizes.append([n for n in [d, h, w] if n > 1])
         for i, size in enumerate(sizes):
             unit_grid = _create_inclusive(size) if inclusive\
                 else _create_exclusive(size)
             grid = __MODE_CONVERTERS__[mode](unit_grid, size)
-            grid = torch.flip(grid, dims=[1]) if not reverse else grid
-            self.register_buffer("grid_" + str(i), grid)
+            grid = torch.flip(grid, dims=[1])
+            self.register_buffer("x".join(map(str, reversed(size))), grid, persistent=persistent)
 
-    def forward(self, tensor: torch.Tensor) -> typing.List[torch.Tensor]:
+    def forward(self, tensor: torch.Tensor) -> typing.Dict[torch.Tensor]:
         b = tensor.shape[0]
-        grids = []
-        i = 0
-        while hasattr("grid_" + str(i)):
-            grid = getattr("grid_" + str(i))
-            grids.append(grid.expand(b, *grid.shape[1:]))
-            i += 1
-        return grids
+        ret = {k: v for k, v in self.named_buffers()}
+        return toolz.valmap(lambda d: d.expand(b, *d.shape[1:]), ret)
