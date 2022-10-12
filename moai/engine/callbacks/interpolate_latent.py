@@ -29,7 +29,7 @@ class LatentInterp(Callback):
 
     def on_validation_epoch_start(self, trainer, pl_module):
         points = self.interpolate_latent(pl_module, pl_module.latent_dim)
-        pl_module.visualization.visualizers[2](points.reshape(self.steps, self.num_points, 3)) if self.full_vector\
+        pl_module.visualization.visualizers[-1](points.reshape(self.steps, self.num_points, 3)) if self.full_vector\
                                         else pl_module.visualization.visualizers[2](points.reshape(self.steps*self.steps, self.num_points, 3))
     
     def interpolate_latent(self, pl_module, latent_dim):
@@ -40,9 +40,7 @@ class LatentInterp(Callback):
                 z = torch.randn(self.num_samples, latent_dim, device=pl_module.device)
                 for full_z in np.linspace(self.range_start, self.range_end, self.steps):
                     z[:] += torch.tensor(full_z)
-                    z_reshaped = pl_module.reparametrizer.linear_to_dec(z)
-                    #TODO solve the reshape problem
-                    points = pl_module.decoder(z_reshaped)
+                    points = pl_module.decoder(z) 
                     points_list.append(points)
             else:
                 z = torch.randn(self.num_samples, latent_dim, device=pl_module.device)
@@ -54,8 +52,6 @@ class LatentInterp(Callback):
                         z[:, 1] = torch.tensor(z2)
 
                         # generate
-                        z_reshaped = pl_module.reparametrizer.linear_to_dec(z)
-                        #TODO solve the reshape problem
-                        points = pl_module.decoder(z_reshaped)
+                        points = pl_module.decoder(z)
                         points_list.append(points)
         return torch.stack(points_list, 1).squeeze(0)

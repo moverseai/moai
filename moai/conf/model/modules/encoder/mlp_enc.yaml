@@ -4,6 +4,7 @@ _target_: moai.modules.lightning.MLP
 
 configuration:
   in_features: ???
+  hidden_features: ???
   out_features: ???
   blocks: ???
   linear:
