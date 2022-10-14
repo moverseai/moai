@@ -1,4 +1,7 @@
 from moai.engine.modules.clearml import _get_logger
+from moai.engine.modules.clearml import _get_project_name
+from moai.engine.modules.clearml import _get_task_name
+
 
 import numpy as np
 import pytorch_lightning
@@ -11,19 +14,10 @@ log = logging.getLogger(__name__)
 __all__ = ["ClearML"]
 
 class ClearML(pytorch_lightning.loggers.base.LightningLoggerBase):
-    def __init__(self,
-        project_name:   str,
-        task_name:      str,
-        uri:            typing.Optional[str]=None,
-        tags:           typing.Optional[typing.Union[str, typing.Sequence[str]]]=None,
-    ):
+    def __init__(self):
         super(ClearML, self).__init__()
-        self._name, self._version = project_name, task_name
-        self.logger = _get_logger(project_name, task_name, uri, tags)
-        # self.keys = {
-        #     'train': 'train_loss', 'val': 'val_metrics', 'test': 'test_results',
-        #     'epoch': 'epoch', 'step': 'global_step'
-        # }
+        self._name, self._version = _get_project_name(), _get_task_name()
+        self.logger = _get_logger()
 
     @pytorch_lightning.loggers.base.rank_zero_only
     def log_metrics(self, 

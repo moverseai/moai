@@ -1,5 +1,4 @@
 from moai.utils.arguments import assert_path
-
 import functools
 import toolz
 import numpy as np

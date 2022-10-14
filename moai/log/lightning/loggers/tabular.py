@@ -20,11 +20,12 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
         self.file_name = name
         self.train_logs = tablib.Dataset()
         self.val_logs = defaultdict(tablib.Dataset)
-        self.test_logs = tablib.Dataset()
+        self.test_logs = defaultdict(tablib.Dataset)
         self.train_headers_written = False
         self.val_headers_written = defaultdict(bool)
-        self.test_headers_written = False
+        self.test_headers_written =  defaultdict(bool)
         self.val_headers = { }
+        self.test_headers = { }
 
     @property
     def name(self) -> str:
@@ -69,19 +70,26 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
         ))
 
     def _append_test_metrics(self, 
+        dataset:        str,
         metrics:        typing.Dict[str, typing.Any],
         step:           int,
     ) -> None:
-        if self.test_logs.headers is None and not self.test_headers_written:
-            self.test_logs.headers = list(toolz.concat([
+        if self.test_logs[dataset].headers is None and not self.test_headers_written[dataset]:
+            self.test_logs[dataset].headers = list(toolz.concat([
                 [str('iteration')],
                 [k for k in metrics.keys()]
             ]))
-            self.test_headers = self.test_logs.headers
-        self.test_logs.append(list(
+            self.test_headers[dataset] = self.test_logs[dataset].headers
+        # if self.test_logs.headers is None and not self.test_headers_written:
+        #     self.test_logs.headers = list(toolz.concat([
+        #         [str('iteration')],
+        #         [k for k in metrics.keys()]
+        #     ]))
+        #     self.test_headers = self.test_logs.headers
+        self.test_logs[dataset].append(list(
             toolz.concat([
                 [step],
-                [metrics[k] for k in self.test_headers if k in metrics]
+                [metrics[k] for k in self.test_headers[dataset] if k in metrics]
             ])
         ))
 
@@ -106,7 +114,17 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
                 step
             )
         elif test_metrics:            
-            self._append_test_metrics(test_metrics, step)
+            dataset_test_metrics = toolz.valmap(
+                lambda v: toolz.keymap(lambda k: k.split('/')[0], dict(v)), 
+                # toolz.groupby(lambda k: k[0].split('/')[-1], val_metrics.items())
+                toolz.groupby(
+                    lambda k: toolz.get(1, k[0].split('/'), 'metrics'),
+                    test_metrics.items()
+                )
+            )
+            for k, v in dataset_test_metrics.items():
+                self._append_test_metrics(k, v, step)
+            #self._append_test_metrics(test_metrics, step)
             return
         if val_metrics:
             dataset_val_metrics = toolz.valmap(
@@ -150,13 +168,19 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
                 if not self.val_headers_written[k] and d.headers is not None:
                     self.val_headers_written[k] = True
                 d.wipe()
-        if self.test_logs.height:
+        if self.test_logs:
             """Save test log data"""
-            with open(self.name + "_test.csv", 'a', newline='') as f:
-                f.write(self.test_logs.export('csv'))
-            if not self.test_headers_written and self.test_logs.headers is not None:
-                self.test_headers_written = True
-            self.test_logs.wipe()
+            for k, d in self.test_logs.items():
+                with open(f"{self.name}_{k}_test.csv", 'a', newline='') as f:
+                    f.write(d.export('csv'))
+                if not self.test_headers_written[k] and d.headers is not None:
+                    self.test_headers_written[k] = True
+                d.wipe()
+            # with open(self.name + "_test.csv", 'a', newline='') as f:
+            #     f.write(self.test_logs.export('csv'))
+            # if not self.test_headers_written and self.test_logs.headers is not None:
+            #     self.test_headers_written = True
+            # self.test_logs.wipe()
 
     @pytorch_lightning.loggers.base.rank_zero_only
     def finalize(self, 

@@ -16,5 +16,8 @@ class NoOp(mieng.Interval):
     ):
         super(NoOp, self).__init__(sys.maxsize * 2 + 1) # big enough interval
 
-    def __call__(self, tensors: typing.Dict[str, torch.Tensor]) -> None:
+    def __call__(self, 
+       tensors: typing.Dict[str, torch.Tensor],
+       step: typing.Optional[int]=None 
+       ) -> None:
         pass
