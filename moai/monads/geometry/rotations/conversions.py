@@ -1,6 +1,9 @@
 import torch
 import logging
 import kornia as kn
+import roma
+import toolz
+import functools
 
 log = logging.getLogger(__name__)
 
@@ -8,6 +11,13 @@ __all__ = [
     "Convert",
     "AxisAngle",
     "RotMat",
+    'ConvertRotation',
+    'RotationMatrix2Quaternion',
+    'RotationMatrix2RotationVector',
+    'RotationVector2Quaternion',
+    'RotationVector2RotationMatrix',
+    'Quaternion2RotationMatrix',
+    'Quaternion2RotationVector',
 ]
 
 #TODO: make_from, convert_to
@@ -57,3 +67,31 @@ class Convert(torch.nn.Module):
 
     def forward(self, rotation: torch.Tensor) -> torch.Tensor:
         return self.converter(rotation)
+
+class ConvertRotation(torch.nn.Module):
+    __ALIAS_MAP__ = dict(toolz.concat([
+        ((R, 'rotmat') for R in ['R', 'rot', '3x3', 'rotation', 'matrix', 'rotation_matrix', 'rotmat']), 
+        ((q, 'unitquat') for q in ['quat', 'quaternion', 'q', '4'])
+        ((r, 'rotvec') for r in ['r', 'aa', 'rotvec', 'axisangle', 'rodrigues', 'axis-angle', '3'])
+    ]))
+
+    def __init__(self,
+        src:        str, # one of aliases
+        tgt:        str, # one of aliases
+    ):
+        super().__init__()
+        self.convert = getattr(roma, f"{ConvertRotation.__ALIAS_MAP__[src]}_to_{ConvertRotation.__ALIAS_MAP__[tgt]}")
+
+    def forward(self,
+        rotation:   torch.Tensor, # [B, R, 3, 3] for 'rotmat', [B, R, 3] for 'rotvec', [B, R, 4] for 'unitquat'
+    ) -> torch.Tensor:
+        return self.convert(rotation)
+
+RotationMatrix2RotationVector = functools.partia(ConvertRotation, src='R', tgt='r')
+RotationMatrix2Quaternion = functools.partia(ConvertRotation, src='R', tgt='q')
+
+RotationVector2Quaternion = functools.partia(ConvertRotation, src='r', tgt='q')
+RotationVector2RotationMatrix = functools.partia(ConvertRotation, src='r', tgt='R')
+
+Quaternion2RotationVector = functools.partia(ConvertRotation, src='q', tgt='r')
+Quaternion2RotationMatrix = functools.partia(ConvertRotation, src='q', tgt='R')

@@ -6,3 +6,4 @@ is_var_log: true
 beta: 1.0
 C_max: 0
 C_max_iter: 0
+persistent: true

@@ -1,6 +1,6 @@
 # @package model.modules.skip
 
-_target_: moai.modules.lightning.unet.Attention
+_target_: moai.modules.lightning.unet.AttentionSkip
 gate_features: 256
 intermediate_features: null
 skip_connection:

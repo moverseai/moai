@@ -3,7 +3,7 @@
 _target_: moai.networks.lightning.factory.UNet
 configuration:
   block_features: [32, 64, 128, 256, 512]
-  
+  concat_preds: false
   in_features: ???
   out_features: ???
   input: ???
@@ -51,7 +51,7 @@ configuration:
     upscale:
       type: upsample2d
       # params:
-  prediction:
+  prediction:    
     convolution:
       type: conv2d
       params:

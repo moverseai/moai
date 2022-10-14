@@ -7,8 +7,8 @@ configuration:
   traversal_step: 0.25
   traversal_dim: -1
   traversal_init_value: -0.75
-  reparametrization:
-    latent_dim: 19
+  features_head:
+    latent_dim: 32
     enc_out_dim: 256
   linear:
     type: ???
@@ -16,6 +16,8 @@ configuration:
       type: ???
 io:
   encoder:
+    out: ???
+  features_head:
     out: ???
   reparametrization:
     out: ???

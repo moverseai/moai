@@ -1,0 +1,11 @@
+# @package model.modules.skip
+
+_target_: moai.modules.lightning.unet.ResidualSkip
+blocks: 2
+convolution:  
+  type: conv2d
+activation: 
+  type: relu_bn2d
+  params:
+    inplace: true
+expansion: 2 # is static should not be changed

@@ -35,9 +35,10 @@ defaults:
 
 # ###### MODEL
   - model/networks/lightning/factory: unet
-  # - model/modules/unet: sqex
-  - model/modules/unet: attention
-  - model/modules/unet: conv_gate
+  # - model/modules/unet/skip: sqex
+  - model/modules/unet/skip: residual
+  # - model/modules/unet/skip: attention
+  # - model/modules/unet/gate: conv
 
   - model/feedforward: preprocess
   - model/monads/math: clamp

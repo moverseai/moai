@@ -37,12 +37,13 @@ class Mask(torch.nn.Module):
 class Index(torch.nn.Module):
     def __init__(self,
         indices:    typing.Sequence[int],
-        dim:        int=1,        
+        dim:        int=1,
+        persistent: bool=True,
     ):
         super(Index, self).__init__()
         self.index = functools.partial(torch.index_select, dim=dim)
         indices = [indices] if isinstance(indices, int) else indices
-        self.register_buffer("indices", torch.tensor(list(indices), dtype=torch.long))
+        self.register_buffer("indices", torch.tensor(list(indices), dtype=torch.long), persistent=persistent)
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return self.index(input=tensor, index=self.indices)

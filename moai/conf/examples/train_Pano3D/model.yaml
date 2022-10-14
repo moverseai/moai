@@ -33,7 +33,7 @@ model:
   configuration:
     block_features: [32, 64, 128, 256, 512]    
     in_features: 3
-    out_features: 1
+    out_features: 1    
     input: [color]
     output: [depth_t_0]
     encoder:

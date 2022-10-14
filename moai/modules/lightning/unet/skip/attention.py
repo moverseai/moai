@@ -8,9 +8,9 @@ import typing
 
 #NOTE: from [Attention U-Net: Learning Where to Look for the Pancreas](https://arxiv.org/pdf/1804.03999.pdf)
 
-__all__ = ['AttentionSkip']
+__all__ = ['Attention']
 
-class AttentionSkip(torch.nn.Module):
+class Attention(torch.nn.Module):
     def __init__(self,
         features:               int,
         gate_features:          int,
@@ -21,7 +21,7 @@ class AttentionSkip(torch.nn.Module):
         attention:              omegaconf.DictConfig,
         projection:             omegaconf.DictConfig,
     ):
-        super(AttentionSkip, self).__init__()
+        super().__init__()
         inter_features = intermediate_features or features
         inter_features = int(inter_features * features) if isinstance(inter_features, float) else inter_features
         inter_features = inter_features or 1
