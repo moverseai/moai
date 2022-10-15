@@ -11,6 +11,7 @@ __all__ = [
 
 import moai.nn.residual.standard as mistd
 import moai.nn.residual.bottleneck as mibtl
+import moai.nn.residual.sqex as misebtl
 
 __BLOCK_FACTORY__ = {# (b), (c) and (e) from https://towardsdatascience.com/an-overview-of-resnet-and-its-variants-5281e2f56035
     "standard":                                     mistd.Standard,                       # (b): y    =   A2(x  +   W2     *   A1(W1   *   x))
@@ -20,6 +21,10 @@ __BLOCK_FACTORY__ = {# (b), (c) and (e) from https://towardsdatascience.com/an-o
     "bottleneck":                                   mibtl.Bottleneck,                     # (b): y    =   A3(x    +   W3  *   A2(W2   *   A1(W1   *   x)))
     "preres_bottleneck":                            mibtl.PreResBottleneck,               # (c): y    =   x       +  A3(W3    *   A2(W2   *   A1(W1   *   x)))
     "preactiv_bottleneck":                          mibtl.PreActivBottleneck,             # (e): y    =   x       +  W3   *   A3(W2   *   A2(W1   *   A1(x)))
+    # squeeze-n-excite bottleneck versions
+    "sqex_bottleneck":                              misebtl.SqExBottleneck,                     # (b): y    =   A3(x    +   SE(W3  *   A2(W2   *   A1(W1   *   x))))
+    "sqex_preres_bottleneck":                       misebtl.SqExPreResBottleneck,               # (c): y    =   x       +  SE(A3(W3    *   A2(W2   *   A1(W1   *   x))))
+    "sqex_preactiv_bottleneck":                     misebtl.SqExPreActivBottleneck,             # (e): y    =   x       +  SE(W3   *   A3(W2   *   A2(W1   *   A1(x))))
 }
 
 del mistd

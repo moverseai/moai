@@ -143,14 +143,14 @@ class SqueezeExcite(torch.nn.Module):
         mode:           str='mul',
     ):
         super(SqueezeExcite, self).__init__()
-        self.squeeze = __SQUEEZE__[squeeze.type](features=features)
-        self.excite = __EXCITE__[excite.type](
-            operation_type=excite.operation.type,
+        self.squeeze = __SQUEEZE__[squeeze['type']](features=features)
+        self.excite = __EXCITE__[excite['type']](
+            operation_type=excite['operation']['type'],
             activation_type=toolz.get_in(['activation', 'type'], excite, 'none'),
             in_features=features,
-            operation_params=excite.operation.params or { },
+            operation_params=toolz.get_in(['operation', 'params'], excite, { }),
             activation_params=toolz.get_in(['activation', 'params'], excite, { }),
-            ratio=excite.ratio,
+            ratio=excite['ratio'],
         )
         self.mode = getattr(torch, mode)
 
