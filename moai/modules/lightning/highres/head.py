@@ -7,6 +7,7 @@ import moai.nn.utils as miu
 import moai.nn.sampling.spatial.downsample as mids
 import moai.nn.sampling.spatial.upsample as mius
 
+import toolz
 import torch
 import typing
 import functools
@@ -142,10 +143,11 @@ class Higher(torch.nn.Module):
                         out_features=deconvolution.deconv_out_features,
                         bottleneck_features=residual.bottleneck_features,
                         activation_type=residual.activation,
+                        activation_params=residual.activation.params or { 'inplace': True },
                         strided=False,
-                        convolution_params={
+                        convolution_params=toolz.merge(residual.convolution.params or {}, {
                                 'bias':         False,
-                        }) for r in range(deconvolution.residual_units)
+                        })) for r in range(deconvolution.residual_units)
                 ])
             ]) for i in range(deconvolution_modules)
         ])

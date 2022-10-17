@@ -1,9 +1,10 @@
 from moai.nn.sqex import SqueezeExcite
 
-import moai.nn.convolution as mic
 import moai.nn.activation as mia
+import moai.nn.convolution as mic
 
 import torch
+import toolz
 
 __all__ = [
     "SqExBottleneck",
@@ -30,12 +31,13 @@ class SqExBottleneck(torch.nn.Module):
         strided: bool,
     ):
         super().__init__()
+        conv_params = toolz.dissoc(convolution_params, 'sqex')
         self.W1 = mic.make_conv_1x1(
             convolution_type=convolution_type,
             in_channels=in_features,
             out_channels=bottleneck_features,
             stride=2 if strided else 1,
-            **convolution_params
+            **conv_params
         )
         self.A1 = mia.make_activation(
             features=bottleneck_features,
@@ -46,7 +48,7 @@ class SqExBottleneck(torch.nn.Module):
             convolution_type=convolution_type,
             in_channels=bottleneck_features,
             out_channels=bottleneck_features,
-            **convolution_params
+            **conv_params
         )
         self.A2 = mia.make_activation(
             features=bottleneck_features,
@@ -57,7 +59,7 @@ class SqExBottleneck(torch.nn.Module):
             convolution_type=convolution_type,
             in_channels=bottleneck_features,
             out_channels=out_features,          
-            **convolution_params
+            **conv_params
         )
         self.A3 = mia.make_activation(
             features=out_features,
@@ -69,19 +71,20 @@ class SqExBottleneck(torch.nn.Module):
                     convolution_type=convolution_type,
                     in_channels=in_features,
                     out_channels=out_features,
-                    **convolution_params,
+                    **conv_params,
                 # using a 3x3 conv for shortcut downscaling instead of a 1x1 (used in detectron2 for example)
                 ) if not strided else mic.make_conv_3x3(
                     convolution_type=convolution_type,
                     in_channels=in_features,
                     out_channels=out_features,
                     stride=2,
-                    **convolution_params,
+                    **conv_params,
                 )
         self.SE = SqueezeExcite(features=out_features,
             squeeze={'type': __CONV_TO_SQUEEZE__[convolution_type]},
             excite={
-                'type': 'channel', 'ratio': activation_params.get('ratio', 0.2),
+                'type': 'channel', 
+                'ratio': toolz.get_in(['sqex','ratio'], activation_params, 0.2),
                 'operation': { 'type': 'linear' },
                 'activation': { 'type': 'relu' }
             },
@@ -181,7 +184,8 @@ class SqExPreActivBottleneck(torch.nn.Module):
         self.SE = SqueezeExcite(features=out_features,
             squeeze={'type': __CONV_TO_SQUEEZE__[convolution_type]},
             excite={
-                'type': 'channel', 'ratio': activation_params.get('ratio', 0.2),
+                'type': 'channel', 
+                'ratio': toolz.get_in(['sqex','ratio'], activation_params, 0.2),
                 'operation': { 'type': 'linear' },
                 'activation': { 'type': 'relu' }
             },
