@@ -20,6 +20,7 @@ __BLOCK_FACTORY__ = {# (b), (c) and (e) from https://towardsdatascience.com/an-o
     "bottleneck":                                   mibtl.Bottleneck,                     # (b): y    =   A3(x    +   W3  *   A2(W2   *   A1(W1   *   x)))
     "preres_bottleneck":                            mibtl.PreResBottleneck,               # (c): y    =   x       +  A3(W3    *   A2(W2   *   A1(W1   *   x)))
     "preactiv_bottleneck":                          mibtl.PreActivBottleneck,             # (e): y    =   x       +  W3   *   A3(W2   *   A2(W1   *   A1(x)))
+    "lambda_bottleneck":                            mibtl.LambdaBottleneck,
 }
 
 del mistd
