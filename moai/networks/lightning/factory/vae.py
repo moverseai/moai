@@ -1,3 +1,5 @@
+from moai.networks.lightning.feedforward import _create_processing_block
+
 import typing
 import moai.networks.lightning as minet
 import moai.utils.parsing.rtp as mirtp
@@ -53,12 +55,8 @@ class VariationalAutoencoder(minet.FeedForward):
         self.reparametrizer = Reparametrizer(prior) 
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
+        self.generation = _create_processing_block(feedforward, "generation", monads=monads)
         self.enc_fwds, self.dec_fwds, self.f2mu_std_fwds, self.rep_fwds = [], [], [], []
-        # hparams = {}
-        # hparams[f"configuration"] = configuration 
-        # hparams[f"io"] = io 
-        # hparams[f"modules"] = modules 
-        # self.hparams.update(hparams)
 
         params = inspect.signature(self.encoder.forward).parameters
         enc_in = list(zip(*[mirtp.force_list(io.encoder[prop]) for prop in params]))
