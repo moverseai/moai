@@ -71,9 +71,15 @@ class Convert(torch.nn.Module):
 class ConvertRotation(torch.nn.Module):
     __ALIAS_MAP__ = dict(toolz.concat([
         ((R, 'rotmat') for R in ['R', 'rot', '3x3', 'rotation', 'matrix', 'rotation_matrix', 'rotmat']), 
-        ((q, 'unitquat') for q in ['quat', 'quaternion', 'q', '4'])
-        ((r, 'rotvec') for r in ['r', 'aa', 'rotvec', 'axisangle', 'rodrigues', 'axis-angle', '3'])
+        ((q, 'unitquat') for q in ['quat', 'quaternion', 'q', '4']),
+        ((r, 'rotvec') for r in ['r', 'aa', 'rotvec', 'axisangle', 'rodrigues', 'axis-angle', '3']),
     ]))
+
+    __SHAPE_MAP__ = {
+        'rotmat': [3, 3],
+        'rotvec': [3],
+        'unitquat': [4],
+    }
 
     def __init__(self,
         src:        str, # one of aliases
@@ -81,17 +87,18 @@ class ConvertRotation(torch.nn.Module):
     ):
         super().__init__()
         self.convert = getattr(roma, f"{ConvertRotation.__ALIAS_MAP__[src]}_to_{ConvertRotation.__ALIAS_MAP__[tgt]}")
+        self.shape = ConvertRotation.__SHAPE_MAP__[ConvertRotation.__ALIAS_MAP__[src]]
 
     def forward(self,
         rotation:   torch.Tensor, # [B, R, 3, 3] for 'rotmat', [B, R, 3] for 'rotvec', [B, R, 4] for 'unitquat'
     ) -> torch.Tensor:
-        return self.convert(rotation)
+        return self.convert(rotation.view(rotation.shape[0], -1, *self.shape))
 
-RotationMatrix2RotationVector = functools.partia(ConvertRotation, src='R', tgt='r')
-RotationMatrix2Quaternion = functools.partia(ConvertRotation, src='R', tgt='q')
+RotationMatrix2RotationVector = functools.partial(ConvertRotation, src='R', tgt='r')
+RotationMatrix2Quaternion = functools.partial(ConvertRotation, src='R', tgt='q')
 
-RotationVector2Quaternion = functools.partia(ConvertRotation, src='r', tgt='q')
-RotationVector2RotationMatrix = functools.partia(ConvertRotation, src='r', tgt='R')
+RotationVector2Quaternion = functools.partial(ConvertRotation, src='r', tgt='q')
+RotationVector2RotationMatrix = functools.partial(ConvertRotation, src='r', tgt='R')
 
-Quaternion2RotationVector = functools.partia(ConvertRotation, src='q', tgt='r')
-Quaternion2RotationMatrix = functools.partia(ConvertRotation, src='q', tgt='R')
+Quaternion2RotationVector = functools.partial(ConvertRotation, src='q', tgt='r')
+Quaternion2RotationMatrix = functools.partial(ConvertRotation, src='q', tgt='R')

@@ -29,8 +29,8 @@ class LatentInterp(Callback):
 
     def on_validation_epoch_start(self, trainer, pl_module):
         points = self.interpolate_latent(pl_module, pl_module.latent_dim)
-        pl_module.visualization.visualizers[-1](points.reshape(self.steps, self.num_points, 3)) if self.full_vector\
-                                        else pl_module.visualization.visualizers[2](points.reshape(self.steps*self.steps, self.num_points, 3))
+        # pl_module.visualization.visualizers[-1](points.reshape(self.steps, self.num_points, 3)) if self.full_vector\
+        #     else pl_module.visualization.visualizers[2](points.reshape(self.steps*self.steps, self.num_points, 3))
     
     def interpolate_latent(self, pl_module, latent_dim):
         with torch.no_grad():
@@ -46,11 +46,9 @@ class LatentInterp(Callback):
                 z = torch.randn(self.num_samples, latent_dim, device=pl_module.device)
                 for z1 in np.linspace(self.range_start, self.range_end, self.steps):
                     for z2 in np.linspace(self.range_start, self.range_end, self.steps):
-
                         # set the fist 2 dims to the value
                         z[:, 0] = torch.tensor(z1)
                         z[:, 1] = torch.tensor(z2)
-
                         # generate
                         points = pl_module.decoder(z)
                         points_list.append(points)

@@ -1,11 +1,10 @@
 import moai.nn.activation as mia
 import moai.nn.convolution as mic
 import moai.nn.residual as mires
-import moai.nn.utils as miu
-import moai.nn.sampling.spatial.downsample as mids
 import moai.nn.sampling.spatial.upsample as mius
 
 import torch
+import toolz
 import omegaconf.omegaconf
 import functools
 import typing
@@ -34,10 +33,13 @@ class HighResolution(torch.nn.Module):
                     out_features=start_features * (2 ** b),
                     bottleneck_features=residual.bottleneck_features,
                     activation_type=residual.activation,
-                    strided=False,
-                    convolution_params={
-                        'bias':         False,
-                    }
+                    strided=False,                    
+                    activation_params=residual.activation.params or { 'inplace': True },
+                    convolution_params=toolz.merge(
+                        residual.convolution.params or {}, {
+                            'bias':         False,
+                        }
+                    )
                 ) for d in range(self.depth)
             ]) for b in range(self.num_branches)
         ])

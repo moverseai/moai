@@ -75,6 +75,8 @@ class HRNet(minet.FeedForward):
                 in_features=i,
                 bottleneck_features=b,
                 activation_type=residual.activation,
+                convolution_params=residual.convolution.params or { },
+                activation_params=residual.activation.params or { 'inplace': True },
                 strided=False,
             ))
         self.pre = torch.nn.Sequential(

@@ -2,11 +2,11 @@ import torch
 import roma
 
 __all__ = [
-    'RotationAngle',
-    'RotationGeodesic',
+    'RotationMatrixAngle',
+    'RotationMatrixGeodesic',
 ]
 
-class RotationAngle(torch.nn.Module):
+class RotationMatrixAngle(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
@@ -16,7 +16,7 @@ class RotationAngle(torch.nn.Module):
     ) -> torch.Tensor:
         return roma.rotmat_geodesic_distance_naive(pred, gt)
 
-class RotationGeodesic(torch.nn.Module):
+class RotationMatrixGeodesic(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
 

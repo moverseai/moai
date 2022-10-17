@@ -1,9 +1,9 @@
 from moai.supervision.losses.geometric.rotation import (
-    RotationAngle,
-    RotationGeodesic,
+    RotationMatrixAngle,
+    RotationMatrixGeodesic,
 )
 
 __all__ = [
-    'RotationAngle',
-    'RotationGeodesic',
+    'RotationMatrixAngle',
+    'RotationMatrixGeodesic',
 ]

@@ -7,6 +7,9 @@ from moai.monads.tensor.torch import (
     Flatten,
     ReshapeAs,
     Slice,
+    Alias,
+    Identity,
+    Passthrough,
 )
 
 __all__ = [
@@ -18,4 +21,7 @@ __all__ = [
     'Flatten',
     'ReshapeAs',
     'Slice',
+    'Alias',
+    'Identity',
+    'Passthrough',
 ]

@@ -5,6 +5,7 @@ import torch
 import omegaconf.omegaconf
 import typing
 import logging
+import toolz
 
 log = logging.getLogger(__name__)
 
@@ -31,8 +32,22 @@ class Indicators(Metrics):
         for exe in self.execs:
             exe(tensors, metrics)
         returned = { }
-        for k, m in metrics.items():
-            returned[f'{k}'] = m
+        for i, (k, m) in enumerate(metrics.items()):
+            if torch.is_tensor(m):
+                returned[f'{k}'] = m
+            elif isinstance(m, typing.Mapping):
+                returned = toolz.merge(
+                    returned, 
+                    toolz.keymap(
+                        lambda x: f"{k}_{x}", 
+                        toolz.valmap(
+                            lambda t: Metrics.__REDUCTIONS__[self.reductions[i]](t),
+                            m
+                        )
+                    )
+                )
+            else:
+                log.warning(f"Metric [{k}] return type ({type(m)} is not supported and is being ignored.")                
         for name, expression in self.expressions.items():
             returned[name] = eval(expression)
         return returned
