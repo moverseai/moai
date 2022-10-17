@@ -156,12 +156,11 @@ class VariationalAutoencoder(minet.FeedForward):
     def forward(self, 
         td: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
-        for e, f, r in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds):
+        for e, f, r, d in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds, self.dec_fwds):
             e(td)
             f(td)
             r(td)
-        out = self.decode(td[f"z"])
-        td[f"x_hat"] = out
+            d(td)
         return td
 
     def training_step_end(self, 
