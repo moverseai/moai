@@ -19,7 +19,6 @@ log = logging.getLogger(__name__)
 
 __all__ = ["VariationalAutoencoder"]
 
-
 class VariationalAutoencoder(minet.FeedForward):
     def __init__(self, 
         configuration:  omegaconf.DictConfig,
@@ -55,11 +54,11 @@ class VariationalAutoencoder(minet.FeedForward):
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
         self.enc_fwds, self.dec_fwds, self.f2mu_std_fwds, self.rep_fwds = [], [], [], []
-        hparams = {}
-        hparams[f"configuration"] = configuration 
-        hparams[f"io"] = io 
-        hparams[f"modules"] = modules 
-        self.hparams.update(hparams)
+        # hparams = {}
+        # hparams[f"configuration"] = configuration 
+        # hparams[f"io"] = io 
+        # hparams[f"modules"] = modules 
+        # self.hparams.update(hparams)
 
         params = inspect.signature(self.encoder.forward).parameters
         enc_in = list(zip(*[mirtp.force_list(io.encoder[prop]) for prop in params]))
@@ -176,8 +175,8 @@ class VariationalAutoencoder(minet.FeedForward):
 
 class Feature2MuStd(torch.nn.Module):
     def __init__(self,
-        configuration:  omegaconf.DictConfig,
-        flatten:          torch.nn.Module,
+        configuration:      omegaconf.DictConfig,
+        flatten:            torch.nn.Module,
     ) -> None:
         super(Feature2MuStd, self).__init__()
         self.flatten = flatten

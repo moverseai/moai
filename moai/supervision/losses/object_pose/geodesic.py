@@ -48,6 +48,6 @@ def _compute_geodesic_loss(gt_r_matrix, out_r_matrix):
     m = torch.bmm(gt_r_matrix, out_r_matrix.transpose(1, 2)) # [B, 3, 3]
     cos = (m[:, 0, 0] + m[:, 1, 1] + m[:, 2, 2] - 1.0) / 2.0
     cos = torch.min(cos, torch.ones(batch).to(gt_r_matrix))
-    torch.max(cos, torch.ones(batch).to(gt_r_matrix) * -1.0)
+    cos = torch.max(cos, torch.ones(batch).to(gt_r_matrix) * -1.0)
     theta = torch.acos(cos)
     return theta

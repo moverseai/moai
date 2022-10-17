@@ -1,5 +1,6 @@
 import torch
 import typing
+import functools
 
 class Stack(torch.nn.Module):
     def __init__(self,
@@ -102,3 +103,15 @@ class ReshapeAs(torch.nn.Module):
         shape: torch.Tensor,
     ) -> torch.Tensor:
         return tensor.reshape_as(shape)
+
+class Identity(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return tensor
+
+# Alias = functools.partial(Identity)
+# Passthrough = functools.partial(Identity)
+Alias = Identity
+Passthrough = Identity

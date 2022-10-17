@@ -36,7 +36,7 @@ class LinearBlock(torch.nn.Module):
         self.in_features = in_features
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if not hasattr(self, "view"):
+        if not hasattr(self, "view"): #TODO: fix
             s = x.size()
             def conv_view(x: torch.Tensor, f:int) -> torch.Tensor:
                 return x.view(-1, f)
