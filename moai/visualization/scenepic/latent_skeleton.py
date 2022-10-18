@@ -1,5 +1,5 @@
 from moai.utils.arguments import assert_numeric
-# from moai.monads.execution.cascade import _create_accessor
+from moai.monads.execution.cascade import _create_accessor
 from collections.abc import Callable
 
 import scenepic
@@ -2385,6 +2385,7 @@ class LatentSkeleton(Callable):
     __LAMBDA_MAP__ = { '': lambda _: None, 'skeleton': lambda _: 'skeleton'}
 
     def __init__(self,
+        vertices:         typing.Union[str, typing.Sequence[str]],
         canvas:           typing.Union[int, typing.Sequence[int]],
         layer:            typing.Union[int, typing.Sequence[int]],
         color:            typing.Union[str, typing.Sequence[str]],
@@ -2397,7 +2398,8 @@ class LatentSkeleton(Callable):
         skeleton:         typing.Sequence[int]=None,  
         joint_radius:      float=0.02,      
     ):
-        self.name, self.point_size = name, point_size
+        self.vertices, self.name, self.point_size = vertices, name, point_size
+        self.vertex_accessors = [_create_accessor(k) for k in self.vertices]
         self.ids = [canvas] if isinstance(canvas, int) else list(canvas)
         self.layers = [layer] if isinstance(layer, int) else list(layer)
         self.colors = [colour.Color(color)] if isinstance(color, str) else list(colour.Color(c) for c in color)
@@ -2423,10 +2425,10 @@ class LatentSkeleton(Callable):
             for _ in toolz.unique(self.ids)
         ]
         
-        for c, l, id in zip(self.colors, 
+        for v, c, l, id in zip(self.vertex_accessors, self.colors, 
             self.layers, self.ids
         ):
-            vertices = tensors.detach().cpu().numpy()
+            vertices = v(tensors).detach().cpu().numpy()
             faces = np.array(__skel_faces__,dtype=int)
             skel_vertices = np.array(__skel_vertices__)
             faces_all = []
@@ -2462,4 +2464,4 @@ class LatentSkeleton(Callable):
                 (str(n), {'opacity': 0.5}) for n in toolz.unique(self.layers)
             ))
         scene.link_canvas_events(*canvases)
-        scene.save_as_html(os.path.join('scenepic', "traversals.html"), title=f"{self.name}")
+        scene.save_as_html(os.path.join('scenepic', str(tensors['__moai__']['epoch'])+"_traversals.html"), title=f"{self.name}")

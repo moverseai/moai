@@ -9,28 +9,28 @@ __all__ = ["LatentInterp"]
 
 class LatentInterp(Callback):
     def __init__(self,
-        num_points: int,
         interpolate_epoch_interval: int,
+        generated: str,
         range_start: int=-5,
         range_end: int=5,
         steps: int=11,
         num_samples: int=1,
-        normalize: bool=True,
         full_vector: bool=False,
     ):
         self.interpolate_epoch_interval = interpolate_epoch_interval
+        self.key = generated
         self.range_start = range_start
         self.range_end = range_end
         self.num_samples = num_samples
-        self.num_points = num_points
-        self.normalize = normalize
         self.steps = steps
         self.full_vector = full_vector
 
     def on_validation_epoch_start(self, trainer, pl_module):
         points = self.interpolate_latent(pl_module, pl_module.latent_dim)
-        td = pl_module.generation({'x_hat': points})
-        pl_module.visualization.visualizers[-1](td['pred_joints_3d'])
+        td = {'__moai__': {'epoch': trainer.current_epoch}, self.key: points}
+        # td = pl_module.generation({'x_hat': points})
+        td = pl_module.generation(td)
+        pl_module.visualization.visualizers[-1](td)
 
     def interpolate_latent(self, pl_module, latent_dim):
         with torch.no_grad():
