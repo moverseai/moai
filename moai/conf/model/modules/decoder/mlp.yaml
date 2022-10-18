@@ -11,7 +11,11 @@ configuration:
     type: ???
     activation:
       type: ???
+      parameters:
+        inplace: true
   prediction:
     type: ???
     activation:
       type: ???
+      parameters:
+        inplace: true

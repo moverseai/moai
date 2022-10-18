@@ -181,14 +181,14 @@ class Feature2MuStd(torch.nn.Module):
         self.linear_mu = mil.make_linear_block(
             block_type=configuration.linear.type,
             linear_type="linear",
-            activation_type = configuration.linear.activation.type,
+            activation_type=configuration.linear.activation.type,
             in_features=configuration.features_head.enc_out_dim,
             out_features=configuration.features_head.latent_dim
         )
         self.linear_logvar = mil.make_linear_block(
             block_type=configuration.linear.type,
             linear_type="linear",
-            activation_type = configuration.linear.activation.type,
+            activation_type=configuration.linear.activation.type,
             in_features=configuration.features_head.enc_out_dim,
             out_features=configuration.features_head.latent_dim
         )

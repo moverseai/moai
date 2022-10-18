@@ -29,10 +29,9 @@ class LatentInterp(Callback):
 
     def on_validation_epoch_start(self, trainer, pl_module):
         points = self.interpolate_latent(pl_module, pl_module.latent_dim)
-        td = pl_module.generation({'latent': points})
-        # pl_module.visualization.visualizers[-1](points.reshape(self.steps, self.num_points, 3)) if self.full_vector\
-        #     else pl_module.visualization.visualizers[2](points.reshape(self.steps*self.steps, self.num_points, 3))
-    
+        td = pl_module.generation({'x_hat': points})
+        pl_module.visualization.visualizers[-1](td['pred_joints_3d'])
+
     def interpolate_latent(self, pl_module, latent_dim):
         with torch.no_grad():
             pl_module.eval()
