@@ -1,6 +1,7 @@
 import moai.nn.residual as mires
 import moai.nn.sampling.spatial.downsample as mids
 import moai.nn.sampling.spatial.upsample as mius
+import omegaconf.omegaconf
 
 import torch
 
@@ -11,8 +12,8 @@ __all__ = ["Hourglass"]
 
 class Hourglass(torch.nn.Module):
     def __init__(self, 
-        convolution:        str="conv2d",
-        activation:         str="relu_bn2d",
+        convolution:        omegaconf.DictConfig,
+        activation:         omegaconf.DictConfig,
         downscale:          str="maxpool2d",
         upscale:            str="upsample2d",
         residual:           str="preactiv_bottleneck",
