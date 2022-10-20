@@ -120,7 +120,9 @@ class Fit3D(torch.utils.data.Dataset):
                     'right_eye_pose': item['reye_pose'],
                 }
             },
-            '__moai__': type(self).__name__
+            '__moai__': {
+                'dataset': type(self).__name__,
+            }
         }
         if self.reconstruct:
             with torch.no_grad():
