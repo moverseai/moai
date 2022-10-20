@@ -144,12 +144,7 @@ class VariationalAutoencoder(minet.FeedForward):
                             for k in tk
                         )
                     ))))
-            )
-            
-    def decode(self,
-        tensor: torch.Tensor
-    ):
-        return self.decoder(tensor)
+            )           
 
     def forward(self, 
         td: typing.Dict[str, torch.Tensor]
