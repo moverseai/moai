@@ -13,7 +13,6 @@ class LightningTrainer(pytorch_lightning.Trainer):
         checkpoint:                 omegaconf.DictConfig=None,
         regularization:             omegaconf.DictConfig=None,
         callbacks:                  omegaconf.DictConfig=None,
-        loop:                       omegaconf.DictConfig=None,
         model_callbacks:            typing.Sequence[pytorch_lightning.Callback]=None,
         default_root_dir:           typing.Optional[str]=None,
         gradient_clip_val:          float=0.0,
@@ -156,22 +155,6 @@ class LightningTrainer(pytorch_lightning.Trainer):
             num_processes=num_processes, #NOTE: @PTL1.5 fix
             **kwargs
         )
-        if loop is not None:
-            from pytorch_lightning.loops import EvaluationLoop, PredictionLoop, TrainingBatchLoop, TrainingEpochLoop
-            fit_loop = hyu.instantiate(loop)
-            # fit_loop = FitLoop(
-            #     min_epochs=(1 if (min_epochs is None and min_steps is None and max_time is None) else min_epochs),
-            #     max_epochs=(
-            #         max_epochs if max_epochs is not None else (1000 if (max_steps == -1 and max_time is None) else -1)
-            #     ),
-            # )
-            training_epoch_loop = TrainingEpochLoop(min_steps, max_steps)
-            training_batch_loop = TrainingBatchLoop()
-            training_validation_loop = EvaluationLoop()
-            training_epoch_loop.connect(batch_loop=training_batch_loop, val_loop=training_validation_loop)
-            fit_loop.connect(epoch_loop=training_epoch_loop)
-            self.fit_loop = fit_loop
-            
 
 
     def run(self, model):

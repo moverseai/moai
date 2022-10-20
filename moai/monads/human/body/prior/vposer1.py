@@ -51,7 +51,7 @@ class VPoser1(VPoser_v1):
                 out['pose'] = out['pose'].reshape(autoencode.shape[0], -1)
             return out
         if encode is not None:
-            out['embedding'] = self.encode(encode)
+            out['embedding'] = self.encode(encode).mean
         if decode is not None:
             dec = self.decode(decode)
             bs = decode.shape[0]            

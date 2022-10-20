@@ -59,11 +59,11 @@ class StackedHourglass(minet.FeedForward):
             ),
             mires.make_residual_block(
                 block_type=preproc.residual,
-                convolution_type=preproc.convolution,
+                convolution_type=preproc.convolution.type,
                 in_features=hourglass.features // 4,
                 out_features=hourglass.features // 2,
                 bottleneck_features=hourglass.features // 2,
-                activation_type=preproc.activation,
+                activation_type=preproc.activation.type,
                 strided=False,
             ),
             mids.make_downsample(
@@ -73,20 +73,20 @@ class StackedHourglass(minet.FeedForward):
             ),
             mires.make_residual_block(
                 block_type=preproc.residual,
-                convolution_type=preproc.convolution,
+                convolution_type=preproc.convolution.type,
                 in_features=hourglass.features // 2,
                 out_features=hourglass.features // 2,
                 bottleneck_features=hourglass.features // 2,
-                activation_type=preproc.activation,
+                activation_type=preproc.activation.type,
                 strided=False,
             ),
             mires.make_residual_block(
                 block_type=preproc.residual,
-                convolution_type=preproc.convolution,
+                convolution_type=preproc.convolution.type,
                 in_features=hourglass.features // 2,
                 out_features=hourglass.features,
                 bottleneck_features=hourglass.features,
-                activation_type=preproc.activation,
+                activation_type=preproc.activation.type,
                 strided=False,
             ),
         )
@@ -102,11 +102,11 @@ class StackedHourglass(minet.FeedForward):
                 torch.nn.Sequential(
                     mires.make_residual_block(
                         block_type=preproc.residual,
-                        convolution_type=preproc.convolution,
+                        convolution_type=preproc.convolution.type,
                         in_features=hourglass.features,
                         out_features=hourglass.features,
                         bottleneck_features=hourglass.features,
-                        activation_type=preproc.activation,
+                        activation_type=preproc.activation.type,
                         strided=False,
                     ),
                     mic.make_conv_block(

@@ -4,8 +4,10 @@ _target_: moai.modules.lightning.highres.HighResolution
 residual:
   type: preactiv_bottleneck
   bottleneck_features: 128
-  convolution: ${model.configuration.global.convolution}
-  activation: ${model.configuration.global.activation}
+  convolution: 
+    type: ${model.configuration.global.convolution}
+  activation: 
+    type: ${model.configuration.global.activation}
 fuse:
   convolution: ${model.configuration.global.convolution}
   activation:    

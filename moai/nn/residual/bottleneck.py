@@ -240,43 +240,34 @@ class LambdaBottleneck(torch.nn.Module):
         activation_params: dict,
         strided: bool):
         super(LambdaBottleneck, self).__init__()
-        #self.conv1 = torch.nn.Conv2d(in_planes, planes, kernel_size=1, bias=False) #W1
-        #self.bn1 = torch.nn.BatchNorm2d(planes) #A1
         self.W1 = mic.make_conv_1x1(
             convolution_type=convolution_type,
             in_channels=in_features,
             out_channels=bottleneck_features,
             stride=2 if strided else 1,
-            **convolution_params
         )
         self.A1 = mia.make_activation(
             features=bottleneck_features,
             activation_type=activation_type,
             **activation_params
         )
-
-        # self.conv2 = torch.nn.ModuleList([LambdaConv(planes, planes)])
-        # if stride != 1 or in_planes != self.expansion * planes:
-        #     self.conv2.append(torch.nn.AvgPool2d(kernel_size=(3, 3), stride=stride, padding=(1, 1)))
-        # self.conv2.append(torch.nn.BatchNorm2d(planes))
-        # self.conv2.append(torch.nn.ReLU())
-        # self.conv2 = torch.nn.Sequential(*self.conv2)
-
         self.W2 = LambdaConv(
-            bottleneck_features,
-            bottleneck_features)
-        
+            in_channels = bottleneck_features,
+            out_channels = bottleneck_features,
+            heads = convolution_params['lambda'].heads, 
+            k = convolution_params['lambda'].k, 
+            u = convolution_params['lambda'].u, 
+            m = convolution_params['lambda'].m
+        )
         self.A2 = mia.make_activation(
             features=bottleneck_features,
             activation_type=activation_type,
             **activation_params
         )
-
         self.W3 = mic.make_conv_1x1(
             convolution_type=convolution_type,
             in_channels=bottleneck_features,
             out_channels=out_features,          
-            **convolution_params
         )
         self.A3 = mia.make_activation(
             features=out_features,
@@ -288,14 +279,12 @@ class LambdaBottleneck(torch.nn.Module):
                     convolution_type=convolution_type,
                     in_channels=in_features,
                     out_channels=out_features,
-                    **convolution_params,
                 # using a 3x3 conv for shortcut downscaling instead of a 1x1 (used in detectron2 for example)
                 ) if not strided else mic.make_conv_3x3(
                     convolution_type=convolution_type,
                     in_channels=in_features,
                     out_channels=out_features,
                     stride=2,
-                    **convolution_params,
                 )
 
         # self.conv3 = torch.nn.Conv2d(planes, self.expansion * planes, kernel_size=1, bias=False)

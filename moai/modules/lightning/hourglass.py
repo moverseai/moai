@@ -1,6 +1,4 @@
-import moai.nn.convolution as mic
 import moai.nn.residual as mires
-import moai.nn.utils as miu
 import moai.nn.sampling.spatial.downsample as mids
 import moai.nn.sampling.spatial.upsample as mius
 
@@ -25,11 +23,11 @@ class Hourglass(torch.nn.Module):
         new_features = features
         self.up1 = mires.make_residual_block(
             block_type=residual,
-            convolution_type=convolution,
+            convolution_type=convolution.type,
             in_features=features,
             out_features=features,
             bottleneck_features=features,
-            activation_type=activation,
+            activation_type=activation.type,
             strided=False,
         )
         # Lower branch        
@@ -40,11 +38,11 @@ class Hourglass(torch.nn.Module):
         )
         self.low1 = mires.make_residual_block(
             block_type=residual,
-            convolution_type=convolution,
+            convolution_type=convolution.type,
             in_features=features,
             out_features=new_features,
             bottleneck_features=new_features,
-            activation_type=activation,
+            activation_type=activation.type,
             strided=False,
         )
         self.depth = depth
@@ -60,20 +58,20 @@ class Hourglass(torch.nn.Module):
             ) if self.depth > 1 \
             else mires.make_residual_block(
                 block_type=residual,
-                convolution_type=convolution,
+                convolution_type=convolution.type,
                 in_features=new_features,
                 out_features=new_features,
                 bottleneck_features=new_features,
-                activation_type=activation,
+                activation_type=activation.type,
                 strided=False,
             )
         self.low3 = mires.make_residual_block(
                 block_type=residual,
-                convolution_type=convolution,
+                convolution_type=convolution.type,
                 in_features=new_features,
                 out_features=features,
                 bottleneck_features=features,
-                activation_type=activation,
+                activation_type=activation.type,
                 strided=False,
             )
         self.up2 = mius.make_upsample(

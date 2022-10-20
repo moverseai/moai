@@ -138,11 +138,11 @@ class Higher(torch.nn.Module):
                 torch.nn.Sequential(*[
                     mires.make_residual_block(
                         block_type=residual.type,
-                        convolution_type=residual.convolution,
+                        convolution_type=residual.convolution.type,
                         in_features=deconvolution.deconv_out_features,
                         out_features=deconvolution.deconv_out_features,
                         bottleneck_features=residual.bottleneck_features,
-                        activation_type=residual.activation,
+                        activation_type=residual.activation.type,
                         activation_params=residual.activation.params or { 'inplace': True },
                         strided=False,
                         convolution_params=toolz.merge(residual.convolution.params or {}, {
