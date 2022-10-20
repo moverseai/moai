@@ -33,15 +33,25 @@ class ClearML(pytorch_lightning.loggers.base.LightningLoggerBase):
         test_metrics = toolz.keymap(lambda k: k.replace('test_', '').replace('/epoch_0', ''), 
             toolz.keyfilter(lambda k: k.startswith('test_'), metrics)
         )
-        e = int(metrics['epoch'])
         if train_metrics:            
             loss = float(metrics['total_loss'])
             self.logger.report_scalar('train', 'loss', loss, step)
             for k, v in train_metrics.items():
                 self.logger.report_scalar('train', k, v, step)
         elif test_metrics:
-            return #TODO: test case 
+            # return #TODO: test case 
+            dataset_test_metrics = toolz.valmap(
+                lambda v: toolz.keymap(lambda k: k.split('/')[0], dict(v)), 
+                toolz.groupby(
+                    lambda k: toolz.get(1, k[0].split('/'), 'metrics'),
+                    test_metrics.items()
+                )
+            )
+            for d, m in dataset_test_metrics.items():
+                        for k, v in m.items():
+                            self.logger.report_scalar(d, k, v, step)
         if val_metrics:            
+            e = int(metrics['epoch'])
             dataset_val_metrics = toolz.valmap(
                 lambda v: toolz.keymap(lambda k: k.split('/')[0], dict(v)), 
                 toolz.groupby(
