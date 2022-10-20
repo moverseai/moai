@@ -33,6 +33,7 @@ class VAE(torch.nn.Module):
                 )
             )
         )
+        #TODO load feature_head and reparam modules weights
 
     def forward(self,
         encode:     typing.Optional[torch.Tensor]=None,
@@ -42,6 +43,6 @@ class VAE(torch.nn.Module):
         if encode is not None:            
             return self.model.encoder(encode)
         if decode is not None:
-            return self.model.decoder(encode)
+            return self.model.decoder(decode)
         if autoencode is not None:
-            return self.model.decoder(self.model.encoder(encode))
+            return self.model.decoder(self.reparametrizer(self.feature_head(self.model.encoder(autoencode))))

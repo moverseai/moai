@@ -1,3 +1,4 @@
+from symbol import parameters
 import moai.nn.linear as mil
 
 import torch
@@ -26,7 +27,8 @@ class MLP(torch.nn.Module):
                     linear_type="linear",
                     in_features=in_features if b == 0  else mid_features,
                     out_features=mid_features,
-                    activation_type=configuration.linear.activation.type
+                    activation_type=configuration.linear.activation.type,
+                    activation_params=configuration.linear.activation.parameters
                 ))
             else:
                 enc_list.append(mil.make_linear_block(
@@ -34,14 +36,16 @@ class MLP(torch.nn.Module):
                     linear_type="linear",
                     in_features=in_features if b == 0  else mid_features,
                     out_features=mid_features,
-                    activation_type=configuration.linear.activation.type
+                    activation_type=configuration.linear.activation.type,
+                    activation_params=configuration.linear.activation.parameters
                 ))
         enc_list.append(mil.make_linear_block(
                 block_type=configuration.prediction.type,
                 linear_type="linear",
                 in_features=mid_features,
                 out_features=out_features,
-                activation_type=configuration.prediction.activation.type
+                activation_type=configuration.prediction.activation.type,
+                activation_params=configuration.linear.activation.parameters
             ))
         self.sequential = torch.nn.Sequential(*enc_list)
 
