@@ -77,6 +77,7 @@ class GeneBody(torch.utils.data.Dataset):
         smplx = self.load_smplx(item['smplx'])
         data = {
             'smplx': toolz.merge(smplx, {
+                'gender': 0, # neutral                
                 'mesh': {
                     'vertices': torch.from_numpy(mesh.vertices).float(),
                     'scaled_vertices': smplx['scale'] * torch.from_numpy(mesh.vertices).float(),
@@ -85,6 +86,9 @@ class GeneBody(torch.utils.data.Dataset):
             }),
             'images': toolz.valmap(load_color_image, item['images']),
             'masks': toolz.valmap(load_mask_image, item['masks']),
-            'cameras': item['cameras']
+            'cameras': item['cameras'],
+            '__moai__': {
+                'dataset': type(self).__name__,
+            }
         }
         return data

@@ -239,7 +239,7 @@ class OpenPoseMultiviewKeypoints(OpenPoseKeypoints):
         return len(next(iter(self.filenames.values()), []))
 
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
-        data = { }
+        data = { 'poses2d': { }}
         for k, v in self.filenames.items():
-            data[k] = super()._extract_data(super()._load_keypoints(v[index]))
+            data['poses2d'][k] = super()._extract_data(super()._load_keypoints(v[index]))
         return data

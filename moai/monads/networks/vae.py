@@ -42,6 +42,6 @@ class VAE(torch.nn.Module):
         if encode is not None:            
             return self.model.encoder(encode)
         if decode is not None:
-            return self.model.encoder(encode)
+            return self.model.decoder(encode)
         if autoencode is not None:
-            return self.model.decode(self.model.encoder(encode))
+            return self.model.decoder(self.model.encoder(encode))

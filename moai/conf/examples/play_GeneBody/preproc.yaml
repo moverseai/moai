@@ -22,14 +22,14 @@ model:
     opengl:
       focal_length: [1498.22426237, 1498.22426237]
       principal_point: [790.263706, 578.90334]
-      width: 2448 # 1600
-      height: 2048 # 1200
+      width: 400 # 2448 # 1600
+      height: 300 # 2048 # 1200
       rotation: null
       translation: null
       persistent: true
     mesh_silhouette:      
-      width: 2448 # 1600
-      height: 2048 # 1200
+      width: 400 # 2448 # 1600
+      height: 300 # 2048 # 1200
       position_gradient_scale: 1.0
     transform:
       xyz_in_at: row
@@ -85,7 +85,7 @@ model:
         out: [w2c]
       transform:
         transform: [w2c]
-        points: [mesh.scaled_vertices]
+        points: [smplx.mesh.scaled_vertices]
         out: [transformed_vertices]
       rotation3d:
         tensor: [transformed_vertices] # [mesh.scaled_vertices]
@@ -100,12 +100,14 @@ model:
         # rotation: [cameras.01.c2w_R]
         # image: [color]
         # nominal_image: [color]
+        nominal_image:
+          - images.${selected_cam}
         intrinsics: 
           - cameras.${selected_cam}.K
         out: [ndc_vertices]
       mesh_silhouette:
         ndc_vertices: [ndc_vertices]
-        indices: [mesh.faces]
+        indices: [smplx.mesh.faces]
         out: [silhouette]
       ##################### STOP NVDIFFRAST
       ##################### START PYTORCH3D

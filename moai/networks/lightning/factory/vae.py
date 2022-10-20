@@ -146,7 +146,7 @@ class VariationalAutoencoder(minet.FeedForward):
                     ))))
             )
             
-    def decode(self,
+    def decode(self, #NOTE: do we need this method?
         tensor: torch.Tensor
     ):
         return self.decoder(tensor)

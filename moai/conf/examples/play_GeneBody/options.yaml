@@ -17,7 +17,8 @@ visualization:
         - images.13
         - images.25
         - images.37
-        - images.${selected_cam}
+        # - images.${selected_cam}
+        - image_${selected_cam}_down2
         - silhouette
       right: 
       - masks.01
