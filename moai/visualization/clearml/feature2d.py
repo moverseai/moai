@@ -23,7 +23,6 @@ class Feature2d(object):
         batch_percentage: float=1.0,        
         max_history:      int=50,
     ):
-        #self.logger = _get_logger(project_name, task_name, uri, tags)
         self.logger = _get_logger()
         self.images = [image] if isinstance(image, str) else list(image)
         self.types = [type] if isinstance(type, str) else list(type)
@@ -39,11 +38,6 @@ class Feature2d(object):
         }
         self.colorize_map = { "none": lambda x: x }
         self.colorize_map.update(COLORMAPS)
-        #self.env_name = project_name
-
-    # @property
-    # def name(self) -> str:
-    #     return self.env_name
         
     def __call__(self, 
         tensors:    typing.Dict[str, torch.Tensor],
