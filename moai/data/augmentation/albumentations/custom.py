@@ -50,7 +50,7 @@ class Custom(torch.utils.data.Dataset):
                     item[o] = torch.from_numpy(augmented[k]) if isinstance(augmented[k],np.ndarray) else augmented[k] 
                     #item[o] = augmented[k] if isinstance(augmented[k],dict) else torch.from_numpy(augmented[k]) 
             else: # list
-                data = {kk: i[j](item).numpy() if isinstance(i[j](item),torch.Tensor) else i[j](item) for j, kk in enumerate(k)}
+                data = {kk: i[j](item).numpy() if isinstance(i[j](item), torch.Tensor) else i[j](item) for j, kk in enumerate(k)}
                 for ek, ev in e.items():
                     data[ek] = ev(item).numpy() if isinstance(ev(item),torch.Tensor) \
                              else ev(item)

@@ -1,3 +1,5 @@
+from moai.networks.lightning.feedforward import _create_processing_block
+
 import typing
 import moai.networks.lightning as minet
 import moai.utils.parsing.rtp as mirtp
@@ -53,12 +55,8 @@ class VariationalAutoencoder(minet.FeedForward):
         self.reparametrizer = Reparametrizer(prior) 
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
+        self.generation = _create_processing_block(feedforward, "generation", monads=monads)
         self.enc_fwds, self.dec_fwds, self.f2mu_std_fwds, self.rep_fwds = [], [], [], []
-        # hparams = {}
-        # hparams[f"configuration"] = configuration 
-        # hparams[f"io"] = io 
-        # hparams[f"modules"] = modules 
-        # self.hparams.update(hparams)
 
         params = inspect.signature(self.encoder.forward).parameters
         enc_in = list(zip(*[mirtp.force_list(io.encoder[prop]) for prop in params]))
@@ -156,12 +154,11 @@ class VariationalAutoencoder(minet.FeedForward):
     def forward(self, 
         td: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
-        for e, f, r in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds):
+        for e, f, r, d in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds, self.dec_fwds):
             e(td)
             f(td)
             r(td)
-        out = self.decode(td[f"z"])
-        td[f"x_hat"] = out
+            d(td)
         return td
 
     def training_step_end(self, 
@@ -184,14 +181,14 @@ class Feature2MuStd(torch.nn.Module):
         self.linear_mu = mil.make_linear_block(
             block_type=configuration.linear.type,
             linear_type="linear",
-            activation_type = configuration.linear.activation.type,
+            activation_type=configuration.linear.activation.type,
             in_features=configuration.features_head.enc_out_dim,
             out_features=configuration.features_head.latent_dim
         )
         self.linear_logvar = mil.make_linear_block(
             block_type=configuration.linear.type,
             linear_type="linear",
-            activation_type = configuration.linear.activation.type,
+            activation_type=configuration.linear.activation.type,
             in_features=configuration.features_head.enc_out_dim,
             out_features=configuration.features_head.latent_dim
         )

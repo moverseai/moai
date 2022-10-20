@@ -2,6 +2,7 @@
 
 _target_: moai.visualization.scenepic.LatentSkeleton
 name: ${experiment.name}
+vertices: ???
 canvas: ???
 layer: ???
 color: ???

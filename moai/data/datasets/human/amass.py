@@ -36,7 +36,7 @@ class AMASS(torch.utils.data.Dataset):
         frame_counter = 0
         self.subjects = { }
         self.device = device[0] if device[0] >= 0 else 'cpu'
-        for part in parts:            
+        for part in parts:
             for subject in filter(os.path.isdir, glob.glob(os.path.join(data_root, part, '**'))):
                 subject_name = os.path.basename(subject)                
                 gendered_shape_fn = toolz.first(glob.glob(
@@ -48,7 +48,7 @@ class AMASS(torch.utils.data.Dataset):
                 for action_fn in glob.glob(os.path.join(data_root, part, subject, '*_stageii.npz')):
                     data = np.load(action_fn, allow_pickle=False)
                     #frame_counter += int(data['trans'].shape[0] / downsample_factor)
-                    frame_counter += max(1,int(data['trans'].shape[0] / downsample_factor))
+                    frame_counter += max(1, int(data['trans'].shape[0] / downsample_factor))
                     self.items[frame_counter] = { 
                         'data': data, # action_fn, # data, 
                         'gender': gender,
