@@ -1,4 +1,4 @@
-# @package visualization.visualizers._name_
+# @package visualization.latent_visualizers._name_
 
 _target_: moai.visualization.scenepic.LatentSkeleton
 name: ${experiment.name}

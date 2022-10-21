@@ -16,11 +16,11 @@ class LatentVisualizers(mieng.Collection, mieng.Interval):
         mieng.Interval.__init__(self, batch_interval)
         mieng.Collection.__init__(
             self, 
-            items=visualizers, 
-            name="visualizers"
+            items=latent_visualizers, 
+            name="latent_visualizers"
         )
         mieng.Collection.__init__(
             self, 
-            items=latent_visualizers, 
-            name="latent_visualizers"
+            items=visualizers, 
+            name="visualizers"
         )

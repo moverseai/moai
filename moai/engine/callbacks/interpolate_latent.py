@@ -28,9 +28,9 @@ class LatentInterp(Callback):
     def on_validation_epoch_start(self, trainer, pl_module):
         points = self.interpolate_latent(pl_module, pl_module.latent_dim)
         td = {'__moai__': {'epoch': trainer.current_epoch}, self.key: points}
-        # td = pl_module.generation({'x_hat': points})
         td = pl_module.generation(td)
-        pl_module.visualization.visualizers[-1](td)
+        for vis in pl_module.visualization.latent_visualizers:
+            vis(td)
 
     def interpolate_latent(self, pl_module, latent_dim):
         with torch.no_grad():
