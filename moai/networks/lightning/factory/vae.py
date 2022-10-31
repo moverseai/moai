@@ -156,15 +156,6 @@ class VariationalAutoencoder(minet.FeedForward):
             d(td)
         return td
 
-    def training_step_end(self, 
-        train_outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]
-    ) -> None:
-        if self.global_step and (self.global_step % self.visualization.interval == 0):
-            self.visualization.visualizers[0](train_outputs['tensors'])
-            self.visualization.visualizers[1](train_outputs['tensors'])
-        return train_outputs['loss']
-
-
 class Feature2MuStd(torch.nn.Module):
     def __init__(self,
         configuration:      omegaconf.DictConfig,
