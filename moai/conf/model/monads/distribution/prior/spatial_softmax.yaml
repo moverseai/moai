@@ -3,4 +3,3 @@
 _target_: moai.monads.distribution.prior.SpatialSoftmax
 temperature: 1.0  # float, used to smoothen the output distribution
 alpha: 1.0        # sharpen output
-normalize: false  # normalize output

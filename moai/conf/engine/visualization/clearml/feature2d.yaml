@@ -1,6 +1,6 @@
 # @package visualization.visualizers._name_
 
-_target_: moai.visualization.clearml.Image2d
+_target_: moai.visualization.clearml.Feature2d
 batch_percentage: 1.0
 image: [color]
 type: [color]

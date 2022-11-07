@@ -1,8 +1,5 @@
 import moai.nn.convolution as mic
-import moai.nn.residual as mires
-import moai.nn.utils as miu
 import moai.nn.sampling.spatial.downsample as mids
-import moai.nn.sampling.spatial.upsample as mius
 
 import torch
 import typing

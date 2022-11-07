@@ -16,18 +16,14 @@ __all__ = ["Image2d"]
 
 class Image2d(object):
     def __init__(self,
-        project_name:       str,
-        task_name:          str,
         image:              typing.Union[str, typing.Sequence[str]],
         type:               typing.Union[str, typing.Sequence[str]],
         colormap:           typing.Union[str, typing.Sequence[str]],
         transform:          typing.Union[str, typing.Sequence[str]],
-        uri:                typing.Optional[str]=None,
-        tags:               typing.Optional[typing.Union[str, typing.Sequence[str]]]=None,        
         batch_percentage:   float=1.0,        
         max_history:        int=50,
     ):        
-        self.logger = _get_logger(project_name, task_name, uri, tags)
+        self.logger = _get_logger()
         self.keys = [image] if isinstance(image, str) else list(image)
         self.types = [type] if isinstance(type, str) else list(type)
         self.transforms = [transform] if isinstance(transform, str) else list(transform)
@@ -46,11 +42,6 @@ class Image2d(object):
         }
         self.colorize_map = { "none": lambda x: x.detach().cpu().numpy() }
         self.colorize_map.update(COLORMAPS)
-        self.env_name = project_name
-
-    @property
-    def name(self) -> str:
-        return self.env_name
         
     def __call__(self, 
         tensors:    typing.Dict[str, torch.Tensor],
@@ -62,7 +53,7 @@ class Image2d(object):
                     self.transform_map[tf](
                         tensors, k, int(math.ceil(self.batch_percentage * tensors[k].shape[0])),
                     )
-                ), k, step, self.name
+                ), k, step, k
             )
 
     @staticmethod
@@ -79,16 +70,6 @@ class Image2d(object):
                 title=env, series=f"{key}_{i}", iteration=step, 
                 image=img.transpose(1, 2, 0), max_image_history=max_history
             )
-        # visdom.images(
-        #     array,
-        #     win=win,
-        #     env=env,
-        #     opts={
-        #         'title': key,
-        #         'caption': key,
-        #         'jpgquality': jpeg_quality,
-        #     }
-        # )
 
     @staticmethod
     def _viz_heatmap(

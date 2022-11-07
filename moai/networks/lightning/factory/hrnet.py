@@ -70,11 +70,11 @@ class HRNet(minet.FeedForward):
         ):
             residual_blocks.append(mires.make_residual_block(
                 block_type=residual.block,
-                convolution_type=residual.convolution,
+                convolution_type=residual.convolution.type,
                 out_features=o,
                 in_features=i,
                 bottleneck_features=b,
-                activation_type=residual.activation,
+                activation_type=residual.activation.type,
                 convolution_params=residual.convolution.params or { },
                 activation_params=residual.activation.params or { 'inplace': True },
                 strided=False,

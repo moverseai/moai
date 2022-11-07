@@ -13,6 +13,7 @@ from moai.supervision import (
 )
 from moai.data.iterator import Indexed
 from moai.parameters.optimization.optimizers import LBFGS as miLBFGS
+from moai.monads.execution.cascade import _create_accessor
 
 import moai.utils.parsing.rtp as mirtp
 
@@ -283,7 +284,9 @@ class Optimizer(pytorch_lightning.LightningModule):
         tensors: typing.Dict[str, torch.Tensor]
     ) -> None:
         for i, a in self.initializers:
-            a(self, tensors[i])
+            accessor = _create_accessor(i)
+            a(self,accessor(tensors))
+            #a(self, tensors[i])
 
     def assign(self,
         tensors: typing.Dict[str, torch.Tensor]

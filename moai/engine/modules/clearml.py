@@ -22,6 +22,7 @@ def _init_task(
     connect_args:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=True,
     connect_libs:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=False,
     connect_res:        typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=True,
+    continue_last_task: typing.Union[bool,str]=False,
     # connect_logs:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
 ) -> None:
     global __CLEARML_TASK__
@@ -31,7 +32,7 @@ def _init_task(
             task_name=task_name,
             task_type=clearml.TaskTypes.training,
             reuse_last_task_id=True,
-            continue_last_task=False,
+            continue_last_task=continue_last_task,
             output_uri=uri,
             auto_connect_arg_parser=connect_args,
             # auto_connect_frameworks=connect_libs,
@@ -55,15 +56,22 @@ def _init_task(
         __CLEARML_TASK__.connect_configuration("config_resolved.yaml", name='hydra')
     return __CLEARML_TASK__
 
-def _get_logger(
-    project_name:       str,
-    task_name:          str,
-    uri:                typing.Optional[str]=None,
-    tags:               typing.Optional[typing.Union[str, typing.Sequence[str]]]=None,
-) -> clearml.Logger:
+
+def _get_project_name() -> str:
+    return __CLEARML_TASK__.get_project_name()
+
+def _get_task_name() -> str:
+    return __CLEARML_TASK__.name
+
+def _get_logger() -> clearml.Logger:
     global __CLEARML_TASK__
     if __CLEARML_TASK__ is None:
-        _init_task(project_name, task_name, uri, tags)
+        log.error("You are requesting to log " 
+        "results in clearml, but without including clearml in your project!"
+        "\nAdd the following line in your main config: "
+        " \'-engine/modules: clearml\'"
+        )
+        #_init_task(project_name, task_name, uri, tags)
     return __CLEARML_TASK__.get_logger()
 
 class ClearML(object):
@@ -75,9 +83,11 @@ class ClearML(object):
         connect_args:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
         connect_libs:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
         connect_res:        typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
+        continue_last_task: typing.Union[bool,str]=False,
         # connect_logs:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
     ) -> None:       
         _init_task(
             project_name, task_name, uri, tags, 
-            connect_args, connect_libs, connect_res
+            connect_args, connect_libs, connect_res,
+            continue_last_task
         )

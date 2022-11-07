@@ -1,0 +1,19 @@
+# @package visualization.visualizers._name_
+
+_target_: moai.visualization.clearml.Pose2d
+images: ['']
+poses: [''] # one of [human_pose2d]
+gt: ['']
+pred: ['']
+gt_masks: ['']
+pred_masks: ['']
+pose_structure: ???
+transparency: 0.5
+coords: [ndc]
+color_gt: cyan
+color_pred: orange
+reverse_coords: false
+scale: 1.0
+use_mask: true
+jpeg_quality: 50
+max_history: 50

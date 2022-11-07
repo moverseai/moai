@@ -28,11 +28,11 @@ class HighResolution(torch.nn.Module):
             torch.nn.Sequential(*[
                 mires.make_residual_block(
                     block_type=residual.type,
-                    convolution_type=residual.convolution,
+                    convolution_type=residual.convolution.type,
                     in_features=start_features * (2 ** b),
                     out_features=start_features * (2 ** b),
                     bottleneck_features=residual.bottleneck_features,
-                    activation_type=residual.activation,
+                    activation_type=residual.activation.type,
                     strided=False,                    
                     activation_params=residual.activation.params or { 'inplace': True },
                     convolution_params=toolz.merge(

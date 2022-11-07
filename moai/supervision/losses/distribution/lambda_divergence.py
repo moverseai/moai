@@ -27,7 +27,7 @@ class Lambda(KL):
             + 
             (1.0 - self.lamda) * (gt.exp() if self.is_target_log_ else gt)
         )
-        m = m.log()
+        m = (m + self.epsilon).log() 
         p = pred if self.is_input_log_ else (pred + self.epsilon).log()
         g = gt if self.is_target_log_ else (gt + self.epsilon).log()
         
