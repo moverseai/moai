@@ -6,6 +6,7 @@ import smplx #TODO: try/except and error msg
 import functools
 import typing
 import logging
+import kornia
 
 #NOTE: code from https://github.com/vchoutas/smplify-x
 
@@ -94,8 +95,17 @@ class SMPLX(smplx.SMPLX):
         left_eye:       torch.Tensor=None,
         right_eye:      torch.Tensor=None,
     ) -> typing.Mapping[str, torch.Tensor]:
+        beta_coeffs = shape if shape.shape[1] == self.num_betas else\
+            torch.cat([
+                shape, 
+                torch.zeros(shape.shape[0], self.num_betas - shape.shape[1]).to(shape)
+            ], dim=1)
+        if len(pose.shape) > 3:
+            pose = kornia.geometry.rotation_matrix_to_angle_axis(pose)
+        if len(rotation.shape) > 2:
+            rotation = kornia.geometry.rotation_matrix_to_angle_axis(rotation)
         body_output = super(SMPLX, self).forward(
-            betas=shape,                    # betas -> [1, 10] # v_shaped -> [1, 10475, 3]
+            betas=beta_coeffs,                    # betas -> [1, 10] # v_shaped -> [1, 10475, 3]
             body_pose=pose,                 # body_pose -> [1, 63] # joints -> [1, 118, 3]
             global_orient=rotation,         # global_orient -> [1, 3]
             transl=translation,             # transl -> [1, 3]

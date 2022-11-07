@@ -1,0 +1,5 @@
+# @package data.val.iterator.datasets._name_
+
+_target_: moai.data.datasets.human.HBW
+root: ${hbw_root}
+split: val

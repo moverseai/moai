@@ -68,7 +68,7 @@ class Image2d(Callable):
         ):
             b = self.save_map[t](
                 self.colorize_map[c](
-                    self.transform_map[tf](tensors[k])
+                    self.transform_map[tf](tensors[k].detach())
                 ), k, self.index, f
             )
         self.index = 0 if self.mode == "overwrite" else self.index + b
@@ -88,7 +88,7 @@ class Image2d(Callable):
         #        f'{key}_{index + i}.{ext}'
         #     )
             cv2.imwrite(
-                f'{key}_{index + i}.{ext}',
+                f'{key}_{index + i:05d}.{ext}',
                 array[i, :, :, :].transpose(1, 2, 0),
             )
         return b

@@ -69,11 +69,18 @@ class Convert(torch.nn.Module):
         return self.converter(rotation)
 
 class ConvertRotation(torch.nn.Module):
-    __ALIAS_MAP__ = dict(toolz.concat([
-        ((R, 'rotmat') for R in ['R', 'rot', '3x3', 'rotation', 'matrix', 'rotation_matrix', 'rotmat']), 
-        ((q, 'unitquat') for q in ['quat', 'quaternion', 'q', '4']),
-        ((r, 'rotvec') for r in ['r', 'aa', 'rotvec', 'axisangle', 'rodrigues', 'axis-angle', '3']),
-    ]))
+    __ALIAS_MAP__ = {
+        'roma': dict(toolz.concat([
+            ((R, 'rotmat') for R in ['R', 'rot', '3x3', 'rotation', 'matrix', 'rotation_matrix', 'rotmat']), 
+            ((q, 'unitquat') for q in ['quat', 'quaternion', 'q', '4']),
+            ((r, 'rotvec') for r in ['r', 'aa', 'rotvec', 'axisangle', 'rodrigues', 'axis-angle', '3']),
+        ])),
+        'kornia': dict(toolz.concat([
+            ((R, 'rotation_matrix') for R in ['R', 'rot', '3x3', 'rotation', 'matrix', 'rotation_matrix', 'rotmat']), 
+            ((q, 'quaternion') for q in ['quat', 'quaternion', 'q', '4']),
+            ((r, 'angle_axis') for r in ['r', 'aa', 'rotvec', 'axisangle', 'rodrigues', 'axis-angle', '3']),
+        ])),
+    }
 
     __SHAPE_MAP__ = {
         'rotmat': [3, 3],
@@ -84,9 +91,11 @@ class ConvertRotation(torch.nn.Module):
     def __init__(self,
         src:        str, # one of aliases
         tgt:        str, # one of aliases
+        backend:    str='roma',
     ):
         super().__init__()
-        self.convert = getattr(roma, f"{ConvertRotation.__ALIAS_MAP__[src]}_to_{ConvertRotation.__ALIAS_MAP__[tgt]}")
+        module = roma if backend == 'roma' else kn.geometry.conversions
+        self.convert = getattr(module, f"{ConvertRotation.__ALIAS_MAP__[backend][src]}_to_{ConvertRotation.__ALIAS_MAP__[backend][tgt]}")
         self.shape = ConvertRotation.__SHAPE_MAP__[ConvertRotation.__ALIAS_MAP__[src]]
 
     def forward(self,
@@ -94,11 +103,32 @@ class ConvertRotation(torch.nn.Module):
     ) -> torch.Tensor:
         return self.convert(rotation.view(rotation.shape[0], -1, *self.shape))
 
-RotationMatrix2RotationVector = functools.partial(ConvertRotation, src='R', tgt='r')
-RotationMatrix2Quaternion = functools.partial(ConvertRotation, src='R', tgt='q')
+# default is roma / kornia as fallback when roma does not deliver proper outputs
+RotationMatrix2RotationVector = functools.partial(ConvertRotation, src='R', tgt='r', backend='kornia') # roma implementation is not deterministic / produces wrong outputs sometimes
+RotationMatrix2Quaternion = functools.partial(ConvertRotation, src='R', tgt='q', backend='roma')
 
-RotationVector2Quaternion = functools.partial(ConvertRotation, src='r', tgt='q')
-RotationVector2RotationMatrix = functools.partial(ConvertRotation, src='r', tgt='R')
+RotationVector2Quaternion = functools.partial(ConvertRotation, src='r', tgt='q', backend='roma')
+RotationVector2RotationMatrix = functools.partial(ConvertRotation, src='r', tgt='R', backend='roma')
 
-Quaternion2RotationVector = functools.partial(ConvertRotation, src='q', tgt='r')
-Quaternion2RotationMatrix = functools.partial(ConvertRotation, src='q', tgt='R')
+Quaternion2RotationVector = functools.partial(ConvertRotation, src='q', tgt='r', backend='roma')
+Quaternion2RotationMatrix = functools.partial(ConvertRotation, src='q', tgt='R', backend='roma')
+
+# roma
+RomaRotationMatrix2RotationVector = functools.partial(ConvertRotation, src='R', tgt='r', backend='roma')
+RomaRotationMatrix2Quaternion = functools.partial(ConvertRotation, src='R', tgt='q', backend='roma')
+
+RomaRotationVector2Quaternion = functools.partial(ConvertRotation, src='r', tgt='q', backend='roma')
+RomaRotationVector2RotationMatrix = functools.partial(ConvertRotation, src='r', tgt='R', backend='roma')
+
+RomaQuaternion2RotationVector = functools.partial(ConvertRotation, src='q', tgt='r', backend='roma')
+RomaQuaternion2RotationMatrix = functools.partial(ConvertRotation, src='q', tgt='R', backend='roma')
+
+# kornia
+KorniaRotationMatrix2RotationVector = functools.partial(ConvertRotation, src='R', tgt='r', backend='kornia')
+KorniaRotationMatrix2Quaternion = functools.partial(ConvertRotation, src='R', tgt='q', backend='kornia')
+
+KorniaRotationVector2Quaternion = functools.partial(ConvertRotation, src='r', tgt='q', backend='kornia')
+KorniaRotationVector2RotationMatrix = functools.partial(ConvertRotation, src='r', tgt='R', backend='kornia')
+
+KorniaQuaternion2RotationVector = functools.partial(ConvertRotation, src='q', tgt='r', backend='kornia')
+KorniaQuaternion2RotationMatrix = functools.partial(ConvertRotation, src='q', tgt='R', backend='kornia')

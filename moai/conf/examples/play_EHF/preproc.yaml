@@ -1,7 +1,7 @@
 # @package _global_
 
-DOWN_WIDTH: 400
-DOWN_HEIGHT: 300
+DOWN_WIDTH: 400 # 1600 # 400
+DOWN_HEIGHT: 300 # 1200 # 300
 
 model:
   monads:
@@ -93,7 +93,7 @@ model:
       mesh_silhouette:
         ndc_vertices: [ndc_vertices]
         indices: [faces]
-        resolution_image: [color_down_x2]
+        resolution_image: [color] # [color_down_x2]
         out: [silhouette]
       # bilinear_sampling:
       #   image: [color]
