@@ -206,10 +206,17 @@ class OpenPoseKeypoints(torch.utils.data.Dataset):
             def _get_area(person: typing.Dict[str, torch.Tensor]) -> float:
                 keypoints = person['body']['keypoints']
                 confidence = person['body']['confidence']
-                min_x = keypoints[..., 0].min()
-                min_y = keypoints[..., 1].min()
-                max_x = keypoints[..., 0].max()
-                max_y = keypoints[..., 1].max()
+                zero_vector = torch.zeros(size=(1,1), dtype=float)
+                bool_mask = torch.not_equal(keypoints, zero_vector)
+                omit_zeros = torch.masked_select(keypoints, bool_mask).reshape(-1,2)
+                min_x = omit_zeros[..., 0].min()
+                min_y = omit_zeros[..., 1].min()
+                max_x = omit_zeros[..., 0].max()
+                max_y = omit_zeros[..., 1].max()
+                # min_x = keypoints[..., 0].min()
+                # min_y = keypoints[..., 1].min()
+                # max_x = keypoints[..., 0].max()
+                # max_y = keypoints[..., 1].max()
                 return (max_x - min_x) * (max_y - min_y) * confidence.sum()
             person = max(persons, key=_get_area)
             return person

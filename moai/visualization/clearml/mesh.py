@@ -26,17 +26,17 @@ class Mesh(object):
     __LAMBDA_MAP__ = { '': lambda _: None, 'skeleton': lambda _: 'skeleton'}
 
     def __init__(self,
-        vertices:         typing.Union[str, typing.Sequence[str]],
-        faces:            typing.Union[str, typing.Sequence[str]],
-        canvas:           typing.Union[int, typing.Sequence[int]],
-        layer:            typing.Union[int, typing.Sequence[int]],
-        color:            typing.Union[str, typing.Sequence[str]],
-        batch_percentage: float=1.0,
-        width:            int=600,
-        height:           int=400,
-        point_size:       float=0.1,
-        name:             str="default",
-        skeleton:         typing.Sequence[int]=None,  
+        vertices:          typing.Union[str, typing.Sequence[str]],
+        faces:             typing.Union[str, typing.Sequence[str]],
+        canvas:            typing.Union[int, typing.Sequence[int]],
+        layer:             typing.Union[int, typing.Sequence[int]],
+        color:             typing.Union[str, typing.Sequence[str]],
+        batch_percentage:  float=1.0,
+        width:             int=600,
+        height:            int=400,
+        point_size:        float=0.1,
+        name:              str="default",
+        skeleton:          typing.Sequence[int]=None,  
         joint_radius:      float=0.05,
         start_thickness:   float=0.01,
         end_thickness:     float=0.05,
@@ -131,7 +131,6 @@ class Mesh(object):
                 (str(n), {'opacity': 0.5}) for n in toolz.unique(self.layers)
             ))
         scene.link_canvas_events(*canvases)
-        #scene.save_as_html(os.path.join('scenepic', "index.html"), title=f"{self.name}")
         scene.save_as_html(os.path.join("index.html"), title=f"{self.name}")
         self.logger.report_media(
             self.name,

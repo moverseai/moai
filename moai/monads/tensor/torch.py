@@ -1,6 +1,5 @@
 import torch
 import typing
-import functools
 
 class Stack(torch.nn.Module):
     def __init__(self,
