@@ -1,4 +1,6 @@
+from moai.monads.execution.cascade import _create_accessor
 from moai.utils.funcs import passthrough
+from moai.supervision.losses.regression.cosine_distance import _acos_safe
 
 import torch
 import hydra.utils as hyu
@@ -13,14 +15,14 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Metrics']
 
-from moai.monads.execution.cascade import _create_accessor
-
 class Metrics(torch.nn.ModuleDict):
     execs: typing.List[typing.Callable] = []
 
     __REDUCTIONS__ = {
         'rmse': torch.sqrt,
         'mean': passthrough,
+        'rad2deg': lambda x: torch.rad2deg(x).mean(),
+        'dot2deg': lambda x: torch.rad2deg(_acos_safe(x)).mean(),
     }
 
     def __init__(self, 

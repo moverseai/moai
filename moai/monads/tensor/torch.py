@@ -55,7 +55,7 @@ class Slice(torch.nn.Module):
         self.length = length
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        return torch.narrow(input = tensor,dim=self.dim,start = self.start, length = self.length)
+        return torch.narrow(input=tensor, dim=self.dim, start=self.start, length=self.length)
 
 
 

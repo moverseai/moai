@@ -4,16 +4,25 @@ EHF_root: ???
 
 data:
   train:
+    loader:
+      shuffle: false
+      drop_last: false
     iterator:
       datasets:
         EHF:
           load_jpg: true
   test:
+    loader:
+      shuffle: false
+      drop_last: false
     iterator:
       datasets:
         EHF:
           load_jpg: true
   val:
+    loader:
+      shuffle: false
+      drop_last: false
     iterator:
       datasets:
         EHF:

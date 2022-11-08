@@ -7,6 +7,9 @@ defaults:
   - engine: engine
   - engine/play: lightning
 
+  # - engine/export: collection
+  # - engine/export/exporter: image2d
+
   - engine/visualization: collection
   - engine/visualization/visdom: pose2d
   - engine/visualization/visdom: blend2d

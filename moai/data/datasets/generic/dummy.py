@@ -13,7 +13,7 @@ class Empty(torch.utils.data.Dataset):
         log.warning("Constructing an empty dataset !")
     
     def __len__(self) -> int:
-        return sys.maxsize
+        return 1 # sys.maxsize
 
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         return {}

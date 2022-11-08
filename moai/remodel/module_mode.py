@@ -48,7 +48,7 @@ class eval_nograd_mode(ContextDecorator):
         torch.set_grad_enabled(False)
         if self.module.training:
             self.module.eval()
-            log.info(f'{type(self.module)} set to eval() mode.')
+            log.info(f'{type(self.module)} set to eval() and nograd() mode.')
         
     def __exit__(self,
         exc_type: typing.Any,

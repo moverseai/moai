@@ -1,0 +1,26 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+  
+   ###### ENGINE
+  - engine: engine
+  - engine/play: lightning
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: pose2d
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/dataset/human: HBW
+  - data/test/loader: torch
+  - data/test/dataset/human: HBW
+  - data/val/loader: torch
+  - data/val/dataset/human: HBW
+
+  # ###### PROCESS
+  - model/feedforward: preprocess
+  
+  - examples/play_HBW/options
+  - examples/play_HBW/data
+  - examples/play_HBW/preproc
