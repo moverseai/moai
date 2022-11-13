@@ -22,7 +22,7 @@ class Metrics(torch.nn.ModuleDict):
         'rmse': torch.sqrt,
         'mean': passthrough,
         'rad2deg': lambda x: torch.rad2deg(x).mean(),
-        'dot2deg': lambda x: torch.rad2deg(_acos_safe(x)).mean(),
+        'dot2deg': lambda x: (90 - torch.rad2deg(_acos_safe(x))).abs().mean(),
     }
 
     def __init__(self, 
