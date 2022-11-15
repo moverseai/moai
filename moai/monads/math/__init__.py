@@ -13,6 +13,10 @@ from moai.monads.math.normalization import (
     MinMaxNorm,
 )
 
+from moai.monads.math.dot import (
+    Dot
+)
+
 __all__ = [
     "Abs",
     "Scale",
@@ -24,4 +28,5 @@ __all__ = [
     "Clamp",  
     "Znorm",
     "MinMaxNorm",
+    "Dot",
 ]

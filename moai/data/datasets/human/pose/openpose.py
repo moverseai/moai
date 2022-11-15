@@ -206,6 +206,7 @@ class OpenPoseKeypoints(torch.utils.data.Dataset):
             def _get_area(person: typing.Dict[str, torch.Tensor]) -> float:
                 keypoints = person['body']['keypoints']
                 confidence = person['body']['confidence']
+                #TODO: update selection with threshold based discarding?
                 min_x = keypoints[..., 0].min()
                 min_y = keypoints[..., 1].min()
                 max_x = keypoints[..., 0].max()

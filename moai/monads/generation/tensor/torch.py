@@ -11,6 +11,7 @@ __all__ = [
     "Clone",
     "Parameter",
     "Parameters",
+    "ZerosLike",
 ]
 
 class Scalar(torch.nn.Module):

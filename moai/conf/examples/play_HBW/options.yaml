@@ -1,0 +1,33 @@
+# @package _global_
+
+experiment:
+  visdom_ip: localhost
+  name: HBW_viz
+  batch_size: 1
+  workers: 0
+
+visualization:
+  batch_interval: 1
+  visualizers:
+    pose2d:
+      name: ${experiment.name}
+      images: [image]
+      poses: [human_pose2d]
+      gt: [keypoints.body.keypoints]
+      pred: [keypoints.body.keypoints]
+      gt_masks: [keypoints.body.confidence]
+      pred_masks: [keypoints.body.confidence]
+      pose_structure:
+        - [0, 1, 8]
+        - [5, 6, 7]
+        - [2, 3, 4]
+        - [9, 10, 11, 22]
+        - [12, 13, 14, 19]
+        - [17, 15, 16, 18]
+      transparency: 0.5
+      coords: [coord]
+      color_gt: lime
+      color_pred: lime
+      reverse_coords: true
+      scale: 0.4
+      use_mask: false
