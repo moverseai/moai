@@ -1,4 +1,4 @@
-from moai.networks.lightning.feedforward import _create_processing_block
+from moai.networks.lightning.feedforward import _create_processing_block, _create_validation_block
 
 import typing
 import moai.networks.lightning as minet
@@ -14,6 +14,9 @@ import omegaconf.omegaconf
 import typing
 import logging
 import toolz
+import numpy as np
+
+from collections import defaultdict
 
 from moai.modules.lightning.reparametrization.normal import NormalPrior
 
@@ -32,6 +35,7 @@ class VariationalAutoencoder(minet.FeedForward):
         monads:         omegaconf.DictConfig=None,        
         supervision:    omegaconf.DictConfig=None,
         validation:     omegaconf.DictConfig=None,
+        generation:     omegaconf.DictConfig=None,
         visualization:  omegaconf.DictConfig=None,
         export:         omegaconf.DictConfig=None,
     ):
@@ -55,8 +59,10 @@ class VariationalAutoencoder(minet.FeedForward):
         self.reparametrizer = Reparametrizer(prior) 
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
-        self.generation = _create_processing_block(feedforward, "generation", monads=monads)
-        self.enc_fwds, self.dec_fwds, self.f2mu_std_fwds, self.rep_fwds = [], [], [], []
+        self.sample = _create_processing_block(generation, "sample", monads=monads)
+        self.generate = _create_processing_block(generation, "generate", monads=monads)
+        self.gen_validation = _create_validation_block(generation.validation)
+        self.enc_fwds, self.dec_fwds, self.f2mu_std_fwds, self.rep_fwds, self.gen_fwds = [], [], [], [], []
 
         params = inspect.signature(self.encoder.forward).parameters
         enc_in = list(zip(*[mirtp.force_list(io.encoder[prop]) for prop in params]))
@@ -144,18 +150,80 @@ class VariationalAutoencoder(minet.FeedForward):
                             for k in tk
                         )
                     ))))
-            )           
+            )
+
+        params = inspect.signature(self.decoder.forward).parameters
+        gen_in = list(zip(*[mirtp.force_list(io.generator[prop]) for prop in params]))
+        gen_out = mirtp.split_as(mirtp.resolve_io_config(io.generator['out']), gen_in)
+
+        self.gen_res_fill = [mirtp.get_result_fillers(self.decoder, out) for out in gen_out]        
+        get_gen_filler = iter(self.gen_res_fill)
+
+        for keys in gen_in:
+            self.gen_fwds.append(lambda td,
+                tk=keys,
+                args=params.keys(), 
+                dec=self.decoder,
+                filler=next(get_gen_filler):
+                    filler(td, dec(**dict(zip(args,
+                        list(
+                                td[k] if type(k) is str
+                                else list(td[j] for j in k)
+                            for k in tk
+                        )
+                    ))))
+            )   
 
     def forward(self, 
         td: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
-        for e, f, r, d in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds, self.dec_fwds):
+        for e, f, r, d, g in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds, self.dec_fwds, self.gen_fwds):
             e(td)
             f(td)
             r(td)
             d(td)
+            g(td)
         return td
 
+    def validation_step(self,
+        batch:              typing.Dict[str, torch.Tensor],
+        batch_nb:           int,
+        dataloader_index:   int=0,
+    ) -> dict:        
+        preprocessed = self.preprocess(batch)
+        prediction = self(preprocessed)
+        outputs = self.postprocess(prediction)
+        metrics = self.validation(outputs)
+        outputs = self.sample(outputs) # generation block starts
+        [d(outputs) for d in self.gen_fwds]
+        generated = self.generate(outputs)
+        gen_metrics = self.gen_validation(generated)
+        metrics = toolz.merge(metrics, {'gen_' + str(k): v for k, v in gen_metrics.items()}) # generation block ends
+        return metrics
+
+    def validation_epoch_end(self,
+        outputs: typing.Union[typing.List[typing.List[dict]], typing.List[dict]]
+    ) -> None:
+        list_of_outputs = [outputs] if isinstance(toolz.get([0, 0], outputs)[0], dict) else outputs
+        all_metrics = defaultdict(list)
+        for i, o in enumerate(list_of_outputs):
+            keys = next(iter(o), { }).keys()        
+            metrics = { }
+            for key in keys:
+                if key[:4] == 'gen_':
+                    metrics[key] = np.mean(np.array( #TODO remove mean adapt logging
+                            [d[key].item() for d in o if key in d]
+                    ))
+                else:
+                    metrics[key] = np.mean(np.array(
+                        [d[key].item() for d in o if key in d]
+                    ))
+                all_metrics[key].append(metrics[key])            
+            log_metrics = toolz.keymap(lambda k: f"val_{k}/{list(self.data.val.iterator.datasets.keys())[i]}", metrics)
+            self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
+        all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_metrics)
+        self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
+               
 class Feature2MuStd(torch.nn.Module):
     def __init__(self,
         configuration:      omegaconf.DictConfig,

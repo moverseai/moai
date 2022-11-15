@@ -45,17 +45,19 @@ class Random(torch.nn.Module):
     }
 
     def __init__(self,
-        shape:      typing.Sequence[int],
-        scale:      float=1.0,
-        mode:       str='unit', # one of [unit, normal]
+        shape:          typing.Sequence[int],
+        scale:          float=1.0,
+        mode:           str='unit', # one of [unit, normal]
+        num_samples:    int=0, # to be used instead of batch size
     ):
         super(Random, self).__init__()
         self.generate = Random.__RANDOMS__[mode]
         self.shape = shape
         self.scale = scale
+        self.num_samples = num_samples
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        b = tensor.shape[0]
+        b = tensor.shape[0] if self.num_samples == 0 else self.num_samples
         generated = self.generate([b, *self.shape], device=tensor.device)
         return generated * self.scale if self.scale != 1.0 else generated
 
