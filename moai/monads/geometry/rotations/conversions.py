@@ -86,6 +86,9 @@ class ConvertRotation(torch.nn.Module):
         'rotmat': [3, 3],
         'rotvec': [3],
         'unitquat': [4],
+        'rotation_matrix': [3, 3],
+        'angle_axis': [3],
+        'quaternion': [4]
     }
 
     def __init__(self,
@@ -96,7 +99,7 @@ class ConvertRotation(torch.nn.Module):
         super().__init__()
         module = roma if backend == 'roma' else kn.geometry.conversions
         self.convert = getattr(module, f"{ConvertRotation.__ALIAS_MAP__[backend][src]}_to_{ConvertRotation.__ALIAS_MAP__[backend][tgt]}")
-        self.shape = ConvertRotation.__SHAPE_MAP__[ConvertRotation.__ALIAS_MAP__[src]]
+        self.shape = ConvertRotation.__SHAPE_MAP__[ConvertRotation.__ALIAS_MAP__[backend][src]]
 
     def forward(self,
         rotation:   torch.Tensor, # [B, R, 3, 3] for 'rotmat', [B, R, 3] for 'rotvec', [B, R, 4] for 'unitquat'

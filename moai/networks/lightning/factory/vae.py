@@ -60,6 +60,7 @@ class VariationalAutoencoder(minet.FeedForward):
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
         self.sample = _create_processing_block(generation, "sample", monads=monads)
+        self.walk = _create_processing_block(generation, "walk", monads=monads)
         self.generate = _create_processing_block(generation, "generate", monads=monads)
         self.gen_validation = _create_validation_block(generation.validation)
         self.enc_fwds, self.dec_fwds, self.f2mu_std_fwds, self.rep_fwds, self.gen_fwds = [], [], [], [], []
@@ -198,25 +199,33 @@ class VariationalAutoencoder(minet.FeedForward):
         [d(outputs) for d in self.gen_fwds]
         generated = self.generate(outputs)
         gen_metrics = self.gen_validation(generated)
-        metrics = toolz.merge(metrics, {'gen_' + str(k): v for k, v in gen_metrics.items()}) # generation block ends
-        return metrics
+        # metrics = toolz.merge(metrics, {'gen_' + str(k): v for k, v in gen_metrics.items()})
+        aggregated = {'metrics': toolz.merge(metrics, {'gen_' + str(k): v for k, v in gen_metrics.items()})} # generation block ends
+        aggregated = toolz.merge(aggregated, {'td': toolz.merge(generated, {'__moai__': {'epoch': self.trainer.current_epoch}})})
+        return aggregated
 
     def validation_epoch_end(self,
-        outputs: typing.Union[typing.List[typing.List[dict]], typing.List[dict]]
+        outputs: typing.Union[typing.List[typing.List[dict]], typing.List[dict]],
     ) -> None:
+        # latent space walking
+        sampled = self.walk(outputs[0]['td'])
+        [d(sampled) for d in self.gen_fwds]
+        generated = self.generate(sampled)
+        [vis(generated) for vis in self.visualization.latent_visualizers]
+
         list_of_outputs = [outputs] if isinstance(toolz.get([0, 0], outputs)[0], dict) else outputs
         all_metrics = defaultdict(list)
         for i, o in enumerate(list_of_outputs):
-            keys = next(iter(o), { }).keys()        
+            keys = next(iter(o), { })['metrics'].keys()
             metrics = { }
             for key in keys:
                 if key[:4] == 'gen_':
                     metrics[key] = np.mean(np.array( #TODO remove mean adapt logging
-                            [d[key].item() for d in o if key in d]
+                            [d['metrics'][key].item() for d in o if key in d]
                     ))
                 else:
                     metrics[key] = np.mean(np.array(
-                        [d[key].item() for d in o if key in d]
+                        [d['metrics'][key].item() for d in o if key in d]
                     ))
                 all_metrics[key].append(metrics[key])            
             log_metrics = toolz.keymap(lambda k: f"val_{k}/{list(self.data.val.iterator.datasets.keys())[i]}", metrics)
