@@ -8,6 +8,8 @@ import logging
 import pytorch_lightning as pl
 import torch
 import os
+import onnx
+import toolz
 
 log = logging.getLogger(__name__)
 
@@ -92,6 +94,25 @@ def export(cfg):
             input_names=trwrapper.input_names,
             output_names=trwrapper.output_names,
         )
+        # Adding metadata
+        model = onnx.load(os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'))
+        try:
+            for key in cfg.onnx.metadata:
+                v = toolz.get_in(key.split("."),cfg)
+                model.metadata_props.append(onnx.StringStringEntryProto(key=key, value=str(v)))
+        except:
+            log.warning(f" Metadata has not been included in onnx eport.")
+        try:
+            for key in cfg.onnx.attributes:
+                try:
+                    model.__setattr__(key,cfg.onnx.attributes[key])
+                except:
+                    log.warning(f" onnx does not support attribute {key}.")
+        except:
+            log.warning(f" Attributes have not been included in onnx eport.")
+        # Save the ONNX model
+        onnx.save(model, os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'))
+
     
     elif cfg.export.mode == 'jit':
         #TODO: Add trace support
