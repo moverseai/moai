@@ -36,10 +36,4 @@ class LinearBlock(torch.nn.Module):
         self.in_features = in_features
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if not hasattr(self, "view"): #TODO: fix
-            s = x.size()
-            def conv_view(x: torch.Tensor, f:int) -> torch.Tensor:
-                return x.view(-1, f)
-            self.view = functools.partial(conv_view, f=self.in_features)\
-                if len(s) > 2 else torch.nn.Identity()
-        return self.activation(self.linear(self.view(x)))
+        return self.activation(self.linear(x))

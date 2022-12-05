@@ -1,7 +1,3 @@
-from moai.monads.execution.cascade import _create_accessor
-from moai.utils.funcs import passthrough
-from moai.supervision.losses.regression.cosine_distance import _acos_safe
-
 import torch
 import hydra.utils as hyu
 import omegaconf.omegaconf
@@ -15,15 +11,10 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Metrics']
 
+from moai.monads.execution.cascade import _create_accessor
+
 class Metrics(torch.nn.ModuleDict):
     execs: typing.List[typing.Callable] = []
-
-    __REDUCTIONS__ = {
-        'rmse': torch.sqrt,
-        'mean': passthrough,
-        'rad2deg': lambda x: torch.rad2deg(x).mean(),
-        'dot2deg': lambda x: (90 - torch.rad2deg(_acos_safe(x))).abs().mean(),
-    }
 
     def __init__(self, 
         metrics: omegaconf.DictConfig={},
@@ -42,11 +33,11 @@ class Metrics(torch.nn.ModuleDict):
             sig = inspect.signature(last_module.forward)
             if 'out' not in p:
                 p['out'] = [k]
-            if 'reduction' in p:
-                reduction = iter(p['reduction'])
-            else:
-                log.warning(f"{k} metric has no assigned reduction, automatically reverting to mean reduction.")
-                reduction = itertools.cycle(['mean'])  
+            # if 'reduction' in p:
+            #     reduction = iter(p['reduction'])
+            # else:
+            #     log.warning(f"{k} metric has no assigned reduction, automatically reverting to mean reduction.")
+            #     reduction = itertools.cycle(['mean'])  
             for keys in zip(*toolz.remove(lambda x: not x, list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p.get(prop) is not None))):
                 accessors = [_create_accessor(k if isinstance(k, str) else toolz.get(0, k, None)) for k in keys[:-1]]
                 self.execs.append(lambda tensor_dict, metric_dict,
@@ -60,9 +51,8 @@ class Metrics(torch.nn.ModuleDict):
                         )))
                     })
                 )
-                self.reductions.append(next(reduction))
+                # self.reductions.append(next(reduction))
 
-    #NOTE: consider outputting per batch item metrics
     def forward(self,
         tensors: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
@@ -73,17 +63,6 @@ class Metrics(torch.nn.ModuleDict):
         for i, (k, m) in enumerate(metrics.items()):
             if torch.is_tensor(m):
                 returned[f'{k}'] = m
-            elif isinstance(m, typing.Mapping):
-                returned = toolz.merge(
-                    returned, 
-                    toolz.keymap(
-                        lambda x: f"{k}_{x}", 
-                        toolz.valmap(
-                            lambda t: Metrics.__REDUCTIONS__[self.reductions[i]](t),
-                            m
-                        )
-                    )
-                )
             else:
                 log.warning(f"Metric [{k}] return type ({type(m)} is not supported and is being ignored.")                
         return returned

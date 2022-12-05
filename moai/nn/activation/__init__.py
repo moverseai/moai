@@ -1,8 +1,12 @@
 from moai.nn.activation.torch import (
     BN2d,
+    IN2d,
     ReLu_BN,
+    ReLu_IN,
     BN2d_ReLu,
+    IN2d_ReLu,
     ReLu_BN2d,
+    ReLu_IN2d,
     LReLu_BN,
     LReLu_Drop,
     LReLu_BN2d,
@@ -27,9 +31,13 @@ __all__ = [
 
 __ACTIVATION_FACTORY__ = {
     "bn2d":                     BN2d,
+    "in2d":                     IN2d,
     "relu_bn":                  ReLu_BN,
+    "relu_in":                  ReLu_IN,
     "bn2d_relu":                BN2d_ReLu,
+    "in2d_relu":                IN2d_ReLu,
     "relu_bn2d":                ReLu_BN2d,
+    "relu_in2d":                ReLu_IN2d,
     "lrelu_bn":                 LReLu_BN,
     "lrelu_bn_drop":            LReLu_BN_Drop,
     "bn2d_lrelu":               BN2d_LReLu,
