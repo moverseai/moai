@@ -10,6 +10,10 @@ import torch
 import os
 import onnx
 import toolz
+from subprocess import check_output
+from pathlib import Path
+from subprocess import CalledProcessError
+
 
 log = logging.getLogger(__name__)
 
@@ -25,15 +29,11 @@ class TraceWrapper(pl.LightningModule):
         input_names: typing.List[str], #input names
         model: torch.nn.Module,
     ) -> None:
-        
         super().__init__()
-
-        
         self.model = model
         self.exported_module_names = module_names
         self.input_names = input_names
         self.output_names = output_names
-
     
     def forward(self,
         x: typing.Dict[str, torch.Tensor],
@@ -48,9 +48,6 @@ class TraceWrapper(pl.LightningModule):
             x = m(x)
         return {out_key: x[out_key] for out_key in self.output_names}
 
-
-
-
 def export(cfg):
     hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
     with open("config_resolved.yaml", 'w') as f:
@@ -62,28 +59,45 @@ def export(cfg):
     #TODO: add cpu device support
     device = cfg.tester.gpus[0] if 'tester' in cfg.keys() \
         else cfg.trainer.gpus[0]
-
     model.eval()
     model.initialize_parameters()
     model.to(device)
-
-
     trwrapper = TraceWrapper(
         cfg.export.module_names,
         cfg.export.output_names,
         cfg.export.input_names,
         model
     )
-
     trwrapper.eval()
     trwrapper.to(device)
-    
     input_dict = {}
-
     for in_name in cfg.export.input_names:
         input_dict[in_name] = torch.randn(tuple(cfg.export.input_tensor[in_name])).to(device).float()
 
     if cfg.export.mode == 'onnx':
+        # get moai git info
+        try:
+            moai_url = get_command_output(["git", "ls-remote", '--get-url', 'origin'],  Path(sys.argv[0]).parent, strip=True)
+            moai_commit = get_command_output(['git', 'rev-parse', 'HEAD'],  Path(sys.argv[0]).parent, strip=True)
+        except (CalledProcessError, UnicodeDecodeError) as ex:
+            log.warning(
+                "Can't get information for repo in {}: {}".format(path, str(ex))
+            )     
+        project_path_urls = []
+        project_path_commits = []
+        if cfg.project_path:
+            for path in cfg.project_path:
+                try:
+                    project_path_urls.append(
+                        get_command_output(["git", "ls-remote", '--get-url', 'origin'], path, strip=True)
+                    )
+                    project_path_commits.append(
+                        get_command_output(['git', 'rev-parse', 'HEAD'], path, strip=True)
+                    )
+                except:
+                    log.warning(
+                        "Can't get information for repo in {}: {}".format(path, str(ex))
+                    )
         log.info("exporting model to onnx!")
         trwrapper.to_onnx(
             os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'),
@@ -96,6 +110,13 @@ def export(cfg):
         )
         # Adding metadata
         model = onnx.load(os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'))
+        if moai_url: # add moai repo details
+            model.metadata_props.append(onnx.StringStringEntryProto(key='moai', value=str(moai_url)))
+            model.metadata_props.append(onnx.StringStringEntryProto(key='moai-commit', value=str(moai_commit)))
+        if project_path_urls: # add repo details
+            for url,commit in zip(project_path_urls,project_path_commits):
+                model.metadata_props.append(onnx.StringStringEntryProto(key='repo', value=str(url)))
+                model.metadata_props.append(onnx.StringStringEntryProto(key='repo-commit', value=str(commit)))
         try:
             for key in cfg.onnx.metadata:
                 v = toolz.get_in(key.split("."),cfg)
@@ -107,7 +128,7 @@ def export(cfg):
                 try:
                     model.__setattr__(key,cfg.onnx.attributes[key])
                 except:
-                    log.warning(f" onnx does not support attribute {key}.")
+                    log.warning(f" Attribute {key} does not supported in existing onnx version.")
         except:
             log.warning(f" Attributes have not been included in onnx eport.")
         # Save the ONNX model
@@ -156,6 +177,16 @@ def export(cfg):
 
     log.info(f"Model has been saved in {cfg.export.output_path}!")
 
+
+def get_command_output(command, path=None, strip=True):
+    """
+    Run a command and return its output
+    :raises CalledProcessError: when command execution fails
+    :raises UnicodeDecodeError: when output decoding fails
+    """
+    with open(os.devnull, "wb") as devnull:
+        result = check_output(command, cwd=path, stderr=devnull).decode()
+        return result.strip() if strip else result
 
 if __name__ == "__main__":  
     config_filename = sys.argv.pop(1) #TODO: argparser integration?

@@ -49,7 +49,7 @@ def resume(cfg):
     with open(config_file, 'r') as f:
         init_cfg = OmegaConf.load(f)
     omegaconf.OmegaConf.set_struct(init_cfg, True)
-    cfg = OmegaConf.merge(init_cfg,cfg) #to change param values
+    cfg = OmegaConf.merge(init_cfg,cfg) # to change param values
     hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
     engine = hydra.utils.instantiate(cfg.engine)
     model = hydra.utils.instantiate(cfg.model,
