@@ -46,20 +46,23 @@ class Random(torch.nn.Module):
     }
 
     def __init__(self,
-        shape:          typing.Sequence[int],
+        shape:          typing.Union[int, typing.Sequence[int]],
         scale:          float=1.0,
         mode:           str='unit', # one of [unit, normal]
-        num_samples:    int=0, # to be used instead of batch size
+        includes_batch: bool=False, # whether shape includes the batch dim
     ):
         super(Random, self).__init__()
         self.generate = Random.__RANDOMS__[mode]
-        self.shape = shape
+        self.shape = shape if isinstance(shape, typing.Sequence) else [shape]
         self.scale = scale
-        self.num_samples = num_samples
+        self.includes_batch = includes_batch
 
-    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        b = tensor.shape[0] if self.num_samples == 0 else self.num_samples
-        generated = self.generate([b, *self.shape], device=tensor.device)
+    def forward(self, 
+        tensor: torch.Tensor=None
+    ) -> torch.Tensor:
+        shape = self.shape if self.includes_batch else [tensor.shape[0], *self.shape]
+        device = tensor.device if tensor is not None else torch.device('cpu')        
+        generated = self.generate(shape, device=device)
         return generated * self.scale if self.scale != 1.0 else generated
 
 class Ones(torch.nn.Module):

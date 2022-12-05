@@ -63,12 +63,12 @@ class GeneBody(torch.utils.data.Dataset):
 
     def load_smplx(self, filename: str) -> typing.Dict[str, torch.Tensor]:
         data = np.load(filename, allow_pickle=True).item()
+        scale = torch.scalar_tensor(data['smplx_scale']).float()
+        data = toolz.valmap(lambda v: torch.from_numpy(v.squeeze()).float(), data['smplx'])        
         return {
-            'scale': torch.scalar_tensor(data['smplx_scale']).float(),             
-            'params': toolz.valmap(lambda v: v.squeeze().float(),
-                toolz.valfilter(lambda v: isinstance(v, torch.Tensor), data['smplx'])
-            ),
-            'keypoints3d': torch.from_numpy(data['smplx']['keypoints3d']).squeeze().float()
+            'scale': scale,
+            'params': toolz.dissoc(data, 'keypoints3d'),
+            'keypoints3d': data['keypoints3d']
         }
         
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
@@ -83,7 +83,7 @@ class GeneBody(torch.utils.data.Dataset):
                     'scaled_vertices': smplx['scale'] * torch.from_numpy(mesh.vertices).float(),
                     'faces': torch.from_numpy(mesh.faces).int() #NOTE: or long?
                 },
-                'joints': smplx['keypoints3d'].cpu()
+                'joints': smplx['keypoints3d'],
             }),
             'images': toolz.valmap(load_color_image, item['images']),
             'masks': toolz.valmap(load_mask_image, item['masks']),

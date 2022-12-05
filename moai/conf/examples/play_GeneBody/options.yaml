@@ -13,18 +13,18 @@ visualization:
       name: ${experiment.name}
       ip: ${experiment.visdom_ip}
       left: 
-        - images.01
-        - images.13
+        # - images.01
+        # - images.13
         - images.25
-        - images.37
-        # - images.${selected_cam}
-        - image_${selected_cam}_down2
+        # - images.37
+        - images.${selected_cam}
+        # - image_${selected_cam}_down2
         - silhouette
       right: 
-      - masks.01
-      - masks.13
+      # - masks.01
+      # - masks.13
       - masks.25
-      - masks.37
+      # - masks.37
       - silhouette
       - silhouette
       blending: 0.65
@@ -67,3 +67,15 @@ visualization:
     #   scale: 1.0
     #   focal_length: [1498.22426237, 1498.22426237]
     #   principal_point: [790.263706, 578.90334]
+
+export:
+  batch_interval: 1
+  exporters:
+    image2d:
+      path: .
+      type: [color]
+      colormap: [none]
+      transform: [none]
+      mode: all
+      image: [silhouette]
+      extension: [png]

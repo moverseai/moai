@@ -1,5 +1,4 @@
 from moai.validation.collection import Metrics
-from moai.utils.arguments import ensure_string_list
 
 import torch
 import omegaconf.omegaconf

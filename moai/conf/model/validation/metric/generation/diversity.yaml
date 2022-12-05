@@ -1,3 +1,3 @@
 # @package model.generation.validation.metrics._name_
 
-_target_: moai.generation.validation.metrics.FID
+_target_: moai.validation.metrics.generation.Diversity

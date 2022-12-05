@@ -4,20 +4,29 @@ genebody_root: ???
 
 data:
   train:
+    loader:
+      shuffle: false
+      drop_last: false
     iterator:
       datasets:
         genebody:
-          subjects: ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
-          cameras: ['01', '13', '25', '37']
+          subjects: ['natacha'] # ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
+          cameras: ['25'] # ['01', '13', '25', '37']
   test:
+    loader:
+      shuffle: false
+      drop_last: false
     iterator:
       datasets:
           genebody:
-            subjects: ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
-            cameras: ['01', '13', '25', '37']
+            subjects: ['natacha'] # ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
+            cameras: ['25'] # ['01', '13', '25', '37']
   val:
+    loader:
+      shuffle: false
+      drop_last: false
     iterator:
       datasets:        
         genebody:
-          subjects: ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
-          cameras: ['01', '13', '25', '37']
+          subjects: ['natacha'] # ['amanda'] # ['soufianou_boubacar_moumouni'] # ['zhuna'] # ['amanda'] # '**'
+          cameras: ['25'] # ['01', '13', '25', '37']

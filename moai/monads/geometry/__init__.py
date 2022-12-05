@@ -11,6 +11,7 @@ from moai.monads.geometry.opengl import Camera as CameraOpenGL
 from moai.monads.geometry.stereo_depth import DepthFromStereo
 from moai.monads.geometry.deproject import Deprojection
 from moai.monads.geometry.normal_estimation2d import NormalEstimation2d
+from moai.monads.geometry.distortion import Distort
 
 __all__ = [
     "Projection",
@@ -24,4 +25,5 @@ __all__ = [
     "DepthFromStereo",
     "Deprojection",
     "NormalEstimation2d",
+    "Distort",
 ]
