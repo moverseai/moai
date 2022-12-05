@@ -79,4 +79,4 @@ class ModuleMode(typing.Callable[[torch.nn.Module], None]):
             split = module.split('.')
             m = toolz.reduce(getattr, split, model)
             m.forward = ModuleMode.__TYPE__[mode](m)(m.forward)
-            log.info(f"Transforming module {module}'s forward to {mode}")
+            log.info(f"Remodeling module {module}'s forward to {mode}")

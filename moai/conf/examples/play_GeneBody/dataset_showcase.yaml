@@ -12,6 +12,9 @@ defaults:
   - engine/visualization/visdom: blend2d
   # - engine/visualization/visdom: rendered_mesh
 
+  - engine/export: collection
+  - engine/export/exporter: image2d
+
   # ###### DATA  
   - data/train/loader: torch
   - data/train/dataset/human: genebody
@@ -24,6 +27,9 @@ defaults:
   - model/feedforward: preprocess
   # - model/monads/sampling: nearest_sampling
   - model/monads/sampling: bilinear_sampling
+  - model/monads/human/body: smplx
+  - model/monads/math: multiply
+  - model/monads/geometry: distort3d
   ##################### START REDNER
   # - model/monads/geometry/rotation: convert
   # - model/monads/render/redner: mesh_silhouette

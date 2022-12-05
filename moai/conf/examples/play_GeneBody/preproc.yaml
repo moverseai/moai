@@ -4,6 +4,22 @@ selected_cam: '25'
 
 model:
   monads:
+    smplx:
+      pca_components: 12
+      use_translation: false
+      use_pose: false
+      use_face: false
+      use_hands: false
+      use_betas: false
+      use_global_orientation: false
+      use_eyes: false
+      use_hands_pca: false
+      flat_hand_mean: false
+      use_face_contour: false
+      joints_format: null # openpose_coco25_face
+      gender: neutral
+      model_path: ${SMPLX_ROOT}/models_smplx_v1_1/models/smplx
+      num_betas: 10
     ##################### START REDNER
     # convert:
     #   from_to: aa_mat    
@@ -22,14 +38,14 @@ model:
     opengl:
       focal_length: [1498.22426237, 1498.22426237]
       principal_point: [790.263706, 578.90334]
-      width: 400 # 2448 # 1600
-      height: 300 # 2048 # 1200
+      width: 2448 # 400 # 2448 # 1600
+      height: 2048 # 300 # 2048 # 1200
       rotation: null
       translation: null
       persistent: true
     mesh_silhouette:      
-      width: 400 # 2448 # 1600
-      height: 300 # 2048 # 1200
+      width: 2448 # 400 # 2448 # 1600
+      height: 2048 # 300 # 2048 # 1200
       position_gradient_scale: 1.0
     transform:
       xyz_in_at: row
@@ -37,6 +53,7 @@ model:
       transpose: false
     rotation3d:
       rotations: [180@y, 180@z]
+      # rotations: [180@y, 180@z]
     ##################### STOP NVDIFFRAST
     # ##################### START PYTORCH3D
     # mesh_silhouette:      
@@ -62,6 +79,22 @@ model:
 
   feedforward:
     preprocess:
+      smplx:
+        shape: [smplx.params.betas]
+        pose: [smplx.params.body_pose]
+        rotation: [smplx.params.global_orient]
+        translation: [smplx.params.transl]
+        left_hand: [smplx.params.left_hand_pose]
+        right_hand: [smplx.params.right_hand_pose]
+        expression: [smplx.params.expression]
+        jaw: [smplx.params.jaw_pose]
+        left_eye: [smplx.params.leye_pose]
+        right_eye: [smplx.params.reye_pose]
+        out: [body]
+      multiply:
+        x: [body.vertices]
+        y: [smplx.scale]
+        out: [vertices]
       bilinear_sampling:
         image: 
           - images.${selected_cam}
@@ -83,19 +116,39 @@ model:
         x: 
           - cameras.${selected_cam}.c2w
         out: [w2c]
+      rotation3d:
+        # tensor: [vertices] 
+        tensor: [smplx.mesh.scaled_vertices]
+        out: [rotation]
+      # rotate:
+      #   rotation: [rotation]
+      #   # points: [vertices]        
+      #   points: [smplx.mesh.scaled_vertices]
+      #   out: [transformed_vertices]
       transform:
         transform: [w2c]
         points: [smplx.mesh.scaled_vertices]
-        out: [transformed_vertices]
-      rotation3d:
-        tensor: [transformed_vertices] # [mesh.scaled_vertices]
-        out: [rotation]
+        # points: [smplx.mesh.vertices]
+        # points: [body.vertices]
+        # points: [transformed_vertices]
+        # points: [vertices]
+        out: [transformed_vertices]      
       rotate:
         rotation: [rotation]
         points: [transformed_vertices] # [mesh.scaled_vertices]
-        out: [rotated_vertices]
+        # out: [rotated_vertices]
+        out: [transformed_vertices]
+      distort3d:
+        # points: [body.vertices]
+        points: [transformed_vertices]
+        # points: [rotated_vertices]
+        # points: [vertices]
+        coefficients:
+          - cameras.${selected_cam}.D
+        # out: [transformed_vertices]
+        out: [distorted_vertices]
       opengl:
-        points: [rotated_vertices]
+        points: [distorted_vertices]
         # translation: [cameras.01.c2w_T]
         # rotation: [cameras.01.c2w_R]
         # image: [color]

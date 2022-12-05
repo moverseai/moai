@@ -52,7 +52,7 @@ class Random(torch.nn.Module):
     ):
         super(Random, self).__init__()
         self.generate = Random.__RANDOMS__[mode]
-        self.shape = shape
+        self.shape = shape if isinstance(shape, typing.Sequence) else [shape]
         self.scale = scale
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:

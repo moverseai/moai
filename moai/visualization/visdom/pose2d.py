@@ -46,7 +46,10 @@ class Pose2d(Base):
         self.gt = ensure_string_list(gt)
         self.pred = ensure_string_list(pred)
         self.gt_masks = ensure_string_list(gt_masks)
-        self.pred_masks = ensure_string_list(pred_masks)
+        self.pred_masks = ensure_string_list(pred_masks) 
+        #TODO: if masks are omitted or empty / '', 
+        # then this needs to be repeated to match the inputs size/length, 
+        # otherwise it omits all but the first when zipping
         self.pose_structure = ensure_string_list(pose_structure)
         self.coords = ensure_string_list(coords)
         self.color_gt = list(map(colour.web2rgb, ensure_string_list(color_gt)))

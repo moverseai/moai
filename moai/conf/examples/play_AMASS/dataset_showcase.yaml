@@ -13,7 +13,7 @@ defaults:
 
   # ###### DATA  
   - data/train/loader: torch
-  - data/train/dataset/human: AMASS
+  - data/train/dataset/human: AMASS  
   - data/test/loader: torch
   - data/test/dataset/human: AMASS
   - data/val/loader: torch
