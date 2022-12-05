@@ -57,9 +57,13 @@ class Random(torch.nn.Module):
         self.scale = scale
         self.num_samples = num_samples
 
-    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        b = tensor.shape[0] if self.num_samples == 0 else self.num_samples
-        generated = self.generate([b, *self.shape], device=tensor.device)
+    def forward(self, 
+        tensor: torch.Tensor=None
+    ) -> torch.Tensor:
+        if tensor is not None:
+            generated = self.generate([tensor.shape[0], *self.shape], device=tensor.device)
+        else:
+            generated = self.generate([self.num_samples, *self.shape])
         return generated * self.scale if self.scale != 1.0 else generated
 
 class Ones(torch.nn.Module):

@@ -83,7 +83,7 @@ class GeneBody(torch.utils.data.Dataset):
                     'scaled_vertices': smplx['scale'] * torch.from_numpy(mesh.vertices).float(),
                     'faces': torch.from_numpy(mesh.faces).int() #NOTE: or long?
                 },
-                'joints': smplx['keypoints3d'].cpu()
+                'joints': smplx['keypoints3d'],
             }),
             'images': toolz.valmap(load_color_image, item['images']),
             'masks': toolz.valmap(load_mask_image, item['masks']),
