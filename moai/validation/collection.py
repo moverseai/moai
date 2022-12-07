@@ -22,7 +22,9 @@ class Metrics(torch.nn.ModuleDict):
         'rmse': torch.sqrt,
         'mean': passthrough,
         'rad2deg': lambda x: torch.rad2deg(x).mean(),
-        'dot2deg': lambda x: (90 - torch.rad2deg(_acos_safe(x))).abs().mean(),
+        'dot2deg': lambda x: (90 - torch.rad2deg(_acos_safe(x))).abs().mean(), 
+        # 90 --> 0 conversion is required to map it to a distance metric in degrees
+        # zero dot-distance applies for orthogonal vectors https://www.alamo.edu/contentassets/35e1aad11a064ee2ae161ba2ae3b2559/additional/math2412-dot-product.pdf 
     }
 
     def __init__(self, 

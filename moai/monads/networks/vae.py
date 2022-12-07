@@ -15,12 +15,12 @@ class VAE(torch.nn.Module):
         super().__init__()
         ckpt = torch.load(checkpoint, map_location='cpu')
         hparams = ckpt['hyper_parameters']
-        model = toolz.dissoc(hparams['model'],'supervision')
+        model = toolz.dissoc(hparams['model'],'supervision', 'generation', )
         self.model = hyu.instantiate(model)
         self.model.encoder.load_state_dict(
             toolz.keymap(lambda s: s.replace('encoder.', ''), 
                 toolz.keyfilter(
-                    lambda s: s.startswith('encoder.') in s, 
+                    lambda s: s.startswith('encoder.'), 
                     ckpt['state_dict']
                 )
             )
@@ -29,7 +29,7 @@ class VAE(torch.nn.Module):
         self.model.feature_head.load_state_dict(
             toolz.keymap(lambda s: s.replace('feature_head.', ''), 
                 toolz.keyfilter(
-                    lambda s: s.startswith('feature_head.') in s, 
+                    lambda s: s.startswith('feature_head.'), 
                     ckpt['state_dict']
                 )
             )
@@ -38,7 +38,7 @@ class VAE(torch.nn.Module):
         self.model.reparametrizer.load_state_dict(
             toolz.keymap(lambda s: s.replace('reparametrizer.', ''), 
                 toolz.keyfilter(
-                    lambda s: s.startswith('reparametrizer.') in s, 
+                    lambda s: s.startswith('reparametrizer.'), 
                     ckpt['state_dict']
                 )
             )
@@ -47,7 +47,7 @@ class VAE(torch.nn.Module):
         self.model.decoder.load_state_dict(
             toolz.keymap(lambda s: s.replace('decoder.', ''), 
                 toolz.keyfilter(
-                    lambda s: 'decoder.' in s, 
+                    lambda s: s.startswith('decoder.'), 
                     ckpt['state_dict']
                 )
             )
