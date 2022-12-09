@@ -62,7 +62,7 @@ class VariationalAutoencoder(minet.FeedForward):
         self.sample = _create_processing_block(generation, "sample", monads=monads)
         self.walk = _create_processing_block(generation, "walk", monads=monads)
         self.generate = _create_processing_block(generation, "generate", monads=monads)
-        self.gen_validation = _create_validation_block(generation.validation)
+        self.gen_validation = _create_validation_block(toolz.get('generation',validation, None))
         self.enc_fwds, self.dec_fwds, self.f2mu_std_fwds, self.rep_fwds, self.gen_fwds = [], [], [], [], []
 
         params = inspect.signature(self.encoder.forward).parameters
@@ -154,36 +154,38 @@ class VariationalAutoencoder(minet.FeedForward):
             )
 
         params = inspect.signature(self.decoder.forward).parameters
-        gen_in = list(zip(*[mirtp.force_list(io.generator[prop]) for prop in params]))
-        gen_out = mirtp.split_as(mirtp.resolve_io_config(io.generator['out']), gen_in)
+        if io.generator is not None:
+            gen_in = list(zip(*[mirtp.force_list(io.generator[prop]) for prop in params]))
+            gen_out = mirtp.split_as(mirtp.resolve_io_config(io.generator['out']), gen_in)
 
-        self.gen_res_fill = [mirtp.get_result_fillers(self.decoder, out) for out in gen_out]        
-        get_gen_filler = iter(self.gen_res_fill)
+            self.gen_res_fill = [mirtp.get_result_fillers(self.decoder, out) for out in gen_out]        
+            get_gen_filler = iter(self.gen_res_fill)
 
-        for keys in gen_in:
-            self.gen_fwds.append(lambda td,
-                tk=keys,
-                args=params.keys(), 
-                dec=self.decoder,
-                filler=next(get_gen_filler):
-                    filler(td, dec(**dict(zip(args,
-                        list(
-                                td[k] if type(k) is str
-                                else list(td[j] for j in k)
-                            for k in tk
-                        )
-                    ))))
-            )   
+            for keys in gen_in:
+                self.gen_fwds.append(lambda td,
+                    tk=keys,
+                    args=params.keys(), 
+                    dec=self.decoder,
+                    filler=next(get_gen_filler):
+                        filler(td, dec(**dict(zip(args,
+                            list(
+                                    td[k] if type(k) is str
+                                    else list(td[j] for j in k)
+                                for k in tk
+                            )
+                        ))))
+                )
+        else:
+            self.gen_fwds.append(torch.nn.Identity())
 
     def forward(self, 
         td: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
-        for e, f, r, d, g in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds, self.dec_fwds, self.gen_fwds):
+        for e, f, r, d in zip(self.enc_fwds, self.f2mu_std_fwds, self.rep_fwds, self.dec_fwds):
             e(td)
             f(td)
             r(td)
             d(td)
-            g(td)
         return td
 
     def validation_step(self,
@@ -194,12 +196,11 @@ class VariationalAutoencoder(minet.FeedForward):
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
         outputs = self.postprocess(prediction)
-        metrics = self.validation(outputs)
         outputs = self.sample(outputs) # generation block starts
         [d(outputs) for d in self.gen_fwds]
         generated = self.generate(outputs)
+        metrics = self.validation(outputs)
         gen_metrics = self.gen_validation(generated)
-        # metrics = toolz.merge(metrics, {'gen_' + str(k): v for k, v in gen_metrics.items()})
         aggregated = {'metrics': toolz.merge(metrics, {'gen_' + str(k): v for k, v in gen_metrics.items()})} # generation block ends
         aggregated = toolz.merge(aggregated, {'td': toolz.merge(generated, {'__moai__': {'epoch': self.trainer.current_epoch}})})
         return aggregated
@@ -221,18 +222,20 @@ class VariationalAutoencoder(minet.FeedForward):
             for key in keys:
                 if key[:4] == 'gen_':
                     metrics[key] = np.mean(np.array( #TODO remove mean adapt logging
-                            [d['metrics'][key].item() for d in o if key in d]
+                            [d['metrics'][key].item() for d in o if key in d['metrics']]
                     ))
                 else:
                     metrics[key] = np.mean(np.array(
                         [d['metrics'][key].item() for d in o if key in d]
                     ))
-                all_metrics[key].append(metrics[key])            
+                all_metrics[key].append(metrics[key])
+            metrics = toolz.keymap(lambda k: k.strip('gen_'), metrics) # remove hardcoded 'gen_' prefix for logging
+            all_metrics = toolz.keymap(lambda k: k.strip('gen_'), all_metrics) # remove hardcoded 'gen_' prefix for logging      
             log_metrics = toolz.keymap(lambda k: f"val_{k}/{list(self.data.val.iterator.datasets.keys())[i]}", metrics)
             self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
         all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_metrics)
-        self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
-               
+        self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)    
+
 class Feature2MuStd(torch.nn.Module):
     def __init__(self,
         configuration:      omegaconf.DictConfig,

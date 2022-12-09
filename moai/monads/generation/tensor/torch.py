@@ -62,7 +62,7 @@ class Random(torch.nn.Module):
     ) -> torch.Tensor:
         shape = self.shape if self.includes_batch else [tensor.shape[0], *self.shape]
         device = tensor.device if tensor is not None else torch.device('cpu')        
-        generated = self.generate(shape, device=device)
+        generated = self.generate(tuple(shape), device=device)
         return generated * self.scale if self.scale != 1.0 else generated
 
 class Ones(torch.nn.Module):
