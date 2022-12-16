@@ -266,7 +266,7 @@ class Feature2MuStd(torch.nn.Module):
         mu = self.linear_mu(x_flat)
         logvar = self.linear_logvar(x_flat)
 
-        return mu, logvar,
+        return mu, logvar
 
 class Reparametrizer(torch.nn.Module):
     def __init__(self,
