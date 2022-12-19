@@ -21,7 +21,7 @@ class Npz(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.Di
     def __init__(self,
         path:           str,
         keys:           typing.Union[str, typing.Sequence[str]],
-        mode:           str="combined", # all"
+        mode:           str="all", # combined
         counter_format: str="05d",
         combined:       bool=False,
         compressed:     bool=False,
