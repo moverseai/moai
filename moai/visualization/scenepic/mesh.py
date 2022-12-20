@@ -3,7 +3,6 @@ from moai.monads.execution.cascade import _create_accessor
 from collections.abc import Callable
 
 import scenepic
-import httpwatcher
 import typing
 import torch
 import logging
@@ -12,7 +11,6 @@ import toolz
 import math
 import os
 import numpy as np
-import cv2
 
 log = logging.getLogger(__name__)
 

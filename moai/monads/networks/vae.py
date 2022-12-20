@@ -15,7 +15,7 @@ class VAE(torch.nn.Module):
         super().__init__()
         ckpt = torch.load(checkpoint, map_location='cpu')
         hparams = ckpt['hyper_parameters']
-        model = toolz.dissoc(hparams['model'],'supervision', 'generation', 'validation')
+        model = toolz.dissoc(hparams['model'],'supervision', 'generation', 'validation', 'feedforward')
         self.model = hyu.instantiate(model)
         self.model.encoder.load_state_dict(
             toolz.keymap(lambda s: s.replace('encoder.', ''), 
