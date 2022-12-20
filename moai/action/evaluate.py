@@ -5,9 +5,11 @@ import logging
 import typing
 import tablib
 
+from moai.engine.callbacks import ModelCallbacks
+
 log = logging.getLogger(__name__)
 
-def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any]:
+def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any, typing.Any]:
     return getattr(cfg, attr) if hasattr(cfg, attr) else None
 
 def evaluate(cfg):
@@ -26,7 +28,8 @@ def evaluate(cfg):
         hydra.utils.instantiate(remodel)(model)
     model.initialize_parameters()
     tester = hydra.utils.instantiate(cfg.tester, 
-        logging=assign(cfg, "logging")
+        logging=assign(cfg, "logging"),
+        model_callbacks=ModelCallbacks(model=model),
     )
     log.info("Evaluation started.")
     results = tester.run(model)[0] #TODO: need to support other ways of logging average results

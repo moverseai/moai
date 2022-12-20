@@ -12,6 +12,7 @@ class LightningTester(pytorch_lightning.Trainer):
     def __init__(self,
         logging:                    omegaconf.DictConfig=None,
         callbacks:                  omegaconf.DictConfig=None,
+        model_callbacks:            typing.Sequence[pytorch_lightning.Callback]=None,
         default_root_dir:           typing.Optional[str]=None,
         process_position:           int=0,
         num_nodes:                  int=1,
@@ -45,6 +46,8 @@ class LightningTester(pytorch_lightning.Trainer):
             if logging is not None else milog.NoOp()
         pytl_callbacks = [hyu.instantiate(c) for c in callbacks.values()]\
             if callbacks is not None else []                
+        if model_callbacks:
+            pytl_callbacks.extend(model_callbacks)
         super(LightningTester, self).__init__(
             logger=logger,
             checkpoint_callback=False,
