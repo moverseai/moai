@@ -21,6 +21,7 @@ class Lambda(KL):
     def forward(self,
         pred: torch.Tensor,
         gt: torch.Tensor,
+        weights: torch.Tensor=None, # float tensor
     ) -> torch.Tensor:
         m = (
             self.lamda * (pred.exp() if self.is_input_log_ else pred)
@@ -34,6 +35,8 @@ class Lambda(KL):
         pred_to_m = super(Lambda, self).forward(p, m)
         gt_to_m = super(Lambda, self).forward(g, m)
         lamda_divergence = self.lamda * pred_to_m + (1.0 - self.lamda) * gt_to_m
+        if weights is not None:
+            lamda_divergence = lamda_divergence * weights
         return lamda_divergence
 
 JS = functools.partial(Lambda, lamda=0.5)

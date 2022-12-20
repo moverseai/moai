@@ -1,5 +1,6 @@
 import torch
 import typing
+import numpy as np
 
 class Stack(torch.nn.Module):
     def __init__(self,
@@ -11,6 +12,7 @@ class Stack(torch.nn.Module):
     def forward(self, tensors: typing.List[torch.Tensor]) -> torch.Tensor:
         return torch.stack(tensors, dim=self.dim)
 
+
 class Concat(torch.nn.Module):
     def __init__(self,
         dim: int=1
@@ -20,6 +22,7 @@ class Concat(torch.nn.Module):
 
     def forward(self, tensors: typing.List[torch.Tensor]) -> torch.Tensor:
         return torch.cat(tensors, dim=self.dim)
+
 
 class Split(torch.nn.Module): #TODO: optimize by returning the tuple
     def __init__(self,
@@ -32,15 +35,24 @@ class Split(torch.nn.Module): #TODO: optimize by returning the tuple
 
     def forward(self, 
         tensor: torch.Tensor,
-        # index: torch.Tensor # scalar tensor denoting the split index
     ) -> typing.Dict[str, torch.Tensor]:
-    # ) -> typing.Tuple[torch.Tensor, torch.Tensor]:
         ret = {}
         size = self.split if self.split else tensor.shape[self.dim] // 2
-        chunks = torch.split(tensor, size, dim=self.dim) #[int(index)]
+        chunks = torch.split(tensor, size, dim=self.dim)
         for i in range(len(chunks)):
             ret['chunk'+str(i)] = chunks[i]
         return ret
+
+
+class ExtendLike(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def forward(self,
+        tensor: torch.Tensor,
+        like: torch.Tensor,
+    ) -> torch.Tensor:
+        return tensor[(..., ) + (np.newaxis, ) * (len(like.shape) - 1)]
 
 
 class Slice(torch.nn.Module):
@@ -56,7 +68,6 @@ class Slice(torch.nn.Module):
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return torch.narrow(input=tensor, dim=self.dim, start=self.start, length=self.length)
-
 
 
 #TODO: Is this really needed?
@@ -78,12 +89,14 @@ class SelectTensor(torch.nn.Module):
                 
                 return out_tensor
 
+
 class Detach(torch.nn.Module):
     def __init__(self):
         super(Detach, self).__init__()
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.detach()
+
 
 class Flatten(torch.nn.Module):
     def __init__(self):
@@ -92,6 +105,7 @@ class Flatten(torch.nn.Module):
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return self.flatten(tensor)
+
 
 class ReshapeAs(torch.nn.Module):
     def __init__(self):
@@ -102,6 +116,7 @@ class ReshapeAs(torch.nn.Module):
         shape: torch.Tensor,
     ) -> torch.Tensor:
         return tensor.reshape_as(shape)
+
 
 class Identity(torch.nn.Module):
     def __init__(self) -> None:
