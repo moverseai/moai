@@ -156,7 +156,6 @@ class LightningTrainer(pytorch_lightning.Trainer):
             **kwargs
         )
 
-
     def run(self, model):
         self.fit(model)
-        self.test(model)
+        # self.test(model)
