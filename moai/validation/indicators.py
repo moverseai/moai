@@ -20,7 +20,7 @@ class Indicators(Metrics):
     ):
         super(Indicators, self).__init__(metrics=metrics, **kwargs)
         self.expressions = { }
-        for name, expression in indicators.items():
+        for name, expression in indicators.items(): #TODO: replace with a parser
             self.expressions[name] = expression\
                 .replace('[', 'returned[\'').replace(']', '\']')
 
