@@ -8,8 +8,10 @@ __all__ = [
     'ReLu_IN',
     'BN2d_ReLu',
     'IN2d_ReLu',
+    'BN2d_ReLu_Drop2d',
     'ReLu_BN2d',
     'ReLu_IN2d',
+    'ReLu_BN2d_Drop2d',
     'LReLu_BN',
     'BN2d_LReLu',
     'LReLu_BN2d',
@@ -32,7 +34,7 @@ class BN2d(torch.nn.BatchNorm2d):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return super(BN2d, self).forward(x)
 
-class IN2d(torch.nn.BatchNorm2d):
+class IN2d(torch.nn.InstanceNorm2d):
     def __init__(self,
         features: int,
         momentum: float=0.1,         
@@ -100,6 +102,21 @@ class IN2d_ReLu(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.activation(self.inorm(x))
 
+class BN2d_ReLu_Drop2d(torch.nn.Module):
+    def __init__(self,
+        features: int,
+        inplace: bool=True,
+        epsilon: float=1e-5,
+        dropout_rate:  float=0.1,
+    ):
+        super(BN2d_ReLu_Drop2d, self).__init__()
+        self.bn = torch.nn.BatchNorm2d(features, eps=epsilon)
+        self.activation = torch.nn.ReLU(inplace=inplace)
+        self.dropout = torch.nn.Dropout2d(p=dropout_rate)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.dropout(self.activation(self.bn(x)))
+
 class ReLu_BN2d(torch.nn.Module):
     def __init__(self,
         features: int,
@@ -127,6 +144,21 @@ class ReLu_IN2d(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.inorm(self.activation(x))
 
+class ReLu_BN2d_Drop2d(torch.nn.Module):
+    def __init__(self,
+        features: int,
+        inplace: bool=True,
+        epsilon: float=1e-5,
+        dropout_rate:  float=0.1,
+    ):
+        super(ReLu_BN2d_Drop2d, self).__init__()
+        self.bn = torch.nn.BatchNorm2d(features, eps=epsilon)
+        self.activation = torch.nn.ReLU(inplace=inplace)
+        self.dropout = torch.nn.Dropout2d(p=dropout_rate)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.dropout(self.bn(self.activation(x)))
+
 class LReLu_BN(torch.nn.Module):
     def __init__(self,
         features: int,
@@ -147,12 +179,12 @@ class LReLu_BN_Drop(torch.nn.Module):
         inplace: bool=True,
         epsilon: float=1e-5,
         negative_slope:  float=0.01,
-        p:  float=0.1,
+        dropout_rate:  float=0.1,
     ):
         super(LReLu_BN_Drop, self).__init__()
         self.bn = torch.nn.BatchNorm1d(features, eps=epsilon)
         self.activation = torch.nn.LeakyReLU(negative_slope=negative_slope, inplace=inplace)
-        self.dropout = torch.nn.Dropout(p=p)
+        self.dropout = torch.nn.Dropout(p=dropout_rate)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.dropout(self.bn(self.activation(x)))
@@ -161,11 +193,11 @@ class LReLu_Drop(torch.nn.Module):
     def __init__(self,
         inplace: bool=True,
         negative_slope:  float=0.01,
-        p:  float=0.1,
+        dropout_rate:  float=0.1,
     ):
         super(LReLu_BN_Drop, self).__init__()
         self.activation = torch.nn.LeakyReLU(negative_slope=negative_slope, inplace=inplace)
-        self.dropout = torch.nn.Dropout(p=p)
+        self.dropout = torch.nn.Dropout(p=dropout_rate)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.dropout(self.activation(x))
@@ -204,12 +236,12 @@ class LReLu_BN2d_Drop2d(torch.nn.Module):
         inplace: bool=True,
         epsilon: float=1e-5,
         negative_slope:  float=0.01,
-        p:  float=0.1,
+        dropout_rate:  float=0.1,
     ):
         super(LReLu_BN2d_Drop2d, self).__init__()
         self.bn = torch.nn.BatchNorm2d(features, eps=epsilon)
         self.activation = torch.nn.LeakyReLU(negative_slope=negative_slope, inplace=inplace)
-        self.dropout = torch.nn.Dropout2d(p=p)
+        self.dropout = torch.nn.Dropout2d(p=dropout_rate)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.dropout(self.bn(self.activation(x)))

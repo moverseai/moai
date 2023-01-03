@@ -1,5 +1,6 @@
 from collections import UserList
 from pytorch_lightning import Callback
+from moai.utils.engine.noop import NoOp
 
 import torch
 import typing
@@ -17,3 +18,9 @@ class ModelCallbacks(UserList):
             self.data.extend((
                 c for c in model.children() if isinstance(c, Callback)
             ))
+            if hasattr(model,"visualization"):
+                if not isinstance(model.visualization,NoOp):
+                    if isinstance(model.visualization.visualizers, typing.Sequence):
+                        self.data.extend((
+                            c for c in model.visualization.visualizers if isinstance(c, Callback)
+                        ))

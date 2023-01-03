@@ -31,10 +31,17 @@ class Interleaved(torch.utils.data.Dataset):
         super().__init__()
         self.datasets = {}
 
+        zero_probability_keys = list(toolz.valfilter(lambda p: p == 0.0, probabilities).keys())
+        if len(zero_probability_keys):
+            datasets = toolz.dissoc(datasets, *zero_probability_keys)
+            probabilities = toolz.dissoc(probabilities, *zero_probability_keys)
+            log.warning(f"Datasets ({zero_probability_keys}) with 0 probability will be ingored for sampling.")
+
         missing_datasets = set(datasets.keys()) - set(probabilities.keys())
 
         for key in missing_datasets:
-            log.warning(f"Probability have not been assigned for dataset {key}."
+            datasets = toolz.dissoc(datasets, key)
+            log.warning(f"No probability has been assigned for dataset {key}"
                 " and thus will be ingored for sampling.")
         
         if np.sum(list(probabilities.values())) != 1.0:
@@ -54,7 +61,7 @@ class Interleaved(torch.utils.data.Dataset):
         self.keys = [k.split('.') for k in extracted_keys]
         self.probabilities = probabilities
         self.size = size
-        for d,p in zip(probabilities.keys(),probabilities.values()):
+        for d,p in probabilities.items():
             log.info(f"Drawing samples from {d} with probability {'{:.2f}'.format(p * 100)}%")
 
     

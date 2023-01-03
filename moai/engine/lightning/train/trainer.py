@@ -159,3 +159,4 @@ class LightningTrainer(pytorch_lightning.Trainer):
 
     def run(self, model):
         self.fit(model)
+        self.test(model)

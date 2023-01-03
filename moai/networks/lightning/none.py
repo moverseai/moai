@@ -15,6 +15,7 @@ class Null(minet.FeedForward):
         parameters:     omegaconf.DictConfig=None,
         feedforward:    omegaconf.DictConfig=None,
         monads:         omegaconf.DictConfig=None,
+        generation:     omegaconf.DictConfig=None,
         supervision:    omegaconf.DictConfig=None,
         validation:     omegaconf.DictConfig=None,
         visualization:  omegaconf.DictConfig=None,

@@ -18,6 +18,7 @@ class IsotropicGaussian(torch.nn.Module):
         normalize:      bool=True,
         scale:          bool=False,
         grid_type:      str='ndc', # 'ndc', 'coord', 'norm'
+        eps:            float=1e-8,
     ):
         super(IsotropicGaussian, self).__init__()
         self.grid_type = grid_type
@@ -25,6 +26,7 @@ class IsotropicGaussian(torch.nn.Module):
         self.register_buffer("std", torch.scalar_tensor(std))
         self.normalize = normalize
         self.scale = scale
+        self.eps = eps
 
     def forward(self,
         keypoints:  torch.Tensor,       # [B, K, (S)UV or UV(S)] with K the number of keypoints
@@ -48,7 +50,7 @@ class IsotropicGaussian(torch.nn.Module):
             gaussian = gaussian * scaling_factor
         if self.normalize: # generate a normalized Gaussian summing to unity
             norm_dims = spatial_dim_list(grid)
-            gaussian = gaussian / torch.sum(
+            gaussian = gaussian / (torch.sum(
                 gaussian, dim=norm_dims, keepdim=True
-            )
+            ) + self.eps)
         return gaussian
