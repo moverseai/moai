@@ -9,6 +9,7 @@ import typing
 import logging
 import numpy as np
 import math
+import toolz
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +47,8 @@ class Image2d(Base):
         self.colorize_map = { "none": lambda x: x }
         self.colorize_map.update(COLORMAPS)
 
+        self.access = lambda td, k: toolz.get_in(k.split('.'), td)
+
     @property
     def name(self) -> str:
         return self.env_name
@@ -58,7 +61,7 @@ class Image2d(Base):
             self.viz_map[t](
                 self.colorize_map[c](
                     self.transform_map[tf](
-                        tensors, k, int(math.ceil(self.batch_percentage * tensors[k].shape[0])),
+                        tensors, k, int(math.ceil(self.batch_percentage * self.access(tensors,k).shape[0])),
                         # tensors[k][:int(self.batch_percentage * tensors[k].shape[0])]
                     )
                 ), k, k, self.name
@@ -108,7 +111,8 @@ class Image2d(Base):
         key:        str,
         count:      int,
     ) -> torch.Tensor:
-        return tensors[key][:count] if key in tensors else None
+        access = lambda td, k: toolz.get_in(k.split('.'), td)
+        return access(tensors,key)[:count] if key.split(".")[0] in tensors else None
 
     @staticmethod #TODO: refactor these into a common module
     def _minmax_normalization(
