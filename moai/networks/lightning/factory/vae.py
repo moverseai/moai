@@ -1,9 +1,6 @@
 from moai.networks.lightning.feedforward import _create_processing_block, _create_validation_block
 
-import typing
-import moai.networks.lightning as minet
 import moai.utils.parsing.rtp as mirtp
-
 import moai.networks.lightning as minet
 import moai.nn.linear as mil
 

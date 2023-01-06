@@ -269,8 +269,15 @@ turbo_colormap_data = np.array(
                        [0.49321,0.01963,0.00955],
                        [0.47960,0.01583,0.01055]])
 
-
-
+def get_color(value: float) -> np.array:
+    length = len(turbo_colormap_data) - 1
+    indexed_value = value * length
+    lhs = np.clip(np.floor(value * length), 0, length)
+    rhs = np.clip(np.ceil(value * length), 0 , length)
+    left = turbo_colormap_data[int(lhs)]
+    right = turbo_colormap_data[int(rhs)]
+    blend = rhs - indexed_value
+    return left * blend + right * (1 - blend)
 
 def RGBToPyCmap(rgbdata):
     nsteps = rgbdata.shape[0]
@@ -297,5 +304,3 @@ def RGBToPyCmap(rgbdata):
 
 # mpl_data_r = RGBToPyCmap(turbo_colormap_data[::-1,:])
 # plt.register_cmap(name='turbo_r', data=mpl_data_r, lut=turbo_colormap_data.shape[0])
-
-

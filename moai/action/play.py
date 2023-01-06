@@ -10,6 +10,10 @@ log = logging.getLogger(__name__)
 
 def play(cfg):
     hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
+    with open("config.yaml", 'w') as f:
+        f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False))    
+    with open("config_resolved.yaml", 'w') as f:
+        f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=True, sort_keys=False))
     engine = hydra.utils.instantiate(cfg.engine)
     model = miplay.Presenter(
         **(cfg.model if hasattr(cfg, "model") else {"monads": None}) ,

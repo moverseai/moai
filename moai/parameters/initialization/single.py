@@ -17,7 +17,9 @@ class Initializer(mieng.Single):
     def __call__(self, 
         model: torch.nn.Module
     ) -> None:
-        log.info(f"Applying {len(self.items())} parameter initialization schemes:")
+        count = len(self.items())
+        if count:
+            log.info(f"Applying {count} parameter initialization schemes:")
         for scheme in self.items():
             log.info(f"\tApplying {scheme.__class__.__name__}")
             model.apply(scheme)
