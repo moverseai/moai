@@ -219,7 +219,8 @@ class FeedForward(pytorch_lightning.LightningModule):
         metrics = self.validation(outputs)
         self.global_test_step += 1
         log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_index]}", metrics)
-        log_metrics.update({'__moai__': {'dataloader_index': dataloader_index}})
+        if len(self.data.test.iterator.datasets.keys()) > 1:
+            log_metrics.update({'__moai__': {'dataloader_index': dataloader_index}})
         self.log_dict(log_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False, sync_dist=True)
         return metrics, outputs
 
