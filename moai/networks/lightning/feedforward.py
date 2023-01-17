@@ -211,7 +211,7 @@ class FeedForward(pytorch_lightning.LightningModule):
     def test_step(self, 
         batch: typing.Dict[str, torch.Tensor],
         batch_nb: int,
-        dataloader_index:   int=0,
+        dataloader_index:   int=0, #NOTE check with None and kwargs
     ) -> dict:
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
@@ -219,7 +219,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         metrics = self.validation(outputs)
         self.global_test_step += 1
         log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_index]}", metrics)
-        if len(self.data.test.iterator.datasets.keys()) > 1:
+        if len(self.data.test.iterator.datasets.keys()) > 1 and self.data.test.iterator['_target_'].split(".")[-1] != 'Zipped':
             log_metrics.update({'__moai__': {'dataloader_index': dataloader_index}})
         self.log_dict(log_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False, sync_dist=True)
         return metrics, outputs
