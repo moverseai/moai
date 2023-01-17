@@ -208,8 +208,8 @@ class OpenPoseKeypoints(torch.utils.data.Dataset):
                 # body = np.concatenate([body, face, contour_keyps], axis=0)
             if 'gender' in self.types:
                 gender = person.get('gender_gt', None) or person.get('gender', None) or person.get('gender_pd', None)
-                if gender is not None:
-                    persons[-1]['gender']
+                # if gender is not None:
+                #     persons[-1]['gender']
         if not self.single_person:
             return persons
         else:            
