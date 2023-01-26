@@ -66,8 +66,8 @@ class VectorMSE(torch.nn.Module):
         inner = []
         for i in range(pred.shape[0]):
             inner.clear()
-            for j in range(pred.shape[0]):
-                v = torch.mean(torch.sum(gt[j] - pred[i] ** 2, dim=-1))
+            for j in range(pred.shape[0]):                
+                v = torch.linalg.norm(gt[j] - pred[i], dim=-1).mean()
                 inner.append(v)
             mylist.append(torch.stack(inner))
         norms = torch.stack(mylist)
