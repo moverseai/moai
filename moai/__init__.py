@@ -1,6 +1,6 @@
 __version__ = '0.1.5a34'
 __author__ = 'AI-in-Motion Team'
-__author_email__ = 'moai@ai-in-motion.dev'
+__author_email__ = 'pakos.ai.in.motion@gmail.com'
 __license__ = 'Apache-2.0'
 __copyright__ = f'Copyright (c) 2022, {__author__}.' 
 __homepage__ = 'https://github.com/ai-in-motion/moai'
