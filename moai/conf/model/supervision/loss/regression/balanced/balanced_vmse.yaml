@@ -3,4 +3,3 @@
 _target_: moai.supervision.losses.regression.balanced.BalancedVectorMSE
 sigma: ??? # float
 mode: auto
-dim: ??? # int
