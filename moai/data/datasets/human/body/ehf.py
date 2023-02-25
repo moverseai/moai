@@ -1,10 +1,11 @@
 from moai.utils.arguments import assert_path
 from moai.data.datasets.common.image2d import load_color_image
+from moai.utils.os import glob
 
 import json
 import numpy as np
 import cv2
-import glob
+# import glob
 import torch
 import os
 import typing
@@ -26,11 +27,11 @@ class EHF(torch.utils.data.Dataset):
         assert_path(log, 'EHF root path', root)
         self.root = root
         # self.load_scans = load_scans        
-        self.fits = glob.glob(os.path.join(root, 'fits', '*.ply'))
+        self.fits = glob(os.path.join(root, 'fits', '*.ply'))
         if load_jpg:
-            self.images = glob.glob(os.path.join(root, 'images', '*.jp*g'))
+            self.images = glob(os.path.join(root, 'images', '*.jp*g'))
         else:
-            self.images = glob.glob(os.path.join(root, 'png', '*.png'))
+            self.images = glob(os.path.join(root, 'png', '*.png'))
         self.focal_length = torch.Tensor([1498.22426237, 1498.22426237]).float()
         self.principal_point = torch.Tensor([790.263706, 578.90334]).float()
         self.camera_translation = torch.Tensor([-0.03609917,  0.43416458,  2.37101226]).float()

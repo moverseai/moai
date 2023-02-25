@@ -50,6 +50,3 @@ COLORMAPS = {
 
 def get_colormap(name:str) -> Colormap:
     return COLORMAPS[name] if name in COLORMAPS.keys() else COLORMAPS.items()[0][1]
-
-
-    
