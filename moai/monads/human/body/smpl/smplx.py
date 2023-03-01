@@ -102,8 +102,9 @@ class SMPLX(smplx.SMPLX):
             ], dim=1)
         if len(pose.shape) > 3:
             pose = kornia.geometry.rotation_matrix_to_angle_axis(pose)
-        if len(rotation.shape) > 2:
-            rotation = kornia.geometry.rotation_matrix_to_angle_axis(rotation)
+        if rotation is not None:
+            if len(rotation.shape)> 2:
+                rotation = kornia.geometry.rotation_matrix_to_angle_axis(rotation)
         body_output = super(SMPLX, self).forward(
             betas=beta_coeffs,                    # betas -> [1, 10] # v_shaped -> [1, 10475, 3]
             body_pose=pose,                 # body_pose -> [1, 63] # joints -> [1, 118, 3]

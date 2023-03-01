@@ -54,7 +54,7 @@ class THuman2(torch.utils.data.Dataset):
 
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         item = self.data[index]
-        #fix global rotation
+        # fix global rotation
         r =  R.from_euler('xz', [90,-90], degrees=True)
         new_global_orientation = R.from_matrix(
             (r.as_matrix() @ R.from_rotvec(item['global_orient']).as_matrix())
@@ -99,6 +99,6 @@ class THuman2(torch.utils.data.Dataset):
                         'vertices': body.vertices[0],                
                         'faces': self.body.faces_tensor,
                         },
-                    'joints': body.joints[0, ...],
+                    'joints': body.joints[0, :55, ...],
                 })
         return out

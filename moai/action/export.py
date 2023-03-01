@@ -116,8 +116,7 @@ def export(cfg):
                         "Can't get information for repo in {}: {}".format(path, str(ex))
                     )
         log.info("exporting model to onnx!")
-        with torch.autocast(device_type=str('cuda') if device >= 0 else str('cpu'), enabled=True):
-            trwrapper.to_onnx(
+        trwrapper.to_onnx(
                 os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'),
                 input_dict, 
                 export_params=cfg.export.export_params, # bool 
@@ -125,6 +124,15 @@ def export(cfg):
                 input_names=trwrapper.input_names,
                 output_names=trwrapper.output_names,
             )
+        # with torch.autocast(device_type=str('cuda') if device >= 0 else str('cpu'), enabled=True):
+        #     trwrapper.to_onnx(
+        #         os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'),
+        #         input_dict, 
+        #         export_params=cfg.export.export_params, # bool 
+        #         opset_version=cfg.export.opset_version, # int; default is 12
+        #         input_names=trwrapper.input_names,
+        #         output_names=trwrapper.output_names,
+        #     )
         # Adding metadata
         model = onnx.load(os.path.join(cfg.export.output_path, f'{cfg.export.name}.onnx'))
         if moai_url: # add moai repo details
