@@ -1,9 +1,8 @@
 from moai.utils.arguments import assert_path
 from moai.data.datasets.common.image2d import load_color_image
+from moai.utils.os import glob
 
-import toolz
 import numpy as np
-import glob
 import torch
 import os
 import typing
@@ -26,7 +25,7 @@ class HBW(torch.utils.data.Dataset):
         self.root = root
         self.split = split
         self.single_person = single_person
-        self.images = glob.glob(os.path.join(root, 'images', split, '**', '**', '*.png'))
+        self.images = glob(os.path.join(root, 'images', split, '**', '**', '*.png'))
         log.info(f"Loaded {len(self)} items from HBW.")
 
     def __len__(self) -> int:
