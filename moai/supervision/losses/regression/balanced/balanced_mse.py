@@ -78,6 +78,8 @@ class VectorMSE(torch.nn.Module):
                         reduction='none'
         )
         loss = loss * (2 * noise_var).detach()  
+        if weights is not None:
+            loss = loss * weights
         return loss
 
 class MVNMSE(torch.nn.Module):

@@ -32,6 +32,8 @@ bone_r = functools.partial(_matplotlib_colormap, cm.get_cmap('bone_r'))
 turbo = functools.partial(_matplotlib_colormap, cm.get_cmap('turbo'))
 turbo_r = functools.partial(_matplotlib_colormap, cm.get_cmap('turbo_r'))
 
+binary = cm.get_cmap('binary')
+
 COLORMAPS = {
     'jet': jet,
     'magma': magma,
@@ -46,7 +48,30 @@ COLORMAPS = {
     'turbo_r': turbo_r,
     'bone': bone,
     'bone_r': bone_r,
+    'binary': binary
 }
 
 def get_colormap(name:str) -> Colormap:
     return COLORMAPS[name] if name in COLORMAPS.keys() else COLORMAPS.items()[0][1]
+<<<<<<< Updated upstream
+=======
+
+def get_color(value: float, name: str='turbo') -> np.array:
+    colormap_data = COLORMAPS.get(name, turbo)(range(256))[:, :3]
+    length = len(colormap_data) - 1
+    indexed_value = value * length
+    lhs = np.clip(np.floor(value * length), 0, length)
+    rhs = np.clip(np.ceil(value * length), 0 , length)
+    left = colormap_data[int(lhs)]
+    right = colormap_data[int(rhs)]
+    blend = rhs - indexed_value
+    return left * blend + right * (1 - blend)
+
+get_color_turbo = functools.partial(get_color, name='turbo')
+get_color_turbo_r = functools.partial(get_color, name='turbo_r')
+get_color_bone = functools.partial(get_color, name='bone')
+get_color_bone_r = functools.partial(get_color, name='bone_r')
+
+
+    
+>>>>>>> Stashed changes
