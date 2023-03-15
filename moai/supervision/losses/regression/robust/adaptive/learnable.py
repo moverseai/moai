@@ -46,9 +46,11 @@ class Barron(Distribution):
       assert_non_negative(log, 'scale low', scale_low)
       if alpha_range[0] == alpha_range[1]: # constant init alpha
           log.info(f"Barron loss alpha set to fixed: {alpha_range[0]}.")
-          self.fixed_alpha = torch.tensor(
+          self.register_buffer('fixed_alpha',
+                                    torch.tensor(
               alpha_range[0])[np.newaxis, np.newaxis].repeat(1, count)
-          self.alpha = lambda: self.fixed_alpha
+            )
+          self.get_alpha = lambda: self.fixed_alpha
       else: # learnable alpha
           alpha = util.inverse_affine_sigmoid(
               np.mean(alpha_range) if alpha_init is None else alpha_init,
@@ -70,8 +72,9 @@ class Barron(Distribution):
         self.get_scale = lambda: self.fixed_scale
       else: # learnable scale
         self.register_parameter('scale', torch.nn.Parameter(
-                torch.zeros((1, count)).float(),
-                requires_grad=True
+                # torch.zeros((1, count)).float(),
+                torch.tensor(scale_init)[np.newaxis, np.newaxis].float().repeat(1, count),
+           requires_grad=True
             )
         )
         self.get_scale = lambda: util.affine_softplus(
