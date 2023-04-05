@@ -38,7 +38,7 @@ class Pose2d(Base):
         transparency:   float=0.4,
         scale:          float=1.0,
         use_mask:       bool=True,
-        jpeg_quality:       int=50,
+        jpeg_quality:   int=50,
     ):
         super(Pose2d, self).__init__(name, ip, port)
         self.images = ensure_string_list(images)

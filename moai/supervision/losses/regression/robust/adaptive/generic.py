@@ -67,6 +67,7 @@ def loss(
     b = torch.abs(alpha - 2) + epsilon
     d = torch.where(alpha >= 0, alpha + epsilon, alpha - epsilon)
     loss = (b / d) * (torch.pow((residual / scale)**2 / b + 1.0, 0.5 * d) - 1.)
+    return loss
   else: # Compute the exact loss.    
     squared_scaled_x = (residual / scale)**2    
     loss_two = 0.5 * squared_scaled_x # The loss when alpha == 2.    

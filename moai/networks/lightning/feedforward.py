@@ -137,7 +137,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         self.preprocess = _create_processing_block(feedforward, "preprocess", monads=monads)
         self.postprocess = _create_processing_block(feedforward, "postprocess", monads=monads)
         self.visualization = _create_interval_block(visualization)
-        self.exporter = _create_interval_block(export)        
+        self.exporter = _create_interval_block(export)
         #NOTE: __NEEDED__ for loading checkpoint
         # hparams = hyperparameters if hyperparameters is not None else { }        
         # hparams.update({'moai_version': miV})
@@ -211,15 +211,21 @@ class FeedForward(pytorch_lightning.LightningModule):
     def test_step(self, 
         batch: typing.Dict[str, torch.Tensor],
         batch_nb: int,
-        dataloader_index:   int=0,
+        dataloader_index:   int=0, #NOTE check with None and kwargs
     ) -> dict:
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
         outputs = self.postprocess(prediction)
         metrics = self.validation(outputs)
         self.global_test_step += 1
-        #log_metrics = toolz.keymap(lambda k: f"test_{k}", metrics)
         log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_index]}", metrics)
+        # check if iterator is zipped
+        try:
+            zp_target = self.data.test.iterator['_target_'].split(".")[-1]
+        except:
+            zp_target = None
+        if len(self.data.test.iterator.datasets.keys()) > 1 and zp_target != 'Zipped':
+            log_metrics.update({'__moai__': {'dataloader_index': dataloader_index}})
         self.log_dict(log_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False, sync_dist=True)
         return metrics, outputs
 

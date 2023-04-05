@@ -64,7 +64,8 @@ class GeneBody(torch.utils.data.Dataset):
     def load_smplx(self, filename: str) -> typing.Dict[str, torch.Tensor]:
         data = np.load(filename, allow_pickle=True).item()
         scale = torch.scalar_tensor(data['smplx_scale']).float()
-        data = toolz.valmap(lambda v: torch.from_numpy(v.squeeze()).float(), data['smplx'])        
+        # data = toolz.valmap(lambda v: torch.from_numpy(v.squeeze()).float(), data['smplx'])
+        data = toolz.valmap(lambda v: torch.from_numpy(v.squeeze()).float() if type(v) is not torch.Tensor else v.squeeze(), data['smplx'])
         return {
             'scale': scale,
             'params': toolz.dissoc(data, 'keypoints3d'),
@@ -93,3 +94,18 @@ class GeneBody(torch.utils.data.Dataset):
             }
         }
         return data
+
+
+if __name__ == '__main__':
+    # initiate the dataset
+    dataset = GeneBody(
+        root='//192.168.1.3/Public/Human Datasets/GeneBody',
+        split='train',
+        subjects='ahha',
+        cameras=['01'],
+        # smplx_root="C:\\Users\\giorg\\Documents\\Projects\\markerless-mocap\\third_party\\smplx\\transfer_data\\body_models",
+        # reconstruct=True,
+    )
+    # iterate over the dataset
+    for i in range(len(dataset)):
+        print(dataset[i])

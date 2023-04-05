@@ -186,7 +186,7 @@ class UNet(minet.FeedForward):
             )):
                 up = u(features[-1])
                 skip = s(skipped[l], up, gate)
-                last_pred = toolz.get(-1, preds, None)                
+                last_pred = toolz.get(-1, preds, None)
                 if self.concat_preds and last_pred is not None:
                     skip = torch.cat([skip, self.upscale(last_pred, skip)], dim=1)
                 features.append(d(skip))

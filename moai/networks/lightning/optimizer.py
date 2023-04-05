@@ -165,7 +165,7 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
         pl_module.log_dict(metrics, prog_bar=True, logger=False, on_epoch=False, on_step=True, sync_dist=True)
         log_metrics = toolz.keymap(lambda k: f"val_{k}", metrics)
         pl_module.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=False, on_step=True, sync_dist=True)        
-        pl_module.visualizer(batch, pl_module.optimization_step)
+        pl_module.visualization(batch, pl_module.optimization_step)
         pl_module.exporter(batch, pl_module.optimization_step)
 
 from moai.monads.execution.cascade import _create_accessor
@@ -265,8 +265,8 @@ class Optimizer(pytorch_lightning.LightningModule):
                 omegaconf.OmegaConf.merge(supervision, objective)
             )
         self.validation = _create_validation_block(validation) #TODO: change this, "empty processing block" is confusing
-        self.visualizer = _create_interval_block(visualization)
-        self.exporter = _create_interval_block(export)        
+        self.visualization = _create_interval_block(visualization)
+        self.exporter = _create_interval_block(export)
         #NOTE: __NEEDED__ for loading checkpoint?
         hparams = hyperparameters if hyperparameters is not None else { }
         hparams.update({'moai_version': miV})
@@ -330,8 +330,8 @@ class Optimizer(pytorch_lightning.LightningModule):
         train_outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]
     ) -> None:
         train_outputs['tensors']['__moai__']['optimization_step'] = self.optimization_step
-        if (self.optimization_step + 1) and (self.optimization_step % self.visualizer.interval == 0):
-            self.visualizer(train_outputs['tensors'], self.optimization_step)
+        if (self.optimization_step + 1) and (self.optimization_step % self.visualization.interval == 0):
+            self.visualization(train_outputs['tensors'], self.optimization_step)
         if (self.optimization_step + 1) and (self.optimization_step % self.exporter.interval == 0):
             self.exporter(train_outputs['tensors'], self.optimization_step)
         return train_outputs['loss']
@@ -403,7 +403,7 @@ class Optimizer(pytorch_lightning.LightningModule):
         using_lbfgs: bool = False,
     ) -> None:        
         optimizer.step(closure=optimizer_closure)
-
+    
     def train_dataloader(self) -> torch.utils.data.DataLoader:
         #NOTE: we are in train mode as we may need to optimize weights,
         # but semantically its test time so we use the test set
