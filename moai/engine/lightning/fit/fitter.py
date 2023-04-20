@@ -92,7 +92,7 @@ class LightningFitter(pytorch_lightning.Trainer):
         model_callbacks:            typing.Sequence[pytorch_lightning.Callback]=None,
         default_root_dir:           typing.Optional[str]=None,
         gradient_clip_val:          float=0.0,
-        gradient_clip_algorithm:    str='norm', #NOTE: @PTL1.5    
+        gradient_clip_algorithm:    str='norm', #NOTE: @PTL1.5
         process_position:           int=0,
         num_nodes:                  int=1,
         num_processes:              int=1,
@@ -169,6 +169,7 @@ class LightningFitter(pytorch_lightning.Trainer):
             pytl_callbacks.append(hyu.instantiate(regularization))
         if model_callbacks:
             pytl_callbacks.extend(model_callbacks)
+        self.init_once = kwargs.pop('init_once') if 'init_once' in kwargs else False # default should be False
         #TODO: add optimizer reset callback https://github.com/PyTorchLightning/pytorch-lightning/issues/3095
         #TODO: add weight re-init callback
         #TODO: add inference callback with no grad forward

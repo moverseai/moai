@@ -131,7 +131,7 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
         unused: typing.Optional[int] = 0,
     ) -> None:
         """Called when the train batch begins."""
-        pl_module.initialize_parameters()
+        pl_module.initialize_parameters() if not trainer.init_once or batch_idx == 0 else None
         if batch_idx > 0:
             trainer.accelerator.setup_optimizers(trainer)        
         if 'inference' in pl_module.mode:
