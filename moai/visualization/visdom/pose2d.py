@@ -192,7 +192,7 @@ class Pose2d(Base):
             h, w = img.shape[:2]
             if scale != 1.0:
                 img = np.array(Image.fromarray(img).resize(
-                    (int(w * scale), int(h * scale)), Image.ANTIALIAS
+                    (int(w * scale), int(h * scale)), Image.Resampling.LANCZOS
                 ))
             imgs[i, ...] = img.transpose(2, 0, 1) if not rotate\
                 else cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE).transpose(2, 0, 1)
