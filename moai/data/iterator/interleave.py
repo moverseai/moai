@@ -1,4 +1,3 @@
-from posixpath import lexists
 import torch
 import hydra.utils as hyu
 import omegaconf.omegaconf
