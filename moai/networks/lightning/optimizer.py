@@ -133,12 +133,12 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
         """Called when the train batch begins."""
         pl_module.initialize_parameters() if not trainer.init_once or batch_idx == 0 else None
         if batch_idx > 0:
-            trainer.accelerator.setup_optimizers(trainer)        
+            trainer.accelerator.setup_optimizers(trainer)
         if 'inference' in pl_module.mode:
             with torch.no_grad():
                 pl_module.preprocess(batch)
                 pl_module(batch)
-                pl_module.initialize(batch)
+                pl_module.initialize(batch) if not trainer.init_once or batch_idx == 0 else None
             if pl_module.optimized_predictions:
                 for key, values in pl_module.optimized_predictions.items():
                     for optim in filter(lambda o: o.name == key, trainer.accelerator.optimizers):
@@ -160,7 +160,7 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
         batch_idx: int,
         unused: typing.Optional[int] = 0,
     ) -> None:
-        """Called when the train batch ends."""        
+        """Called when the train batch ends."""
         metrics = pl_module.validation(batch)
         pl_module.log_dict(metrics, prog_bar=True, logger=False, on_epoch=False, on_step=True, sync_dist=True)
         log_metrics = toolz.keymap(lambda k: f"val_{k}", metrics)
