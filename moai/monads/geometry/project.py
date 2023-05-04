@@ -54,7 +54,7 @@ class Projection(torch.nn.Module):
         height:             int,
         width:              int,
     ) -> torch.Tensor:
-        one = self._convert_one(uvs, height, width)
+        one = self._convert_norm(uvs, height, width)
         return one * 2.0 - 1.0
 
     def _format_uv_channel(self, 
