@@ -67,11 +67,11 @@ class Transformation(torch.nn.Module):
         if transform is not None:
             xform = torch.transpose(transform, -1, -2) if self.transpose else transform
             rot = xform[:, :3, :3]
-            #trans = transform[:, 3, :3].reshape(b, 3, 1) #TODO: What if the trans vector is in the last column
-            trans = transform[:, :3, 3].reshape(b, 3, 1)
+            #trans = transform[:, 3, :3].reshape(b, 3, 1) #TODO: What if the trans vector is in the last row?
+            trans = transform[:, :3, 3].reshape(transform.shape[0], 3, 1)
         else:
             rot = torch.transpose(rotation, 2, 1) if self.transpose else rotation
-            trans = translation.reshape(b, 3, 1)
+            trans = translation.reshape(translation.shape[0], 3, 1)
         pts3d = self.convert_points_in(points)
         xformed = rot @ pts3d.view(b, 3, -1) + trans
         return self.convert_points_out(xformed, points.size())
