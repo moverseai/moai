@@ -12,6 +12,7 @@ from moai.monads.geometry.stereo_depth import DepthFromStereo
 from moai.monads.geometry.deproject import Deprojection
 from moai.monads.geometry.normal_estimation2d import NormalEstimation2d
 from moai.monads.geometry.distortion import Distort
+from moai.monads.geometry.decompose import DecomposeMatrix
 
 __all__ = [
     "Projection",
@@ -26,4 +27,5 @@ __all__ = [
     "Deprojection",
     "NormalEstimation2d",
     "Distort",
+    "DecomposeMatrix"
 ]
