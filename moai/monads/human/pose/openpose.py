@@ -298,21 +298,21 @@ class MergeToes(torch.nn.Module): #TODO: aug layer
         right_toes_w = conf[:, 22:24, :]
         right_toe_w = right_toes_w.sum(dim=1, keepdim=True)
         right_toe = (right_toes_j * right_toes_w).sum(dim=1, keepdim=True) / (right_toe_w + 1e-8)
-        kpts[:, 22, :] = right_toe
-        kpts[:, 23, :] = right_toe
+        kpts[:, 22:23, :] = right_toe
+        kpts[:, 23:24, :] = right_toe
         right_toe_w = right_toe_w * 0.5
-        conf[:, 22, :] = right_toe_w
-        conf[:, 23, :] = right_toe_w
+        conf[:, 22:23, :] = right_toe_w
+        conf[:, 23:24, :] = right_toe_w
         # left
         left_toes_j = kpts[:, 19:21, :]
         left_toes_w = conf[:, 19:21, :]
         left_toe_w = left_toes_w.sum(dim=1, keepdim=True)
         left_toe = (left_toes_j * left_toes_w).sum(dim=1, keepdim=True) / (left_toe_w + 1e-8)
-        kpts[:, 19, :] = left_toe
-        kpts[:, 20, :] = left_toe
+        kpts[:, 19:20, :] = left_toe
+        kpts[:, 20:21, :] = left_toe
         left_toe_w = left_toe_w * 0.5
-        conf[:, 19, :] = left_toe_w
-        conf[:, 20, :] = left_toe_w
+        conf[:, 19:20, :] = left_toe_w
+        conf[:, 20:21, :] = left_toe_w
         return {
             'positions' : kpts,
             'confidence': conf,
