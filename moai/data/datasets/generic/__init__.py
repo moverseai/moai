@@ -9,6 +9,7 @@ from moai.data.datasets.generic.dummy import (
     Empty, 
     Dummy,
 )
+from moai.data.datasets.generic.txt import Txt
 
 __all__ = [
     "StructuredImages",
@@ -18,4 +19,5 @@ __all__ = [
     "Npz",
     "Pkl",
     "StandaloneNpz",
+    "Txt",
 ]

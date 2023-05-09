@@ -8,6 +8,7 @@ from moai.data.datasets.common.image2d import (
 from moai.data.datasets.common.raw import (
     load_npz_file,
     load_pkl_file,
+    load_txt_file,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "load_mask_image",
     "load_npz_file",
     "load_pkl_file",
+    "load_txt_file",
 ]
