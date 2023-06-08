@@ -24,3 +24,9 @@ class ModelCallbacks(UserList):
                         self.data.extend((
                             c for c in model.visualization.visualizers if isinstance(c, Callback)
                         ))
+            if hasattr(model,"exporter"):
+                if not isinstance(model.exporter,NoOp):
+                    if isinstance(model.exporter.exporters, typing.Sequence):
+                        self.data.extend((
+                            c for c in model.exporter.exporters if isinstance(c, Callback)
+                        ))

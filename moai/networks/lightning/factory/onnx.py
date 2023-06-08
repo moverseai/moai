@@ -1,6 +1,5 @@
 import moai.networks.lightning as minet
 
-
 import toolz
 import torch
 import omegaconf.omegaconf
@@ -28,7 +27,8 @@ class Onnx(minet.FeedForward):
         super(Onnx, self).__init__(
             feedforward=feedforward, monads=monads,
             data=data, validation=validation,
-            parameters=parameters,
+            parameters=parameters, visualization=visualization,
+            export=export, supervision=supervision,
         )
         self.input_kvp = configuration.input
         self.output_list = configuration.output
