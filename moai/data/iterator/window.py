@@ -60,7 +60,7 @@ class Windowed(torch.utils.data.Dataset):
             self.window_size = 1
         if self.window_size > len(self.dataset):
             log.warning(
-                f"Window size must be bigger > than the minimum dataset length. Using window size = {len(self.dataset)}."
+                f"Window size must not be bigger > than the dataset length. Using window size = {len(self.dataset)}."
             )
             self.window_size = len(self.dataset)
         if stride <= 0:
