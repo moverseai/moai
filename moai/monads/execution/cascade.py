@@ -82,11 +82,15 @@ class Cascade(torch.nn.ModuleDict): #TODO: check if x: ['arg'] is the same as x:
         #NOTE: check for not found keys and notify the potential error
         errors = [k for k in kwargs if k not in monads]
         if errors:
-            log.error("Some monads were not found in the configuration and will be ignored!")
+            log.error(f"The following monads {errors} were not found in the configuration and will be ignored!")
         self.execs = []
         for k, p in loop:
             #TODO: if instantiation fails, error out with message saying about adding it to the config file
-            self.add_module(k, hyu.instantiate(getattr(monads, k))) #TODO: add construction loop first in class execs, and then funcs based on kwargs
+            try:
+                self.add_module(k, hyu.instantiate(getattr(monads, k))) #TODO: add construction loop first in class execs, and then funcs based on kwargs
+            except:
+                log.error(f"Could not instantiate the monad {k}!")
+                continue
             # last_module = toolz.last(self.modules()) #NOTE: moduledict is ordered            
             module = self[k]
             sig = inspect.signature(module.forward)
