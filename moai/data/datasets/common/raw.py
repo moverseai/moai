@@ -7,6 +7,7 @@ import pickle
 __all__ = [
     'load_npz_file',
     'load_pkl_file',
+    'load_txt_file',
 ]
 
 def load_npz_file(
@@ -21,4 +22,10 @@ def load_pkl_file(
     data = { }
     with open(filename, 'rb') as f:
         data = pickle.load(f)
+    return data
+
+def load_txt_file(
+    filename:   str,
+) -> typing.Dict[str, torch.Tensor]:
+    data = np.loadtxt(filename)
     return data

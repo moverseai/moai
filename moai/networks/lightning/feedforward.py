@@ -254,18 +254,7 @@ class FeedForward(pytorch_lightning.LightningModule):
                 ))
                 all_metrics[key].append(metrics[key])            
             log_metrics[list(self.data.test.iterator.datasets.keys())[i]] = metrics
-            #log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[i]}", metrics)
-            #self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
         self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
-        #all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_metrics)
-        #self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
-        #keys = next(iter(outputs), { }).keys()
-        # metrics = { }
-        # for key in keys:
-        #     metrics[key] = np.mean(np.array(
-        #         [d[key].item() for d in outputs]
-        #     ))   
-        # self.log_dict(metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:
         log.info(f"Configuring optimizer and scheduler")

@@ -8,6 +8,7 @@ import pytorch_lightning
 import logging
 import typing
 import toolz
+import pandas as pd
 
 log = logging.getLogger(__name__)
 
@@ -66,6 +67,16 @@ class ClearML(pytorch_lightning.loggers.base.LightningLoggerBase):
             for d, m in dataset_test_metrics.items():
                 for k, v in m.items():
                     self.logger.report_scalar(d, k, v, step)
+                df = pd.DataFrame(dataset_test_metrics[d],
+                    index=["sample"+str(step)],
+                )
+                df.index.name = "id"
+                self.logger.report_table(
+                    "Metrics", 
+                    "Per Sample", 
+                    iteration=step, 
+                    table_plot=df
+                )
         if val_metrics:
             e = int(metrics["epoch"])
             dataset_val_metrics = toolz.valmap(

@@ -9,7 +9,6 @@ from moai.data.iterator.window import Windowed
 from moai.data.iterator.repeat import Repeated
 from moai.data.iterator.composite import Composited
 
-
 __all__ = [
     "Indexed",
     "Zipped",
