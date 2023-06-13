@@ -15,7 +15,10 @@ def ensure_path(
     path:               str,
 ) -> None:
     if not path or not os.path.exists(path):
-        logger.error(f"Path ({path}) does not exist, reverting to cwd ({os.getcwd()})")
-        return os.getcwd()
+        # logger.error(f"Path ({path}) does not exist, reverting to cwd ({os.getcwd()})")
+        # return os.getcwd()
+        logger.warning(f"Path ({path}) does not exist, creating it.")
+        os.makedirs(path, exist_ok=True)
+        return path
     else:
         return path
