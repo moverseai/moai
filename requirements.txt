@@ -3,7 +3,7 @@ hydra-core==1.0.3           #TODO: update
 hydra-colorlog==1.0.0
 pytorch-lightning==1.5.1    #TODO: update
 kornia==0.6.3
-visdom
+visdom==0.1.8.9
 hiplot==0.1.20              #TODO: update
 opencv-python
 albumentations==1.1.0             
