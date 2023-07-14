@@ -2,6 +2,7 @@ from moai.utils.arguments import assert_positive
 import torch
 import typing
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -81,3 +82,48 @@ class WeakPerspective(torch.nn.Module): #NOTE: fixed focal/principal, optimized 
         img_points = torch.einsum('bki,bji->bjk', [mat, img_points]) \
             + principal_point.unsqueeze(dim=1) #TODO: add principal in mat
         return img_points
+    
+
+class MVWeakPerspective(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def forward(self,
+        points:             torch.Tensor,
+        image:              torch.Tensor=None,
+        rotation:           torch.Tensor=None,
+        translation:        torch.Tensor=None,
+        intrinsics:         torch.Tensor=None,
+        transform:          torch.Tensor=None,
+                ) -> torch.Tensor:
+        """
+        Multi-view weak perspective projection.
+
+        # points [T,L,3]
+        
+        Expects tensors of  shape e.g. [T,N,L,3] where:
+        T is the temporal window, 
+        N is the camera views, 
+        L is the number of points.
+        """
+        if image is not None:
+            h, w = image.shape[-2:]
+        # points_cam = torch.einsum('bpi,bvij->bvpj', points, transform[:, :, :3, :3]) + transform[:, :, np.newaxis, :3, 3]
+        points_cam = torch.einsum('bpoj,bvij->bpvi', points[..., None, :], transform[..., :3, :3]).transpose(2,1) + transform[..., None, :3, 3]
+        # projected_points = torch.div(
+        #     points_cam[:, :, :, :2],
+        #     points_cam[:, :, :, 2].unsqueeze(dim=-1)
+        # )
+        # x = points_cam[:,:,:,0]
+        # y = points_cam[:,:,:,1]
+        # z = points_cam[:,:,:,2] + 1e-7
+        # x_h = x / z
+        # y_h = y / z
+        # ones = torch.ones_like(z)
+        # homo_points = torch.stack([x_h, y_h, ones], dim=3)
+        homo_points = points_cam / (points_cam[..., 2:3] + 1e-7)
+        return torch.einsum('bvpi,bvji->bvpj', homo_points, intrinsics)[...,:2]
+
+        # return torch.einsum('bvij,bvlc->bvlc', intrinsics, homo_points)[:,:,:,:2]
+        # R = rotation if rotation is not None else self.rotation.expand(points.shape[0], 3, 3)
+        # t = translation if translation is not None else self.translation.expand(points.shape[0], 3)
