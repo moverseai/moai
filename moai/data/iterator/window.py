@@ -17,7 +17,7 @@ def __merge_func__(x):
         return toolz.merge_with(__merge_func__, x)
     elif isinstance(x, list):
         if isinstance(x[0], torch.Tensor):
-            return torch.stack(x)
+              return torch.stack(x)
         elif isinstance(x[0], np.ndarray):
             return torch.stack([torch.from_numpy(x) for x in x])
         else:
