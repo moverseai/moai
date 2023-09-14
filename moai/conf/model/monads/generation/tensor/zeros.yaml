@@ -1,3 +1,5 @@
 # @package model.monads._name_
 
 _target_: moai.monads.generation.tensor.Zeros
+shape: ???
+includes_batch: false
