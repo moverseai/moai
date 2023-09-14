@@ -7,3 +7,4 @@ device: [0]
 parts: '**'
 downsample_factor: 1
 reconstruct: false
+model_type: smplx

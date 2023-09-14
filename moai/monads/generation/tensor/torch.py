@@ -83,13 +83,18 @@ class Identity(torch.nn.Module):
         return torch.eye(tensor.shape[-1], dtype=tensor.dtype, device=tensor.device).expand_as(tensor)
 
 class Zeros(torch.nn.Module):
-    def __init__(self):
+    def __init__(self,
+        shape:          typing.Union[int, typing.Sequence[int]],
+        includes_batch: bool=False, # whether shape includes the batch dim
+    ):
         super(Zeros, self).__init__()
+        self.shape = shape if isinstance(shape, typing.Sequence) else [shape]
+        self.includes_batch = includes_batch
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        # return torch.zeros_like(tensor)
-        return torch.zeros(1, *tensor.shape[1:], 
-            dtype=tensor.dtype, device=tensor.device).expand_as(tensor)
+        shape = self.shape if self.includes_batch else [tensor.shape[0], *self.shape]
+        device = tensor.device if tensor is not None else torch.device('cpu')
+        return torch.zeros(shape, dtype=tensor.dtype, device=device)
 
 class ZerosLike(torch.nn.Module):
     def __init__(self):

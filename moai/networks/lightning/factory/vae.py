@@ -85,13 +85,13 @@ class VariationalAutoencoder(minet.FeedForward):
             )
 
         params = inspect.signature(self.feature_head.forward).parameters
-        rep_in = list(zip(*[mirtp.force_list(io.features_head[prop]) for prop in params]))
-        rep_out = mirtp.split_as(mirtp.resolve_io_config(io.features_head['out']), enc_in)
+        fhead_in = list(zip(*[mirtp.force_list(io.features_head[prop]) for prop in params]))
+        fhead_out = mirtp.split_as(mirtp.resolve_io_config(io.features_head['out']), fhead_in)
 
-        self.fhead_res_fill = [mirtp.get_result_fillers(self.feature_head, out) for out in rep_out]        
+        self.fhead_res_fill = [mirtp.get_result_fillers(self.feature_head, out) for out in fhead_out]        
         get_fhead_filler = iter(self.fhead_res_fill)
         
-        for keys in rep_in:
+        for keys in fhead_in:
             self.f2mu_std_fwds.append(lambda td,
                 tk=keys,
                 args=params.keys(),
@@ -275,6 +275,9 @@ class Reparametrizer(torch.nn.Module):
     def forward(self,
         mu:     torch.Tensor,
         logvar: torch.Tensor,
-    ) -> torch.Tensor:
+        # x_enc: torch.Tensor,
+    ) -> torch.Tensor: #typing.Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
 
         return self.reparametrize(mu, logvar)
+        # v, sigma, z = self.reparametrize(x_enc)
+        # return v, sigma, z

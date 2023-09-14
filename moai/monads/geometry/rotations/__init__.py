@@ -12,6 +12,7 @@ from moai.monads.geometry.rotations.conversions import (
     RomaRotationVector2RotationMatrix,
 )
 from moai.monads.geometry.rotations.gram_schmidt import GramSchmidt
+from moai.monads.geometry.rotations.random_group_matrix import RandomGroupMatrices
 
 __all__ = [
     "Convert",
@@ -26,4 +27,5 @@ __all__ = [
     'GramSchmidt',
     'KorniaRotationVector2RotationMatrix',
     'RomaRotationVector2RotationMatrix',
+    'RandomGroupMatrices',
 ]
