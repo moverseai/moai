@@ -21,7 +21,7 @@ class Threshold(torch.nn.Module):
         self.threshold = value
         self.comp_op = torch.le if comparison == "lower"\
             else (
-                torch.ge if comparison == "greater" else torch.ge                    
+                torch.ge if comparison == "greater" else torch.ge
             ) #TODO: update properly (avoid implicit resolving to ge for all cases)
         if dtype not in Threshold.CAST_OPS:
             log.error("Casting operation type for Threshold monad should be either float or byte")

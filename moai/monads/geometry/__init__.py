@@ -6,6 +6,7 @@ from moai.monads.geometry.transform_ops import (
     Transpose
 )
 from moai.monads.geometry.camera import WeakPerspective as WeakPerspectiveCamera
+from moai.monads.geometry.camera import MVWeakPerspective as MVWeakPerspective
 from moai.monads.geometry.rotate import Rotate
 from moai.monads.geometry.opengl import Camera as CameraOpenGL
 from moai.monads.geometry.stereo_depth import DepthFromStereo
@@ -27,5 +28,6 @@ __all__ = [
     "Deprojection",
     "NormalEstimation2d",
     "Distort",
-    "DecomposeMatrix"
+    "DecomposeMatrix",
+    "MVWeakPerspective"
 ]

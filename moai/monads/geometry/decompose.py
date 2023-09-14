@@ -29,7 +29,7 @@ class DecomposeMatrix(torch.nn.Module):
             R = matrix[..., :3, :3]
         elif self.order == "column":
             # Extract the rotation matrix from the upper-left 3x3 submatrix
-            R = matrix[..., :3, :3]
+            R = matrix[..., :3, :3] #.transpose(-1, -2)
             # Extract the translation vector from the right-most column
             t = matrix[..., :3, 3]
         else:
