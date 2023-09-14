@@ -136,7 +136,4 @@ If you use _moai_ in your R&D workflows or find its code useful please consider 
 
 # Contact
 
-Either use the:
-
-- [GitHub issue tracker](https://github.com/ai-in-motion/moai/issues), or,
-- send an email to [pakos `dot` ai `dot` in `dot` motion `at` gmail `dot` com](mailto:pakos.ai.in.motion@gmail.com)
+Use a [GitHub issue tracker](https://github.com/ai-in-motion/moai/issues)
