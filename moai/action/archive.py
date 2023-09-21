@@ -1,5 +1,6 @@
 import moai.serve.model as model_server
 import moai.serve.optimizer as optimizer_server
+import moai.serve.streaming_optimizer as streaming_optimizer_server
 
 import yaml
 import toolz
@@ -69,7 +70,13 @@ def archive(cfg):
     args += ["torch-model-archiver"]
     args += ["--model-name", cfg.archive.name]
     args += ["--version", str(cfg.archive.version)]
-    args += ["--handler", optimizer_server.__file__ if cfg.archive.mode == 'fit' else model_server.__file__]
+    if cfg.archive.mode == 'fit':
+        args += ["--handler", optimizer_server.__file__]
+    elif cfg.archive.mode == 'streaming':
+        args += ["--handler", streaming_optimizer_server.__file__]
+    else:
+        args += ["--handler", model_server.__file__]
+    # args += ["--handler", optimizer_server.__file__ if cfg.archive.mode == 'fit' else model_server.__file__]
     args += ["--serialized-file", toolz.get_in(['archive', 'ckpt'], cfg) or '']
     yaml_files = get_files(cfg.archive.root, cfg.archive.conf, "*.yaml")
     py_files = get_files(cfg.archive.root, cfg.archive.src, "*.py")
