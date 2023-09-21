@@ -14,7 +14,7 @@ from smplx.vertex_ids import vertex_ids
 
 #NOTE: code from https://github.com/vchoutas/smplify-x
 
-__all__ = ["SMPLX"]
+__all__ = ["SMPL"]
 
 __JOINT__MAPPERS__ = {
     'none':             None,
