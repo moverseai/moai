@@ -39,7 +39,7 @@ class Windowed(torch.utils.data.Dataset):
 
     def __init__(
         self,
-        datasets: torch.utils.data.Dataset,
+        datasets: omegaconf.DictConfig,
         window_size: int,
         stride: int = 1,
         augmentation: omegaconf.DictConfig = None,
