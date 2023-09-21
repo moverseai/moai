@@ -262,6 +262,7 @@ class LightningFitter(pytorch_lightning.Trainer):
         stochastic_weight_avg: bool = False,
         # NOTE: @PTL1.5 distributed_backend:        typing.Optional[str]=None,
         # NOTE: @PTL1.5 automatic_optimization:     bool=True,
+        loops: omegaconf.DictConfig = None,
         relative_tolerance: float = 1e-9,
         gradient_tolerance: float = 1e-9,
         **kwargs,
@@ -274,7 +275,13 @@ class LightningFitter(pytorch_lightning.Trainer):
             logging["_target_"] = "moai.log.lightning.Collection"
             omegaconf.OmegaConf.set_struct(logging, True)
         logger = hyu.instantiate(logging) if logging is not None else milog.NoOp()
-        pytl_callbacks = [PerBatch()]
+        if loops is None:
+            pytl_callbacks = [PerBatch()]
+        elif loops.callbacks is None:
+            pytl_callbacks = [PerBatch()]
+        else:
+            pytl_callbacks = [hyu.instantiate(loops.callbacks)]
+        # pytl_callbacks = [PerBatch() if loops is None or loops.callbacks in None else hyu.instantiate(loops.callbacks)]
         pytl_callbacks.extend(
             [hyu.instantiate(c) for c in callbacks.values()]
             if callbacks is not None
@@ -362,7 +369,7 @@ class LightningFitter(pytorch_lightning.Trainer):
             optimizer_loop=OptimizationLoop(
                 relative_tolerance=relative_tolerance,
                 gradient_tolerance=gradient_tolerance,
-            )
+            ) if loops is None else hyu.instantiate(loops.optimization)
         )
 
     def run(self, model):
