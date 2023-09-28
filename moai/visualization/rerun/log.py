@@ -7,6 +7,7 @@ import numpy as np
 import open3d as o3d
 import cv2
 import omegaconf.omegaconf
+from scipy.spatial.transform import Rotation as R
 
 log = logging.getLogger(__name__)
 
@@ -35,9 +36,10 @@ class RRLog(Callable):
         transforms: typing.Union[str, typing.Sequence[str]],
         paths_to_hierarchy: typing.Sequence[str],
         skeleton: typing.Sequence[int] = None,
+        export_path: str = None,
     ):
         rr.init(name)
-        rr.spawn()
+        rr.spawn() if export_path is None else rr.save(export_path)
         self.keys = [keys] if isinstance(keys, str) else list(keys)
         self.types = [types] if isinstance(types, str) else list(types)
         self.paths_to_hierarchy = (
@@ -63,12 +65,18 @@ class RRLog(Callable):
             "pose": self._pose,
             "depth": self._depth,
             "infrared": self._depth,
+            "scalar": self._scalar,
+            "camera": self._log_pinhole_camera,
+            "transform": self._log_transform,
         }
         self.transform_map = {
             None: lambda x: x,  # pass through
             "flip": self._flip,
             "rotate": self._rotate,
+            "rotate_kpts": self._rotate_kpts,
         }
+        # log world camera coordinates system
+        rr.log_view_coordinates("world", up="+Y", right_handed = True, timeless=True)
 
     @staticmethod
     def _flip(x, axis, width=None, height=None):
@@ -79,7 +87,23 @@ class RRLog(Callable):
         else:
             y = np.flip(x.copy(), axis)
         return y
+        
+    
+    @staticmethod
+    def _rotate_kpts(kpts, rotate_angle):
+        # y = np.flip(kpts.copy(), 1)
+        # y[:, 1, :] = 1280 - y[:, 1, :]
+        rotate_angle = np.deg2rad(rotate_angle)
+        # Create a rotation matrix
+        rotation_matrix = np.array([[np.cos(rotate_angle), -np.sin(rotate_angle)],
+                            [np.sin(rotate_angle), np.cos(rotate_angle)]])
+        
+        rotated_keypoints = np.dot(rotation_matrix.T, kpts).transpose(1,0,2)
 
+        return rotated_keypoints
+
+
+    
     @staticmethod
     def _rotate(x, cv2_rotate_code):
         # ROTATE_90_CLOCKWISE        = 0,
@@ -88,10 +112,12 @@ class RRLog(Callable):
         b = x.shape[0]
         images = []
         for i in range(b):
-            cv2_image = x[i].transpose(1, 2, 0) if len(x.shape) == 4 else x[i]
-            cv2_image = cv2.rotate(cv2_image, cv2_rotate_code)
-            images.append(cv2_image) 
-            # images.append(cv2_image.transpose(2, 0, 1)) # return to torch image format
+            # cv2_image = x[i].transpose(1, 2, 0) if len(x.shape) == 4 else x[i]
+            # cv2_image = cv2.rotate(cv2_image, cv2_rotate_code)
+            # images.append(cv2_image) 
+            # DEBUG no rotate
+            cv2_image = x[i].transpose(2, 1, 0) if len(x.shape) == 4 else x[i]
+            images.append(cv2_image.transpose(2, 0, 1)) # return to torch image format
             
         return np.stack(images, axis=0)
 
@@ -100,8 +126,10 @@ class RRLog(Callable):
         image: np.ndarray,
         path: str,
         c: colour.Color,  # not used
+        jpeg_quality: int = 15,
     ) -> None:
-        rr.log_image(path, image.transpose(0, 2, 3, 1))
+        rr.log_image(path, np.ascontiguousarray(image[0].transpose(1, 2, 0) * 255, np.uint8), jpeg_quality = jpeg_quality)
+        # rr.log_image(path, image.transpose(0, 2, 3, 1), jpeg_quality = jpeg_quality)
 
     @staticmethod
     def _depth(
@@ -112,6 +140,15 @@ class RRLog(Callable):
         #TODO: handle batch
         rr.log_depth_image(path, depth)
     
+    
+    @staticmethod
+    def _scalar(
+        points: np.ndarray,
+        path: str,
+        c: colour.Color
+    ) -> None:
+        rr.log_scalar(path, points[0], color= c.get_rgb()) if points.ndim != 0 else rr.log_scalar(path, points, color= c.get_rgb())
+
     def _pose(
         self,
         kpts: np.ndarray,
@@ -158,6 +195,35 @@ class RRLog(Callable):
         for i in range(b):
             rr.log_points(path, points[i], colors=c.get_rgb())
 
+    @staticmethod
+    def _log_transform(
+            transform: np.ndarray,
+            path: str,
+            xyz: str='RDF',
+    )-> None:
+        quat = R.from_matrix(transform[0][:3,:3]).as_quat()
+        rr.log_rigid3(
+            path,
+            child_from_parent = (transform[0][:3,3], quat),
+            xyz = 'RDF',
+        )
+
+    
+    @staticmethod
+    def _log_pinhole_camera(
+            camera_matrix: np.ndarray,
+            path: str,
+            width: int = 1280,
+            height: int = 720,
+    ) -> None:
+        rr.log_pinhole(
+            path, 
+            child_from_parent = camera_matrix[0],
+            width = 1280, #1920, #1280,
+            height = 720, #1080, #720,
+        )
+
+    
     def _mesh(
         self,
         array: typing.List[np.ndarray],
@@ -192,7 +258,6 @@ class RRLog(Callable):
         for t, k, c, path, tr in zip(
             self.types, self.keys, self.colors, self.paths_to_hierarchy, self.transforms
         ):
-            # print("RRLog: ", t, k, c, path)
             # call the correct logging function from the map
             self.log_map[t](
                 self.transform_map[toolz.get_in(["type"], tr)](
@@ -204,6 +269,5 @@ class RRLog(Callable):
                 path,
                 c,
             )
-
         # increment the step
-        self.step += 1
+        self.step += 1 
