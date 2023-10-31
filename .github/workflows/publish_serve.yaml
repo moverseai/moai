@@ -28,7 +28,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/moai/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/ai-in-motion/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=pt112-cu113
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
