@@ -5,7 +5,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: serve:pt112_cu113
+  IMAGE_NAME: serve:pt112-cu113
 
 jobs:
   build-and-push-image:
