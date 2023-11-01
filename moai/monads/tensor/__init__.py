@@ -11,6 +11,7 @@ from moai.monads.tensor.torch import (
     Alias,
     Identity,
     Passthrough,
+    Squeeze,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     'Alias',
     'Identity',
     'Passthrough',
+    'Squeeze',
 ]

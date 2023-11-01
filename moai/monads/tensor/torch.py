@@ -117,6 +117,14 @@ class ReshapeAs(torch.nn.Module):
     ) -> torch.Tensor:
         return tensor.reshape_as(shape)
 
+class Squeeze(torch.nn.Module):
+    def __init__(self) -> None:
+        super(Squeeze, self).__init__()
+
+    def forward(self,
+        tensor: torch.Tensor,
+    ) -> torch.Tensor:
+        return tensor.squeeze()
 
 class Identity(torch.nn.Module):
     def __init__(self) -> None:

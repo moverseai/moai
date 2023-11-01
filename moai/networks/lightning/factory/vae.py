@@ -53,7 +53,8 @@ class VariationalAutoencoder(minet.FeedForward):
         prior = toolz.get_in(['reparametrization'], modules)        
         prior = hyu.instantiate(prior) if prior else NormalPrior()
         self.feature_head = Feature2MuStd(configuration, flatten)
-        self.reparametrizer = Reparametrizer(prior) 
+        non_default = toolz.get_in(['ctrl'], io.reparametrization)
+        self.reparametrizer = ControlledReparametrizer(prior) if non_default else Reparametrizer(prior) 
         self.encoder = hyu.instantiate(modules['encoder'])
         self.decoder = hyu.instantiate(modules['decoder'])
         self.sample = _create_processing_block(generation, "sample", monads=monads)
@@ -281,3 +282,18 @@ class Reparametrizer(torch.nn.Module):
         return self.reparametrize(mu, logvar)
         # v, sigma, z = self.reparametrize(x_enc)
         # return v, sigma, z
+
+
+class ControlledReparametrizer(Reparametrizer):
+    def __init__(self,
+        prior: torch.nn.Module
+    ) -> None:
+        super().__init__(prior)
+
+    def forward(self,
+        mu:     torch.Tensor,
+        logvar: torch.Tensor,
+        ctrl: torch.Tensor,
+    ) -> torch.Tensor: #typing.Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+
+        return torch.cat((self.reparametrize(mu, logvar), ctrl), dim=-1)
