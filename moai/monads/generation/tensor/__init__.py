@@ -8,6 +8,7 @@ from moai.monads.generation.tensor.torch import (
     Clone,
     Parameter,
     Parameters,
+    Identity,
 )
 from moai.monads.generation.tensor.npy import Npy
 
@@ -22,4 +23,5 @@ __all__ = [
     "Parameter",
     "Parameters",
     "Npy",
+    "Identity",
 ]

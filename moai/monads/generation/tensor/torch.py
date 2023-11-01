@@ -75,6 +75,13 @@ class Ones(torch.nn.Module):
                 device=tensor.device).expand_as(tensor) if tensor.shape\
             else torch.scalar_tensor(1, dtype=tensor.dtype, device=tensor.device)
 
+class Identity(torch.nn.Module):
+    def __init__(self):
+        super(Identity, self).__init__()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return torch.eye(tensor.shape[-1], dtype=tensor.dtype, device=tensor.device).expand_as(tensor)
+
 class Zeros(torch.nn.Module):
     def __init__(self,
         shape:          typing.Union[int, typing.Sequence[int]],

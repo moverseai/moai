@@ -17,5 +17,5 @@ parsedatetime==2.6
 deepdiff==4.0.9
 rich
 pandas
-roma
+roma==1.4.0
 trimesh

@@ -16,7 +16,7 @@ class Empty(torch.utils.data.Dataset):
         return 1 # sys.maxsize
 
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
-        return {}
+        return {'empty': torch.scalar_tensor(0.0)}
 
 class Dummy(torch.utils.data.Dataset):
     def __init__(self,
