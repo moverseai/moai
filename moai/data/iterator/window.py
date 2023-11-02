@@ -42,11 +42,13 @@ class Windowed(torch.utils.data.Dataset):
         datasets: omegaconf.DictConfig,
         window_size: int,
         stride: int = 1,
+        internal_stride: int = 1,
         augmentation: omegaconf.DictConfig = None,
     ):
         super().__init__()
         self.window_size = window_size
         self.stride = stride
+        self.internal_stride = internal_stride
         if augmentation is not None:
             self.dataset = hyu.instantiate(
                 augmentation, hyu.instantiate(next(iter(datasets.values())))
@@ -66,14 +68,25 @@ class Windowed(torch.utils.data.Dataset):
         if stride <= 0:
             log.warning(f"Stride must be > 0. Using stride = 1.")
             self.stride = 1
+        if internal_stride <= 0:
+            log.warning(f"Internal stride must be > 0. Using internal stride = 1.")
+            self.internal_stride = 1
         log.info(
             f"Loaded {len(self)} windows of size {self.window_size} with stride {self.stride} from {len(self.dataset)} samples."
         )
 
     def __len__(self) -> int:
+        # size = 0
+        # for i in range(0, len(self.dataset), self.stride):
+        #     if i + self.window_size > len(self.dataset):
+        #         break
+        #     size += 1
+        # return size
         size = 0
-        for i in range(0, len(self.dataset), self.stride):
-            if i + self.window_size > len(self.dataset):
+        for index in range(len(self.dataset)):
+            last_frame_position = index * self.stride + (self.window_size - 1) * self.internal_stride if self.window_size > 1\
+                else index * self.stride + self.internal_stride
+            if last_frame_position >= len(self.dataset):
                 break
             size += 1
         return size
@@ -81,7 +94,8 @@ class Windowed(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         out = toolz.merge_with(
             __merge_func__,
-            [self.dataset[i + index * self.stride] for i in range(0, self.window_size)],
+            [self.dataset[i * self.internal_stride + index * self.stride] for i in range(0, self.window_size)] if self.window_size > 1\
+             else self.dataset[self.internal_stride + index * self.stride],
         )  # NOTE: Check if it is too slow
 
         return out
