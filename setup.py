@@ -79,7 +79,7 @@ if __name__ == '__main__':
             'Documentation': DOCS_URL,
             'Source': CODE_URL,
         },
-        packages=find_packages(exclude=('docs', 'outputs')),
+        packages=find_packages(exclude=('docs', 'outputs', 'actions', 'scripts')),
         install_requires=get_requirements(),
         include_package_data=True,
         python_requires='~=3.7',
