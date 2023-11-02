@@ -74,6 +74,7 @@ class RRLog(Callable):
             "flip": self._flip,
             "rotate": self._rotate,
             "rotate_kpts": self._rotate_kpts,
+            "transpose": self._transpose,
         }
         # log world camera coordinates system
         # rr.log_view_coordinates("world", up="+Y", right_handed=True, timeless=True)
@@ -114,14 +115,25 @@ class RRLog(Callable):
         b = x.shape[0]
         images = []
         for i in range(b):
-            # cv2_image = x[i].transpose(1, 2, 0) if len(x.shape) == 4 else x[i]
-            # cv2_image = cv2.rotate(cv2_image, cv2_rotate_code)
-            # images.append(cv2_image)
-            # DEBUG no rotate
-            cv2_image = x[i].transpose(2, 1, 0) if len(x.shape) == 4 else x[i]
+            cv2_image = x[i].transpose(1, 2, 0) if len(x.shape) == 4 else x[i]
+            cv2_image = cv2.rotate(cv2_image, cv2_rotate_code)
             images.append(cv2_image.transpose(2, 0, 1))  # return to torch image format
 
         return np.stack(images, axis=0)
+    
+    @staticmethod
+    def _transpose(x, axis=1):
+        b = x.shape[0]
+        images = []
+        for i in range(b):
+            if axis == 0:
+                cv2_image = x[i].transpose(1, 2, 0) if len(x.shape) == 4 else x[i]
+            else:
+                cv2_image = x[i].transpose(0, 2, 1) if len(x.shape) == 4 else x[i]
+            images.append(cv2_image)  # return to torch image format
+
+        return np.stack(images, axis=0)
+
 
     @staticmethod
     def _image(
