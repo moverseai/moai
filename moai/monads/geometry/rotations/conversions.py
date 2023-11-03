@@ -104,7 +104,8 @@ class ConvertRotation(torch.nn.Module):
     def forward(self,
         rotation:   torch.Tensor, # [B, R, 3, 3] for 'rotmat', [B, R, 3] for 'rotvec', [B, R, 4] for 'unitquat'
     ) -> torch.Tensor:
-        return self.convert(rotation.view(rotation.shape[0], -1, *self.shape))
+        return self.convert(rotation.view(rotation.shape[0], -1, *self.shape)) if not list(rotation.shape[-len(self.shape):]) == self.shape \
+            else self.convert(rotation.contiguous())
 
 # default is roma / kornia as fallback when roma does not deliver proper outputs
 RotationMatrix2RotationVector = functools.partial(ConvertRotation, src='R', tgt='r', backend='kornia') # roma implementation is not deterministic / produces wrong outputs sometimes
