@@ -23,10 +23,21 @@ EXPOSE 7070/tcp 7071/tcp 8080/tcp 8081/tcp 8082/tcp
 COPY docker/serve/serve.sh /workspace/serve.sh
 RUN chmod +x /workspace/serve.sh
 
-RUN useradd -m worker && mkdir -p /workspace/models && chown -R worker /workspace && chmod 755 /workspace
+RUN useradd -m worker \
+    && mkdir -p /workspace/models \
+    && mkdir -p /workspace/logs \
+    && mkdir -p /workspace/data \
+    && chown -R worker /workspace \
+    && chmod 755 /workspace \
+    && chown -R worker /workspace/data \
+    && chmod 755 /workspace/data \
+    && chown -R worker /workspace/logs \
+    && chmod 755 /workspace/logs    
 
-RUN pip cache purge
-RUN apt-get clean
+ENV LOG_LOCATION=/workspace/logs
+ENV METRICS_LOCATION=/workspace/logs
+
+RUN pip cache purge && apt-get clean
 
 USER worker
 WORKDIR /workspace
