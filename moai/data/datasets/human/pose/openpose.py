@@ -333,7 +333,7 @@ class OpenPoseMultiviewKeypoints(OpenPoseKeypoints):
             views = [d for d in os.listdir(root) if os.path.isdir(d)]
         self.filenames = {}
         for view in views:
-            self.filenames[view] = glob.glob(os.path.join(root, view, "*.json"))
+            self.filenames[view] = sorted(glob.glob(os.path.join(root, view, "*.json")))
         self.single_person = single_person
         self.types = (
             OpenPoseMultiviewKeypoints.__ALL_TYPES__
