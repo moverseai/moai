@@ -4,6 +4,7 @@ from hydra.experimental import (
     initialize,
 )
 from omegaconf.omegaconf import OmegaConf
+import omegaconf
 
 import hydra.utils as hyu
 import toolz
@@ -17,6 +18,29 @@ import typing
 log = logging.getLogger(__name__)
 
 __all__ = ['ModelServer']
+
+def _find_all_targets(d, key="_target_", previous_key=None):
+        t_dict = {}
+        if isinstance(d, str):
+            pass  # Strings are ignored, as they cannot contain a nested _target_ key
+        elif isinstance(d, omegaconf.dictconfig.DictConfig):
+            for k, v in d.items():
+                if k == key:
+                    # If the _target_ key is found, update the t_dict with the current dictionary
+                    t_dict.update({previous_key: d})
+                else:
+                    # Recurse into the dictionary
+                    child_dict = _find_all_targets(v, key, previous_key=k)
+                    if child_dict:  # If the recursion found a _target_, update t_dict
+                        t_dict.update(child_dict)
+                    elif previous_key is not None and previous_key not in t_dict:  # If no _target_ found, add an empty dict
+                        t_dict[previous_key] = {}
+        elif isinstance(d, omegaconf.listconfig.ListConfig):
+            pass # Lists are ignored, as they cannot contain a nested _target_ key
+        else:
+            if previous_key is not None:  # If no _target_ found, add an empty dict
+                t_dict[previous_key] = {}
+        return t_dict
 
 class ModelServer(BaseHandler):
     def __init__(self) -> None:
@@ -87,13 +111,15 @@ class ModelServer(BaseHandler):
                 if handler_overrides is not None and 'preprocess' in handler_overrides.get('handlers', {}):
                     cfg = OmegaConf.merge(cfg, {'handlers': {'preprocess': handler_overrides['handlers']['preprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
-                self.preproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'preprocess'], cfg) or {}).items()}
+                # self.preproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'preprocess'], cfg) or {}).items()}
+                self.preproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'preprocess'], cfg)).items()}
             with initialize(config_path="conf", job_name=f"{main_conf}_postprocess_handlers"):
                 cfg = compose(config_name="../post")
                 if handler_overrides is not None and 'postprocess' in handler_overrides.get('handlers', {}):
                     cfg = OmegaConf.merge(cfg, {'handlers': {'postprocess': handler_overrides['handlers']['postprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
-                self.postproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'postprocess'], cfg) or {}).items()}
+                # self.postproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'postprocess'], cfg) or {}).items()}
+                self.postproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'postprocess'], cfg)).items()}
         except Exception as e:
             log.error(f"An error has occured while loading the handlers:\n{e}")
         self.model.initialize_parameters()
