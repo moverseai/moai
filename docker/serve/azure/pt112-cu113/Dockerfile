@@ -16,6 +16,9 @@ RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
 
 RUN apt-get update && apt-get install -y -qq azure-cli
 
+# install azure python sdk
+RUN pip install azure
+
 # cache cleanup
 RUN chown -R worker /workspace \
     && chmod 755 /workspace \
