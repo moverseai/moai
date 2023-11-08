@@ -2,11 +2,18 @@ name: Build and publish torchserve image
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version of the image to build and publish'
+        required: true
+        default: 'v1.0.0'
+      tags:
+        description: 'Test scenario tags' 
 
 env:
   REGISTRY: ghcr.io
   NAME: serve
-  VERSION: v1.0.0
+  VERSION: ${{ github.event.inputs.version }} #v1.0.0
 
 jobs:
   build-and-push-image:
