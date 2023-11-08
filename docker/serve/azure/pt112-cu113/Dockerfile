@@ -17,7 +17,8 @@ RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
 RUN apt-get update && apt-get install -y -qq azure-cli
 
 # install azure python sdk
-RUN pip install azure
+RUN pip install azure-core \
+    azure-storage-blob
 
 # cache cleanup
 RUN chown -R worker /workspace \
