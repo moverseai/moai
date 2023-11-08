@@ -2,11 +2,18 @@ name: Build and publish torchserve azure image
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version of the azure image to build and publish'
+        required: true
+        default: 'v1.0.0'
+      tags:
+        description: 'Test scenario tags' 
 
 env:
   REGISTRY: ghcr.io
   NAME: serve/azure
-  VERSION: v1.0.0
+  VERSION: ${{ github.event.inputs.version }}
 
 jobs:
   build-and-push-image:
