@@ -1,11 +1,11 @@
-name: Build and publish torchserve image
+name: Build and publish torchserve azure image
 
 on:
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  NAME: serve
+  NAME: serve/azure
   VERSION: v1.0.0
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: docker/serve/pt112-cu113/Dockerfile
+          file: docker/serve/azure/pt112-cu113/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           # labels: ${{ steps.meta.outputs.labels }}
