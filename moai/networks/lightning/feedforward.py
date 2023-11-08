@@ -132,6 +132,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         self.initializer = parameters.initialization if parameters is not None else None
         self.optimization_config = parameters.optimization if parameters is not None else None
         self.schedule_config = parameters.schedule if parameters is not None else None
+        self.schedule_monitor = parameters.schedule_monitor if parameters is not None and parameters.schedule_monitor is not None else None
         self.supervision = _create_supervision_block(supervision)
         self.validation = _create_validation_block(validation) #TODO: change this, "empty processing block" is confusing
         self.preprocess = _create_processing_block(feedforward, "preprocess", monads=monads)
@@ -224,7 +225,8 @@ class FeedForward(pytorch_lightning.LightningModule):
             zp_target = self.data.test.iterator['_target_'].split(".")[-1]
         except:
             zp_target = None
-        if len(self.data.test.iterator.datasets.keys()) > 1 and zp_target != 'Zipped':
+        # TODO: update this part of code, and pass the dataloader index every time
+        if self.data is not None and zp_target != 'Zipped' and len(self.data.test.iterator.datasets.keys()) > 1:
             log_metrics.update({'__moai__': {'dataloader_index': dataloader_index}})
         self.log_dict(log_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False, sync_dist=True)
         return metrics, outputs
@@ -260,7 +262,20 @@ class FeedForward(pytorch_lightning.LightningModule):
         log.info(f"Configuring optimizer and scheduler")
         self.optimization = _create_optimization_block(self.optimization_config, self.parameters())
         self.schedule = _create_scheduling_block(self.schedule_config, self.optimization.optimizers)
-        return self.optimization.optimizers, self.schedule.schedulers
+        if not self.schedule_monitor:
+            return self.optimization.optimizers, self.schedule.schedulers
+        else:
+            return   {
+                    'optimizer': self.optimization.optimizers[0],
+                    'lr_scheduler': self.schedule.schedulers[0],
+                    'monitor': self.schedule_monitor,
+                }
+        # return self.optimization.optimizers, self.schedule.schedulers if not self.schedule_monitor else \
+        #        {
+        #             'optimizer': self.optimization.optimizers,
+        #             'lr_scheduler': self.schedule.schedulers,
+        #             'monitor': self.schedule_monitor,
+        #         }
 
     def train_dataloader(self) -> torch.utils.data.DataLoader:
         if hasattr(self.data.train.iterator, '_target_'):
