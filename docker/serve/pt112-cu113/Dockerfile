@@ -28,12 +28,15 @@ RUN useradd -m worker \
     && mkdir -p /workspace/models \
     && mkdir -p /workspace/logs \
     && mkdir -p /workspace/data \
+    && mkdir -p /workspace/run \
     && chown -R worker /workspace \
     && chmod 755 /workspace \
     && chown -R worker /workspace/data \
     && chmod 755 /workspace/data \
     && chown -R worker /workspace/logs \
-    && chmod 755 /workspace/logs    
+    && chmod 755 /workspace/logs \
+    && chown -R worker /workspace/run \
+    && chmod 755 /workspace/run  
 
 ENV LOG_LOCATION=/workspace/logs
 ENV METRICS_LOCATION=/workspace/logs
