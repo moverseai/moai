@@ -1,0 +1,4 @@
+# @package engine.modules._name_
+
+_target_: moai.engine.modules.AzureLogging
+level: ${env:AZURE_LOGGING_LEVEL}
