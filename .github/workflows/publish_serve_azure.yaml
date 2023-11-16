@@ -1,10 +1,10 @@
-name: Build and publish torchserve image
+name: Build and publish torchserve azure image
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version of the image to build and publish'
+        description: 'Version of the azure image to build and publish'
         required: true
         default: 'v1.0.0'
       tags:
@@ -12,8 +12,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  NAME: serve
-  VERSION: ${{ github.event.inputs.version }} #v1.0.0
+  NAME: serve/azure
+  VERSION: ${{ github.event.inputs.version }}
 
 jobs:
   build-and-push-image:
@@ -46,7 +46,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: docker/serve/pt112-cu113/Dockerfile
+          file: docker/serve/azure/pt112-cu113/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           # labels: ${{ steps.meta.outputs.labels }}
