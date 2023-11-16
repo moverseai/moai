@@ -25,6 +25,12 @@ class RRLog(Callable):
     This logger should support all the different types of rr logging.
     """
 
+    __funtion_map = {
+        'LBU': rr.ViewCoordinates.LBU,
+        'LBD': rr.ViewCoordinates.LEFT_HAND_Z_DOWN,
+        'RUF': rr.ViewCoordinates.RUF,
+    }
+
     def __init__(
         self,
         name: str,  # name of the logger
@@ -37,6 +43,7 @@ class RRLog(Callable):
         paths_to_hierarchy: typing.Sequence[str],
         skeleton: typing.Sequence[int] = None,
         export_path: str = None,
+        world_coordinates: str = "RUF", # x is right, y is up, z is forward
     ):
         rr.init(name)
         rr.spawn() if export_path is None else rr.save(export_path)
@@ -68,6 +75,7 @@ class RRLog(Callable):
             "scalar": self._scalar,
             "camera": self._log_pinhole_camera,
             "transform": self._log_transform,
+            "openpose": self._openpose, # only for debugging
         }
         self.transform_map = {
             None: lambda x: x,  # pass through
@@ -78,7 +86,64 @@ class RRLog(Callable):
         }
         # log world camera coordinates system
         # rr.log_view_coordinates("world", up="+Y", right_handed=True, timeless=True)
-        rr.log("world", rr.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)  # X=Right, Y=Down, Z=Forward
+        # rr.log("world", rr.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)  # X=Right, Y=Down, Z=Forward
+        # test memory recoriding
+        # self.rec = rr.memory_recording()
+        # rr.log("world", rr.ViewCoordinates.RIGHT_HAND_Z_UP, timeless=True)  # X=Right, Y=Down, Z=Forward
+        rr.log("world", RRLog.__funtion_map[world_coordinates], timeless=True)  # X=Right, Y=Down, Z=Forward
+        # floor
+        self.world_coordinates = world_coordinates
+        self._create_floor()
+
+    def _create_floor(self):
+        # Initialize an empty list to hold all line segments
+        line_segments = []
+        # find up axis and create floor plane
+        def create_tile_xy(x, y):
+            """Creates a single tile at position (x, y)."""
+            return [
+                [[x, y, 0], [x + 1, y, 0]],  # Bottom edge
+                [[x + 1, y, 0], [x + 1, y + 1, 0]],  # Right edge
+                [[x + 1, y + 1, 0], [x, y + 1, 0]],  # Top edge
+                [[x, y + 1, 0], [x, y, 0]],  # Left edge
+            ]
+        def create_tile_xz(x, z):
+            """Creates a single tile at position (x, z) in the X-Z plane."""
+            return [
+                [[x, 0, z], [x + 1, 0, z]],  # Front edge (along X-axis)
+                [[x + 1, 0, z], [x + 1, 0, z + 1]],  # Right edge (along Z-axis)
+                [[x + 1, 0, z + 1], [x, 0, z + 1]],  # Back edge (back along X-axis)
+                [[x, 0, z + 1], [x, 0, z]],  # Left edge (back along Z-axis)
+            ]
+        if self.world_coordinates[1] == 'U':
+            # y is up axis
+            # floor is in xz plane
+            # Create a 10x10 grid of tiles
+            for x in range(-5,6):
+                for y in range(-5,6):
+                    line_segments.extend(create_tile_xz(x, y))
+        
+        elif self.world_coordinates[2] == 'U':
+            # z is up axis
+            # floor is in xy plane
+            # Create a 10x10 grid of tiles
+            for x in range(-5,6):
+                for y in range(-5,6):
+                    line_segments.extend(create_tile_xy(x, y))
+        
+        # Log the floor
+        rr.log(
+            "world/floor",
+            rr.LineStrips3D(
+                np.array(
+                    line_segments
+                ),
+                colors=[128,128,128] # grey color
+            ),
+            timeless=True,
+        )
+
+
 
     @staticmethod
     def _flip(x, axis, width=None, height=None):
@@ -140,7 +205,7 @@ class RRLog(Callable):
         image: np.ndarray,
         path: str,
         c: colour.Color,  # not used
-        jpeg_quality: int = 15,
+        jpeg_quality: int = 5,
     ) -> None:
         rr.log_image(
             path,
@@ -169,11 +234,97 @@ class RRLog(Callable):
                 path, points[0], color=c.get_rgb()
             ) if points.ndim != 0 else rr.log_scalar(path, points, color=c.get_rgb())
 
+    def _openpose(
+        self,
+        kpts: np.ndarray,
+        path: str,
+        c: colour.Color,
+    ) -> None:
+        openpose_tree = [
+            # Right leg
+            [8, 9], [9, 10], [10, 11], 
+            [11, 22], [22, 23], [11, 24], 
+            # Left leg
+            [8, 12], [12, 13], [13, 14],
+            [14, 19], [19, 20], [14, 21],
+            # Upper body
+            [8, 1], 
+            # Head
+            [1, 0],
+            # Right arm
+            [1, 2], [2, 3], [3, 4],
+            # Left arm
+            [1, 5], [5, 6], [6, 7],
+            # Face
+            [0, 15], [15, 17], [0, 16], [16, 18],
+        ]
+        labels = [
+            # Right leg
+            'Central Hip to Right Hip', 'Right Hip to Right Knee', 'Right Knee to Right Ankle',
+            'Right Ankle to Right Big Toe', 'Right Big Toe to Right Small Toe', 'Right Ankle to Right Heel',
+            # Left leg
+            'Central Hip to Left Hip', 'Left Hip to Left Knee', 'Left Knee to Left Ankle',
+            'Left Ankle to Left Big Toe', 'Left Big Toe to Left Small Toe', 'Left Ankle to Left Heel',
+            # Upper body
+            'Central Hip to Neck',
+            # Head
+            'Neck to Nose',
+            # Right arm
+            'Neck to Right Shoulder', 'Right Shoulder to Right Elbow', 'Right Elbow to Right Wrist',
+            # Left arm
+            'Neck to Left Shoulder', 'Left Shoulder to Left Elbow', 'Left Elbow to Left Wrist',
+            # Face
+            'Nose to Right Eye', 'Right Eye to Right Ear', 'Nose to Left Eye', 'Left Eye to Left Ear',
+        ]
+        colors = [
+            # Right leg
+            [255, 0, 0], [255, 0, 0], [255, 0, 0],
+            [255, 0, 0], [255, 0, 0], [255, 0, 0],
+            # Left leg
+            [0, 0, 255], [0, 0, 255], [0, 0, 255],
+            [0, 0, 255], [0, 0, 255], [0, 0, 255],
+            # Upper body
+            [0, 255, 0],
+            # Head
+            [0, 255, 0],
+            # Right arm
+            [255, 255, 0], [255, 255, 0], [255, 255, 0],
+            # Left arm
+            [0, 255, 255], [0, 255, 255], [0, 255, 255],
+            # Face
+            [255, 0, 255], [255, 0, 255], [255, 0, 255], [255, 0, 255],
+        ]
+                        
+        b = kpts.shape[0]
+        if (
+            kpts.shape[-1] == 3 or kpts.shape[-1] == 2
+        ):
+            pass
+        else:
+            kpts = kpts.transpose(0, 2, 1)
+        for b_ in range(b):
+            edges = []
+            for nk, (i, j) in enumerate(openpose_tree):
+                # check if keypoints are within the image
+                edges.append([kpts[b_][i], kpts[b_][j]])
+                # edges.append(kpts[b_][j])
+            rr.log(
+                path,
+                rr.LineStrips2D(
+                    edges,
+                    colors=colors,
+                    labels=labels,
+                )
+            )
+            # rr.log_line_segments(path, edges, color=c.get_rgb())
+            # rr.log_points(path, kpts[b_], colors=c.get_rgb())
+    
     def _pose(
         self,
         kpts: np.ndarray,
         path: str,
-        c: colour.Color,  # not used
+        c: colour.Color,
+        kinematic_tree: typing.Sequence[int] = None,
     ) -> None:
         b = kpts.shape[0]
         if (
@@ -243,6 +394,7 @@ class RRLog(Callable):
             ),
         )
         rr.log(path, rr.ViewCoordinates.RDF, timeless=True)  # X=Right, Y=Down, Z=Forward
+        #rr.log(path, rr.ViewCoordinates.RIGHT_HAND_Z_UP, timeless=True)  # X=Right, Y=Forward, Z=Up
 
     @staticmethod
     def _log_pinhole_camera(
@@ -260,11 +412,11 @@ class RRLog(Callable):
         rr.log(
             path,
             rr.Pinhole(
-                width = 1920,
-                height = 1080,
+                # width = 1920,
+                # height = 1080,
                 # width= 1280,
                 # height= 720,
-                # image_from_camera = camera_matrix,
+                image_from_camera = camera_matrix,
             )
         )
 
@@ -298,11 +450,10 @@ class RRLog(Callable):
         # print("RRLog called")
         # iterate over the different types of logging
         # set time sequence
-        # breakpoint()
         rr.set_time_sequence("frame_nr", self.step)
         for t, k, c, path, tr in zip(
             self.types, self.keys, self.colors, self.paths_to_hierarchy, self.transforms
-        ):
+        ):  
             # call the correct logging function from the map
             self.log_map[t](
                 self.transform_map[toolz.get_in(["type"], tr)](
