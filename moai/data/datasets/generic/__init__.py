@@ -10,6 +10,7 @@ from moai.data.datasets.generic.dummy import (
     Dummy,
 )
 from moai.data.datasets.generic.txt import Txt
+from moai.data.datasets.generic.json import Json
 
 __all__ = [
     "StructuredImages",
@@ -20,4 +21,5 @@ __all__ = [
     "Pkl",
     "StandaloneNpz",
     "Txt",
+    "Json",
 ]

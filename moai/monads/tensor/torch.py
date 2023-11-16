@@ -27,7 +27,7 @@ class Concat(torch.nn.Module):
 class Split(torch.nn.Module): #TODO: optimize by returning the tuple
     def __init__(self,
         dim: int=0, # at which dim to split
-        split: int=0, # how many to split to, with 0 denoting an even split
+        split: int=0, # size of tensor AFTER splitting, with 0 denoting an even split
     ):
         super(Split, self).__init__()
         self.dim = dim
@@ -37,7 +37,7 @@ class Split(torch.nn.Module): #TODO: optimize by returning the tuple
         tensor: torch.Tensor,
     ) -> typing.Dict[str, torch.Tensor]:
         ret = {}
-        size = self.split if self.split else tensor.shape[self.dim] // 2
+        size = self.split if self.split > 0 else tensor.shape[self.dim] // 2
         chunks = torch.split(tensor, size, dim=self.dim)
         for i in range(len(chunks)):
             ret['chunk'+str(i)] = chunks[i]
