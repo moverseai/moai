@@ -13,6 +13,7 @@ import zipfile
 import yaml
 import logging
 import typing
+from moai.serve.model import _find_all_targets
 
 log = logging.getLogger(__name__)
 
@@ -83,17 +84,22 @@ class OptimizerServer(BaseHandler):
             with initialize(config_path="conf", job_name=f"{main_conf}_preprocess_handlers"):
                 cfg = compose(config_name="../pre")
                 if handler_overrides is not None and 'preprocess' in handler_overrides.get('handlers', {}):
-                    cfg = OmegaConf.merge(cfg, handler_overrides)
+                    cfg = OmegaConf.merge(cfg, {'handlers': {'preprocess': handler_overrides['handlers']['preprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
-                self.preproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'preprocess'], cfg) or {}).items()}
+                # self.preproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'preprocess'], cfg) or {}).items()}
+                self.preproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'preprocess'], cfg)).items()}
             with initialize(config_path="conf", job_name=f"{main_conf}_postprocess_handlers"):
                 cfg = compose(config_name="../post")
+                log.info(f"configuration postprocessing cfg = {cfg}")
                 if handler_overrides is not None and 'postprocess' in handler_overrides.get('handlers', {}):
-                    cfg = OmegaConf.merge(cfg, handler_overrides)
+                    cfg = OmegaConf.merge(cfg, {'handlers': {'postprocess': handler_overrides['handlers']['postprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
-                self.postproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'postprocess'], cfg) or {}).items()}
+                # self.postproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'postprocess'], cfg) or {}).items()}
+                self.postproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'postprocess'], cfg)).items()}
         except Exception as e:
             log.error(f"An error has occured while loading the handlers:\n{e}")
+        log.info(f"configuration cfg = {handler_overrides.get('handlers', {})}")
+
 
     def preprocess(self, 
         data:   typing.Mapping[str, typing.Any],
@@ -164,7 +170,7 @@ class OptimizerServer(BaseHandler):
                 data['__moai__']['optimization_step'] = self.optimizer.optimization_step
                 return self.loss
             for j in range(iters):
-                optim.step(closure=closure)                            
+                optim.step(closure=closure)
                 current_loss = self.loss
                 if hasattr(optim, 'assign'):
                     with torch.no_grad():

@@ -37,6 +37,8 @@ def _find_all_targets(d, key="_target_", previous_key=None):
                         t_dict[previous_key] = {}
         elif isinstance(d, omegaconf.listconfig.ListConfig):
             pass # Lists are ignored, as they cannot contain a nested _target_ key
+        elif isinstance(d, int):
+            pass # Integers are ignored, as they cannot contain a nested _target_ key
         else:
             if previous_key is not None:  # If no _target_ found, add an empty dict
                 t_dict[previous_key] = {}
