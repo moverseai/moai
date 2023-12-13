@@ -24,7 +24,7 @@ class StructuredGeometry(torch.utils.data.Dataset):
             glob_list = ensure_string_list(m['glob'])
             files = []
             for g in glob_list:
-                files += glob.glob(os.path.join(root, g))
+                files += sorted(glob.glob(os.path.join(root, g)))
             self.key_to_list[k] = list(map(lambda f: os.path.join(root, f), files))
             self.key_to_params[k] = toolz.dissoc(m, 'type', 'glob')
         log.info(f"Loaded {','.join(map(lambda kv: str(len(kv[1])) + ' ' + kv[0], self.key_to_list.items()))} items.")

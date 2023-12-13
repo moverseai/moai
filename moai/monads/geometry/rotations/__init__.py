@@ -10,6 +10,7 @@ from moai.monads.geometry.rotations.conversions import (
     Quaternion2RotationVector,
     KorniaRotationVector2RotationMatrix,
     RomaRotationVector2RotationMatrix,
+    RomaQuaternion2RotationMatrix,
 )
 from moai.monads.geometry.rotations.gram_schmidt import GramSchmidt
 from moai.monads.geometry.rotations.random_group_matrix import RandomGroupMatrices
@@ -28,4 +29,5 @@ __all__ = [
     'KorniaRotationVector2RotationMatrix',
     'RomaRotationVector2RotationMatrix',
     'RandomGroupMatrices',
+    'RomaQuaternion2RotationMatrix',
 ]
