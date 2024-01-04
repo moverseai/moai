@@ -1,0 +1,40 @@
+# @package hydra.job_logging
+
+# python logging configuration for tasks
+version: 1
+formatters:
+  utc:
+    # '()': graylog.utc_fromatter.UTCFormatter
+    '()': graylog.utc_fromatter.UTCFormatter
+    format: '[%(asctime)s UTC][%(name)s][%(levelname)s] - %(message)s'
+  colorlog:
+    '()': colorlog.ColoredFormatter
+    format: '[%(cyan)s%(asctime)s UTC%(reset)s][%(blue)s%(name)s%(reset)s][%(log_color)s%(levelname)s%(reset)s] - %(message)s'
+    log_colors:
+      DEBUG: purple
+      INFO: green
+      WARNING: yellow
+      ERROR: red
+      CRITICAL: red
+  simple:
+    format: '[%(asctime)s][%(name)s][%(levelname)s] - %(message)s'
+handlers:
+  graylog:
+    class: graypy.GELFUDPHandler
+    formatter: utc
+    host: ${env:HYDRA_GRAYLOG_HOST}
+    port: ${env:HYDRA_GRAYLOG_PORT}
+  file:
+    class: logging.FileHandler
+    formatter: simple
+    # relative to the job log directory
+    filename: 'loging.log' #${hydra.job.name}.log
+  console:
+    class: logging.StreamHandler
+    formatter: colorlog
+    stream: ext://sys.stdout
+root:
+  level: ${env:HYDRA_GRAYLOG_LOG_LEVEL}
+  handlers: [graylog, console, file]
+
+disable_existing_loggers: false
