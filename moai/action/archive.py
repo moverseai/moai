@@ -64,7 +64,8 @@ def dump_handlers(
     return False
 
 def archive(cfg):
-    hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")    
+    # hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")    
+    hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_container(cfg, resolve=True)}")
     omegaconf.omegaconf.OmegaConf.set_struct(cfg, False)
     args = []
     args += ["torch-model-archiver"]
