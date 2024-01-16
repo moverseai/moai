@@ -71,6 +71,8 @@ def archive(cfg):
     args += ["torch-model-archiver"]
     args += ["--model-name", cfg.archive.name]
     args += ["--version", str(cfg.archive.version)]
+    if cfg.archive.force:
+        args += ["--force"]
     if cfg.archive.mode == 'fit':
         args += ["--handler", optimizer_server.__file__]
     elif cfg.archive.mode == 'streaming':
