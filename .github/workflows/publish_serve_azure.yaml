@@ -56,3 +56,4 @@ jobs:
             org.opencontainers.image.version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             com.github.ai-in-motion.moai.sha=${{ github.sha }}
             com.github.ai-in-motion.moai.branch=${{ github.ref_name }}
+          no-cache: true
