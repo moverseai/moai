@@ -12,8 +12,8 @@ log = logging.getLogger(__name__)
 class AzureBlobInputHandler(Callable):
     def __init__(
         self,
-        connection_string: str,
-        container_name: str,
+        connection_string: str, # alias to retrieve connection string from json
+        container_name: str, # name of the container to download data from
         blob_paths: typing.List[str],  # keys to extract resources from json
         working_dir: str,  # path to working dir
         alias: typing.List[str],  # names of files to be saved
@@ -28,9 +28,10 @@ class AzureBlobInputHandler(Callable):
             working_dir (str): Path to working dir.
             alias (typing.List[str]): Names of files to be saved.
         """
-        self.blob_service_client = BlobServiceClient.from_connection_string(
-            connection_string,
-        )
+        # self.blob_service_client = BlobServiceClient.from_connection_string(
+        #     connection_string,
+        # )
+        self.connection_string = connection_string
         self.container_name = container_name
         self.working_dir = working_dir
         self.blob_paths = blob_paths
@@ -43,10 +44,16 @@ class AzureBlobInputHandler(Callable):
     def __call__(
         self, json: typing.Mapping[str, typing.Any], void: typing.Any
     ) -> typing.Any:
+        # initialize connection to Azure Blob Storage
+        connect_str = json[self.connection_string]
+        blob_service_client = BlobServiceClient.from_connection_string(
+            connect_str,
+        )
+        container = json[self.container_name]
         for bl_acc, al in zip(self.blob_acecessors, self.alias):
             blob_name = bl_acc(json)
-            blob_client = self.blob_service_client.get_blob_client(
-                container=self.container_name, blob=blob_name
+            blob_client = blob_service_client.get_blob_client(
+                container=container, blob=blob_name
             )
             download_file_path = os.path.join(self.working_dir, al)
             # create dir if not exists
@@ -79,10 +86,11 @@ class AzureBlobOutputHandler(Callable):
 
         """
         # connect_str = os.environ[connection_string]
+        # self.blob_service_client = BlobServiceClient.from_connection_string(
+        #     connection_string,
+        # )
+        self.connection_string = connection_string
         self.container_name = container_name
-        self.blob_service_client = BlobServiceClient.from_connection_string(
-            connection_string,
-        )
         self.blob_paths = blob_paths
         self.blob_acecessors = [_create_accessor(bl_path) for bl_path in blob_paths]
         self.working_dir = working_dir
@@ -98,14 +106,20 @@ class AzureBlobOutputHandler(Callable):
         # NOTE: void is the input json response
         # TODO: need to check batched inference
         input_json = void[0].get("body") or void[0].get("raw")
+        # initialize connection to Azure Blob Storage
+        connect_str = json[self.connection_string]
+        blob_service_client = BlobServiceClient.from_connection_string(
+            connect_str,
+        )
+        container = json[self.container_name]
         for bl_acc, al in zip(self.blob_acecessors, self.alias):
             log.debug(f"Uploading {al} to Azure Blob Storage...")
             log.debug(f"blob path: {bl_acc(input_json)}")
             upload_file_path = bl_acc(input_json)
             local_file = os.path.join(self.working_dir, al)
             # Create a blob client using the local file name as the name for the blob
-            blob_client = self.blob_service_client.get_blob_client(
-                container=self.container_name, blob=upload_file_path
+            blob_client = blob_service_client.get_blob_client(
+                container=container, blob=upload_file_path
             )
             # Upload the created file
             with open(file=local_file, mode="rb") as data:

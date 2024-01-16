@@ -1,8 +1,8 @@
 # @package handlers.preprocess.azure._name_
 
 _target_: moai.serve.handlers.azure.AzureBlobInputHandler
-connection_string: ${env:AZURE_STORAGE_CONNECTION_STRING} # retrieve automatically from env
-container_name: ${env:AZURE_STORAGE_CONTAINER_NAME}
+connection_string: StorageAccessToken # ${env:AZURE_STORAGE_CONNECTION_STRING} # retrieve automatically from env
+container_name: StorageContainer # ${env:AZURE_STORAGE_CONTAINER_NAME}
 blob_paths: ???
 working_dir: ???
 alias: ???
