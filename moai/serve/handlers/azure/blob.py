@@ -107,11 +107,11 @@ class AzureBlobOutputHandler(Callable):
         # TODO: need to check batched inference
         input_json = void[0].get("body") or void[0].get("raw")
         # initialize connection to Azure Blob Storage
-        connect_str = json[self.connection_string]
+        connect_str = input_json[self.connection_string]
         blob_service_client = BlobServiceClient.from_connection_string(
             connect_str,
         )
-        container = json[self.container_name]
+        container = input_json[self.container_name]
         for bl_acc, al in zip(self.blob_acecessors, self.alias):
             log.debug(f"Uploading {al} to Azure Blob Storage...")
             log.debug(f"blob path: {bl_acc(input_json)}")
