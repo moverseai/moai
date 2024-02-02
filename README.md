@@ -8,10 +8,10 @@
 # Overview
 
 **_moai_** is a [PyTorch](https://pytorch.org/)-based AI Model Development Kit (MDK) that aims to **improve data-driven model workflows, design and understanding**.
-Since it is based on established [open-source packages](#Dependencies), it can be readily used to improve most AI workflows. To explore _moai_, simply [install](#Installation) the package and follow the [examples](https://github.com/ai-in-motion/moai/tree/master/conf/examples), having in mind that it is in early development _alpha_ version, thus new features will be available soon.
+Since it is based on established [open-source packages](#Dependencies), it can be readily used to improve most AI workflows. To explore _moai_, simply [install](#Installation) the package and follow the [examples](https://github.com/moverseai/moai/tree/master/conf/examples), having in mind that it is in early development _alpha_ version, thus new features will be available soon.
 
-![Overview](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/overview_light.png#gh-light-mode-only)
-![Overview](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/overview_dark.png#gh-dark-mode-only)
+![Overview](https://github.com/moverseai/moai/raw/main/docs/diagrams/overview_light.png#gh-light-mode-only)
+![Overview](https://github.com/moverseai/moai/raw/main/docs/diagrams/overview_dark.png#gh-dark-mode-only)
 
 # Features & Design Goals
 
@@ -30,45 +30,45 @@ Details for each action follow:
 
 - _`moai`_ **`play`** `CONFIG_PATH`
 
-![Play Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/play_light.png#gh-light-mode-only "Play Action")
-![Play Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/play_dark.png#gh-dark-mode-only "Play Action")
+![Play Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/play_light.png#gh-light-mode-only "Play Action")
+![Play Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/play_dark.png#gh-dark-mode-only "Play Action")
 
 Using the `play` action, _moai_ starts the playback of a dataset's `train\val\test` splits. _moai_'s exporters can be used to the extract dataset specific statistics. _moai_'s visualization engine can be used to showcase the dataset. Optionally, monad processing graphs can be defined to transform the data.
 
 - _`moai`_ **`train`** `CONFIG_PATH`
 
-![Train Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/train_light.png#gh-light-mode-only "Train Action")
-![Train Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/train_dark.png#gh-dark-mode-only "Train Action")
+![Train Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/train_light.png#gh-light-mode-only "Train Action")
+![Train Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/train_dark.png#gh-dark-mode-only "Train Action")
 
 The `train` action consumes a configuration file that defines the model that will be trained, the data that will be used to train and validate it, as well as configurating the engine around the training process.
 The results include model states across training and logs including validation metrics and losses.
 
 - _`moai`_ **`evaluate`** `CONFIG_PATH`
 
-![Evaluate Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/evaluate_light.png#gh-light-mode-only "Evaluate Action")
-![Evaluate Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/evaluate_dark.png#gh-dark-mode-only "Evaluate Action")
+![Evaluate Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/evaluate_light.png#gh-light-mode-only "Evaluate Action")
+![Evaluate Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/evaluate_dark.png#gh-dark-mode-only "Evaluate Action")
 
 The `evaluate` action consumes a configuration file that defines the trained model that will be tested, the test data, as well as configurating the engine around the testing process.
 The results include model aggregated and/or detailed metrics, and inference samples.
 
 - _`moai`_ **`plot`** `PATH_TO_EXPERIMENTS`
 
-![Plot Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/plot_light.png#gh-light-mode-only "Plot Action")
-![Plot Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/plot_dark.png#gh-dark-mode-only "Plot Action")
+![Plot Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/plot_light.png#gh-light-mode-only "Plot Action")
+![Plot Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/plot_dark.png#gh-dark-mode-only "Plot Action")
 
 The `plot` action consumes various configuration files - usually from different versions of the same model - and generates a visualization consolidating and aggregating inter-model performance, providing the necessary means to analyze the behaviour of different hyper-parameters or model configurations.
 
 - _`moai`_ **`diff`** `lhs=PATH_TO_CONFIG_A` `rhs=PATH_TO_CONFIG_B`
 
-![Diff Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/diff_light.png#gh-light-mode-only "Diff Action")
-![Diff Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/diff_dark.png#gh-dark-mode-only "Diff Action")
+![Diff Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/diff_light.png#gh-light-mode-only "Diff Action")
+![Diff Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/diff_dark.png#gh-dark-mode-only "Diff Action")
 
 The `diff` action consumes two different configuration file - usually from different versions of the same model - and reports their differences related to hyper-parameterization, processing graph variations, etc..
 
 - _`moai`_ **`reprod`** `PATH_TO_RESOLVED_CONFIG`
 
-![Reprod Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/reprod_light.png#gh-light-mode-only "Reprod Action")
-![Reprod Action](https://github.com/ai-in-motion/moai/raw/main/docs/diagrams/reprod_dark.png#gh-dark-mode-only "Reprod Action")
+![Reprod Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/reprod_light.png#gh-light-mode-only "Reprod Action")
+![Reprod Action](https://github.com/moverseai/moai/raw/main/docs/diagrams/reprod_dark.png#gh-dark-mode-only "Reprod Action")
 
 The `reprod` action consumes a previously logged and resolved configuration file, and facilitates its reproduction by re-executing it while adjusting to development environment differences.
 
@@ -90,7 +90,7 @@ _moai_ stands on the shoulders of giants as it relies on various large scale ope
 
 7. [The Wider Open Source Community](https://www.github.com) that conducts accessible R&D and drives most of _moai_'s capabilities.
 
-8. [A set of awesome Python libraries](https://github.com/ai-in-motion/moai/tree/master/requirements.txt).
+8. [A set of awesome Python libraries](https://github.com/moverseai/moai/tree/master/requirements.txt).
 
 # Installation
 
@@ -108,17 +108,17 @@ Download the master branch source and install it by opening a command line on th
 
 Visit the [**documentation**](https://moai.readthedocs.io/) site to learn about _moai_'s DML and the overall MDK design and usage.
 
-Examples can be found at [**conf/examples**](https://github.com/ai-in-motion/moai/tree/main/moai/conf/examples). 
+Examples can be found at [**conf/examples**](https://github.com/moverseai/moai/tree/main/moai/conf/examples). 
 
 # Licence
 
-_moai_ is Apache 2.0 licenced, as found in the corresponding [LICENCE](https://github.com/ai-in-motion/moai/blob/main/LICENSE) file.
+_moai_ is Apache 2.0 licenced, as found in the corresponding [LICENCE](https://github.com/moverseai/moai/blob/main/LICENSE) file.
 
 However, some code integrated from external projects may carry their own licences.
 
 # PyTorch Developer's Day 2021
-![PTDD21](https://github.com/ai-in-motion/moai/raw/main/docs/images/poster.jpeg#gh-light-mode-only)
-![PTDD21](https://github.com/ai-in-motion/moai/raw/main/docs/images/poster.jpeg#gh-dark-mode-only)
+![PTDD21](https://github.com/moverseai/moai/raw/main/docs/images/poster.jpeg#gh-light-mode-only)
+![PTDD21](https://github.com/moverseai/moai/raw/main/docs/images/poster.jpeg#gh-dark-mode-only)
 
 # Citation
 If you use _moai_ in your R&D workflows or find its code useful please consider citing:
@@ -130,10 +130,10 @@ If you use _moai_ in your R&D workflows or find its code useful please consider 
     year = {2021},
     publisher = {GitHub},
     journal = {GitHub repository},
-    howpublished = {\url{https://github.com/ai-in-motion/moai}},
+    howpublished = {\url{https://github.com/moverseai/moai}},
 }
 ```
 
 # Contact
 
-Use a [GitHub issue tracker](https://github.com/ai-in-motion/moai/issues)
+Use a [GitHub issue tracker](https://github.com/moverseai/moai/issues)

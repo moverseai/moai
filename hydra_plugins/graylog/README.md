@@ -32,4 +32,4 @@ Georgios Albanis
 ## License
 MIT License
 
-For more details and updates, visit our [GitHub repository](https://github.com/ai-in-motion/moai).
+For more details and updates, visit our [GitHub repository](https://github.com/moverseai/moai).

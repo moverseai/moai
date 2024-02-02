@@ -1,6 +1,6 @@
 site_name: moai
 site_description: Accelerating modern data-driven workflows
-site_url: https://github.com/ai-in-motion/moai
+site_url: https://github.com/moverseai/moai
 
 theme:
   name: material
@@ -21,8 +21,8 @@ theme:
   # logo: img/icon-white.svg
   # favicon: img/favicon.png
   language: en
-repo_name: ai-in-motion/moai
-repo_url: https://github.com/ai-in-motion/moai
+repo_name: moverseai/moai
+repo_url: https://github.com/moverseai/moai
 edit_uri: ''
 google_analytics:
 - UA-147231916-1
@@ -86,7 +86,7 @@ markdown_extensions:
 extra:
   social:
   - icon: fontawesome/brands/github-alt
-    link: https://github.com/ai-in-motion/moai    
+    link: https://github.com/moverseai/moai
   - icon: fontawesome/brands/python
     link: https://pypi.org/project/moai-mdk/
       

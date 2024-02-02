@@ -20,7 +20,7 @@
 #     description="Hydra plugin for logging to Graylog",
 #     license="MIT",
 #     keywords="hydra graylog",
-#     url="https://github.com/ai-in-motion/moai",
+#     url="https://github.com/moverseai/moai",
 #     classifiers=[
 #         "Development Status :: 4 - Beta",
 #         "Programming Language :: Python :: 3.9",

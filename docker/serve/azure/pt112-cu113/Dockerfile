@@ -1,4 +1,4 @@
-FROM ghcr.io/ai-in-motion/moai/serve:v1.0.3-pt112-cu113
+FROM ghcr.io/moverseai/moai/serve:v1.0.3-pt112-cu113
 
 USER root
 

@@ -1,10 +1,10 @@
 __version__ = '0.1.5a34'
-__author__ = 'AI-in-Motion Team'
+__author__ = 'Moverse AI Team'
 __author_email__ = 'pakos.ai.in.motion@gmail.com'
 __license__ = 'Apache-2.0'
 __copyright__ = f'Copyright (c) 2022, {__author__}.' 
-__homepage__ = 'https://github.com/ai-in-motion/moai'
-__github_repo__ = 'https://github.com/ai-in-motion/moai'
+__homepage__ = 'https://github.com/moverseai/moai'
+__github_repo__ = 'https://github.com/moverseai/moai'
 __documentation_page__ = 'https://moai.readthedocs.io/en/latest/'
 __docs__ = "moai: Accelerated, Flexible, Modular, Reproducible, Insightful AI"
 __keywords__ = 'AI,workflow,framework,PyTorch'
