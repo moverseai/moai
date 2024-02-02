@@ -1,0 +1,6 @@
+# @package engine.modules._name_
+
+_target_: moai.engine.modules.GraylogLogging
+host: ${env:HYDRA_GRAYLOG_HOST}
+port: ${env:HYDRA_GRAYLOG_PORT}
+level: ${env:HYDRA_GRAYLOG_LOG_LEVEL}
