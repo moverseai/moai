@@ -84,7 +84,7 @@ class StreamingOptimizerServer(BaseHandler):
                     handler_overrides is not None
                     and "preprocess" in handler_overrides.get("handlers", {})
                 ):
-                    cfg = OmegaConf.merge(cfg, handler_overrides)
+                    cfg = OmegaConf.merge(cfg, {'handlers': {'preprocess': handler_overrides['handlers']['preprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
                 self.preproc = {
                     k: hyu.instantiate(h)
@@ -100,7 +100,7 @@ class StreamingOptimizerServer(BaseHandler):
                     handler_overrides is not None
                     and "postprocess" in handler_overrides.get("handlers", {})
                 ):
-                    cfg = OmegaConf.merge(cfg, handler_overrides)
+                    cfg = OmegaConf.merge(cfg, {'handlers': {'postprocess': handler_overrides['handlers']['postprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
                 self.postproc = {
                     k: hyu.instantiate(h)
@@ -205,6 +205,18 @@ class StreamingOptimizerServer(BaseHandler):
                     except AttributeError:
                         log.debug(f"Callback {c} has no on_train_batch_start method.")
                         continue
+                    # add test epoch end callback
+                    try:
+                        on_test_epoch_end = getattr(c, "on_test_epoch_end")
+                        log.info(f"Calling on_test_epoch_end for {c}")
+                        on_test_epoch_end(
+                            trainer=None,
+                            pl_module=self.optimizer,
+                            outputs=None,
+                        )
+                    except AttributeError:
+                        log.info(f"Callback {c} has no on_test_epoch_end method.")
+                        continue
             self.last_loss = None
             if batch_idx == 0:
                 # init only once for the first batch
@@ -223,7 +235,6 @@ class StreamingOptimizerServer(BaseHandler):
                 zip(optimizers, iters, stages, schedulers)
             ):
                 log.info(f"Optimizing stage: {stage} for {iters} iterations")
-                print(f"Optimizing stage: {stage} for {iters} iterations")
                 for p in self.optimizer.parameters():
                     p.requires_grad_(False)
                 for pg in optim.param_groups:

@@ -6,6 +6,7 @@ from hydra.experimental import (
 from omegaconf.omegaconf import OmegaConf
 
 import hydra.utils as hyu
+from hydra.core.hydra_config import HydraConfig
 import toolz
 import os
 import torch
@@ -15,7 +16,7 @@ import logging
 import typing
 from moai.serve.model import _find_all_targets
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__) #NOTE: check name when logging from serve
 
 __all__ = ['OptimizerServer']
 
@@ -58,17 +59,19 @@ class OptimizerServer(BaseHandler):
         #NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
         main_conf = context.manifest['model']['modelName'].replace('_', '/')
         log.info(f"Loading the {main_conf} endpoint.")
-        self._extract_files()        
+        self._extract_files()
         try:
             with initialize(config_path="conf", job_name=main_conf):
                 cfg = compose(
                     config_name=main_conf, 
-                    overrides=self._get_overrides()
+                    overrides=self._get_overrides(),
+                    return_hydra_config=True,
                 )
-                self.optimizer = hyu.instantiate(cfg.model)
+                HydraConfig().cfg = cfg
                 self.engine = hyu.instantiate(cfg.engine)
+                self.optimizer = hyu.instantiate(cfg.model)
         except Exception as e:
-            log.error(f"An error has occured while loading the model:\n{e}")
+            log.error(f"An error has occured while loading the optimizer:\n{e}")
         self.optimizer = self.optimizer.to(self.device)
         self.optimizer.eval()
         self.initialized = True
