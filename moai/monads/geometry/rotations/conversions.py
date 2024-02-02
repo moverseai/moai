@@ -18,6 +18,7 @@ __all__ = [
     'RotationVector2RotationMatrix',
     'Quaternion2RotationMatrix',
     'Quaternion2RotationVector',
+    'RomaRotationVector2Quaternion',
 ]
 
 #TODO: make_from, convert_to
