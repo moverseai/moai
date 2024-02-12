@@ -1,0 +1,24 @@
+# @package hydra.hydra_logging
+
+formatters:
+  utc:
+    '()': graylog.utc_fromatter.UTCFormatter
+    format: '[%(asctime)s UTC] %(levelname)s: %(message)s'
+  colorlog:
+    '()': 'colorlog.ColoredFormatter'
+    format: "[%(cyan)s%(asctime)s%(reset)s][%(purple)sHYDRA%(reset)s] %(message)s"
+
+handlers:
+  graylog:
+    class: graypy.GELFUDPHandler
+    formatter: utc
+    host: ${env:HYDRA_GRAYLOG_HOST}
+    port: ${env:HYDRA_GRAYLOG_PORT}
+  console:
+    class: logging.StreamHandler
+    formatter: colorlog
+    stream: ext://sys.stdout
+
+root:
+  level: ${env:HYDRA_GRAYLOG_LOG_LEVEL}
+  handlers: [graylog, console]

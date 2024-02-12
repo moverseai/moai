@@ -83,12 +83,13 @@ class ModelServer(BaseHandler):
         #NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
         main_conf = context.manifest['model']['modelName'].replace('_', '/')
         log.info(f"Loading the {main_conf} endpoint.")
-        self._extract_files()        
+        self._extract_files()  
         try:
             with initialize(config_path="conf", job_name=main_conf):
                 cfg = compose(
                     config_name=main_conf, 
-                    overrides=self._get_overrides()
+                    overrides=self._get_overrides(),
+                    return_hydra_config=True,
                 )
                 self.model = hyu.instantiate(cfg.model)
                 self.engine = hyu.instantiate(cfg.engine)

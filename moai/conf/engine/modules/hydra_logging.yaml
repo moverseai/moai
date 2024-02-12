@@ -1,0 +1,5 @@
+# @package engine.modules._name_
+
+_target_: moai.engine.modules.HydraLogging
+# hyu: ${hydra:hydra_logging}
+job: ${hydra:job_logging}

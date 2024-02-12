@@ -31,6 +31,7 @@ class Composited(torch.utils.data.Dataset):
         self,
         iterators: typing.Sequence[torch.utils.data.Dataset],
         datasets: typing.Sequence[torch.utils.data.Dataset],
+        augmentation:   omegaconf.DictConfig=None,
     ):
         r"""
         Initializes a composite iterator.

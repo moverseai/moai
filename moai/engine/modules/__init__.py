@@ -25,3 +25,11 @@ __all__ = [
     'DisableFP16Matmul',
     'AzureLogging',
 ]
+
+try:
+    from moai.engine.modules.graylog_logging import GraylogLogging    
+    __all__.append('GraylogLogging')
+    from moai.engine.modules.hydra_logging import HydraLogging
+except Exception:
+    pass #TODO: log this
+

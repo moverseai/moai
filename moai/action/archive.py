@@ -64,12 +64,15 @@ def dump_handlers(
     return False
 
 def archive(cfg):
-    hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")    
+    # hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")    
+    hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_container(cfg, resolve=True)}")
     omegaconf.omegaconf.OmegaConf.set_struct(cfg, False)
     args = []
     args += ["torch-model-archiver"]
     args += ["--model-name", cfg.archive.name]
     args += ["--version", str(cfg.archive.version)]
+    if cfg.archive.force:
+        args += ["--force"]
     if cfg.archive.mode == 'fit':
         args += ["--handler", optimizer_server.__file__]
     elif cfg.archive.mode == 'streaming':

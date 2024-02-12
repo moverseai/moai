@@ -11,7 +11,7 @@
 # ***moai***: Accelerating modern data-driven workflows
 
 **_moai_** is a [PyTorch](https://pytorch.org/)-based AI Model Development Kit (MDK) that aims to **improve data-driven model workflows, design and understanding**.
-Since it is based on established [open-source packages](#Dependencies), it can be readily used to improve most AI workflows. To explore _moai_, simply [install](#Installation) the package and follow the [examples](https://github.com/ai-in-motion/moai/tree/master/conf/examples), having in mind that it is in early development _alpha_ version, thus new features will be available soon.
+Since it is based on established [open-source packages](#Dependencies), it can be readily used to improve most AI workflows. To explore _moai_, simply [install](#Installation) the package and follow the [examples](https://github.com/moverseai/moai/tree/master/conf/examples), having in mind that it is in early development _alpha_ version, thus new features will be available soon.
 
 ## Features & Design Goals
 
@@ -37,7 +37,7 @@ _moai_ stands on the shoulders of giants as it relies on various large scale ope
 
 7. [The Wider Open Source Community](www.github.com) that conducts accessible R&D and drives most of _moai_'s capabilities.
 
-8. [A set of awesome Python libraries](#Dependencies) as found in our [**requirements**](https://github.com/ai-in-motion/moai/tree/master/requirements.txt) file.
+8. [A set of awesome Python libraries](#Dependencies) as found in our [**requirements**](https://github.com/moverseai/moai/tree/master/requirements.txt) file.
 
 ## Installation
 
@@ -55,7 +55,7 @@ Download the master branch source and install it by opening a command line on th
 
 Visit the [**documentation**](#) site to learn about _moai_'s DML and the overall MDK design and usage.
 
-The examples found at [**conf/examples**](https://github.com/ai-in-motion/moai/tree/master/conf/examples) will be documented **soon**.
+The examples found at [**conf/examples**](https://github.com/moverseai/moai/tree/master/conf/examples) will be documented **soon**.
 
 ## Documentation
 [Documentation](https://moai.readthedocs.io/en/latest/) is currently a **work-in-progress**.
