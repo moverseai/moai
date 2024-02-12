@@ -43,7 +43,6 @@ class Npz(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.Di
             split = key.split('.')
             arrays[key] = toolz.get_in(split, tensors).squeeze().detach().cpu().numpy()
         if self.mode == 'all':
-            mode = 'ab'
             if self.dict_mode:
                 f = os.path.join(self.folder, f"{self.index:{self.fmt}}.npz")
                 np.savez_compressed(f, **arrays) if self.compressed else np.savez(f, **arrays)

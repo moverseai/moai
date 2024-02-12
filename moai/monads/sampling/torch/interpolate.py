@@ -1,8 +1,9 @@
 from moai.utils.arguments import assert_choices
-from moai.monads.utils.spatial import spatial_dims
+# from moai.monads.utils.spatial import spatial_dims
 from collections import namedtuple
 
 import torch
+import typing
 import functools
 import logging
 
@@ -12,8 +13,11 @@ __all__ = [
     "Interpolate",
     "BilinearDownsample_x2",
     "NearestDownsample_x2",
-    "BilinearDownsample",
-    "NearestDownsample",
+    # "BilinearDownsample",
+    # "NearestDownsample",
+    "BilinearSampling",
+    "NearestSampling",
+    "ScalePyramid",
 ]
 
 #NOTE: align corners doc: https://discuss.pytorch.org/t/what-we-should-use-align-corners-false/22663/12
@@ -45,13 +49,16 @@ class Interpolate(torch.nn.Module):
         ) if scale > 0.0 and width < 0 and height < 0 else\
             functools.partial(
                 torch.nn.functional.interpolate,
-                size=(height, width), mode=mode, 
+                size=self._get_tuple((height, width)), mode=mode, 
                 align_corners=align_corners if mode != 'nearest' and mode != 'area' else None,
                 recompute_scale_factor=recompute_scale_factor,
             )
         self.params = Interpolate.STATIC_PARAMS(mode, align_corners, recompute_scale_factor)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.resolution = [height, width]
+
+    def _get_tuple(self, size):
+        return tuple(t for t in size if t > 1)
 
     def _calc_size(self, input_shape, target_shape):
         if self.preserve_aspect_ratio:
@@ -93,3 +100,37 @@ NearestUpsample_x2 = functools.partial(Interpolate,
 BilinearUpsample_x2 = functools.partial(Interpolate,
     scale=2.0, mode='bilinear'
 )
+
+class ScalePyramid(torch.nn.Module):
+    def __init__(self,
+        scales:                 typing.Optional[typing.Sequence[float]]=None,
+        sizes:                  typing.Optional[typing.Sequence[typing.Sequence[int]]]=None,
+        mode:                   str='bilinear', # one of ['nearest', 'linear', 'bilinear', 'area', 'bicubic', 'trilinear']            
+        align_corners:          bool=False,
+        recompute_scale_factor: bool=False,
+        preserve_aspect_ratio:  bool=False,             
+    ) -> None:
+        super().__init__()
+        if scales is None and sizes is None:
+            log.error("When using a scale_pyramid one of `scale` or `sizes` configuration parameters is required.")
+        if scales is not None and sizes is not None:
+            log.error("When using a scale_pyramid ONLY ONE of `scale` or `sizes` configuration parameters is required.")
+        if scales is not None:
+            self.interps = torch.nn.ModuleList([
+                Interpolate(scale=scale, mode=mode, align_corners=align_corners, 
+                    recompute_scale_factor=recompute_scale_factor, 
+                    preserve_aspect_ratio=preserve_aspect_ratio
+            ) for scale in scales])
+        if sizes is not None:
+            self.interps = torch.nn.ModuleList([
+                Interpolate(width=size[-1], mode=mode, align_corners=align_corners, 
+                    height=1 if len(size) < 2 else size[-2],
+                    recompute_scale_factor=recompute_scale_factor, 
+                    preserve_aspect_ratio=preserve_aspect_ratio
+            ) for size in sizes])
+
+    def forward(self, input: torch.Tensor) -> typing.Dict[str, torch.Tensor]:
+        out = {}
+        for i, interp in enumerate(self.interps, start=1):
+            out[f'level_{i}'] = interp(input)
+        return out

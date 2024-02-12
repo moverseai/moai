@@ -99,9 +99,9 @@ class Detach(torch.nn.Module):
 
 
 class Flatten(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, start_dim: int=1):
         super(Flatten, self).__init__()
-        self.flatten = torch.nn.Flatten()
+        self.flatten = torch.nn.Flatten(start_dim=start_dim)
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return self.flatten(tensor)

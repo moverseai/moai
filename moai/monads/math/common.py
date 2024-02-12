@@ -8,6 +8,9 @@ __all__ = [
     "Multiply",
     "PlusOne",
     "MinusOne",
+    "MatrixTranspose",
+    "Rad2Deg",
+    "Deg2Rad",
 ]
 
 class Abs(torch.nn.Module):
@@ -63,3 +66,26 @@ class MinusOne(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # return x - torch.ones_like(x)
         return x - 1.0
+
+class MatrixTranspose(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, matrix: torch.Tensor) -> torch.Tensor:
+        return matrix.mT
+    
+class Deg2Rad(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, degrees: torch.Tensor) -> torch.Tensor:
+        return torch.deg2rad(degrees)
+    
+class Rad2Deg(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, radians: torch.Tensor) -> torch.Tensor:
+        return torch.rad2deg(radians)
+    
+    

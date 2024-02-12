@@ -94,7 +94,7 @@ class Zeros(torch.nn.Module):
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         shape = self.shape if self.includes_batch else [tensor.shape[0], *self.shape]
         device = tensor.device if tensor is not None else torch.device('cpu')
-        return torch.zeros(shape, dtype=tensor.dtype, device=device)
+        return torch.zeros(*shape, dtype=tensor.dtype, device=device)
 
 class ZerosLike(torch.nn.Module):
     def __init__(self):
