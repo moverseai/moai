@@ -4,6 +4,7 @@ from moai.monads.sampling.torch.interpolate import (
     NearestDownsample_x2,
     BilinearSampling,
     NearestSampling,
+    ScalePyramid,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "NearestDownsample_x2",
     "BilinearSampling",
     "NearestSampling",
+    "ScalePyramid",
 ]

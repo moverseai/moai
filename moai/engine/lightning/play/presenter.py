@@ -59,7 +59,7 @@ class Presenter(minet.FeedForward):
             self.exporter(train_outputs['tensors'])
         return train_outputs['loss']
 
-    def validation_step(self,
+    def validation_step(self, #NOTE: we can skip val if we don't define this (lightning 1.5)
         batch: typing.Dict[str, torch.Tensor],
         batch_nb: int
     ) -> dict:
