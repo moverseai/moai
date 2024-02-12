@@ -66,14 +66,18 @@ class Random(torch.nn.Module):
         return generated * self.scale if self.scale != 1.0 else generated
 
 class Ones(torch.nn.Module):
-    def __init__(self):
+    def __init__(self,
+        shape:          typing.Union[int, typing.Sequence[int]],
+        includes_batch: bool=False, # whether shape includes the batch dim             
+    ):
         super(Ones, self).__init__()
+        self.shape = shape if isinstance(shape, typing.Sequence) else [shape]
+        self.includes_batch = includes_batch
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        # return torch.ones_like(tensor)
-        return torch.ones(1, *tensor.shape[1:], dtype=tensor.dtype,
-                device=tensor.device).expand_as(tensor) if tensor.shape\
-            else torch.scalar_tensor(1, dtype=tensor.dtype, device=tensor.device)
+        shape = self.shape if self.includes_batch else [tensor.shape[0], *self.shape]
+        device = tensor.device if tensor is not None else torch.device('cpu')
+        return torch.ones(shape, dtype=tensor.dtype, device=device)
 
 class Identity(torch.nn.Module):
     def __init__(self):

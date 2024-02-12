@@ -1,0 +1,8 @@
+# @package model
+
+_target_: moai.networks.lightning.factory.GenerativeAdversarialNetwork
+io:
+  generator:
+    out: ???
+  discriminator:  
+    out: ???
