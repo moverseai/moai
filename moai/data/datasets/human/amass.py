@@ -120,7 +120,7 @@ class AMASS(torch.utils.data.Dataset):
                 'smplx': {
                     'gender': 1 if gender == 'male' else 2,
                     'scale': torch.scalar_tensor(1.0), 
-                    'params': {                
+                    'params': {
                         'betas': betas,
                         'body_pose': torch.from_numpy(data['pose_body'][frame]).float().clone(), # 63
                         'transl': torch.from_numpy(data['trans'][frame]).float().clone(), # 3
@@ -142,7 +142,7 @@ class AMASS(torch.utils.data.Dataset):
                 'smpl': {
                     'gender': 1 if gender == 'male' else 2,
                     'scale': torch.scalar_tensor(1.0), 
-                    'params': {                
+                    'params': {
                         'betas': betas[:10],
                         'body_pose': torch.from_numpy(data['poses'][frame,3:72]).float().clone(), # 63 (21x3) plus 2 x 3 for hands
                         'transl': torch.from_numpy(data['trans'][frame]).float().clone(), # 3
