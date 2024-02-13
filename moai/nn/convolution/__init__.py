@@ -2,6 +2,7 @@ import moai.nn.utils as miu
 import moai.nn.activation as mia
 
 import torch
+from torch.nn import Identity as ID
 
 import typing
 import functools
@@ -18,6 +19,7 @@ __all__ = [
 
 __CONV_FACTORY__ = {
     "conv2d":           torch.nn.Conv2d,
+    "conv1d":           torch.nn.Conv1d,
 }
 
 def _update_conv_op(name: str, type: typing.Type):
@@ -46,6 +48,7 @@ def make_conv_op(
             })
         else:
             log.error(f"Convolution type {convolution_type} not found.")
+            return ID()
 
 make_conv_1x1 = functools.partial(make_conv_op, #NOTE: only pass conv_type and inout features
     kernel_size=1,
@@ -95,11 +98,14 @@ def make_conv_block(
             })
     else:
         log.error(f"Convolutional block type {block_type} not found.")
+        return ID()
 
 import moai.nn.convolution.torch as mit
 
 if "conv2d" not in __CONV_BLOCK_FACTORY__.keys(): # CONV OP
     _update_conv_block("conv2d", mit.Conv2dBlock)
+if "conv1d" not in __CONV_BLOCK_FACTORY__.keys(): # CONV OP
+    _update_conv_block("conv1d", mit.Conv1dBlock)
 
 del mit
 
@@ -113,3 +119,8 @@ if "sconv2d" not in __CONV_FACTORY__.keys():
 
 #TODO: "coord_conv":
 #TODO: "partial_conv":
+
+from moai.nn.convolution.skeleton import SkeletonConvolution
+
+if "skeleton" not in __CONV_FACTORY__.keys():
+    _update_conv_op("skeleton", SkeletonConvolution)
