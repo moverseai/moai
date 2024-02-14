@@ -56,10 +56,6 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         self.stages = []
         self.optimizer_configs = toolz.get_in(['optimization', 'optimizers'], parameters) or []
         optimization = toolz.get_in(['optimization', 'process'], parameters) or { }
-        # optimization = { }
-        # for element in scheme_elements:
-        #     new_dict = toolz.get_in([element], scheme_elements)
-        #     optimization = toolz.dicttoolz.merge(optimization, new_dict)
         log.info(f"GAN is optimized in {len(optimization)} stages.")
         for stage, cfg in optimization.items():
             self.stages.append(stage)
@@ -145,15 +141,17 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
-        for d in self.disc_fwds: #real
-            d(prediction)
         if 'reconstruct' in self.params_optimizers[optimizer_idx]:
             postprocessed = self.reconstruct(prediction)
             total_loss, losses = self.supervision[self.stages[optimizer_idx]](postprocessed)
         elif 'discriminate' in self.params_optimizers[optimizer_idx]:
+            for d in self.disc_fwds:
+                d(prediction)
             postprocessed = self.discriminate(prediction)
             total_loss, losses = self.supervision[self.stages[optimizer_idx]](postprocessed)
         else:
+            for d in self.disc_fwds:
+                d(prediction)
             postprocessed = self.generate(prediction)
             total_loss, losses = self.supervision[self.stages[optimizer_idx]](postprocessed)
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
