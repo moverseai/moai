@@ -8,6 +8,7 @@ from moai.networks.lightning.feedforward import _create_scheduling_block,\
                     _assign_data
 
 from moai.data.iterator import Indexed
+from moai.monads.execution import Cascade
 from collections import defaultdict
 
 import moai.utils.parsing.rtp as mirtp
@@ -21,6 +22,7 @@ import typing
 import logging
 import toolz
 import numpy as np
+import copy
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         modules:        omegaconf.DictConfig,
         data:           omegaconf.DictConfig=None,
         parameters:     omegaconf.DictConfig=None,
-        gan:            omegaconf.DictConfig=None,        
+        processing:     omegaconf.DictConfig=None,        
         monads:         omegaconf.DictConfig=None,        
         supervision:    omegaconf.DictConfig=None,
         validation:     omegaconf.DictConfig=None,
@@ -45,38 +47,48 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         self.initializer = parameters.initialization if parameters is not None else None
         self.generator = hyu.instantiate(modules['generator'])
         self.discriminator = hyu.instantiate(modules['discriminator'])
-        self.supervision = _create_supervision_block(supervision)
+        # self.supervision = _create_supervision_block(supervision)
+        self.supervision = torch.nn.ModuleDict()
         self.validation = _create_validation_block(validation)
         self.visualization = _create_interval_block(visualization)
         self.exporter = _create_interval_block(export)
         self.parameter_selectors = parameters.selectors or []
-        self.scheduler_configs = toolz.get_in(['optimization', 'schedulers'], parameters) or { }
+        self.scheduler_configs = toolz.get_in(['schedule', 'schedulers'], parameters) or { }
         self.schedule_monitor = parameters.schedule_monitor if parameters is not None and parameters.schedule_monitor is not None else None
         self.params_optimizers = []
-        self.stages = []
-        self.optimizer_configs = toolz.get_in(['optimization', 'optimizers'], parameters) or []
-        optimization = toolz.get_in(['optimization', 'process'], parameters) or { }
-        log.info(f"GAN is optimized in {len(optimization)} stages.")
-        for stage, cfg in optimization.items():
-            self.stages.append(stage)
+        self.steps = []
+        self.optimizer_configs = toolz.get_in(['optimization', 'optimizers'], parameters) or {}
+        self.optimizer_instances = toolz.get_in(['optimization', 'optimizer_instances'], parameters) or {}
+        self.scheduler_instances = toolz.get_in(['optimization', 'scheduler_instances'], parameters) or {}
+        optimization = toolz.get_in(['optimization', 'steps'], parameters) or { }
+        log.info(f"GAN is optimized in {len(optimization)} interleaved steps.")
+        for step, cfg in optimization.items():
+            self.steps.append(step)
             log.info(
-                f"Setting up the '{stage}' stage using the " + str(cfg.optimizer or "same") + " optimizer, "
+                f"Setting up the '{step}' step using the " + str(cfg.optimizer or "same") + " optimizer, "
                 "optimizing the " + str(cfg.selectors or "same") + " parameters"
             )
             optimizer = cfg.optimizer
             frequency = cfg.frequency
             scheduler = cfg.scheduler
-            selector = cfg.selectors
-            opt_type = cfg.type
-            self.params_optimizers.append((optimizer, opt_type, stage, frequency, selector, scheduler))
+            # selector = cfg.selectors
+            stage = cfg.stage
+            self.params_optimizers.append((optimizer, stage, step, frequency, scheduler))
             objective = cfg.objective
-            self.supervision[stage] = _create_supervision_block(
+            self.supervision[step] = _create_supervision_block(
                 omegaconf.OmegaConf.merge(supervision, objective)
             )
-        self.preprocess = _create_processing_block(gan, "preprocess", monads=monads) 
-        self.discriminate = _create_processing_block(gan, "discriminate", monads=monads)
-        self.reconstruct = _create_processing_block(gan, "reconstruct", monads=monads)
-        self.generate = _create_processing_block(gan, "generate", monads=monads)
+        self.preproc = torch.nn.ModuleDict()
+        self.postproc = torch.nn.ModuleDict()
+        for k, c in processing.items():
+            self.preproc[k] = Cascade(monads=monads, **c['preprocess'])
+            self.postproc[k] = Cascade(monads=monads, **c['postprocess'])
+            # self.postproc[k] = _create_processing_block(c, 'postprocess', monads=monads)
+
+        # self.preprocess = _create_processing_block(gan, "preprocess", monads=monads) 
+        # self.discriminate = _create_processing_block(gan, "discriminate", monads=monads)
+        # self.reconstruct = _create_processing_block(gan, "reconstruct", monads=monads)
+        # self.generate = _create_processing_block(gan, "generate", monads=monads)
         self.gen_fwds, self.disc_fwds = [], []
 
         params = inspect.signature(self.generator.forward).parameters
@@ -139,21 +151,16 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         batch_idx:              int,
         optimizer_idx:          int,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
-        preprocessed = self.preprocess(batch)
+        stage, step = self.optimizer_index_to_stage_n_step[optimizer_idx]
+        preprocessed = self.preproc[step](batch)
         prediction = self(preprocessed)
-        if 'reconstruct' in self.params_optimizers[optimizer_idx]:
-            postprocessed = self.reconstruct(prediction)
-            total_loss, losses = self.supervision[self.stages[optimizer_idx]](postprocessed)
-        elif 'discriminate' in self.params_optimizers[optimizer_idx]:
-            for d in self.disc_fwds:
-                d(prediction)
-            postprocessed = self.discriminate(prediction)
-            total_loss, losses = self.supervision[self.stages[optimizer_idx]](postprocessed)
-        else:
-            for d in self.disc_fwds:
-                d(prediction)
-            postprocessed = self.generate(prediction)
-            total_loss, losses = self.supervision[self.stages[optimizer_idx]](postprocessed)
+        for d in self.disc_fwds:
+            d(prediction)
+        postprocessed = self.postproc[step](prediction)#TODO: detach when/how?
+        # if stage == 'discriminator':
+            
+        # else if stage == 'generator':            
+        total_loss, losses = self.supervision[self.steps[optimizer_idx]](postprocessed)      
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
         losses.update({'total_loss': total_loss})        
         self.log_dict(losses, prog_bar=False, logger=True)        
@@ -173,12 +180,13 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         batch_nb:           int,
         dataloader_index:   int=0,
     ) -> dict:        
-        preprocessed = self.preprocess(batch)
-        prediction = self(preprocessed)
-        outputs = self.generate(prediction)
-        #TODO: consider adding loss maps in the tensor dict
-        metrics = self.validation(outputs)
-        return metrics
+        # preprocessed = self.preprocess(batch)
+        # prediction = self(preprocessed)
+        # outputs = self.generate(prediction)
+        # #TODO: consider adding loss maps in the tensor dict
+        # metrics = self.validation(outputs)
+        # return metrics
+        return {}
     
     def validation_epoch_end(self,
         outputs: typing.Union[typing.List[typing.List[dict]], typing.List[dict]]
@@ -199,29 +207,37 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:
-        log.info("Configuring optimizer and scheduler")
-        optimizers, schedulers, optim_list = [], [], []
-        for optimizer, opt_type, stage, frequency, params, schedule in self.params_optimizers:
-            parameters = hyu.instantiate(self.parameter_selectors[params])(self) if isinstance(params, str) else\
-                    list(hyu.instantiate(self.parameter_selectors[p])(self) for p in params)
+        log.info("Configuring optimizer(s) and scheduler(s)")
+        optim_instances = {}
+        for k, c in self.optimizer_instances.items():
             #TODO: parameter construction is very slow
-            optimizers.append(_create_optimization_block(
-                self.optimizer_configs[optimizer], parameters['params']
-            ))#TODO: check if it works with a list of parameters
-            setattr(optimizers[-1], 'frequency', [frequency])
-            setattr(optimizers[-1], 'name', [params])
-            setattr(optimizers[-1], 'stage', stage)
-            setattr(optimizers[-1], 'type', opt_type)
-            schedulers.append(_create_scheduling_block(
-                self.scheduler_configs.get(schedule, None), [optimizers[-1]]
-            ))
-        [optim_list.append({
-                "optimizer": optimizers[idx],
-                "scheduler": schedule[idx],
-                "frequency": optimizers[idx].frequency[0],
-            }
-        ) for idx in range(len(optimizers))]
-        return optim_list
+            parameters = hyu.instantiate(self.parameter_selectors[c.parameters])(self) if isinstance(c.parameters, str) else\
+                    list(hyu.instantiate(self.parameter_selectors[p])(self) for p in c.parameters)#TODO: check list case
+            oc = copy.deepcopy(self.optimizer_configs[c.optimizer])
+            for key, value in (c.params or {}).items():
+                if key in self.optimizer_configs[c.optimizer]:
+                    oc[key] = value            
+            optim_instances[k] = _create_optimization_block(
+                # toolz.merge(self.optimizer_configs[c.optimizer], c.params), parameters['params']
+                oc, parameters['params']
+            )#TODO: check if it works with a list of parameters                
+        optim_out = []
+        self.optimizer_index_to_stage_n_step = []
+        for optimizer, stage, step, frequency, scheduler in self.params_optimizers:
+            self.optimizer_index_to_stage_n_step.append((stage, step))
+            s = self.scheduler_instances[scheduler]
+            sc = copy.deepcopy(self.scheduler_configs[s.scheduler_type])
+            for key, value in (s.params or {}).items():
+                if key in sc:
+                    sc[key] = value
+            optim_out.append({
+                'optimizer': optim_instances[optimizer],
+                'scheduler': _create_scheduling_block(
+                    sc, optim_instances[optimizer]
+                ),    
+                'frequency': frequency,
+            })            
+        return optim_out
     
     def train_dataloader(self) -> torch.utils.data.DataLoader:
         if hasattr(self.data.train.iterator, '_target_'):
