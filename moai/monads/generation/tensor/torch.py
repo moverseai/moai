@@ -12,6 +12,7 @@ __all__ = [
     "Parameter",
     "Parameters",
     "ZerosLike",
+    "RandomLike",
 ]
 
 class Scalar(torch.nn.Module):
@@ -107,6 +108,27 @@ class ZerosLike(torch.nn.Module):
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         # return torch.zeros_like(tensor)
         return torch.zeros_like(tensor)
+
+
+class RandomLike(torch.nn.Module):
+    __RANDOMS__ = {
+        'unit': torch.rand_like,
+        'normal': torch.randn_like,
+    }
+
+    def __init__(self,
+        scale:          float=1.0,
+        mode:           str='unit', # one of [unit, normal]
+    ):
+        super().__init__()
+        self.generate = RandomLike.__RANDOMS__[mode]
+        self.scale = scale
+
+    def forward(self, 
+        tensor: torch.Tensor
+    ) -> torch.Tensor:
+        generated = self.generate(tensor)
+        return generated * self.scale if self.scale != 1.0 else generated
 
 class Clone(torch.nn.Module):
     def __init__(self):
