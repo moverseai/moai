@@ -7,7 +7,7 @@ import os
 import typing
 import logging
 
-__all__ = ["Npz", "StandaloneNpz"]
+__all__ = ["Npz", "StandaloneNpz", "RepeatedNpz"]
 
 log = logging.getLogger(__name__)
 
@@ -38,3 +38,18 @@ class StandaloneNpz(torch.utils.data.Dataset):            #TODO add the loading 
 
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         return toolz.valmap(lambda t: t[index], self.file)
+    
+class RepeatedNpz(torch.utils.data.Dataset):            #TODO add the loading different npz and combining them in the same dict case
+    def __init__(self,
+        length:             int,
+        filename:           str='',        
+    ):
+        self.file = load_npz_file(filename)
+        self.length = length
+        log.info(f"Loaded an .npz file producing [{list(self.file.keys())}].")
+
+    def __len__(self) -> int:
+        return self.length
+
+    def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
+        return self.file

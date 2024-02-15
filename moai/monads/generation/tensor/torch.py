@@ -13,6 +13,7 @@ __all__ = [
     "Parameters",
     "ZerosLike",
     "RandomLike",
+    "OnesLike",
 ]
 
 class Scalar(torch.nn.Module):
@@ -109,6 +110,13 @@ class ZerosLike(torch.nn.Module):
         # return torch.zeros_like(tensor)
         return torch.zeros_like(tensor)
 
+class OnesLike(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        # return torch.zeros_like(tensor)
+        return torch.ones_like(tensor)
 
 class RandomLike(torch.nn.Module):
     __RANDOMS__ = {

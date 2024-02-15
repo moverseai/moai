@@ -81,8 +81,10 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         self.preproc = torch.nn.ModuleDict()
         self.postproc = torch.nn.ModuleDict()
         for k, c in processing.items():
-            self.preproc[k] = Cascade(monads=monads, **c['preprocess'])
-            self.postproc[k] = Cascade(monads=monads, **c['postprocess'])
+            self.preproc[k] = Cascade(monads=monads, **c['preprocess'])\
+                if 'preprocess' in c else torch.nn.Identity()
+            self.postproc[k] = Cascade(monads=monads, **c['postprocess'])\
+                if 'postprocess' in c else torch.nn.Identity()
             # self.postproc[k] = _create_processing_block(c, 'postprocess', monads=monads)
 
         # self.preprocess = _create_processing_block(gan, "preprocess", monads=monads) 
@@ -226,15 +228,18 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         self.optimizer_index_to_stage_n_step = []
         for optimizer, stage, step, frequency, scheduler in self.params_optimizers:
             self.optimizer_index_to_stage_n_step.append((stage, step))
-            s = self.scheduler_instances[scheduler]
-            sc = copy.deepcopy(self.scheduler_configs[s.scheduler_type])
-            for key, value in (s.params or {}).items():
-                if key in sc:
-                    sc[key] = value
+            s = self.scheduler_instances.get(scheduler)
+            if s is not None:
+                sc = copy.deepcopy(self.scheduler_configs[s.scheduler_type])
+                for key, value in (s.params or {}).items():
+                    if key in sc:
+                        sc[key] = value
+            else:
+                sc = None
             optim_out.append({
                 'optimizer': optim_instances[optimizer],
                 'scheduler': _create_scheduling_block(
-                    sc, optim_instances[optimizer]
+                    sc, [optim_instances[optimizer]]
                 ),    
                 'frequency': frequency,
             })            
