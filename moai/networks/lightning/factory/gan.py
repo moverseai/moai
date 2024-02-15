@@ -154,6 +154,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         stage, step = self.optimizer_index_to_stage_n_step[optimizer_idx]
         preprocessed = self.preproc[step](batch)
         prediction = self(preprocessed)
+        #NOTE: fake detach for disc step should be here
         for d in self.disc_fwds:
             d(prediction)
         postprocessed = self.postproc[step](prediction)#TODO: detach when/how?
