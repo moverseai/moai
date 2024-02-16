@@ -78,13 +78,16 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
             self.supervision[step] = _create_supervision_block(
                 omegaconf.OmegaConf.merge(supervision, objective)
             )
-        self.preproc = torch.nn.ModuleDict()
-        self.postproc = torch.nn.ModuleDict()
+        self.pregen = torch.nn.ModuleDict()
+        self.predisc = torch.nn.ModuleDict()
+        self.postdisc = torch.nn.ModuleDict()
         for k, c in processing.items():
-            self.preproc[k] = Cascade(monads=monads, **c['preprocess'])\
-                if 'preprocess' in c else torch.nn.Identity()
-            self.postproc[k] = Cascade(monads=monads, **c['postprocess'])\
-                if 'postprocess' in c else torch.nn.Identity()
+            self.pregen[k] = Cascade(monads=monads, **c['pregeneration'])\
+                if 'pregeneration' in c else torch.nn.Identity()
+            self.predisc[k] = Cascade(monads=monads, **c['prediscrimination'])\
+                if 'prediscrimination' in c else torch.nn.Identity()
+            self.postdisc[k] = Cascade(monads=monads, **c['postdiscrimination'])\
+                if 'postdiscrimination' in c else torch.nn.Identity()
             # self.postproc[k] = _create_processing_block(c, 'postprocess', monads=monads)
 
         # self.preprocess = _create_processing_block(gan, "preprocess", monads=monads) 
@@ -136,6 +139,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
                         )
                     ))))
             )
+        self.generator_step = 0
     
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
@@ -154,12 +158,13 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         optimizer_idx:          int,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
         stage, step = self.optimizer_index_to_stage_n_step[optimizer_idx]
-        preprocessed = self.preproc[step](batch)
+        preprocessed = self.pregen[step](batch)
         prediction = self(preprocessed)
         #NOTE: fake detach for disc step should be here
+        prediction = self.predisc[step](prediction)
         for d in self.disc_fwds:
             d(prediction)
-        postprocessed = self.postproc[step](prediction)#TODO: detach when/how?
+        postprocessed = self.postdisc[step](prediction)#TODO: detach when/how?
         # if stage == 'discriminator':
             
         # else if stage == 'generator':            
@@ -167,15 +172,20 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
         losses.update({'total_loss': total_loss})        
         self.log_dict(losses, prog_bar=False, logger=True)        
-        return { 'loss': total_loss, 'tensors': postprocessed }
+        return { 
+            'loss': total_loss, 'tensors': postprocessed, 
+            '__moai__': { 'stage': stage } 
+        }
 
     def training_step_end(self, 
         train_outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]
     ) -> None:
-        if self.global_step and (self.global_step % self.visualization.interval == 0):
-            self.visualization(train_outputs['tensors'], self.global_step)
-        if self.global_step and (self.global_step % self.exporter.interval == 0):
-            self.exporter(train_outputs['tensors'], self.global_step)
+        if train_outputs['__moai__']['stage'] == 'generator':
+            self.generator_step += 1
+        if self.generator_step and (self.generator_step % self.visualization.interval == 0):
+            self.visualization(train_outputs['tensors'], self.generator_step)
+        if self.generator_step and (self.generator_step % self.exporter.interval == 0):
+            self.exporter(train_outputs['tensors'], self.generator_step)
         return train_outputs['loss']
 
     def validation_step(self,
