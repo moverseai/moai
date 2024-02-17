@@ -7,7 +7,6 @@ from moai.validation.metrics.common.classified import (
     FalseNegative,
 )
 from pytorch_lightning import Callback
-from collections import Iterable
 
 import torch
 import omegaconf.omegaconf
