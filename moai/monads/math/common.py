@@ -87,5 +87,3 @@ class Rad2Deg(torch.nn.Module):
 
     def forward(self, radians: torch.Tensor) -> torch.Tensor:
         return torch.rad2deg(radians)
-    
-    

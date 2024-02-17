@@ -10,6 +10,7 @@ from moai.monads.generation.tensor.torch import (
     Parameters,
     Identity,
     RandomLike,
+    OnesLike,
 )
 from moai.monads.generation.tensor.npy import Npy
 
@@ -26,4 +27,5 @@ __all__ = [
     "Npy",
     "Identity",
     "RandomLike",
+    "OnesLike",
 ]
