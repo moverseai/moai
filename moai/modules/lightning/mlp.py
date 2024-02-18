@@ -1,4 +1,3 @@
-from symbol import parameters
 import moai.nn.linear as mil
 
 import torch

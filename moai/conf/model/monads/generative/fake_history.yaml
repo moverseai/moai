@@ -1,0 +1,5 @@
+# @package model.monads._name_
+
+_target_: moai.monads.generative.fake_history.FakeHistory
+history_size: ???
+percentage: 0.5
