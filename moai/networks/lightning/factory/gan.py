@@ -140,6 +140,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
                     ))))
             )
         self.generator_step = 0
+        self.discriminator_step = 0
     
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
@@ -171,7 +172,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         total_loss, losses = self.supervision[self.steps[optimizer_idx]](postprocessed)      
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
         losses.update({'total_loss': total_loss})        
-        self.log_dict(losses, prog_bar=False, logger=True)        
+        self.log_dict(losses, prog_bar=False, logger=True)    
         return { 
             'loss': total_loss, 'tensors': postprocessed, 
             '__moai__': { 'stage': stage } 
@@ -182,9 +183,9 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
     ) -> None:
         if train_outputs['__moai__']['stage'] == 'generator':
             self.generator_step += 1
-        if self.generator_step and (self.generator_step % self.visualization.interval == 0):
+        if train_outputs['__moai__']['stage'] == 'generator' and (self.generator_step % self.visualization.interval == 0):
             self.visualization(train_outputs['tensors'], self.generator_step)
-        if self.generator_step and (self.generator_step % self.exporter.interval == 0):
+        if train_outputs['__moai__']['stage'] == 'generator' and (self.generator_step % self.exporter.interval == 0):
             self.exporter(train_outputs['tensors'], self.generator_step)
         return train_outputs['loss']
 
