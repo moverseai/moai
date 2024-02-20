@@ -2552,5 +2552,5 @@ class MotionSkeleton(Callable):
                     frame = canvases[id].create_frame()
                     frame.add_mesh(mesh)
         scene.save_as_html(
-            os.path.join("scenepic", "motion_clips.html"), title=f"{self.name}"
+            os.path.join("scenepic", str(tensors['__moai__']['optimizer_idx'])+"_motion_clips.html"), title=f"{self.name}"
         )

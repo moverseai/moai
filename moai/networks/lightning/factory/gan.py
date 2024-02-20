@@ -88,12 +88,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
                 if 'prediscrimination' in c else torch.nn.Identity()
             self.postdisc[k] = Cascade(monads=monads, **c['postdiscrimination'])\
                 if 'postdiscrimination' in c else torch.nn.Identity()
-            # self.postproc[k] = _create_processing_block(c, 'postprocess', monads=monads)
 
-        # self.preprocess = _create_processing_block(gan, "preprocess", monads=monads) 
-        # self.discriminate = _create_processing_block(gan, "discriminate", monads=monads)
-        # self.reconstruct = _create_processing_block(gan, "reconstruct", monads=monads)
-        # self.generate = _create_processing_block(gan, "generate", monads=monads)
         self.gen_fwds, self.disc_fwds = [], []
 
         params = inspect.signature(self.generator.forward).parameters
@@ -140,7 +135,6 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
                     ))))
             )
         self.generator_step = 0
-        self.discriminator_step = 0
     
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
@@ -173,6 +167,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
         losses.update({'total_loss': total_loss})        
         self.log_dict(losses, prog_bar=False, logger=True)    
+        postprocessed['__moai__'] = {'optimizer_idx': optimizer_idx}
         return { 
             'loss': total_loss, 'tensors': postprocessed, 
             '__moai__': { 'stage': stage } 
