@@ -3,7 +3,7 @@ from moai.monads.execution.cascade import _create_accessor
 from collections.abc import Callable
 
 import scenepic
-import httpwatcher
+# import httpwatcher #NOTE: is problematic for py>3.10 cause of tornado
 import typing
 import torch
 import logging
@@ -2412,7 +2412,7 @@ class LatentSkeleton(Callable):
         self.kintree = skeleton
         os.makedirs(scenepic_folder, exist_ok=True)
         log.info(f"Scenepic visualization enabled @ {scenepic_folder}.")
-        log.warning(f"[scenepic]: For automatic refreshing @ `http://localhost:5555' use `httpwatcher -r {scenepic_folder}` (`pip install httpwatcher` if not available)")
+        # log.warning(f"[scenepic]: For automatic refreshing @ `http://localhost:5555' use `httpwatcher -r {scenepic_folder}` (`pip install httpwatcher` if not available)")
 
     def __call__(self, 
         tensors: typing.Dict[str, torch.Tensor],
