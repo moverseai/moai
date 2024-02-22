@@ -56,11 +56,11 @@ class SkeletonConvolution(torch.nn.Module):
         else:
             self.register_parameter('bias', None)
 
-        self.mask = torch.zeros_like(self.weight)
+        mask = torch.zeros_like(self.weight)
         for i, neighbour in enumerate(self.expanded_neighbors):
-            self.mask[self.out_channels_per_joint * i: self.out_channels_per_joint * (i + 1), neighbour, ...] = 1
-        self.mask = torch.nn.parameter.Parameter(self.mask, requires_grad=False) #TODO: why param?
-
+            mask[self.out_channels_per_joint * i: self.out_channels_per_joint * (i + 1), neighbour, ...] = 1
+        # self.mask = torch.nn.parameter.Parameter(self.mask, requires_grad=False) #TODO: why param?
+        self.register_buffer('mask', mask)
         self.reset_parameters()
 
     def reset_parameters(self):
