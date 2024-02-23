@@ -125,6 +125,17 @@ class Squeeze(torch.nn.Module):
         tensor: torch.Tensor,
     ) -> torch.Tensor:
         return tensor.squeeze()
+    
+class Unsqueeze(torch.nn.Module):
+    def __init__(self, dim: typing.Optional[int]=None) -> None:
+        super().__init__()
+        self.dim = dim
+
+    def forward(self,
+        tensor: torch.Tensor,
+    ) -> torch.Tensor:
+        return tensor.unsqueeze(dim=self.dim) if self.dim is not None\
+            else tensor.unsqueeze()
 
 class Identity(torch.nn.Module):
     def __init__(self) -> None:

@@ -15,8 +15,6 @@ import numpy as np
 
 from collections import defaultdict
 
-from moai.modules.lightning.reparametrization.normal import NormalPrior
-
 log = logging.getLogger(__name__)
 
 __all__ = ["VariationalAutoencoder"]
@@ -28,8 +26,8 @@ class VariationalAutoencoder(minet.FeedForward):
         modules:        omegaconf.DictConfig,
         data:           omegaconf.DictConfig=None,
         parameters:     omegaconf.DictConfig=None,
-        feedforward:    omegaconf.DictConfig=None,        
-        monads:         omegaconf.DictConfig=None,        
+        feedforward:    omegaconf.DictConfig=None,
+        monads:         omegaconf.DictConfig=None,
         supervision:    omegaconf.DictConfig=None,
         validation:     omegaconf.DictConfig=None,
         generation:     omegaconf.DictConfig=None,
@@ -42,20 +40,16 @@ class VariationalAutoencoder(minet.FeedForward):
             supervision=supervision, validation=validation,
             export=export, parameters=parameters,
         )
-        self.latent_dim = configuration.features_head.latent_dim
+        # self.latent_dim = configuration.features_head.latent_dim
         self.repeat_val = configuration.repeat_val
         self.traversal_len = configuration.traversal_len
         self.traversal_step = configuration.traversal_step
         self.traversal_dim = configuration.traversal_dim
         self.traversal_init_value = configuration.traversal_init_value
-        flatten = toolz.get_in(['flatten'], modules)        
-        flatten = hyu.instantiate(flatten) if flatten else torch.nn.Flatten()
-        prior = toolz.get_in(['reparametrization'], modules)        
-        prior = hyu.instantiate(prior) if prior else NormalPrior()
-        self.feature_head = Feature2MuStd(configuration, flatten)
-        non_default = toolz.get_in(['ctrl'], io.reparametrization)
-        self.reparametrizer = ControlledReparametrizer(prior) if non_default else Reparametrizer(prior) 
         self.encoder = hyu.instantiate(modules['encoder'])
+        # responsible for predicting the latent distribution (e.g. mu, logvar, etc.)
+        self.latent_dist_predictor = hyu.instantiate(modules['latent_dist_predictor'])
+        self.sampler = hyu.instantiate(modules['sampler'])
         self.decoder = hyu.instantiate(modules['decoder'])
         self.sample = _create_processing_block(generation, "sample", monads=monads)
         self.walk = _create_processing_block(generation, "walk", monads=monads)
@@ -85,49 +79,55 @@ class VariationalAutoencoder(minet.FeedForward):
                     ))))
             )
 
-        params = inspect.signature(self.feature_head.forward).parameters
-        fhead_in = list(zip(*[mirtp.force_list(io.features_head[prop]) for prop in params]))
-        fhead_out = mirtp.split_as(mirtp.resolve_io_config(io.features_head['out']), fhead_in)
+        if self.latent_dist_predictor is not None:
+            params = inspect.signature(self.latent_dist_predictor.forward).parameters
+            ldist_in = list(zip(*[mirtp.force_list(io.latent_dist_predictor[prop]) for prop in params]))
+            ldist_out = mirtp.split_as(mirtp.resolve_io_config(io.latent_dist_predictor['out']), ldist_in)
 
-        self.fhead_res_fill = [mirtp.get_result_fillers(self.feature_head, out) for out in fhead_out]        
-        get_fhead_filler = iter(self.fhead_res_fill)
-        
-        for keys in fhead_in:
-            self.f2mu_std_fwds.append(lambda td,
-                tk=keys,
-                args=params.keys(),
-                rep=self.feature_head,
-                filler=next(get_fhead_filler):
-                    filler(td, rep(**dict(zip(args,
-                        list(
-                                td[k] if type(k) is str
-                                else list(td[j] for j in k)
-                            for k in tk
-                        )
-                    ))))
-            ) 
+            self.ldist_res_fill = [mirtp.get_result_fillers(self.latent_dist_predictor, out) for out in ldist_out]
+            get_ldist_filler = iter(self.ldist_res_fill)
+            
+            for keys in ldist_in:
+                self.f2mu_std_fwds.append(lambda td,
+                    tk=keys,
+                    args=params.keys(),
+                    rep=self.latent_dist_predictor,
+                    filler=next(get_ldist_filler):
+                        filler(td, rep(**dict(zip(args,
+                            list(
+                                    td[k] if type(k) is str
+                                    else list(td[j] for j in k)
+                                for k in tk
+                            )
+                        ))))
+                ) 
+        else:
+            log.warning("No latent distribution predictor found. Assuming standard normal distribution.")
 
-        params = inspect.signature(self.reparametrizer.forward).parameters
-        rep_in = list(zip(*[mirtp.force_list(io.reparametrization[prop]) for prop in params]))
-        rep_out = mirtp.split_as(mirtp.resolve_io_config(io.reparametrization['out']), enc_in)
+        if self.sampler is not None:
+            params = inspect.signature(self.sampler.forward).parameters
+            sampler_in = list(zip(*[mirtp.force_list(io.sampler[prop]) for prop in params]))
+            sampler_out = mirtp.split_as(mirtp.resolve_io_config(io.sampler['out']), sampler_in)
 
-        self.rep_res_fill = [mirtp.get_result_fillers(self.reparametrizer, out) for out in rep_out]        
-        get_rep_filler = iter(self.rep_res_fill)
-        
-        for keys in rep_in:
-            self.rep_fwds.append(lambda td,
-                tk=keys,
-                args=params.keys(),
-                rep=self.reparametrizer,
-                filler=next(get_rep_filler):
-                    filler(td, rep(**dict(zip(args,
-                        list(
-                                td[k] if type(k) is str
-                                else list(td[j] for j in k)
-                            for k in tk
-                        )
-                    ))))
-            ) 
+            self.sampler_res_fill = [mirtp.get_result_fillers(self.sampler, out) for out in sampler_out]
+            get_sampler_filler = iter(self.sampler_res_fill)
+            
+            for keys in sampler_in:
+                self.rep_fwds.append(lambda td,
+                    tk=keys,
+                    args=params.keys(),
+                    rep=self.sampler,
+                    filler=next(get_sampler_filler):
+                        filler(td, rep(**dict(zip(args,
+                            list(
+                                    td[k] if type(k) is str
+                                    else list(td[j] for j in k)
+                                for k in tk
+                            )
+                        ))))
+                ) 
+        else:
+            log.warning("No sampler found. Assuming reparametrization trick.")
 
         params = inspect.signature(self.decoder.forward).parameters
         dec_in = list(zip(*[mirtp.force_list(io.decoder[prop]) for prop in params]))
@@ -210,6 +210,7 @@ class VariationalAutoencoder(minet.FeedForward):
         sampled = self.walk(outputs[0]['td'])
         [d(sampled) for d in self.gen_fwds]
         generated = self.generate(sampled)
+        generated['__moai__']['isVal'] = True
         [vis(generated) for vis in self.visualization.latent_visualizers]
 
         list_of_outputs = [outputs] if isinstance(toolz.get([0, 0], outputs)[0], dict) else outputs
@@ -224,7 +225,7 @@ class VariationalAutoencoder(minet.FeedForward):
                     ))
                 else:
                     metrics[key] = np.mean(np.array(
-                        [d['metrics'][key].item() for d in o if key in d]
+                        [d['metrics'][key].item() for d in o if key in d['metrics']]
                     ))
                 all_metrics[key].append(metrics[key])
             metrics = toolz.keymap(lambda k: k.strip('gen_'), metrics) # remove hardcoded 'gen_' prefix for logging
@@ -232,15 +233,16 @@ class VariationalAutoencoder(minet.FeedForward):
             log_metrics = toolz.keymap(lambda k: f"val_{k}/{list(self.data.val.iterator.datasets.keys())[i]}", metrics)
             self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
         all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_metrics)
-        self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)    
+        self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
 
 class Feature2MuStd(torch.nn.Module):
     def __init__(self,
         configuration:      omegaconf.DictConfig,
-        flatten:            torch.nn.Module,
     ) -> None:
         super(Feature2MuStd, self).__init__()
-        self.flatten = flatten
+        
+        self.flatten = hyu.instantiate(configuration.flatten) if configuration.flatten is not None \
+            else torch.nn.Flatten()
         
         self.linear_mu = mil.make_linear_block(
             block_type=configuration.linear.type,

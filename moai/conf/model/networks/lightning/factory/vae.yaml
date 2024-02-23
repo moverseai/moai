@@ -7,9 +7,6 @@ configuration:
   traversal_step: 0.25
   traversal_dim: -1
   traversal_init_value: -0.75
-  features_head:
-    latent_dim: 32
-    enc_out_dim: 256
   linear:
     type: ???
     activation:
@@ -17,9 +14,9 @@ configuration:
 io:
   encoder:
     out: ???
-  features_head:
+  latent_dist_predictor:
     out: ???
-  reparametrization:
+  sampler:
     out: ???
   decoder:  
     out: ???

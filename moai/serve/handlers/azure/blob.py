@@ -46,9 +46,12 @@ class AzureBlobInputHandler(Callable):
     ) -> typing.Any:
         # initialize connection to Azure Blob Storage
         connect_str = json[self.connection_string]
-        blob_service_client = BlobServiceClient.from_connection_string(
-            connect_str,
-        )
+        try:
+            blob_service_client = BlobServiceClient.from_connection_string(
+                connect_str,
+            )
+        except Exception as e:
+            log.info(f"An error has occured while connecting to Azure Blob Storage:\n{e}")
         container = json[self.container_name]
         for bl_acc, al in zip(self.blob_acecessors, self.alias):
             blob_name = bl_acc(json)

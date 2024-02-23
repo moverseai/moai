@@ -2396,8 +2396,9 @@ class LatentSkeleton(Callable):
         point_size:       float=0.1,
         name:             str="default",
         skeleton:         typing.Sequence[int]=None,  
-        joint_radius:      float=0.02,      
+        joint_radius:      float=0.02,
     ):
+        #TODO: redundant code; should be removed
         self.vertices, self.name, self.point_size = vertices, name, point_size
         self.vertex_accessors = [_create_accessor(k) for k in self.vertices]
         self.ids = [canvas] if isinstance(canvas, int) else list(canvas)
@@ -2464,7 +2465,9 @@ class LatentSkeleton(Callable):
                 (str(n), {'opacity': 0.5}) for n in toolz.unique(self.layers)
             ))
         scene.link_canvas_events(*canvases)
-        scene.save_as_html(os.path.join('scenepic', str(tensors['__moai__']['epoch'])+"_traversals.html"), title=f"{self.name}")
+        # scene.save_as_html(os.path.join('scenepic', str(tensors['__moai__']['epoch'])+"_traversals.html"), title=f"{self.name}")
+        scene.save_as_html(os.path.join('scenepic', "traversals.html"), title=f"{self.name}")
+        # scene.save_as_html(os.path.join('scenepic', str(tensors['__moai__']['epoch'])+"_traversals.html"), title=f"{self.name}")
 
 
 class MotionSkeleton(Callable):    

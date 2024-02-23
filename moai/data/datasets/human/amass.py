@@ -41,7 +41,7 @@ class AMASS(torch.utils.data.Dataset):
         self.device = device[0] if device[0] >= 0 else 'cpu'
         for part in parts:
             for subject in filter(os.path.isdir, glob.glob(os.path.join(data_root, part, '**'))):
-                subject_name = os.path.basename(subject)     
+                subject_name = os.path.basename(subject)
                 if model_type == 'smplx': 
                     gendered_shape_fn = toolz.first(glob.glob(
                         os.path.join(data_root, part, subject_name, gendered_shape_fn)
@@ -120,7 +120,7 @@ class AMASS(torch.utils.data.Dataset):
                 'smplx': {
                     'gender': 1 if gender == 'male' else 2,
                     'scale': torch.scalar_tensor(1.0), 
-                    'params': {                
+                    'params': {
                         'betas': betas,
                         'body_pose': torch.from_numpy(data['pose_body'][frame]).float().clone(), # 63
                         'transl': torch.from_numpy(data['trans'][frame]).float().clone(), # 3
@@ -142,9 +142,9 @@ class AMASS(torch.utils.data.Dataset):
                 'smpl': {
                     'gender': 1 if gender == 'male' else 2,
                     'scale': torch.scalar_tensor(1.0), 
-                    'params': {                
+                    'params': {
                         'betas': betas[:10],
-                        'body_pose': torch.from_numpy(data['poses'][frame,3:66]).float().clone(), # 63 (21x3)
+                        'body_pose': torch.from_numpy(data['poses'][frame,3:72]).float().clone(), # 63 (21x3) plus 2 x 3 for hands
                         'transl': torch.from_numpy(data['trans'][frame]).float().clone(), # 3
                         'global_orient': torch.from_numpy(data['poses'][frame,:3]).float().clone(), # 3
                         'left_hand_pose': lhand[frame].float().clone(), # 45

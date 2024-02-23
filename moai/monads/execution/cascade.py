@@ -100,17 +100,17 @@ class Cascade(torch.nn.ModuleDict): #TODO: check if x: ['arg'] is the same as x:
                 self.execs.append(lambda tensor_dict, 
                         acc=accessors, k=keys, p=props, f=module:
                     tensor_dict.update({
-                        k[-1]: f(**dict(zip(p,                             
+                        k[-1]: f(**dict(zip(p,
                             list(a(tensor_dict) if type(i) is str 
                                 else list(tensor_dict[j] for j in i) if i is not None else None
                                 for a, i in zip(acc, k[:-1])
                             )# list(tensor_dict[i] if type(i) is str
                         )))
                     })
-                )                
+                )
 
     def forward(self,
-        tensors: typing.Dict[str, torch.Tensor]    
+        tensors: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
         for exe in self.execs:
             exe(tensors) #NOTE: each executing lambda updates the tensor dict itself

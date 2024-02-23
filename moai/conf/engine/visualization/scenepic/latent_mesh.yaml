@@ -1,0 +1,13 @@
+# @package visualization.latent_visualizers._name_
+
+_target_: moai.visualization.scenepic.Mesh
+name: ${experiment.name}
+vertices: ???
+faces: ???
+canvas: ???
+layer: ???
+color: ???
+batch_percentage: 1.0
+width: 600
+height: 400
+point_size: 0.1
