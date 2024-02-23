@@ -1,0 +1,15 @@
+# @package model.modules.latent_dist_predictor
+
+_target_: moai.modules.lightning.distribution.Basic
+mean_module:
+  type: linear
+  activation:
+    type: none
+  in_features: ???
+  out_features: ???
+sigma_module:
+  type: linear
+  activation:
+    type: none
+  in_features: ???
+  out_features: ???

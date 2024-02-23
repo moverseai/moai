@@ -1,0 +1,9 @@
+# @package model.modules.latent_dist_predictor
+
+_target_: moai.modules.lightning.distribution.Homeomorphic
+mean_module:
+  input_dims: ???
+  output_dims: ???
+sigma_module:
+  input_dim: ???
+  z_dim: ???
