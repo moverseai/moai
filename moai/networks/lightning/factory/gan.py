@@ -26,7 +26,114 @@ import copy
 
 log = logging.getLogger(__name__)
 
-__all__ = ["GenerativeAdversarialNetwork"]
+__all__ = ['NullGenerativeAdversarialNetwork', 'GenerativeAdversarialNetwork']
+
+class NullGenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
+    def __init__(self,
+        data:           omegaconf.DictConfig=None,
+        processing:     omegaconf.DictConfig=None,        
+        monads:         omegaconf.DictConfig=None,
+        validation:     omegaconf.DictConfig=None,
+        visualization:  omegaconf.DictConfig=None,
+        export:         omegaconf.DictConfig=None,
+    ):
+        super(NullGenerativeAdversarialNetwork, self).__init__()
+        self.initializer = None
+        self.data = _assign_data(data)
+        self.validation = _create_validation_block(validation)
+        self.visualization = _create_interval_block(visualization)
+        self.exporter = _create_interval_block(export)
+        self.pregen = torch.nn.ModuleDict()
+        self.predisc = torch.nn.ModuleDict()
+        self.postdisc = torch.nn.ModuleDict()
+        for k, c in processing.items():
+            self.pregen[k] = Cascade(monads=monads, **c['pregeneration'])\
+                if 'pregeneration' in c else torch.nn.Identity()
+            self.predisc[k] = Cascade(monads=monads, **c['prediscrimination'])\
+                if 'prediscrimination' in c else torch.nn.Identity()
+        self.global_test_step = 0
+    
+    def forward(self, 
+        td: typing.Dict[str, torch.Tensor]
+    ) -> typing.Dict[str, torch.Tensor]:
+        return td
+    
+    def initialize_parameters(self) -> None:
+        init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
+        init(self)
+    
+    def test_step(self, 
+        batch: typing.Dict[str, torch.Tensor],
+        batch_nb: int,
+        dataloader_index:   int=0, #NOTE check with None and kwargs
+    ) -> dict:
+        preprocessed = self.pregen['step_sample'](batch)
+        prediction = self(preprocessed)
+        outputs = self.predisc['step_sample'](prediction)
+        metrics = self.validation(outputs)
+        self.global_test_step += 1
+        log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_index]}", metrics)
+        # check if iterator is zipped
+        try:
+            zp_target = self.data.test.iterator['_target_'].split(".")[-1]
+        except:
+            zp_target = None
+        # TODO: update this part of code, and pass the dataloader index every time
+        if self.data is not None and zp_target != 'Zipped' and len(self.data.test.iterator.datasets.keys()) > 1:
+            log_metrics.update({'__moai__': {'dataloader_index': dataloader_index}})
+        self.log_dict(log_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False, sync_dist=True)
+        return metrics, outputs
+    
+    def test_step_end(self,
+        metrics_tensors: typing.Tuple[typing.Dict[str, torch.Tensor], typing.Dict[str, torch.Tensor]],        
+    ) -> None:
+        metrics, tensors = metrics_tensors
+        if self.global_test_step and (self.global_test_step % self.exporter.interval == 0):
+            self.exporter(tensors, self.global_test_step)
+        if self.global_test_step and (self.global_test_step % self.visualization.interval == 0):
+            self.visualization(tensors, self.global_test_step)
+        return metrics
+
+    def test_epoch_end(self, 
+        outputs: typing.List[dict]
+    ) -> dict:
+        list_of_outputs = [outputs] if isinstance(toolz.get([0, 0], outputs)[0], dict) else outputs
+        all_metrics = defaultdict(list)
+        log_metrics = defaultdict(list)
+        for i, o in enumerate(list_of_outputs):
+            keys = next(iter(o), { }).keys()        
+            metrics = { }
+            for key in keys:
+                metrics[key] = np.mean(np.array(
+                    [d[key].item() for d in o if key in d]
+                ))
+                all_metrics[key].append(metrics[key])            
+            log_metrics[list(self.data.test.iterator.datasets.keys())[i]] = metrics
+        self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
+
+    def test_dataloader(self) -> torch.utils.data.DataLoader:
+        if hasattr(self.data.test.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator")
+            test_iterators = [hyu.instantiate(self.data.test.iterator)]
+            #test_iterator = hyu.instantiate(self.data.test.iterator)
+        else:
+            test_iterators = [Indexed(
+                {k: v }, # self.data.val.iterator.datasets,
+                self.data.test.iterator.augmentation if hasattr(self.data.test.iterator, 'augmentation') else None,
+            ) for k, v in self.data.test.iterator.datasets.items()]
+            # test_iterator = Indexed(
+            #     self.data.test.iterator.datasets,
+            #     self.data.test.iterator.augmentation if hasattr(self.data.test.iterator, 'augmentation') else None,
+            # )
+        if not hasattr(self.data.test, 'loader'):
+            log.error("Test data loader missing. Please add a data loader (i.e. \'- data/test/loader: torch\') entry in the configuration.")
+        else:
+            test_loaders = [
+                hyu.instantiate(self.data.test.loader, test_iterator)
+                for test_iterator in test_iterators
+            ]
+            #test_loader = hyu.instantiate(self.data.test.loader, test_iterator)
+        return test_loaders
 
 class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
     def __init__(self, 
@@ -284,27 +391,3 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
             ]
         # return validation_loaders[0] if len(validation_loaders) == 1 else validation_loaders
         return validation_loaders
-
-    def test_dataloader(self) -> torch.utils.data.DataLoader:
-        if hasattr(self.data.test.iterator, '_target_'):
-            log.info(f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator")
-            test_iterators = [hyu.instantiate(self.data.test.iterator)]
-            #test_iterator = hyu.instantiate(self.data.test.iterator)
-        else:
-            test_iterators = [Indexed(
-                {k: v }, # self.data.val.iterator.datasets,
-                self.data.test.iterator.augmentation if hasattr(self.data.test.iterator, 'augmentation') else None,
-            ) for k, v in self.data.test.iterator.datasets.items()]
-            # test_iterator = Indexed(
-            #     self.data.test.iterator.datasets,
-            #     self.data.test.iterator.augmentation if hasattr(self.data.test.iterator, 'augmentation') else None,
-            # )
-        if not hasattr(self.data.test, 'loader'):
-            log.error("Test data loader missing. Please add a data loader (i.e. \'- data/test/loader: torch\') entry in the configuration.")
-        else:
-            test_loaders = [
-                hyu.instantiate(self.data.test.loader, test_iterator)
-                for test_iterator in test_iterators
-            ]
-            #test_loader = hyu.instantiate(self.data.test.loader, test_iterator)
-        return test_loaders
