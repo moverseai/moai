@@ -18,10 +18,34 @@ import numpy as np
 
 import tqdm
 
+from moai.serve.model import _find_all_targets
+from toolz import merge_with, valmap
+
+
 log = logging.getLogger(__name__)
 
 __all__ = ["StreamingOptimizerServer"]
 
+
+def gather_tensors(dicts):
+    """Merges dictionaries by gathering tensors into lists."""
+    return merge_with(lambda x: x if isinstance(x, list) else [x], *dicts)
+
+def concat_tensors(tensor_list):
+    """Concatenates a list of tensors along dimension 0."""
+    return torch.cat(tensor_list, dim=0)
+
+def recursive_merge(dicts):
+    """Recursively merges dictionaries."""
+    def merge_fn(values):
+        if all(isinstance(v, torch.Tensor) for v in values):
+            return torch.cat(values, dim=0)
+        elif all(isinstance(v, dict) for v in values):
+            return recursive_merge(values)
+        else:
+            # Assumes all non-tensor, non-dict values are identical across dicts
+            return values[0]
+    return merge_with(merge_fn, *dicts)
 
 class StreamingOptimizerServer(BaseHandler):
     def __init__(self) -> None:
@@ -86,12 +110,13 @@ class StreamingOptimizerServer(BaseHandler):
                 ):
                     cfg = OmegaConf.merge(cfg, {'handlers': {'preprocess': handler_overrides['handlers']['preprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
-                self.preproc = {
-                    k: hyu.instantiate(h)
-                    for k, h in (
-                        toolz.get_in(["handlers", "preprocess"], cfg) or {}
-                    ).items()
-                }
+                # self.preproc = {
+                #     k: hyu.instantiate(h)
+                #     for k, h in (
+                #         toolz.get_in(["handlers", "preprocess"], cfg) or {}
+                #     ).items()
+                # }
+                self.preproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'preprocess'], cfg)).items()}
             with initialize(
                 config_path="conf", job_name=f"{main_conf}_postprocess_handlers"
             ):
@@ -102,12 +127,13 @@ class StreamingOptimizerServer(BaseHandler):
                 ):
                     cfg = OmegaConf.merge(cfg, {'handlers': {'postprocess': handler_overrides['handlers']['postprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
-                self.postproc = {
-                    k: hyu.instantiate(h)
-                    for k, h in (
-                        toolz.get_in(["handlers", "postprocess"], cfg) or {}
-                    ).items()
-                }
+                # self.postproc = {
+                #     k: hyu.instantiate(h)
+                #     for k, h in (
+                #         toolz.get_in(["handlers", "postprocess"], cfg) or {}
+                #     ).items()
+                # }
+                self.postproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'postprocess'], cfg)).items()}
         except Exception as e:
             log.error(f"An error has occured while loading the handlers:\n{e}")
 
@@ -116,13 +142,12 @@ class StreamingOptimizerServer(BaseHandler):
         data: typing.Mapping[str, typing.Any],
     ) -> typing.Dict[str, torch.Tensor]:
         log.debug(f"Preprocessing input:\n{data}")
-        # tensors = {"__moai__": {"json": data}}
-        # body = data[0].get("body") or data[0].get("raw")
-        # for k, p in self.preproc.items():
-        # tensors = toolz.merge(tensors, p(body, self.device))
-        # log.debug(f"Tensors: {tensors.keys()}")
-        # return tensors
-        return data
+        tensors = { '__moai__': { 'json': data } }
+        body = data[0].get('body') or data[0].get('raw')
+        for k, p in self.preproc.items():
+            tensors = toolz.merge(tensors, p(body, self.device))
+        log.info(f"Preprocessed tensors:\n{tensors}")
+        return tensors
 
     def __to_device__(self, x):
         # merge values from dict using toolz
@@ -166,8 +191,11 @@ class StreamingOptimizerServer(BaseHandler):
         data: typing.Mapping[str, torch.Tensor],
     ):
         log.info(f"Data:\n{data}")
-        data = OmegaConf.create(data)[0]['body']
-        log.info(f"Data:\n{type(data)}")
+        input_json = data['__moai__']['json'][0]
+        # data = OmegaConf.create(data)[0]['body']
+        processed_data = []
+        data = OmegaConf.create(data)
+        log.info(f"Data type :{type(data)}")
         # instantiate data
         test_iterator = hyu.instantiate(data["test"]["iterator"])
         test_loader = hyu.instantiate(data["test"]["loader"], test_iterator)
@@ -177,19 +205,10 @@ class StreamingOptimizerServer(BaseHandler):
             if data["callbacks"] is not None
             else []
         )
-        processed_data = []
         # do we need to do the below for each batch?
         for batch_idx, batch in tqdm.tqdm(enumerate(test_loader)):
             print(f"Batch {batch_idx}")
             data = toolz.valmap(self.__to_device__, batch)
-            # NOTE: debug only
-            # data["joints_3d_predicted_filtered"] = data["landmarks"]["joints"][
-            #     "filtered"
-            # ].unsqueeze(0)
-            # data["markers_3d_predicted_filtered"] = data["landmarks"]["markers"][
-            #     "filtered"
-            # ].unsqueeze(0)
-            # NOTE: debug only
             # call batch start callbacks
             if pytl_callbacks is not None:
                 for c in pytl_callbacks:
@@ -207,12 +226,15 @@ class StreamingOptimizerServer(BaseHandler):
                         continue
                     # add test epoch end callback
                     try:
+                        # for bathch_idx does not have meaning in test_epoch_end
+                        if batch_idx == 0:
+                            continue
                         on_test_epoch_end = getattr(c, "on_test_epoch_end")
                         log.info(f"Calling on_test_epoch_end for {c}")
                         on_test_epoch_end(
                             trainer=None,
                             pl_module=self.optimizer,
-                            outputs=None,
+                            # outputs=None,
                         )
                     except AttributeError:
                         log.info(f"Callback {c} has no on_test_epoch_end method.")
@@ -279,8 +301,13 @@ class StreamingOptimizerServer(BaseHandler):
                 self.last_loss = None
                 self.optimizer.optimization_step = 0
             metrics = self.optimizer.validation(data)
-            print(f"Metrics: {metrics}")
-            data["__moai__"]["batch_index"] = batch_idx
+            # NOTE: DEBUG
+            if batch_idx >=3:
+                break
+            # NOTE: DEBUG
+            # call postprocess
+            log.info(f"Fitting Metrics: {metrics}") # TODO: why metrics still have gradients?
+            # data["__moai__"]["batch_index"] = batch_idx
             processed_data.append(data)
             # NOTE: for debugging remove metrics
             for (
@@ -290,24 +317,42 @@ class StreamingOptimizerServer(BaseHandler):
                 self.context.metrics.add_metric(
                     name=k, value=float(v.detach().cpu().numpy()), unit="value"
                 )
+        processed_data.append(input_json)
         return processed_data
 
     def postprocess(
         self, data: typing.Mapping[str, torch.Tensor]
     ) -> typing.Sequence[typing.Any]:
         outs = []
-        for d in data:
-            log.debug(f"Postprocessing outputs:\n{d['__moai__']}")
-            # outs = []  # TODO: corner case with no postproc crashes, fix it
-            for k, p in self.postproc.items():
-                # res = p(d, d["__moai__"]["json"])
-                res = p(d, d["__moai__"])
-                if len(outs) == 0:
-                    outs = res
-                else:
-                    for o, r in zip(outs, res):
-                        o = toolz.merge(o, r)
-        return outs
+        input_json = data[-1]
+        # log.info(f"Postprocessing outputs:\n{data}")
+        # save file for debugging
+        
+        # with open("output.json", "w") as f:
+        #     f.write(str(data))
+        # gathered_dict = gather_tensors(data)
+        # concatenated_dict = valmap(concat_tensors, gathered_dict)
+        merged_dict = recursive_merge(data[:-1])
+        # merge dict with input_json
+        log.info(f'input to postprocess json: {input_json}')
+        merged_dict = toolz.merge(merged_dict, input_json)
+        log.info(f"Postprocessing keys:\n{merged_dict.keys()}")
+        for k, p in self.postproc.items():
+            data_ = p(merged_dict, [input_json])
+        # log.info(f"Postprocessing outputs:\n{data['__moai__']}")
+        # for d in data:
+        #     log.info(f"Postprocessing outputs:\n{d['__moai__']}")
+        #     # outs = []  # TODO: corner case with no postproc crashes, fix it
+        #     for k, p in self.postproc.items():
+        #         # res = p(d, d["__moai__"]["json"])
+        #         res = p(d, d["__moai__"])
+        #         if len(outs) == 0:
+        #             outs = res
+        #         else:
+        #             for o, r in zip(outs, res):
+        #                 o = toolz.merge(o, r)
+        # return outs
+        return [{"is_success": True, "message": "Streaming optimisation finished successfully."}]
 
     # def handle(self, data, context):
     #     return super(data, context)
