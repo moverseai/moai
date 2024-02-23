@@ -1,0 +1,5 @@
+# @package data.train.iterator.datasets._name_
+
+_target_: moai.data.datasets.generic.RepeatedNpz
+filename: ???
+length: ???

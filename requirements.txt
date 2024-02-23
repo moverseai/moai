@@ -7,7 +7,7 @@ visdom==0.1.8.9
 hiplot==0.1.20              #TODO: update
 opencv-python
 albumentations==1.1.0             
-matplotlib==3.3.4
+matplotlib>=3.3.4
 toolz
 tablib
 json2html
@@ -19,3 +19,5 @@ rich
 pandas
 roma==1.4.0
 trimesh
+
+# importlib-resources if py>3,7

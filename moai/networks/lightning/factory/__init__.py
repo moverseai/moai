@@ -6,6 +6,7 @@ from moai.networks.lightning.factory.hrnet import HRNet
 from moai.networks.lightning.factory.cascade import Cascade
 from moai.networks.lightning.factory.unet import UNet
 from moai.networks.lightning.factory.onnx import Onnx
+from moai.networks.lightning.factory.gan import GenerativeAdversarialNetwork
 
 __all__ = [
     "Autoencoder",
@@ -16,4 +17,5 @@ __all__ = [
     "Cascade",
     "UNet",
     "Onnx",
+    "GenerativeAdversarialNetwork",
 ]

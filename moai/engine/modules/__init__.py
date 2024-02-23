@@ -11,8 +11,6 @@ from moai.engine.modules.nvidia import (
 from moai.engine.modules.importer import Import
 from moai.engine.modules.empty_cache import EmptyCache
 from moai.engine.modules.azure_logging import AzureLogging
-from moai.engine.modules.graylog_logging import GraylogLogging
-from moai.engine.modules.hydra_logging import HydraLogging
 
 __all__ = [
     "AnomalyDetection",
@@ -26,5 +24,12 @@ __all__ = [
     'DisableTensorCores',
     'DisableFP16Matmul',
     'AzureLogging',
-    'GraylogLogging',
 ]
+
+try:
+    from moai.engine.modules.graylog_logging import GraylogLogging    
+    __all__.append('GraylogLogging')
+    from moai.engine.modules.hydra_logging import HydraLogging
+except Exception:
+    pass #TODO: log this
+

@@ -1,0 +1,12 @@
+# @package visualization.visualizers._name_
+
+_target_: moai.visualization.scenepic.MotionSkeleton
+name: ${experiment.name}
+vertices: ???
+canvas: ???
+layer: ???
+color: ???
+batch_percentage: 1.0
+width: 600
+height: 400
+point_size: 0.1

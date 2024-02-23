@@ -1,3 +1,4 @@
 # @package model.monads._name_
 
 _target_: moai.monads.tensor.Flatten
+start_dim: 1

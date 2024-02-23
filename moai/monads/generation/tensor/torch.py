@@ -12,6 +12,8 @@ __all__ = [
     "Parameter",
     "Parameters",
     "ZerosLike",
+    "RandomLike",
+    "OnesLike",
 ]
 
 class Scalar(torch.nn.Module):
@@ -66,14 +68,18 @@ class Random(torch.nn.Module):
         return generated * self.scale if self.scale != 1.0 else generated
 
 class Ones(torch.nn.Module):
-    def __init__(self):
+    def __init__(self,
+        shape:          typing.Union[int, typing.Sequence[int]],
+        includes_batch: bool=False, # whether shape includes the batch dim             
+    ):
         super(Ones, self).__init__()
+        self.shape = shape if isinstance(shape, typing.Sequence) else [shape]
+        self.includes_batch = includes_batch
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
-        # return torch.ones_like(tensor)
-        return torch.ones(1, *tensor.shape[1:], dtype=tensor.dtype,
-                device=tensor.device).expand_as(tensor) if tensor.shape\
-            else torch.scalar_tensor(1, dtype=tensor.dtype, device=tensor.device)
+        shape = self.shape if self.includes_batch else [tensor.shape[0], *self.shape]
+        device = tensor.device if tensor is not None else torch.device('cpu')
+        return torch.ones(shape, dtype=tensor.dtype, device=device)
 
 class Identity(torch.nn.Module):
     def __init__(self):
@@ -94,7 +100,7 @@ class Zeros(torch.nn.Module):
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         shape = self.shape if self.includes_batch else [tensor.shape[0], *self.shape]
         device = tensor.device if tensor is not None else torch.device('cpu')
-        return torch.zeros(shape, dtype=tensor.dtype, device=device)
+        return torch.zeros(*shape, dtype=tensor.dtype, device=device)
 
 class ZerosLike(torch.nn.Module):
     def __init__(self):
@@ -103,6 +109,34 @@ class ZerosLike(torch.nn.Module):
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         # return torch.zeros_like(tensor)
         return torch.zeros_like(tensor)
+
+class OnesLike(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        # return torch.zeros_like(tensor)
+        return torch.ones_like(tensor)
+
+class RandomLike(torch.nn.Module):
+    __RANDOMS__ = {
+        'unit': torch.rand_like,
+        'normal': torch.randn_like,
+    }
+
+    def __init__(self,
+        scale:          float=1.0,
+        mode:           str='unit', # one of [unit, normal]
+    ):
+        super().__init__()
+        self.generate = RandomLike.__RANDOMS__[mode]
+        self.scale = scale
+
+    def forward(self, 
+        tensor: torch.Tensor
+    ) -> torch.Tensor:
+        generated = self.generate(tensor)
+        return generated * self.scale if self.scale != 1.0 else generated
 
 class Clone(torch.nn.Module):
     def __init__(self):

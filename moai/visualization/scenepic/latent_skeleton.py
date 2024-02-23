@@ -3,7 +3,7 @@ from moai.monads.execution.cascade import _create_accessor
 from collections.abc import Callable
 
 import scenepic
-import httpwatcher
+# import httpwatcher #NOTE: is problematic for py>3.10 cause of tornado
 import typing
 import torch
 import logging
@@ -2306,7 +2306,7 @@ __skel_vertices__ =[
  [0.155,-0.024,-0.988],
 ]
 
-__all__ = ['LatentSkeleton']
+__all__ = ['LatentSkeleton', 'MotionSkeleton']
 
 
 def calTransformation(v_i, v_j, r, adaptr=False, ratio=10):
@@ -2413,7 +2413,7 @@ class LatentSkeleton(Callable):
         self.kintree = skeleton
         os.makedirs(scenepic_folder, exist_ok=True)
         log.info(f"Scenepic visualization enabled @ {scenepic_folder}.")
-        log.warning(f"[scenepic]: For automatic refreshing @ `http://localhost:5555' use `httpwatcher -r {scenepic_folder}` (`pip install httpwatcher` if not available)")
+        # log.warning(f"[scenepic]: For automatic refreshing @ `http://localhost:5555' use `httpwatcher -r {scenepic_folder}` (`pip install httpwatcher` if not available)")
 
     def __call__(self, 
         tensors: typing.Dict[str, torch.Tensor],
@@ -2467,3 +2467,93 @@ class LatentSkeleton(Callable):
         scene.link_canvas_events(*canvases)
         # scene.save_as_html(os.path.join('scenepic', str(tensors['__moai__']['epoch'])+"_traversals.html"), title=f"{self.name}")
         scene.save_as_html(os.path.join('scenepic', "traversals.html"), title=f"{self.name}")
+        # scene.save_as_html(os.path.join('scenepic', str(tensors['__moai__']['epoch'])+"_traversals.html"), title=f"{self.name}")
+
+
+class MotionSkeleton(Callable):    
+
+    __LAMBDA_MAP__ = {"": lambda _: None, "skeleton": lambda _: "skeleton"}
+
+    def __init__(
+        self,
+        vertices: typing.Union[str, typing.Sequence[str]],
+        canvas: typing.Union[int, typing.Sequence[int]],
+        layer: typing.Union[int, typing.Sequence[int]],
+        color: typing.Union[str, typing.Sequence[str]],
+        batch_percentage: float = 1.0,
+        width: int = 600,
+        height: int = 400,
+        point_size: float = 0.1,
+        name: str = "default",
+        skeleton: typing.Sequence[int] = None,
+        nJoints: int=25,
+        joint_radius: float = 0.05,
+    ):
+        self.name, self.point_size = name, point_size
+        self.nJoints = nJoints
+        self.vertices = [vertices] if isinstance(vertices, str) else list(vertices)
+        self.vertex_accessors = [_create_accessor(k) for k in self.vertices]
+        self.ids = [canvas] if isinstance(canvas, int) else list(canvas)
+        self.layers = [layer] if isinstance(layer, int) else list(layer)
+        self.colors = (
+            [colour.Color(color)]
+            if isinstance(color, str)
+            else list(colour.Color(c) for c in color)
+        )
+        self.batch_percentage = batch_percentage
+        assert_numeric(log, "batch percentage", batch_percentage, 0.0, 1.0)
+        self.WH = (width, height)
+        scenepic_folder = os.path.join(os.getcwd(), "scenepic")
+        self.joint_radius = joint_radius
+        self.kintree = skeleton
+        os.makedirs(scenepic_folder, exist_ok=True)
+
+    def __call__(
+        self, tensors: typing.Dict[str, torch.Tensor], step: typing.Optional[int] = None
+    ) -> None:
+        scene = scenepic.Scene()
+        canvases = [
+            scene.create_canvas_3d(width=self.WH[0], height=self.WH[1])
+            for _ in toolz.unique(self.ids)
+        ]
+        for n, v, c, lr, id in zip(
+            self.vertices,
+            self.vertex_accessors,
+            self.colors,
+            self.layers,
+            self.ids,
+        ):
+            vertices = v(tensors).detach().cpu().numpy()
+            skel_vertices = np.array(__skel_vertices__)
+            faces = np.array(__skel_faces__,dtype=int)
+            skel_vertices = np.array(__skel_vertices__)
+            faces_all = []
+            for nj in range(self.nJoints):
+                faces_all.append(faces + nj*skel_vertices.shape[0])
+            for nk in range(len(self.kintree)):
+                faces_all.append(faces + self.nJoints*skel_vertices.shape[0] + nk*skel_vertices.shape[0])
+            faces = np.vstack(faces_all)
+            b = math.ceil(self.batch_percentage * vertices.shape[0])
+            mesh = scene.create_mesh(
+                mesh_id=f"{n}",
+                shared_color=scenepic.Color(*c.rgb),
+                layer_id=f"{lr}",
+            )
+            for i in range(b):
+                for idx in range(vertices.shape[1]):
+                    vertices_ = _draw_skeleton(
+                        vertices[i][idx],
+                        skel_vertices,
+                        self.kintree,
+                        self.nJoints,
+                        self.joint_radius,
+                    )
+                    if idx == 0:
+                        mesh.add_mesh_without_normals(vertices_[0], faces)
+                    else:
+                        mesh = scene.update_mesh_positions(f"{n}", vertices_[i])
+                    frame = canvases[id].create_frame()
+                    frame.add_mesh(mesh)
+        scene.save_as_html(
+            os.path.join("scenepic", str(tensors['__moai__']['optimizer_idx'])+"_motion_clips.html"), title=f"{self.name}"
+        )

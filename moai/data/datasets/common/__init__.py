@@ -9,6 +9,7 @@ from moai.data.datasets.common.raw import (
     load_npz_file,
     load_pkl_file,
     load_txt_file,
+    load_json_file,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "load_npz_file",
     "load_pkl_file",
     "load_txt_file",
+    "load_json_file",
 ]
