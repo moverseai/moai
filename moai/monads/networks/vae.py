@@ -26,10 +26,19 @@ class VAE(torch.nn.Module):
             )
         )
 
-        self.model.feature_head.load_state_dict(
-            toolz.keymap(lambda s: s.replace('feature_head.', ''), 
+        self.model.latent_dist_predictor.load_state_dict(
+            toolz.keymap(lambda s: s.replace('latent_dist_predictor.', ''), 
                 toolz.keyfilter(
-                    lambda s: s.startswith('feature_head.'), 
+                    lambda s: s.startswith('latent_dist_predictor.'), 
+                    ckpt['state_dict']
+                )
+            )
+        )
+
+        self.model.sampler.load_state_dict(
+            toolz.keymap(lambda s: s.replace('sampler.', ''), 
+                toolz.keyfilter(
+                    lambda s: s.startswith('sampler.'), 
                     ckpt['state_dict']
                 )
             )
@@ -50,10 +59,10 @@ class VAE(torch.nn.Module):
         autoencode:     typing.Optional[torch.Tensor]=None,
     ) -> torch.Tensor:
         if encode is not None:
-            mu, _ = self.model.feature_head(self.model.encoder(encode))            
+            mu, _ = self.model.latent_dist_predictor(self.model.encoder(encode))
             return mu
         if decode is not None:
             return self.model.decoder(decode)
         if autoencode is not None:
-            mu, _ = self.model.feature_head(self.model.encoder(autoencode))
+            mu, _ = self.model.latent_dist_predictor(self.model.encoder(autoencode))
             return self.model.decoder(mu)
