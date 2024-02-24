@@ -20,4 +20,10 @@ class GramSchmidt(torch.nn.Module):
     ) -> torch.Tensor: # [..., R, 3, 3]
         out_shape = list(sixd.shape)
         out_shape[-1] = 3
-        return roma.special_gramschmidt(sixd.view(-1, sixd.shape[-3], 3, 2)).view(out_shape)
+        in_dims = len(sixd.shape)
+        view = [-1, 3, 2]
+        if in_dims == 2:
+            out_shape.append(3)
+        else:
+            view.insert(1, sixd.shape[-3])
+        return roma.special_gramschmidt(sixd.view(*view)).view(out_shape)
