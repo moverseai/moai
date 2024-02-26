@@ -8,7 +8,6 @@ import logging
 import pytorch_lightning as pl
 import torch
 import os
-import onnx
 import toolz
 from subprocess import check_output
 from pathlib import Path
@@ -18,6 +17,10 @@ import moai
 
 
 log = logging.getLogger(__name__)
+try:
+    import onnx
+except:
+    log.warning("The `onnx` package was not found, exporting to ONNX is disabled.")
 
 try:
     import blobconverter
