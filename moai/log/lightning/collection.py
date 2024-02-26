@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 __all__ = ["Loggers"]
 
-class Loggers(pytorch_lightning.loggers.base.LoggerCollection):
+class Loggers(pytorch_lightning.loggers.LoggerCollection):
     def __init__(self,
         loggers: omegaconf.DictConfig={},
         name: str="Sequential",
