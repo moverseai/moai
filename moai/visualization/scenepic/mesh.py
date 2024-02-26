@@ -128,4 +128,5 @@ class Mesh(Callable):
                 (str(n), {'opacity': 0.5}) for n in toolz.unique(self.layers)
             ))
         scene.link_canvas_events(*canvases)
-        scene.save_as_html(os.path.join('scenepic', "index.html"), title=f"{self.name}")
+        scene.save_as_html(os.path.join('scenepic', "index.html"), title=f"{self.name}") if not 'isVal' in tensors['__moai__'].keys() else\
+        scene.save_as_html(os.path.join('scenepic', "index_val.html"), title=f"{self.name}")
