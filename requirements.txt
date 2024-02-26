@@ -19,5 +19,7 @@ rich
 pandas
 roma==1.4.0
 trimesh
+clearml==1.6.4
+scenepic==1.0.10
 
 # importlib-resources if py>3,7
