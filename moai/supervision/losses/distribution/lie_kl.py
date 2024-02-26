@@ -14,7 +14,7 @@ class LieKL(torch.nn.KLDivLoss):
         self.is_input_log = is_input_log
             
     def log_posterior(self, v, sigma, k=10):
-        theta = v.norm(p=2,dim=-1, keepdim=True)  # [n,B,1]
+        theta = v.norm(p=2,dim=-1, keepdim=True) + 1e-6  # [n,B,1]
         u = v / theta  # [n,B,3]
         
         angles = 2 * math.pi * torch.arange(
@@ -22,20 +22,23 @@ class LieKL(torch.nn.KLDivLoss):
 
         theta_hat = theta[..., None, :] + angles[:, None]  # [n,B,2k+1,1]
 
-        clamp = 1e-3
+        clamp = 1e-6
         x = u[..., None, :] * theta_hat  # [n,B,2k+1,3]
+        # x should be possitive as should ender a log function
 
         # [n,(2k+1),B,3] or [n,(2k+1),B]
         # log_p = self.reparameterize._log_posterior(x.permute([0, 2, 1, 3]).contiguous())
+        min_sigma = 1e-6
+        sigma = torch.clamp(sigma, min=min_sigma)
         log_p = torch.distributions.normal.Normal(
                         torch.zeros_like(sigma),
                         sigma,
-            ).log_prob(x.permute([1, 0, 2])).sum(-1).contiguous()
+            ).log_prob(x.permute([0, 2, 1, 3])).sum(-1).contiguous()
         
-        if len(log_p.size()) == 3:
+        if len(log_p.size()) == 4:
             log_p = log_p.sum(-1)  # [n,(2k+1),B]
         
-        log_p = log_p.permute([1, 0])  # [n,B,(2k+1)]
+        log_p = log_p.permute([0, 2, 1])  # [n,B,(2k+1)]
 
         theta_hat_squared = torch.clamp(theta_hat ** 2, min=clamp)
         
@@ -43,9 +46,8 @@ class LieKL(torch.nn.KLDivLoss):
         cos_theta_hat = torch.cos(theta_hat)
 
         # [n,B,(2k+1),1]
-        log_vol = torch.log(
-                    theta_hat_squared / torch.clamp(2 - 2 * cos_theta_hat,min=clamp)
-                )
+        log_vol = torch.log(theta_hat_squared / torch.clamp(2 - 2 * cos_theta_hat, min=clamp))
+
         log_p = log_p + log_vol.sum(-1)
         log_p = logsumexp(log_p, -1)
        
