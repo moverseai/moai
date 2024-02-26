@@ -1,6 +1,9 @@
-import moai.serve.model as model_server
-import moai.serve.optimizer as optimizer_server
-import moai.serve.streaming_optimizer as streaming_optimizer_server
+try:
+    import moai.serve.model as model_server
+    import moai.serve.optimizer as optimizer_server
+    import moai.serve.streaming_optimizer as streaming_optimizer_server
+except ImportError:
+    print("Archive action is unavailable, please make sure you have installed all the dependencies (e.g. ts, model-archiver).")
 
 import yaml
 import toolz
