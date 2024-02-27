@@ -3,6 +3,10 @@ from moai.engine.modules.clearml import _get_project_name
 from moai.engine.modules.clearml import _get_task_name
 
 
+from typing_extensions import override
+from pytorch_lightning.loggers.logger import DummyExperiment
+
+
 import numpy as np
 import pytorch_lightning
 import logging
@@ -15,18 +19,24 @@ log = logging.getLogger(__name__)
 __all__ = ["ClearML"]
 
 
-class ClearML(pytorch_lightning.loggers.base.LightningLoggerBase):
+class ClearML(pytorch_lightning.loggers.Logger):
     def __init__(self):
         super(ClearML, self).__init__()
         self._name, self._version = _get_project_name(), _get_task_name()
         self.logger = _get_logger()
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @override
     def log_metrics(self, metrics: typing.Dict[str, typing.Any], step: int) -> None:
-        dataloader_index = toolz.get_in(
-            ["dataloader_index"],
-            toolz.keyfilter(lambda k: k.startswith("__moai__"), metrics).popitem()[1],
-        ) if toolz.keyfilter(lambda k: k.startswith("__moai__"), metrics) else None
+        dataloader_index = (
+            toolz.get_in(
+                ["dataloader_index"],
+                toolz.keyfilter(lambda k: k.startswith("__moai__"), metrics).popitem()[
+                    1
+                ],
+            )
+            if toolz.keyfilter(lambda k: k.startswith("__moai__"), metrics)
+            else None
+        )
         if dataloader_index is not None:
             metrics = toolz.keyfilter(
                 lambda k: k.endswith(str(int(dataloader_index))),
@@ -67,15 +77,13 @@ class ClearML(pytorch_lightning.loggers.base.LightningLoggerBase):
             for d, m in dataset_test_metrics.items():
                 for k, v in m.items():
                     self.logger.report_scalar(d, k, v, step)
-                df = pd.DataFrame(dataset_test_metrics[d],
-                    index=["sample"+str(step)],
+                df = pd.DataFrame(
+                    dataset_test_metrics[d],
+                    index=["sample" + str(step)],
                 )
                 df.index.name = "id"
                 self.logger.report_table(
-                    "Metrics", 
-                    "Per Sample", 
-                    iteration=step, 
-                    table_plot=df
+                    "Metrics", "Per Sample", iteration=step, table_plot=df
                 )
         if val_metrics:
             e = int(metrics["epoch"])
@@ -90,17 +98,15 @@ class ClearML(pytorch_lightning.loggers.base.LightningLoggerBase):
                 for k, v in m.items():
                     self.logger.report_scalar(d, k, v, e)
 
-    @pytorch_lightning.loggers.base.rank_zero_only
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO: or namespace object ?
     ) -> None:
-        pass
+        my_params = self.logger.task.connect_configuration(my_params)
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    
     def save(self) -> None:
         pass
 
-    @pytorch_lightning.loggers.base.rank_zero_only
     def finalize(self, status: str) -> None:
         """Do any processing that is necessary to finalize an experiment
         :param status: Status that the experiment finished with (e.g. success, failed, aborted)
@@ -116,5 +122,23 @@ class ClearML(pytorch_lightning.loggers.base.LightningLoggerBase):
         return self._version
 
     @property
-    def experiment(self) -> typing.Any:
-        return self.name
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
+    def experiment(self) -> "DummyExperiment":
+        """Actual ExperimentWriter object. To use ExperimentWriter features anywhere in your code, do the following.
+
+        Example::
+
+            self.logger.experiment.some_experiment_writer_function()
+
+        """
+        if self._experiment is not None:
+            return self._experiment
+        assert (
+            pytorch_lightning.loggers.logger.rank_zero_experiment.rank == 0
+        ), "tried to init log dirs in non global_rank=0"
+
+        return self._experiment
+
+    # @property
+    # def experiment(self) -> typing.Any:
+    #     return self.name

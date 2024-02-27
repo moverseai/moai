@@ -4,18 +4,24 @@ import tablib
 import toolz
 import pytorch_lightning
 import typing
+from typing_extensions import override
 import logging
+from pytorch_lightning.loggers.logger import DummyExperiment
+
 
 log = logging.getLogger(__name__)
 
 __all__ = ["Tabular"]
 
 
-class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
+class Tabular(pytorch_lightning.loggers.Logger):
     def __init__(
         self,
         name: str = "default",
         version: int = 0,
+        # root_dir: _PATH, # NOTE: PL 2.2.0 ; do I need this?
+        # prefix: str, # NOTE: PL 2.2.0 ; do I need this?
+        # flush_logs_every_n_steps: int, # NOTE: PL 2.2.0 ; do I need this?
     ):
         super(Tabular, self).__init__()
         self._version = version
@@ -28,10 +34,27 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
         self.test_headers_written = defaultdict(bool)
         self.val_headers = {}
         self.test_headers = {}
+        self._experiment = DummyExperiment()
 
     @property
     def name(self) -> str:
         return self.file_name
+
+    @property
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
+    def experiment(self) -> "DummyExperiment":
+        """Actual ExperimentWriter object. To use ExperimentWriter features anywhere in your code, do the following.
+
+        Example::
+
+            self.logger.experiment.some_experiment_writer_function()
+
+        """
+        if self._experiment is not None:
+            return self._experiment
+        assert pytorch_lightning.loggers.logger.rank_zero_experiment.rank == 0, "tried to init log dirs in non global_rank=0"
+
+        return self._experiment
 
     def _append_train_losses(
         self,
@@ -117,8 +140,9 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
             )
         )
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @override
     def log_metrics(self, metrics: typing.Dict[str, typing.Any], step: int) -> None:
+        #TODO: manually check the rank zero experiment
         # get dataloader index
         dataloader_index = toolz.get_in(
             ["dataloader_index"],
@@ -178,7 +202,6 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
             for k, v in dataset_val_metrics.items():
                 self._append_val_loss(k, v, metrics["epoch"], step)
 
-    @pytorch_lightning.loggers.base.rank_zero_only
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO or namespace object ?
     ) -> None:
@@ -191,7 +214,6 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
         with open(self.name + "_hparams.yaml", "w") as f:
             f.write(data.export("yaml"))
 
-    @pytorch_lightning.loggers.base.rank_zero_only
     def save(self) -> None:
         if self.train_logs.height:
             """Save train log data"""
@@ -222,13 +244,11 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
             #     self.test_headers_written = True
             # self.test_logs.wipe()
 
-    @pytorch_lightning.loggers.base.rank_zero_only
     def finalize(self, status: str) -> None:
         """Do any processing that is necessary to finalize an experiment
         :param status: Status that the experiment finished with (e.g. success, failed, aborted)
         """
         self.save()
-        self.close()
 
     @property
     def rank(self) -> int:
@@ -248,6 +268,6 @@ class Tabular(pytorch_lightning.loggers.base.LightningLoggerBase):
         """Return the experiment version"""
         return self._version
 
-    @property
-    def experiment(self) -> typing.Any:
-        return self.name
+    # @property
+    # def experiment(self) -> typing.Any:
+    #     return self.name
