@@ -9,11 +9,16 @@ import typing
 import logging
 import tqdm
 import smplx
-import orjson
 
 log = logging.getLogger(__name__)
 
 __all__ = ['Fit3D']
+
+try:
+    import orjson
+except:
+    log.warning("Could not load the `orjson` package which will improve loading speeds, please consider `pip install orjson`.")
+
 
 # try:
 #     import orjson
