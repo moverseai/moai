@@ -1,0 +1,4 @@
+# @package engine.modules._name_
+
+_target_: moai.engine.modules.Precision
+precision: highest
