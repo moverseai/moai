@@ -12,7 +12,7 @@ import toolz
 from subprocess import check_output
 from pathlib import Path
 from subprocess import CalledProcessError
-from pytorch_lightning.utilities.cloud_io import load as pl_load
+from lightning_fabric.utilities.cloud_io import _load as pl_load
 import moai
 
 
