@@ -11,6 +11,7 @@ from moai.engine.modules.nvidia import (
 from moai.engine.modules.importer import Import
 from moai.engine.modules.empty_cache import EmptyCache
 from moai.engine.modules.azure_logging import AzureLogging
+from moai.engine.modules.precision import Precision
 
 __all__ = [
     "AnomalyDetection",
@@ -24,6 +25,7 @@ __all__ = [
     'DisableTensorCores',
     'DisableFP16Matmul',
     'AzureLogging',
+    'Precision',
 ]
 
 try:
