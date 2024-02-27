@@ -79,7 +79,7 @@ class ConvertRotation(torch.nn.Module):
         'kornia': dict(toolz.concat([
             ((R, 'rotation_matrix') for R in ['R', 'rot', '3x3', 'rotation', 'matrix', 'rotation_matrix', 'rotmat']), 
             ((q, 'quaternion') for q in ['quat', 'quaternion', 'q', '4']),
-            ((r, 'angle_axis') for r in ['r', 'aa', 'rotvec', 'axisangle', 'rodrigues', 'axis-angle', '3']),
+            ((r, 'axis_angle') for r in ['r', 'aa', 'rotvec', 'axisangle', 'rodrigues', 'axis-angle', '3']),
         ])),
     }
 
