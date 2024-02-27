@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 __all__ = ["Visdom"]
 
 
-class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
+class Visdom(pytorch_lightning.loggers.Logger):
     def __init__(
         self,
         name: str = "default",
@@ -201,7 +201,7 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
                     },
                 )
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def log_metrics(self, metrics: typing.Dict[str, typing.Any], step: int) -> None:
  # get dataloader index
         dataloader_index = toolz.get_in(
@@ -232,7 +232,7 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
             epoch = int(metrics["epoch"])
             self._plot_val_loss(val_metrics, epoch, step)
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO: or namespace object ?
     ) -> None:
@@ -241,13 +241,13 @@ class Visdom(pytorch_lightning.loggers.base.LightningLoggerBase):
         """
         self.visualizer.text(json2html.convert(json=dict(params)))
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def save(self) -> None:
         """Save log data"""
         # self.visualizer.save(self.name)
         pass  # TODO: support saving ?
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def finalize(self, status: str) -> None:
         """Do any processing that is necessary to finalize an experiment
         :param status: Status that the experiment finished with (e.g. success, failed, aborted)
