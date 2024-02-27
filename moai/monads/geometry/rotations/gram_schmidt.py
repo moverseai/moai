@@ -26,4 +26,4 @@ class GramSchmidt(torch.nn.Module):
             out_shape.append(3)
         else:
             view.insert(1, sixd.shape[-3])
-        return roma.special_gramschmidt(sixd.view(*view)).view(out_shape)
+        return roma.special_gramschmidt(sixd.reshape(*view)).reshape(out_shape)
