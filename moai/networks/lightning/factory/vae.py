@@ -19,6 +19,13 @@ log = logging.getLogger(__name__)
 
 __all__ = ["VariationalAutoencoder"]
 
+# NotImplementedError: 
+# Support for `validation_epoch_end` has been removed in v2.0.0. 
+# `VariationalAutoencoder` implements this method. 
+# You can use the `on_validation_epoch_end` hook instead. 
+# To access outputs, save them in-memory as instance attributes. 
+# You can find migration examples in https://github.com/Lightning-AI/lightning/pull/16520.
+
 class VariationalAutoencoder(minet.FeedForward):
     def __init__(self, 
         configuration:  omegaconf.DictConfig,
@@ -176,6 +183,10 @@ class VariationalAutoencoder(minet.FeedForward):
         else:
             self.gen_fwds.append(torch.nn.Identity())
 
+        # changes to work with PTL 2.0
+        self.validation_step_outputs = []
+
+
     def forward(self, 
         td: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
@@ -201,11 +212,11 @@ class VariationalAutoencoder(minet.FeedForward):
         gen_metrics = self.gen_validation(generated)
         aggregated = {'metrics': toolz.merge(metrics, {'gen_' + str(k): v for k, v in gen_metrics.items()})} # generation block ends
         aggregated = toolz.merge(aggregated, {'td': toolz.merge(generated, {'__moai__': {'epoch': self.trainer.current_epoch}})})
+        self.validation_step_outputs.append(aggregated)
         return aggregated
 
-    def validation_epoch_end(self,
-        outputs: typing.Union[typing.List[typing.List[dict]], typing.List[dict]],
-    ) -> None:
+    def on_validation_epoch_end(self) -> None:
+        outputs = self.validation_step_outputs
         # latent space walking
         sampled = self.walk(outputs[0]['td'])
         [d(sampled) for d in self.gen_fwds]
@@ -233,6 +244,7 @@ class VariationalAutoencoder(minet.FeedForward):
             log_metrics = toolz.keymap(lambda k: f"val_{k}/{list(self.data.val.iterator.datasets.keys())[i]}", metrics)
             self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
         all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_metrics)
+        self.validation_step_outputs.clear()  # free memory
         self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
 
 class Feature2MuStd(torch.nn.Module):

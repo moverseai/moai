@@ -127,9 +127,10 @@ class FeedForward(pytorch_lightning.LightningModule):
         export:             omegaconf.DictConfig=None,
         # hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
     ):
-        super(FeedForward, self).__init__()        
+        super(FeedForward, self).__init__()
         self.data = _assign_data(data)
         self.initializer = parameters.initialization if parameters is not None else None
+        self.automatic_optimization = False
         self.optimization_config = parameters.optimization if parameters is not None else None
         self.schedule_config = parameters.schedule if parameters is not None else None
         self.schedule_monitor = parameters.schedule_monitor if parameters is not None and parameters.schedule_monitor is not None else None
@@ -145,6 +146,9 @@ class FeedForward(pytorch_lightning.LightningModule):
         #NOTE: @PTL1.5 self.hparams =  hparams
         # self.hparams.update(hparams)
         self.global_test_step = 0
+        # changes to work with PTL 2.0
+        self.validation_step_outputs = []
+        # self.training_step_outputs = [] TODO: check https://github.com/search?q=repo%3ALightning-AI%2Fpytorch-lightning%20on_train_batch_end%20&type=code
 
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
@@ -160,24 +164,31 @@ class FeedForward(pytorch_lightning.LightningModule):
         batch_idx:              int,
         optimizer_idx:          int=None,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
+        # PTL2.0 manual optimisation goes here
+        opt = self.optimizers()
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
         postprocessed = self.postprocess(prediction)
         total_loss, losses = self.supervision(postprocessed)
         #TODO: should add loss maps as return type to be able to forward them for visualization
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
-        losses.update({'total_loss': total_loss})        
-        self.log_dict(losses, prog_bar=False, logger=True)        
+        losses.update({'total_loss': total_loss})
+        opt.zero_grad()
+        self.manual_backward(total_loss)
+        opt.step()
+        self.log_dict(losses, prog_bar=False, logger=True)
+        # self.training_step_outputs.append(postprocessed)
         return { 'loss': total_loss, 'tensors': postprocessed }
-
-    def training_step_end(self, 
-        train_outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]
-    ) -> None:
-        if self.global_step and (self.global_step % self.visualization.interval == 0):
-            self.visualization(train_outputs['tensors'], self.global_step)
-        if self.global_step and (self.global_step % self.exporter.interval == 0):
-            self.exporter(train_outputs['tensors'], self.global_step)
-        return train_outputs['loss']
+    
+    #TODO: should be removed for PTL 2.0
+    # def training_step_end(self, 
+    #     train_outputs: typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]
+    # ) -> None:
+    #     if self.global_step and (self.global_step % self.visualization.interval == 0):
+    #         self.visualization(train_outputs['tensors'], self.global_step)
+    #     if self.global_step and (self.global_step % self.exporter.interval == 0):
+    #         self.exporter(train_outputs['tensors'], self.global_step)
+    #     return train_outputs['loss']
 
     def validation_step(self,
         batch:              typing.Dict[str, torch.Tensor],
@@ -189,15 +200,16 @@ class FeedForward(pytorch_lightning.LightningModule):
         outputs = self.postprocess(prediction)
         #TODO: consider adding loss maps in the tensor dict
         metrics = self.validation(outputs)
+        # changes to work with PTL 2.0
+        self.validation_step_outputs.append(metrics)
         return metrics
 
-    def validation_epoch_end(self,
-        outputs: typing.Union[typing.List[typing.List[dict]], typing.List[dict]]
-    ) -> None:
+    def on_validation_epoch_end(self) -> None:
+        outputs = self.validation_step_outputs
         list_of_outputs = [outputs] if isinstance(toolz.get([0, 0], outputs)[0], dict) else outputs
         all_metrics = defaultdict(list)
         for i, o in enumerate(list_of_outputs):
-            keys = next(iter(o), { }).keys()        
+            keys = next(iter(o), { }).keys()
             metrics = { }
             for key in keys:
                 metrics[key] = np.mean(np.array(
@@ -207,6 +219,7 @@ class FeedForward(pytorch_lightning.LightningModule):
             log_metrics = toolz.keymap(lambda k: f"val_{k}/{list(self.data.val.iterator.datasets.keys())[i]}", metrics)
             self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
         all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_metrics)
+        self.validation_step_outputs.clear()  # free memory
         self.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
     
     def test_step(self, 
@@ -248,7 +261,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         all_metrics = defaultdict(list)
         log_metrics = defaultdict(list)
         for i, o in enumerate(list_of_outputs):
-            keys = next(iter(o), { }).keys()        
+            keys = next(iter(o), { }).keys()
             metrics = { }
             for key in keys:
                 metrics[key] = np.mean(np.array(
