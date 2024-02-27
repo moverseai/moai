@@ -4,7 +4,7 @@ import omegaconf.omegaconf
 
 __all__ = ["NoOp"]
 
-class NoOp(pytorch_lightning.loggers.base.LightningLoggerBase):
+class NoOp(pytorch_lightning.loggers.Logger):
     def __init__(self,
         loggers: omegaconf.DictConfig=None,
         **kwargs
@@ -15,24 +15,24 @@ class NoOp(pytorch_lightning.loggers.base.LightningLoggerBase):
     def name(self):
         return "NoLogging"
         
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def log_metrics(self, 
         metrics: typing.Dict[str, typing.Any],
         step: int
     ):
        pass
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def log_hyperparams(self,
         params: typing.Dict[str, typing.Any], #TODO: or namespace object ?
     ):
         pass
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def save(self):
         pass
 
-    @pytorch_lightning.loggers.base.rank_zero_only
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def finalize(self, 
         status: str
     ):
