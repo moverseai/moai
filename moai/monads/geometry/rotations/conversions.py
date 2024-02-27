@@ -44,7 +44,7 @@ class RotMat(torch.nn.Module):
     ):
         super().__init__()
         if to == "axis_angle":
-            self.convert_func = kn.geometry.conversions.rotation_matrix_to_angle_axis
+            self.convert_func = kn.geometry.conversions.rotation_matrix_to_axis_angle
         elif to == "quat":
             #(x, y, z, w) format of quaternion
             self.convert_func = kn.geometry.conversions.rotation_matrix_to_quaternion
