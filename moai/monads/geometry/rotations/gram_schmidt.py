@@ -23,7 +23,9 @@ class GramSchmidt(torch.nn.Module):
         in_dims = len(sixd.shape)
         view = [-1, 3, 2]
         if in_dims == 2:
+            if sixd.shape[-1] != 6:
+                out_shape.insert(1, -1)
             out_shape.append(3)
         else:
             view.insert(1, sixd.shape[-3])
-        return roma.special_gramschmidt(sixd.view(*view)).view(out_shape)
+        return roma.special_gramschmidt(sixd.reshape(*view)).reshape(out_shape)

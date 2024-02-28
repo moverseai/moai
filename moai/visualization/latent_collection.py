@@ -11,12 +11,12 @@ class LatentVisualizers(mieng.Collection, mieng.Interval):
     def __init__(self,
         batch_interval:int,
         visualizers: omegaconf.DictConfig,
-        latent_visualizers: omegaconf.DictConfig,       
+        latent_visualizers: omegaconf.DictConfig,
     ):
         mieng.Interval.__init__(self, batch_interval)
         mieng.Collection.__init__(
             self, 
-            items=latent_visualizers, 
+            items=latent_visualizers or {}, 
             name="latent_visualizers"
         )
         mieng.Collection.__init__(
