@@ -270,7 +270,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         # if stage == 'discriminator':
             
         # else if stage == 'generator':            
-        total_loss, losses = self.supervision[self.steps[optimizer_idx]](postprocessed)      
+        total_loss, losses = self.supervision[self.steps[optimizer_idx]](postprocessed)
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
         losses.update({'total_loss': total_loss})        
         self.log_dict(losses, prog_bar=False, logger=True)    
