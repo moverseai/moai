@@ -1,3 +1,4 @@
 # @package model.supervision.losses._name_
 
 _target_: moai.supervision.losses.distribution.LieKL
+k: 10
