@@ -17,9 +17,7 @@ class GradientPenalty(torch.nn.Module):
             grad_outputs=grad_outputs,
             create_graph=True,
             retain_graph=True,
-        )[0]
-        
-        b = blended_samples.shape[0]
+        )[0]        
         grad_norm = gradients.norm(p=2, dim=1)        
         grad_penalty = torch.mean((grad_norm - 1) ** 2)
         # grad_penalty.backward(retain_graph=True)
