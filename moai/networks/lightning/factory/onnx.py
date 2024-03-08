@@ -5,12 +5,16 @@ import torch
 import omegaconf.omegaconf
 import typing
 import logging
-import onnxruntime as ort
 import numpy as np
 
 __all__ = ['Onnx']
 
 log = logging.getLogger(__name__)
+
+try:
+    import onnxruntime as ort
+except ImportError:
+    log.warning("onnxruntime not installed. Please install onnxruntime to use ONNX models.")
 
 class Onnx(minet.FeedForward):
     def __init__(self, 
