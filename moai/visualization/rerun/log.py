@@ -29,6 +29,7 @@ class RRLog(Callable):
         'LBU': rr.ViewCoordinates.LBU,
         'LBD': rr.ViewCoordinates.LEFT_HAND_Z_DOWN,
         'RUF': rr.ViewCoordinates.RUF,
+        'RFU': rr.ViewCoordinates.RIGHT_HAND_Z_UP,
     }
 
     def __init__(
@@ -429,18 +430,21 @@ class RRLog(Callable):
     ) -> None:
         b = array[0].shape[0]
         for i in range(b):
+            rr.set_time_sequence("sample", self.step  * b + i)
             vertices, faces = array
             mesh = o3d.geometry.TriangleMesh(
                 o3d.utility.Vector3dVector(vertices[i]),
                 o3d.utility.Vector3iVector(faces[i]),
             )
             mesh.compute_vertex_normals()  # Needs to calculate normals to apply apply color
-            rr.log_mesh(
+            rr.log(
                 path,
-                vertices,
-                indices=faces,
-                normals=np.asarray(mesh.vertex_normals),
-                albedo_factor=c.get_rgb(),
+                rr.Mesh3D(
+                vertex_positions=vertices[i],
+                indices=faces[i],
+                vertex_normals=np.asarray(mesh.vertex_normals),
+                vertex_colors=c.get_rgb(),
+                )
             )
             del mesh
 
