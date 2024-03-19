@@ -16,16 +16,17 @@ num_nodes: 0 # only for the distributed case / number of GPU nodes for distribut
 #distributed_backend: None # comment out to remove
 #num_tpu_cores: 0 #How many TPU cores to train on (1 or 8). - NOTE: keep commented out if not using    
 amp_level: null #O1 #NOTE: PTL1.5 is optional
-terminate_on_nan: false
+# terminate_on_nan: false
 num_sanity_val_steps: 0
 ################
 ### log options
 ################
 profiler: simple # comment out for passthrough profiler, cannot use advanced one yet
-weights_summary: null
+# weights_summary: null
 ################
 ### debug options
 ################
 fast_dev_run: false
 overfit_batches: 0.0
-gpus: null
+devices: auto # or list of devices
+accelerator: auto # cpu, gpu, tpu

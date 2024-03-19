@@ -1,4 +1,5 @@
 import moai.log.lightning as milog
+from moai.engine.callbacks import PerBatchCallback
 import pytorch_lightning
 import hydra.utils as hyu
 import omegaconf.omegaconf
@@ -14,7 +15,7 @@ class LightningPlayer(pytorch_lightning.Trainer):
         engine_callbacks:       typing.Sequence[pytorch_lightning.Callback]=[],
         logging:                omegaconf.DictConfig=None,
         num_nodes:              int=1,
-        gpus:                   typing.Optional[typing.Union[typing.List[int], str, int]]=None,
+        devices:                typing.Optional[typing.Union[typing.List[int], str, int]]=None,
         tpu_cores:              typing.Optional[int]=None,
         overfit_batches:        float=0.0,
         fast_dev_run:           bool=False,
@@ -25,26 +26,38 @@ class LightningPlayer(pytorch_lightning.Trainer):
         #distributed_backend: typing.Optional[str]=None, NOTE: @PLT1.5
         weights_summary:        typing.Optional[str]='full',
         amp_level:              str='O2',
+        accelerator:            typing.Optional[
+            typing.Union[str, pytorch_lightning.accelerators.Accelerator]
+        ]='auto',
         **kwargs
     ):
-        logger = hyu.instantiate(logging) if logging is not None else milog.NoOp()
+        # logger = hyu.instantiate(logging) if logging is not None else milog.NoOp()
+        loggers = []
+        if logging is not None:
+            for logger in logging["loggers"].values():
+                if logger is not None:
+                    loggers.append(hyu.instantiate(logger))
+        else:
+            log.warning("No loggers defined, using default logger.")
+        engine_callbacks.append(PerBatchCallback())
         super(LightningPlayer, self).__init__(
+            devices=devices,
+            accelerator=accelerator,
+            logger=loggers,
+            # logger=logger,
             callbacks=engine_callbacks,
-            logger=logger,      
-            num_nodes=num_nodes,
-            gpus=gpus,
-            tpu_cores=tpu_cores,
-            overfit_batches=overfit_batches,
-            fast_dev_run=fast_dev_run,
             max_epochs=1,
             min_epochs=1,
+            fast_dev_run=fast_dev_run,
+            num_nodes=num_nodes,
+            overfit_batches=overfit_batches,
             limit_train_batches=limit_train_batches,
             limit_val_batches=limit_val_batches,
             limit_test_batches=limit_test_batches,
             val_check_interval=val_check_interval,
             #distributed_backend=distributed_backend,
-            weights_summary=weights_summary,
-            amp_level=amp_level,
+            # weights_summary=weights_summary,
+            # amp_level=amp_level,
             **kwargs
         )
 

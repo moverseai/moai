@@ -1,6 +1,7 @@
 from moai.data.iterator import Indexed
 from moai.statistics import NoOp as NoStatistics
 
+from collections import defaultdict
 import moai.networks.lightning as minet
 
 import torch
@@ -8,6 +9,7 @@ import hydra.utils as hyu
 import omegaconf
 import typing
 import logging
+
 
 log = logging.getLogger(__name__)
 
@@ -26,12 +28,13 @@ class Presenter(minet.FeedForward):
         super(Presenter, self).__init__(
             feedforward=feedforward, data=data,
             monads=monads, visualization=visualization,
-            export=export            
+            export=export
         )
         self.statistics = hyu.instantiate(statistics) if statistics is not None else\
             NoStatistics()
         self.param = torch.nn.Linear(1, 1) # dummy layer
         self.global_test_step = 0
+        self.test_step_outputs = defaultdict(list)
 
     def forward(self,
         x: typing.Dict[str, torch.Tensor]
@@ -69,36 +72,35 @@ class Presenter(minet.FeedForward):
         self.statistics(outputs)
         return None
 
-    def validation_epoch_end(self,
-        outputs: typing.List[dict]
-    ) -> dict:
+    def on_validation_epoch_end(self) -> dict:
         pass
     
     def test_step(self, 
         batch: typing.Dict[str, torch.Tensor],
-        batch_nb: int
+        batch_nb: int,
+        dataloader_idx:   int=0,
     ) -> dict:
-        preprocessed = self.preprocess(batch)        
+        preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
         outputs = self.postprocess(prediction)
         self.statistics(outputs)
         self.global_test_step += 1
+        self.test_step_outputs[list(self.data.test.iterator.datasets.keys())[dataloader_idx]].append(outputs)
         return torch.zeros(1), outputs
 
-    def test_step_end(self,
-        metrics_tensors: typing.Tuple[typing.Dict[str, torch.Tensor], typing.Dict[str, torch.Tensor]],        
-    ) -> None:
-        metrics, tensors = metrics_tensors
-        if self.global_test_step and (self.global_test_step % self.exporter.interval == 0):
-            self.exporter(tensors)
-        if self.global_test_step and (self.global_test_step % self.visualization.interval == 0):
-            self.visualization(tensors)
-        return metrics
+    #TODO: should be changed to on_test_batch_end in PTL 2.1
+    # def test_step_end(self,
+    #     metrics_tensors: typing.Tuple[typing.Dict[str, torch.Tensor], typing.Dict[str, torch.Tensor]],        
+    # ) -> None:
+    #     metrics, tensors = metrics_tensors
+    #     if self.global_test_step and (self.global_test_step % self.exporter.interval == 0):
+    #         self.exporter(tensors)
+    #     if self.global_test_step and (self.global_test_step % self.visualization.interval == 0):
+    #         self.visualization(tensors)
+    #     return metrics
 
-    def test_epoch_end(self, 
-        outputs: typing.List[dict]
-    ) -> dict:
-        pass
+    def on_test_epoch_end (self) -> dict:
+        self.test_step_outputs.clear()
 
     def train_dataloader(self) -> torch.utils.data.DataLoader:
         if hasattr(self.data.train.iterator, '_target_'):
