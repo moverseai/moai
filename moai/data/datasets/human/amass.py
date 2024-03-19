@@ -39,7 +39,6 @@ class AMASS(torch.utils.data.Dataset):
         frame_counter = 0
         self.subjects = { }
         self.device = device[0] if device[0] >= 0 else 'cpu'
-        print(f'model_type: {model_type}')
         for part in parts:
             for subject in filter(os.path.isdir, glob.glob(os.path.join(data_root, part, '**'))):
                 subject_name = os.path.basename(subject)
@@ -51,11 +50,20 @@ class AMASS(torch.utils.data.Dataset):
                 for action_fn in glob.glob(os.path.join(data_root, part, subject, file_type)):
                     with open(action_fn, 'rb') as f: 
                         data = np.load(f, allow_pickle=False)
-                        data_dict = {key: data[key].copy() for key in data if (key != 'markers_latent_vids' and key != 'marker_meta')}
+                        # data_dict = {key: data[key].copy() for key in data if (key != 'markers_latent_vids' and key != 'marker_meta')}
+                        data_dict = {}
+                        for key in data:
+                            if key != 'markers_latent_vids':
+                                if key != 'marker_meta':
+                                    try:
+                                        data_dict[key] = data[key].copy()
+                                    except:
+                                        pass
+                                        # log.info(f'error parsing key {key}')
                         shape = torch.from_numpy(data['betas']).float() if model_type == 'smpl' else torch.from_numpy(
                                                                                             np.load(
                                                                                                 gendered_shape_fn,
-                                                                                                allow_pickle=False
+                                                                                                # allow_pickle=False
                                                                                             )['betas']
                                                                                         ).float().clone()
                         #frame_counter += int(data['trans'].shape[0] / downsample_factor)
@@ -99,7 +107,7 @@ class AMASS(torch.utils.data.Dataset):
                 del smplx_create
             for v in self.bodies.values():
                 v.requires_grad_(False)
-        log.info(f"Loaded {len(self)} AMASS samples.")
+        log.info(f"Loaded {len(self)} AMASS samples from {parts}.")
         self.model_type = model_type
 
     def __len__(self) -> int:
