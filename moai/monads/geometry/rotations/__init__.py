@@ -13,6 +13,7 @@ from moai.monads.geometry.rotations.conversions import (
     RomaQuaternion2RotationMatrix,
     RomaRotationVector2Quaternion,
     RomaQuaternion2RotationVector,
+    RomaRotationMatrix2RotationVector,
 )
 from moai.monads.geometry.rotations.gram_schmidt import (
     GramSchmidt,
@@ -38,4 +39,5 @@ __all__ = [
     'RomaRotationVector2Quaternion',
     'RomaQuaternion2RotationVector',
     'RomaExtractSixd',
+    'RomaRotationMatrix2RotationVector'
 ]
