@@ -25,7 +25,7 @@ def evaluate(cfg):
     model = hydra.utils.instantiate(cfg.model,
         data=cfg.data,
         visualization=assign(cfg, "visualization"),
-        export=assign(cfg, "export"),    
+        export=assign(cfg, "export"),
     )
     for name, remodel in (assign(cfg, "remodel") or {}).items():
         hydra.utils.instantiate(remodel)(model)
@@ -36,11 +36,12 @@ def evaluate(cfg):
     )
     log.info("Evaluation started.")
     results = tester.run(model)[0] #TODO: need to support other ways of logging average results
-   # ds = tablib.Dataset(results.values(), headers=results.keys())
-    for dataset in results.keys():
-        ds = tablib.Dataset([v.detach().cpu().numpy() for v in results[dataset].values()], headers=results[dataset].keys())
-        with open(cfg.experiment.name +f'_{dataset}_test_average.csv', 'a', newline='') as f:
-            f.write(ds.export('csv'))
+    #TODO: removed in versino PL2.0
+    # ds = tablib.Dataset(results.values(), headers=results.keys())
+    # for dataset in results.keys():
+        # ds = tablib.Dataset([v.detach().cpu().numpy() for v in results[dataset].values()], headers=results[dataset].keys())
+        # with open(cfg.experiment.name +f'_{dataset}_test_average.csv', 'a', newline='') as f:
+            # f.write(ds.export('csv'))
     log.info("Evaluation completed.")
 
 if __name__ == "__main__":

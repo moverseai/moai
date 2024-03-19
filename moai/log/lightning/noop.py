@@ -22,7 +22,6 @@ class NoOp(pytorch_lightning.loggers.Logger):
     ):
        pass
 
-    @pytorch_lightning.loggers.logger.rank_zero_experiment
     def log_hyperparams(self,
         params: typing.Dict[str, typing.Any], #TODO: or namespace object ?
     ):
