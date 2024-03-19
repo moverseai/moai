@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 __all__ = ['Mesh']
 
 
-class Mesh(Callable):    
+class Mesh(Callable):
     
     __LAMBDA_MAP__ = { '': lambda _: None, 'skeleton': lambda _: 'skeleton'}
 
