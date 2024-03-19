@@ -22,6 +22,8 @@ import hydra.utils as hyu
 import typing
 import toolz
 import logging
+import tablib
+import os
 
 log = logging.getLogger(__name__)
 
@@ -149,6 +151,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         # changes to work with PTL 2.0
         # self.validation_step_outputs = []
         self.validation_step_outputs = defaultdict(list)
+        self.test_step_outputs = defaultdict(list)
         # self.training_step_outputs = [] TODO: check https://github.com/search?q=repo%3ALightning-AI%2Fpytorch-lightning%20on_train_batch_end%20&type=code
 
     def initialize_parameters(self) -> None:
@@ -230,14 +233,15 @@ class FeedForward(pytorch_lightning.LightningModule):
     def test_step(self, 
         batch: typing.Dict[str, torch.Tensor],
         batch_nb: int,
-        dataloader_index:   int=0, #NOTE check with None and kwargs
+        dataloader_idx:   int=0, #NOTE check with None and kwargs
     ) -> dict:
         preprocessed = self.preprocess(batch)
         prediction = self(preprocessed)
         outputs = self.postprocess(prediction)
         metrics = self.validation(outputs)
+        self.test_step_outputs[list(self.data.test.iterator.datasets.keys())[dataloader_idx]].append(metrics)
         self.global_test_step += 1
-        log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_index]}", metrics)
+        log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_idx]}", metrics)
         # check if iterator is zipped
         try:
             zp_target = self.data.test.iterator['_target_'].split(".")[-1]
@@ -245,12 +249,15 @@ class FeedForward(pytorch_lightning.LightningModule):
             zp_target = None
         # TODO: update this part of code, and pass the dataloader index every time
         if self.data is not None and zp_target != 'Zipped' and len(self.data.test.iterator.datasets.keys()) > 1:
-            log_metrics.update({'__moai__': {'dataloader_index': dataloader_index}})
+            #TODO: Check if PTL 2.0 does not support logging dictionaries, need to change this
+            log_metrics.update({'dataloader_index': dataloader_idx})
+            # log_metrics.update({'__moai__': {'dataloader_index': dataloader_idx}})
         self.log_dict(log_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False, sync_dist=True)
         return metrics, outputs
 
+    # TODO: should be changed to on_test_batch_end in PTL 2.1
     def test_step_end(self,
-        metrics_tensors: typing.Tuple[typing.Dict[str, torch.Tensor], typing.Dict[str, torch.Tensor]],        
+        metrics_tensors: typing.Tuple[typing.Dict[str, torch.Tensor], typing.Dict[str, torch.Tensor]],
     ) -> None:
         metrics, tensors = metrics_tensors
         if self.global_test_step and (self.global_test_step % self.exporter.interval == 0):
@@ -259,22 +266,46 @@ class FeedForward(pytorch_lightning.LightningModule):
             self.visualization(tensors, self.global_test_step)
         return metrics
 
-    def test_epoch_end(self, 
-        outputs: typing.List[dict]
-    ) -> dict:
-        list_of_outputs = [outputs] if isinstance(toolz.get([0, 0], outputs)[0], dict) else outputs
+    def on_test_epoch_end(self) -> dict:
+        # caclulate the mean of the metrics per dataset
+        #NOTE: do we need to calculate the mean of the metrics and saved them as a separate file?
         all_metrics = defaultdict(list)
+        outputs = self.test_step_outputs
         log_metrics = defaultdict(list)
-        for i, o in enumerate(list_of_outputs):
+        for i, dataset in enumerate(outputs):
+            o = outputs[dataset]
             keys = next(iter(o), { }).keys()
             metrics = { }
             for key in keys:
                 metrics[key] = np.mean(np.array(
                     [d[key].item() for d in o if key in d]
                 ))
-                all_metrics[key].append(metrics[key])            
-            log_metrics[list(self.data.test.iterator.datasets.keys())[i]] = metrics
-        self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
+                all_metrics[key].append(metrics[key])
+            log_metrics[dataset] = metrics
+        #NOTE: logging a dict is not supported in PTL 2.0
+        #self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
+        for dataset in log_metrics.keys():
+            ds = tablib.Dataset([v for v in log_metrics[dataset].values()], headers=log_metrics[dataset].keys())
+            with open(os.path.join(os.getcwd(), f'{self.logger.name}_{dataset}_test_average.csv'), 'a', newline='') as f:
+                 f.write(ds.export('csv'))
+        self.test_step_outputs.clear()
+    #TODO: test_epoch_end should be removed for PTL 2.0 to on_test_epoch_end
+    # def test_epoch_end(self, 
+    #     outputs: typing.List[dict]
+    # ) -> dict:
+    #     list_of_outputs = [outputs] if isinstance(toolz.get([0, 0], outputs)[0], dict) else outputs
+    #     all_metrics = defaultdict(list)
+    #     log_metrics = defaultdict(list)
+    #     for i, o in enumerate(list_of_outputs):
+    #         keys = next(iter(o), { }).keys()
+    #         metrics = { }
+    #         for key in keys:
+    #             metrics[key] = np.mean(np.array(
+    #                 [d[key].item() for d in o if key in d]
+    #             ))
+    #             all_metrics[key].append(metrics[key])
+    #         log_metrics[list(self.data.test.iterator.datasets.keys())[i]] = metrics
+    #     self.log_dict(log_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:
         log.info(f"Configuring optimizer and scheduler")
