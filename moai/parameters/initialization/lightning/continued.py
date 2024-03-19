@@ -1,7 +1,7 @@
 from pytorch_lightning.callbacks import Callback
-from pytorch_lightning.utilities.cloud_io import load as pl_load
-from pytorch_lightning.utilities.upgrade_checkpoint import KEYS_MAPPING as DEPRECATED_CHECKPOINT_KEYS
-from pytorch_lightning.utilities import AMPType
+import torch
+# from pytorch_lightning.utilities.upgrade_checkpoint import KEYS_MAPPING as DEPRECATED_CHECKPOINT_KEYS
+# from pytorch_lightning.utilities import AMPType
 
 try:
     from apex import amp
@@ -23,8 +23,8 @@ class Continued(Callback):
         super(Continued, self).__init__()
         self.filename = filename
     
-    def on_fit_start(self, trainer, pl_module):        
-        checkpoint = pl_load(self.filename,
+    def on_fit_start(self, trainer, pl_module):
+        checkpoint = torch.load(self.filename,
             map_location=lambda storage, loc: storage
         )
         if 'optimizer_states' not in checkpoint or 'lr_schedulers' not in checkpoint:
@@ -33,19 +33,19 @@ class Continued(Callback):
             # raise KeyError(error)
             log.error(error)
 
-        if any([key in checkpoint for key in DEPRECATED_CHECKPOINT_KEYS]):
-            error = "The checkpoint you're attempting to load follows an"
-            " outdated schema. You can upgrade to the current schema by running"
-            " `python -m pytorch_lightning.utilities.upgrade_checkpoint --file model.ckpt`"
-            " where `model.ckpt` is your checkpoint file."
-            log.error(error)            
-            raise ValueError(error)
+        # if any([key in checkpoint for key in DEPRECATED_CHECKPOINT_KEYS]):
+        #     error = "The checkpoint you're attempting to load follows an"
+        #     " outdated schema. You can upgrade to the current schema by running"
+        #     " `python -m pytorch_lightning.utilities.upgrade_checkpoint --file model.ckpt`"
+        #     " where `model.ckpt` is your checkpoint file."
+        #     log.error(error)
+        #     raise ValueError(error)
 
-        # restore amp scaling
-        if trainer.amp_backend == AMPType.NATIVE and 'native_amp_scaling_state' in checkpoint:
-            trainer.scaler.load_state_dict(checkpoint['native_amp_scaling_state'])
-        elif trainer.amp_backend == AMPType.APEX and 'amp_scaling_state' in checkpoint:
-            amp.load_state_dict(checkpoint['amp_scaling_state'])
+        # # restore amp scaling
+        # if trainer.amp_backend == AMPType.NATIVE and 'native_amp_scaling_state' in checkpoint:
+        #     trainer.scaler.load_state_dict(checkpoint['native_amp_scaling_state'])
+        # elif trainer.amp_backend == AMPType.APEX and 'amp_scaling_state' in checkpoint:
+        #     amp.load_state_dict(checkpoint['amp_scaling_state'])
 
         trainer.model.load_state_dict(checkpoint['state_dict'], strict=True)
         trainer.fit_loop.global_step = checkpoint['global_step']
