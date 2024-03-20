@@ -34,7 +34,7 @@ def train(cfg):
         logging=assign(cfg, "logging"),
         model_callbacks=ModelCallbacks(model=model),
     )
-    log.info("Training started.")     
+    log.info("Training started.")
     trainer.run(model)
     log.info("Training completed.")
 
