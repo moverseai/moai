@@ -8,3 +8,4 @@ tags: null
 connect_args: false
 connect_libs: false
 connect_res: false
+continue_last_task: false
