@@ -55,20 +55,22 @@ def resume(cfg):
     model = hydra.utils.instantiate(cfg.model,
         data=cfg.data,
         visualization=assign(cfg, "visualization"),
-        export=assign(cfg, "export"),    
+        export=assign(cfg, "export"),
     )
     model.hparams.update(omegaconf.OmegaConf.to_container(cfg, resolve=True))
     model.hparams['__moai__'] = { 'version': miV }
     for name, remodel in (assign(cfg, "remodel") or {}).items():
         hydra.utils.instantiate(remodel)(model)
-    model_callbacks = ModelCallbacks(model=model)
-    model_callbacks += [resume_callback]
+    # model_callbacks = ModelCallbacks(model=model)
+    # model_callbacks += [resume_callback]
+    #NOTE: check https://github.com/Lightning-AI/pytorch-lightning/issues/12819
+    # resume training is now supported directly in PTL 2.0
     trainer = hydra.utils.instantiate(cfg.trainer, 
         logging=assign(cfg, "logging"),
-        model_callbacks=model_callbacks,
+        # model_callbacks=model_callbacks,
     )
-    log.info("Training started.")     
-    trainer.run(model)
+    log.info("Training started.")
+    trainer.run(model, resume_from_checkpoint=last_ckpt_path)
     log.info("Training completed.")
 
 if __name__ == "__main__":

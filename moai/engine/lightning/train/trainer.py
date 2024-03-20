@@ -148,6 +148,6 @@ class LightningTrainer(pytorch_lightning.Trainer):
             default_root_dir=None if not default_root_dir else default_root_dir,
         )
 
-    def run(self, model):
-        self.fit(model)
+    def run(self, model, resume_from_checkpoint: str = None):
+        self.fit(model, ckpt_path=resume_from_checkpoint)
         # self.test(model)
