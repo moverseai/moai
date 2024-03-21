@@ -10,7 +10,7 @@ __all__ = ["Exporters"]
 class Exporters(mieng.Collection, mieng.Interval):
     def __init__(self,
         batch_interval:         int,
-        exporters:              omegaconf.DictConfig,        
+        exporters:              omegaconf.DictConfig,
     ):
         mieng.Interval.__init__(self, batch_interval)
         mieng.Collection.__init__(self, 
