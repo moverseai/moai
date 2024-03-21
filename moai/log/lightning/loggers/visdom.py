@@ -7,6 +7,8 @@ import logging
 import typing
 import toolz
 from json2html import *
+from pytorch_lightning.loggers.logger import DummyExperiment
+from typing_extensions import override
 
 log = logging.getLogger(__name__)
 
@@ -60,6 +62,22 @@ class Visdom(pytorch_lightning.loggers.Logger):
     @property
     def name(self) -> str:
         return self.env_name
+
+    @property
+    @pytorch_lightning.loggers.logger.rank_zero_experiment
+    def experiment(self) -> "DummyExperiment":
+        """Actual ExperimentWriter object. To use ExperimentWriter features anywhere in your code, do the following.
+
+        Example::
+
+            self.logger.experiment.some_experiment_writer_function()
+
+        """
+        if self._experiment is not None:
+            return self._experiment
+        assert pytorch_lightning.loggers.logger.rank_zero_experiment.rank == 0, "tried to init log dirs in non global_rank=0"
+
+        return self._experiment
 
     @property
     def visualizer(self) -> visdom.Visdom:
@@ -201,7 +219,8 @@ class Visdom(pytorch_lightning.loggers.Logger):
                     },
                 )
 
-    @pytorch_lightning.loggers.logger.rank_zero_experiment
+    # @pytorch_lightning.loggers.logger.rank_zero_experiment
+    @override
     def log_metrics(self, metrics: typing.Dict[str, typing.Any], step: int) -> None:
  # get dataloader index
         dataloader_index = toolz.get_in(
@@ -232,7 +251,7 @@ class Visdom(pytorch_lightning.loggers.Logger):
             epoch = int(metrics["epoch"])
             self._plot_val_loss(val_metrics, epoch, step)
 
-    @pytorch_lightning.loggers.logger.rank_zero_experiment
+    # @pytorch_lightning.loggers.logger.rank_zero_experiment
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO: or namespace object ?
     ) -> None:
@@ -241,13 +260,13 @@ class Visdom(pytorch_lightning.loggers.Logger):
         """
         self.visualizer.text(json2html.convert(json=dict(params)))
 
-    @pytorch_lightning.loggers.logger.rank_zero_experiment
+    # @pytorch_lightning.loggers.logger.rank_zero_experiment
     def save(self) -> None:
         """Save log data"""
         # self.visualizer.save(self.name)
         pass  # TODO: support saving ?
 
-    @pytorch_lightning.loggers.logger.rank_zero_experiment
+    # @pytorch_lightning.loggers.logger.rank_zero_experiment
     def finalize(self, status: str) -> None:
         """Do any processing that is necessary to finalize an experiment
         :param status: Status that the experiment finished with (e.g. success, failed, aborted)
