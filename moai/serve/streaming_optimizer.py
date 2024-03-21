@@ -301,10 +301,6 @@ class StreamingOptimizerServer(BaseHandler):
                 self.last_loss = None
                 self.optimizer.optimization_step = 0
             metrics = self.optimizer.validation(data)
-            # NOTE: DEBUG
-            if batch_idx >=3:
-                break
-            # NOTE: DEBUG
             # call postprocess
             log.info(f"Fitting Metrics: {metrics}") # TODO: why metrics still have gradients?
             # data["__moai__"]["batch_index"] = batch_idx
