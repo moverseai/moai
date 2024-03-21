@@ -166,7 +166,6 @@ class FeedForward(pytorch_lightning.LightningModule):
     def training_step(self, 
         batch:                  typing.Dict[str, torch.Tensor],
         batch_idx:              int,
-        optimizer_idx:          int=None,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
         # PTL2.0 manual optimisation goes here
         # opt = self.optimizers()
