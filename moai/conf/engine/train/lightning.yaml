@@ -30,7 +30,7 @@ auto_scale_batch_size: false
 ################
 # backend options
 ################
-num_nodes: 0 # only for the distributed case / number of GPU nodes for distributed training.
+num_nodes: 1 # only for the distributed case / number of GPU nodes for distributed training.
 num_processes: 1
 ### ___gpus___ MUST BE STRING TO OVERCOME HYDRA/LIGHTNING TYPE ISSUES
 ### NOTE: see https://pytorch-lightning.readthedocs.io/en/stable/multi_gpu.html#select-gpu-devices 
