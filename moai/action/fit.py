@@ -29,7 +29,7 @@ def fit(cfg):
         logging=assign(cfg, "logging"),
         model_callbacks=ModelCallbacks(model=model),
     )
-    log.info("Fitting started.")     
+    log.info("Fitting started.")
     fitter.run(model)
     log.info("Fitting completed.")
 
