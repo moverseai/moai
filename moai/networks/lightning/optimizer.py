@@ -323,7 +323,8 @@ class Optimizer(pytorch_lightning.LightningModule):
         #TODO: should add loss maps as return type to be able to forward them for visualization
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
         losses.update({'total_loss': total_loss})
-        self.log_dict(losses, prog_bar=False, logger=True)
+        #TODO: FIX logging 
+        # self.log_dict(losses, prog_bar=False, logger=True)
         self.optimization_step += 1
         return { 'loss': total_loss, 'tensors': td }
 
@@ -338,7 +339,7 @@ class Optimizer(pytorch_lightning.LightningModule):
         return train_outputs['loss']
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:
-        log.info(f"Configuring optimizers and schedulers")                
+        log.info(f"Configuring optimizers and schedulers")
         optimizers, schedulers = [], []        
         for optimizer, name, iterations, params, schedule in self.params_optimizers:
             if optimizer is None and params is None:
@@ -383,7 +384,7 @@ class Optimizer(pytorch_lightning.LightningModule):
                     # alternated, list(toolz.concat(parameters))
                 ))
                 setattr(optimizers[-1], 'iterations', [iterations])
-                setattr(optimizers[-1], 'name', [name])                
+                setattr(optimizers[-1], 'name', [name])
                 schedulers.append(_create_scheduling_block(
                     self.scheduler_configs.get(schedule, None), [optimizers[-1]]
                 ))

@@ -239,6 +239,7 @@ class FeedForward(pytorch_lightning.LightningModule):
         outputs = self.postprocess(prediction)
         metrics = self.validation(outputs)
         self.test_step_outputs[list(self.data.test.iterator.datasets.keys())[dataloader_idx]].append(metrics)
+        self.visualization(toolz.merge(metrics,outputs), self.global_test_step) # ln242 feedfwd
         self.global_test_step += 1
         log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_idx]}", metrics)
         # check if iterator is zipped

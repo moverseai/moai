@@ -25,6 +25,7 @@ def fit(cfg):
     )
     for name, remodel in (assign(cfg ,"remodel") or {}).items():
         hydra.utils.instantiate(remodel)(model)
+    #NOTE: why do we need to pass model a
     fitter = hydra.utils.instantiate(cfg.fitter, 
         logging=assign(cfg, "logging"),
         model_callbacks=ModelCallbacks(model=model),
