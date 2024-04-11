@@ -22,6 +22,8 @@ import omegaconf.omegaconf
 
 import typing
 import logging
+from pytorch_lightning.loops.progress import _OptimizationProgress
+from pytorch_lightning.loops.fetchers import _DataFetcher, _DataLoaderIterDataFetcher
 
 log = logging.getLogger(__name__)
 
@@ -47,6 +49,7 @@ class PerBatch(torch.nn.Identity, L.Callback):
         ],
         batch_idx: int,
         unused: typing.Optional[int] = 0,
+        dataloader_idx: int = 0,
     ) -> None:
         """Called when the train batch begins."""
         pl_module.initialize_parameters() if not trainer.init_once or batch_idx == 0 else None
@@ -98,6 +101,7 @@ class PerBatch(torch.nn.Identity, L.Callback):
         ],
         batch_idx: int,
         unused: typing.Optional[int] = 0,
+        dataloader_idx: int = 0,
     ) -> None:
         """Called when the train batch ends."""
         metrics = pl_module.validation(batch)

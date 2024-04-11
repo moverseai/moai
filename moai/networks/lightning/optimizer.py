@@ -185,13 +185,13 @@ def _create_assigner(key: str) -> typing.Callable[[torch.nn.Module, torch.Tensor
 class Optimizer(pytorch_lightning.LightningModule):
     def __init__(self, 
         configuration:      omegaconf.DictConfig,
-        inner:              omegaconf.DictConfig=None,        
+        inner:              omegaconf.DictConfig=None,
         data:               omegaconf.DictConfig=None,
         parameters:         omegaconf.DictConfig=None,
         feedforward:        omegaconf.DictConfig=None,
-        monads:             omegaconf.DictConfig=None,        
+        monads:             omegaconf.DictConfig=None,
         supervision:        omegaconf.DictConfig=None,
-        validation:         omegaconf.DictConfig=None,        
+        validation:         omegaconf.DictConfig=None,
         visualization:      omegaconf.DictConfig=None,
         export:             omegaconf.DictConfig=None,
         hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
@@ -206,8 +206,8 @@ class Optimizer(pytorch_lightning.LightningModule):
             model_in = list(zip(*[mirtp.force_list(configuration.io[prop]) for prop in params]))
             model_out = mirtp.split_as(mirtp.resolve_io_config(configuration.io['out']), model_in)
             self.res_fill = [mirtp.get_result_fillers(self.model, out) for out in model_out]
-            get_filler = iter(self.res_fill)        
-            for keys in model_in:          
+            get_filler = iter(self.res_fill)
+            for keys in model_in:
                 accessors = [_create_accessor(k if isinstance(k, str) else k[0]) for k in keys]  
                 self.fwds.append(lambda td,
                     tk=keys,
@@ -276,6 +276,8 @@ class Optimizer(pytorch_lightning.LightningModule):
         self.optimization_step = 0
         # self.per_batch = PerBatch()
         self.prediction_stages = []
+        #TODO: Do I need this?
+        self.automatic_optimization = False
 
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
@@ -309,11 +311,12 @@ class Optimizer(pytorch_lightning.LightningModule):
         batch_idx:              int,
         optimizer_idx:          int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
+        optimizer_idx = 0 # batch['__moai__']['optimizer_position']
         if '__moai__' not in batch:
             batch['__moai__'] = { 'batch_index': batch_idx }
         else:
             batch['__moai__']['batch_index'] = batch_idx
-        batch['__moai__']['optimization_stage'] = self.stages[optimizer_idx]
+        # batch['__moai__']['optimization_stage'] = self.stages[optimizer_idx]
         td = self.preprocess(batch)
         if 'predict' in self.mode and\
             self.stages[optimizer_idx] in self.prediction_stages: #TODO: only run in needed stages
