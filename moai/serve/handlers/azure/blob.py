@@ -76,6 +76,7 @@ class AzureBlobOutputHandler(Callable):
         blob_paths: typing.List[str],  # keys to extract resources from json
         working_dir: str,  # path to working dir
         alias: typing.List[str],  # names of files to be uploaded
+        overwrite: bool = True, # overwrite existing files
     ):
         """
         Responsible for uploading data to Azure Blob Storage.
@@ -86,6 +87,7 @@ class AzureBlobOutputHandler(Callable):
             blob_paths (typing.List[str]): Keys to extract resources from json.
             working_dir (str): Path to working dir.
             alias (typing.List[str]): Names of files to be uploaded.
+            overwrite (bool, optional): Overwrite existing files. Defaults to True.
 
         """
         # connect_str = os.environ[connection_string]
@@ -98,6 +100,7 @@ class AzureBlobOutputHandler(Callable):
         self.blob_acecessors = [_create_accessor(bl_path) for bl_path in blob_paths]
         self.working_dir = working_dir
         self.alias = alias
+        self.overwrite = overwrite
         log.info(
             "Azure Blob Upload Storage connection established to container: %s",
             container_name,
@@ -126,7 +129,7 @@ class AzureBlobOutputHandler(Callable):
             )
             # Upload the created file
             with open(file=local_file, mode="rb") as data:
-                blob_client.upload_blob(data)
+                blob_client.upload_blob(data, overwrite=self.overwrite)
 
             log.debug(f"Upload file {al} to {upload_file_path}")
 

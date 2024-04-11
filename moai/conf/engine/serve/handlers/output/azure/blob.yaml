@@ -6,3 +6,4 @@ container_name: StorageContainer # ${env:AZURE_STORAGE_CONTAINER_NAME}
 blob_paths: ???
 working_dir: ???
 alias: ???
+overwrite: true
