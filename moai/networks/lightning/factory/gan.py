@@ -10,6 +10,8 @@ from moai.networks.lightning.feedforward import _create_scheduling_block,\
 from moai.data.iterator import Indexed
 from moai.monads.execution import Cascade
 from collections import defaultdict
+from functools import reduce
+from operator import add
 
 import moai.utils.parsing.rtp as mirtp
 import pytorch_lightning
@@ -338,7 +340,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
                     oc[key] = value            
             optim_instances[k] = _create_optimization_block(
                 # toolz.merge(self.optimizer_configs[c.optimizer], c.params), parameters['params']
-                oc, parameters['params']
+                oc, reduce(add, toolz.map(lambda p: p['params'], parameters)) if isinstance(parameters, list) else parameters['params']
             )#TODO: check if it works with a list of parameters                
         optim_out = []
         self.optimizer_index_to_stage_n_step = []

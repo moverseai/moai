@@ -72,11 +72,10 @@ class Barron(Distribution):
         self.get_scale = lambda: self.fixed_scale
       else: # learnable scale
         self.register_parameter('scale', torch.nn.Parameter(
-                # torch.zeros((1, count)).float(),
-                torch.tensor(scale_init)[np.newaxis, np.newaxis].float().repeat(1, count),
+           # torch.zeros((1, count)).float(),
+           torch.tensor(scale_init)[np.newaxis, np.newaxis].float().repeat(1, count),
            requires_grad=True
-            )
-        )
+        ))
         self.get_scale = lambda: util.affine_softplus(
             self.scale, low=scale_low, ref=scale_init
         )
