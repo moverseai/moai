@@ -52,7 +52,7 @@ prepare_data_per_node: true
 replace_sampler_ddp: true
 #plugins: null
 #distributed_backend: null
-strategy: null #NOTE: @PTL1.5
+strategy: auto #NOTE: @PTL2.0
 enable_model_summary: true #NOTE: @PTL1.5
 detect_anomaly: false #NOTE: @PTL1.5
 ################

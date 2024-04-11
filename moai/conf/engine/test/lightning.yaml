@@ -25,7 +25,7 @@ amp_level: null # O2 #NOTE: PTL1.5 is optional
 prepare_data_per_node: true
 replace_sampler_ddp: true
 #distributed_backend: null
-strategy: null #NOTE: @PTL1.5
+strategy: auto #NOTE: @PTL2.0
 
 ################
 ### log options
