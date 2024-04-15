@@ -1,0 +1,38 @@
+# @package _global_
+
+openpose_root: ???
+FOLDER: ???
+
+data:
+  train:
+    iterator:      
+      datasets:
+        openpose:
+          image_glob: ${openpose_root}\${FOLDER}\images\*.jp*g
+          load_face: true
+          load_hands: true
+          load_face_contour: false
+          single_person_only: true
+          invalid_joints: [1, 9, 12]
+
+  test:
+    iterator:
+      datasets:
+        openpose:
+          image_glob: ${openpose_root}\${FOLDER}\images\*.jp*g
+          load_face: true
+          load_hands: true
+          load_face_contour: false
+          single_person_only: true
+          invalid_joints: [1, 9, 12]
+
+  val:
+    iterator:
+      datasets:
+        openpose:
+            image_glob: ${openpose_root}\${FOLDER}\images\*.jp*g
+            load_face: true
+            load_hands: true
+            load_face_contour: false
+            single_person_only: true
+            invalid_joints: [1, 9, 12]

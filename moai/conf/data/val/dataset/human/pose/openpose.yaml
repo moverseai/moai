@@ -6,3 +6,4 @@ load_hands: false
 load_face: false
 load_face_contour: false
 single_person_only: false
+invalid_joints: null

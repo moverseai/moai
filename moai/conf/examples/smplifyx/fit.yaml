@@ -1,0 +1,78 @@
+defaults:
+  ###### HYDRA  
+  - hydra/job_logging: colorlog
+  - hydra/hydra_logging: colorlog
+
+  ###### ENGINE
+  - engine: engine
+  - engine/fit: lightning
+  - engine/modules: manual_seed
+
+  - engine/visualization: collection
+  - engine/visualization/visdom: vector
+
+  - engine/export: collection
+  - engine/export/exporter: pkl
+
+  - engine/log/lightning: collection
+  - engine/log/lightning/logger: visdom
+  - engine/log/lightning/logger: tabular
+
+  # ###### DATA  
+  - data/train/loader: torch
+  - data/train/iterator: indexed
+  - data/train/augmentation: none
+  - data/train/dataset/human/pose: openpose
+
+  - data/test/loader: torch
+  - data/test/iterator: indexed
+  - data/test/augmentation: none
+  - data/test/dataset/human/pose: openpose
+
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation: none
+  - data/val/dataset/human/pose: openpose
+
+  # ###### MODEL 
+  - model: manual
+  # - model/monads/human/body: init_translation
+  - model/monads/human/body: initialize_translation
+  - remodel: module_mode
+
+  # - model/feedforward: preprocess
+  - examples/smplifyx/embedding
+  - examples/smplifyx/translation
+  - examples/smplifyx/betas
+  - model/monads/human/body: smplx
+  - model/monads/human/body/prior: vposer2
+
+  # - model/feedforward: postprocess 
+  - model/monads/masking: index  
+  - model/monads/masking: binary
+  - model/monads/geometry/projection: weak_perspective_camera
+  - model/monads/human/pose/openpose: split
+
+  - model/parameters/initialization: cascade
+  - model/parameters/initialization/custom: vposer2
+  - model/parameters/initialization/scheme: zero_params
+  - model/parameters/optimization/optimizer: lbfgsls
+  - model/parameters/selectors/human/body: global
+  - model/parameters/selectors/human/body: expressive
+
+  - model/parameters/regularization: none
+
+  - model/supervision: weighted
+  - model/supervision/loss/regression: L2
+  - model/supervision/loss/regression/robust: gm
+  - model/supervision/loss/human/body: hinge_joint_prior
+  - model/supervision/loss/mesh: interpenetration
+
+  - model/validation: collection
+  - model/validation/metric: rmse
+
+  - examples/smplifyx/data
+  - examples/smplifyx/options
+  - examples/smplifyx/model
+  - examples/smplifyx/metrics
+  - examples/smplifyx/objective
