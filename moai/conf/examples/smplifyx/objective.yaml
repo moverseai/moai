@@ -1,0 +1,315 @@
+# @package _global_
+
+smplifyx:
+  W:
+    S1:
+      w_joint: 0.0615
+      w_pose: 163216.0
+      w_shape: 10000
+      w_face: 0.0
+      w_hand: 0.0
+      w_jaw_s: 4040.0
+      w_exp_s: 10000
+      w_hand_s: 163216
+      w_bend: 1280.6
+      w_pen: 0.0
+    S2:
+      w_joint: 0.0615
+      w_pose: 163216.0
+      w_shape: 2500
+      w_face: 0.0
+      w_hand: 0.0
+      w_jaw_s: 4040.0
+      w_exp_s: 2500
+      w_hand_s: 163216
+      w_bend: 1280.6
+      w_pen: 0.0
+    S3:
+      w_joint: 0.0615
+      w_pose: 3294.7603
+      w_shape: 100.0
+      w_face: 0.0
+      w_hand: 0.0
+      w_jaw_s: 574.0
+      w_exp_s: 100.0
+      w_hand_s: 3294.7603
+      w_bend: 181.6
+      w_pen: 0.0
+    S4:
+      w_joint: 0.0615
+      w_pose: 22.8
+      w_shape: 25.0
+      w_face: 0.0
+      w_hand: 0.1
+      w_jaw_s: 574.0
+      w_exp_s: 25.0
+      w_hand_s: 22.8
+      w_bend: 15.6
+      w_pen: 0.00
+    S5:
+      w_joint: 0.0615
+      w_pose: 22.8
+      w_shape: 25.0
+      w_face: 2.0
+      w_hand: 2.0
+      w_jaw_s: 47.0
+      w_exp_s: 25.0
+      w_hand_s: 22.8
+      w_bend: 15.15
+      w_pen: 0.0
+      
+model:
+  supervision:
+    losses:
+      gm:
+        rho: 100.0
+      interpenetration:
+        part_segmentation: ${SMPLX_ROOT}\smpl_segmentation.pkl
+  parameters:
+    optimization:
+      # helpers:
+        # common: &lbfgsls
+        #   type: lbfgsls
+        #   params:
+        #     max_iter: 30
+        #     lr: 1.0
+      optimizers:
+      #   lbfgsls:
+      #     max_iter: 30
+        named:
+          initial_torso_fit: 
+            # <<: *lbfgsls #NOTE: fixed in omegaconf 2.1.0
+            type: lbfgsls
+            params:
+              max_iter: 30
+              lr: 1.0
+            selectors: global
+          fine_fit_stage1:
+            # <<: *lbfgsls #NOTE: fixed in omegaconf 2.1.0
+            type: lbfgsls
+            params:
+              max_iter: 30
+              lr: 1.0
+            selectors: [global, expressive]
+          fine_fit_stage2:
+            # <<: *lbfgsls #NOTE: fixed in omegaconf 2.1.0
+            type: lbfgsls
+            params:
+              max_iter: 30
+              lr: 1.0
+            selectors: [expressive]
+          fine_fit_stage3:
+            # <<: *lbfgsls #NOTE: fixed in omegaconf 2.1.0
+            type: lbfgsls
+            params:
+              max_iter: 30
+              lr: 1.0
+            selectors: [expressive]
+          fine_fit_stage4:
+            # <<: *lbfgsls #NOTE: fixed in omegaconf 2.1.0
+            type: lbfgsls
+            params:
+              max_iter: 30
+              lr: 1.0
+            selectors: [expressive]
+          fine_fit_stage5:
+            # <<: *lbfgsls #NOTE: fixed in omegaconf 2.1.0
+            type: lbfgsls
+            params:
+              max_iter: 30
+              lr: 1.0
+            selectors: [expressive]
+      objectives:
+        initial_torso_fit:
+          # iterations: 30
+          # optimizer: lbfgsls
+          # selectors: global
+          # objective:
+            L2:
+              gt: [torso_keypoints, init_trans]
+              pred: [torso_joints2d, translation]
+              mask: [null, z_mask]
+              weight: [0.0625, 10000]
+              reduction: [sum, sum]
+              out: [L2_torso, L2_z]
+        fine_fit_stage1:
+          # iterations: 30
+          # optimizer: lbfgsls
+          # selectors: [expressive]
+          # scheduler: null
+          # objective:
+            gm:
+              gt: [split_keypoints.body, split_keypoints.face, split_keypoints.hands]
+              pred: [split_joints2d.body, split_joints2d.face, split_joints2d.hands]
+              weights: [split_confidence.body, split_confidence.face, split_confidence.hands]
+              reduction: [sum, sum, sum] 
+              weight: 
+                - ${smplifyx.W.S1.w_joint}
+                - ${smplifyx.W.S1.w_face}
+                - ${smplifyx.W.S1.w_hand}
+              out: [gm_j2d, gm_face, gm_hands]
+            L2:
+              # gt: [null]
+              pred: [embedding, body.betas, body.left_hand, body.right_hand, body.expression, body.jaw]
+              reduction: [sum, sum, sum, sum, sum, sum]              
+              weight: 
+                - ${smplifyx.W.S1.w_pose}
+                - ${smplifyx.W.S1.w_shape}
+                - ${smplifyx.W.S1.w_hand_s}
+                - ${smplifyx.W.S1.w_hand_s}
+                - ${smplifyx.W.S1.w_exp_s}
+                - ${smplifyx.W.S1.w_jaw_s}
+              out: [vposer, shape, lhand, rhand, expr, jaw]
+            hinge_joint_prior:
+              pose: [body.expressive]
+              out: [bend]
+              weight: 
+                - ${smplifyx.W.S1.w_bend}
+        fine_fit_stage2:
+          # iterations: 30
+          # optimizer: lbfgsls
+          # selectors: [expressive]
+          # scheduler: null
+          # objective:
+            gm:
+              gt: [split_keypoints.body, split_keypoints.face, split_keypoints.hands]
+              pred: [split_joints2d.body, split_joints2d.face, split_joints2d.hands]
+              weights: [split_confidence.body, split_confidence.face, split_confidence.hands]
+              weight: 
+                - ${smplifyx.W.S2.w_joint}
+                - ${smplifyx.W.S2.w_face}
+                - ${smplifyx.W.S2.w_hand}
+              out: [gm_j2d, gm_face, gm_hands]
+            L2:
+              # gt: [null]
+              pred: [embedding, body.betas, body.left_hand, body.right_hand, body.expression, body.jaw]
+              reduction: [sum, sum, sum, sum, sum, sum]              
+              weight: 
+                - ${smplifyx.W.S2.w_pose}
+                - ${smplifyx.W.S2.w_shape}
+                - ${smplifyx.W.S2.w_hand_s}
+                - ${smplifyx.W.S2.w_hand_s}
+                - ${smplifyx.W.S2.w_exp_s}
+                - ${smplifyx.W.S2.w_jaw_s}
+              out: [vposer, shape, lhand, rhand, expr, jaw]
+            hinge_joint_prior:
+              pose: [body.expressive]
+              out: [bend]
+              weight: 
+                - ${smplifyx.W.S2.w_bend}
+        fine_fit_stage3:
+          # iterations: 30
+          # optimizer: lbfgsls
+          # selectors: [expressive]
+          # scheduler: null
+          # objective:
+            gm:
+              gt: [split_keypoints.body, split_keypoints.face, split_keypoints.hands]
+              pred: [split_joints2d.body, split_joints2d.face, split_joints2d.hands]
+              weights: [split_confidence.body, split_confidence.face, split_confidence.hands]
+              weight: 
+                - ${smplifyx.W.S3.w_joint}
+                - ${smplifyx.W.S3.w_face}
+                - ${smplifyx.W.S3.w_hand}
+              out: [gm_j2d, gm_face, gm_hands]
+            L2:
+              # gt: [null]
+              pred: [embedding, body.betas, body.left_hand, body.right_hand, body.expression, body.jaw]
+              reduction: [sum, sum, sum, sum, sum, sum]              
+              weight: 
+                - ${smplifyx.W.S3.w_pose}
+                - ${smplifyx.W.S3.w_shape}
+                - ${smplifyx.W.S3.w_hand_s}
+                - ${smplifyx.W.S3.w_hand_s}
+                - ${smplifyx.W.S3.w_exp_s}
+                - ${smplifyx.W.S3.w_jaw_s}
+              out: [vposer, shape, lhand, rhand, expr, jaw]
+            hinge_joint_prior:
+              pose: [body.expressive]
+              out: [bend]
+              weight: 
+                - ${smplifyx.W.S3.w_bend}
+        fine_fit_stage4:
+          # iterations: 30
+          # optimizer: lbfgsls
+          # selectors: [expressive]
+          # scheduler: null
+          # objective:
+            gm:
+              gt: [split_keypoints.body, split_keypoints.face, split_keypoints.hands]
+              pred: [split_joints2d.body, split_joints2d.face, split_joints2d.hands]
+              weights: [split_confidence.body, split_confidence.face, split_confidence.hands]
+              weight: 
+                - ${smplifyx.W.S4.w_joint}
+                - ${smplifyx.W.S4.w_face}
+                - ${smplifyx.W.S4.w_hand}
+              out: [gm_j2d, gm_face, gm_hands]
+            L2:
+              # gt: [null]
+              pred: [embedding, body.betas, body.left_hand, body.right_hand, body.expression, body.jaw]
+              reduction: [sum, sum, sum, sum, sum, sum]              
+              weight: 
+                - ${smplifyx.W.S4.w_pose}
+                - ${smplifyx.W.S4.w_shape}
+                - ${smplifyx.W.S4.w_hand_s}
+                - ${smplifyx.W.S4.w_hand_s}
+                - ${smplifyx.W.S4.w_exp_s}
+                - ${smplifyx.W.S4.w_jaw_s}
+              out: [vposer, shape, lhand, rhand, expr, jaw]
+            hinge_joint_prior:
+              pose: [body.expressive]
+              out: [bend]
+              weight: 
+                - ${smplifyx.W.S4.w_bend}
+        fine_fit_stage5:
+          # iterations: 30
+          # optimizer: lbfgsls
+          # selectors: [expressive]
+          # scheduler: null
+          # objective:
+            gm:
+              gt: [split_keypoints.body, split_keypoints.face, split_keypoints.hands]
+              pred: [split_joints2d.body, split_joints2d.face, split_joints2d.hands]
+              weights: [split_confidence.body, split_confidence.face, split_confidence.hands]
+              weight: 
+                - ${smplifyx.W.S5.w_joint}
+                - ${smplifyx.W.S5.w_face}
+                - ${smplifyx.W.S5.w_hand}
+              out: [gm_j2d, gm_face, gm_hands]
+            L2:
+              # gt: [null]
+              pred: [embedding, body.betas, body.left_hand, body.right_hand, body.expression, body.jaw]
+              reduction: [sum, sum, sum, sum, sum, sum]              
+              weight: 
+                - ${smplifyx.W.S5.w_pose}
+                - ${smplifyx.W.S5.w_shape}
+                - ${smplifyx.W.S5.w_hand_s}
+                - ${smplifyx.W.S5.w_hand_s}
+                - ${smplifyx.W.S5.w_exp_s}
+                - ${smplifyx.W.S5.w_jaw_s}
+              out: [vposer, shape, lhand, rhand, expr, jaw]
+            hinge_joint_prior:
+              pose: [body.expressive]
+              out: [bend]
+              weight: 
+                - ${smplifyx.W.S5.w_bend}
+            # interpenetration:
+            #   vertices: [body.vertices]
+            #   faces: [body.faces]
+            #   weight: 
+            #     - ${smplifyx.W.S5.w_pen}
+            #   out: [pen]
+      process:
+        step:
+          initialialize_torso:
+            steps:
+              - preprocess
+              - initialize_translation
+          initial_torso_fit:
+            iterations: 5
+            optimizer: initial_torso_fit
+            # scheduler: null
+            steps:
+              - preprocess
+              - postprocess
+            objective: initial_torso_fit

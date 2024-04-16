@@ -2,5 +2,5 @@
 
 _target_: moai.parameters.selectors.MonadParameterSelector
 keys:
-  - preprocess.smplx
-  - preprocess.embedding
+  - graphs.preprocess.smplx
+  - graphs.preprocess.embedding

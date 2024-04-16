@@ -2,6 +2,6 @@
 
 _target_: moai.parameters.selectors.NamedParameterSelector
 keys:
-  - preprocess.smplx.global_orient
-  - preprocess.translation.value
+  - graphs.preprocess.smplx.global_orient
+  - graphs.preprocess.translation.value
 force_grad: true
