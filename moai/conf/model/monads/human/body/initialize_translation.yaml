@@ -1,4 +1,4 @@
-# @package model.models._name_
+# @package model.modules._name_
 
 _target_: moai.monads.human.body.InitTranslation
 torso_edge_indices:

@@ -68,7 +68,7 @@ class Metrics(torch.nn.ModuleDict):
     def forward(self,
         tensors: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
-        metrics = { }                
+        metrics = { }        
         for exe in self.execs:
             exe(tensors, metrics)
         returned = { }
@@ -88,4 +88,5 @@ class Metrics(torch.nn.ModuleDict):
                 )
             else:
                 log.warning(f"Metric [{k}] return type ({type(m)} is not supported and is being ignored.")                
+        tensors['metrics'] = returned
         return returned

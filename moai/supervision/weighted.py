@@ -64,7 +64,7 @@ class Weighted(torch.nn.ModuleDict):
                 accessors = [_create_accessor(k if isinstance(k, str) else toolz.get(0, k, None)) for k in keys[:-1]]
                 self.execs.append(lambda tensor_dict, 
                     acc=accessors, k=keys, p=sig.parameters.keys(), f=last_module:
-                    tensor_dict.update({
+                    tensor_dict['losses']['raw'].update({
                         k[-1]: f(**dict(zip(p, 
                             # list(tensor_dict[i] for i in k[:-1])
                             # list(tensor_dict.get(i, None) 
@@ -88,11 +88,14 @@ class Weighted(torch.nn.ModuleDict):
         )).device
         error = torch.tensor(0.0, dtype=torch.float32, device=device)
         per_error_map = { }
+        tensors['losses'] = {'raw': {}}
         # for exe, w, k, r in zip(self.execs, self.weights, self.keyz, self.reductions):
         for exe, (_, w), k, r in zip(self.execs, self.weights.items(), self.keyz, self.reductions):
             exe(tensors)
             # e = w * (torch.sum(tensors[k]) if r == 'sum' else torch.mean(tensors[k]))
-            e = w * __REDUCTIONS__[r](tensors[k])
+            e = w * __REDUCTIONS__[r](tensors['losses']['raw'][k])
             per_error_map[k] = e
             error += e
+        tensors['losses']['weighted'] = per_error_map
+        tensors['losses']['total'] = error
         return error, per_error_map

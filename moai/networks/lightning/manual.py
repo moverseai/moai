@@ -54,13 +54,14 @@ __all__ = ['Manual']
 class Manual(pytorch_lightning.LightningModule):
     def __init__(self,
         configuration:      omegaconf.DictConfig,
-        models:             omegaconf.DictConfig=None,
+        modules:             omegaconf.DictConfig=None,
         data:               omegaconf.DictConfig=None,
         parameters:         omegaconf.DictConfig=None,
-        graphs:         omegaconf.DictConfig=None,
+        graphs:             omegaconf.DictConfig=None,
         monads:             omegaconf.DictConfig=None,
         supervision:        omegaconf.DictConfig=None,
         validation:         omegaconf.DictConfig=None,
+        monitoring:         omegaconf.DictConfig=None,
         visualization:      omegaconf.DictConfig=None,
         export:             omegaconf.DictConfig=None,
         hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
@@ -74,8 +75,8 @@ class Manual(pytorch_lightning.LightningModule):
         # use scopes for models/monads
         self.data = data
         self.models = torch.nn.ModuleDict()
-        for k in models or {}:            
-            self.models[k] = hyu.instantiate(models[k])
+        for k in modules or {}:            
+            self.models[k] = hyu.instantiate(modules[k])
         self.graphs = torch.nn.ModuleDict()
         monad_graphs, model_graphs = partition(lambda k: k in self.models, graphs or {})
         for model_graph in model_graphs:
@@ -93,6 +94,12 @@ class Manual(pytorch_lightning.LightningModule):
             v = parameters.optimization.objectives[k]
             self.named_objectives[k] = _create_supervision_block(
                 omegaconf.OmegaConf.merge(supervision, v)
+            )
+        self.named_monitors = torch.nn.ModuleDict()
+        for k in monitoring.metrics or {}:
+            v = monitoring.metrics[k]
+            self.named_monitors[k] = _create_validation_block(
+                omegaconf.OmegaConf.merge(validation, v)
             )
         #NOTE: up to here anything with optimizable parameters that can be selected
         #       should be created and available in `self`
@@ -115,8 +122,14 @@ class Manual(pytorch_lightning.LightningModule):
             interval = v.interval or 'epoch'
             self.named_schedulers[interval][k] = hyu.instantiate(config, self.optimizers[v.optimizer])
         self.process = omegaconf.OmegaConf.to_container(parameters.optimization.process, resolve=True)
+        self.monitor = omegaconf.OmegaConf.to_container(parameters.optimization.monitor, resolve=True)
         self.initializer = parameters.initialization if parameters is not None else None
-
+        #NOTE: __NEEDED__ for loading checkpoint?
+        hparams = hyperparameters if hyperparameters is not None else { }
+        hparams.update({'moai_version': miV})
+        #NOTE: @PTL1.5 self.hparams =  hparams
+        self.hparams.update(hparams)
+        
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
         init(self)
@@ -158,7 +171,9 @@ class Manual(pytorch_lightning.LightningModule):
             call._call_strategy_hook(self.trainer, "backward", loss, optimizer)
             return loss
         #TODO: check for refresh optimizers each step
-        for k, proc in self.process['step'].items():
+        # self.log_dict()
+
+        for k, proc in self.process['fit']['batch'].items():
             steps = proc['steps']
             iters = proc.get('iterations', 1)
             optim = proc.get('optimizer', None)            
@@ -180,6 +195,8 @@ class Manual(pytorch_lightning.LightningModule):
                             for iter in range(iters): #NOTE: is this necessary?
                                 for step in steps:
                                     batch = self.graphs[step](batch)
+        return batch
+            
 
     def validation_step(self,
         batch:              typing.Dict[str, torch.Tensor],

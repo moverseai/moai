@@ -1,7 +1,7 @@
 import pytorch_lightning.profilers
 import moai.log.lightning as milog
 
-import pytorch_lightning
+import pytorch_lightning as L
 import hydra.utils as hyu
 import omegaconf.omegaconf
 import typing
@@ -14,15 +14,37 @@ log = logging.getLogger(__name__)
 
 __all__ = ["LightningFitter"]
 
+class BatchMonitor(L.Callback):    
+    def on_train_batch_end(self, trainer: L.Trainer, module: L.LightningModule, 
+        outputs: L.utilities.types.STEP_OUTPUT, batch: typing.Any, batch_idx: int
+    ) -> None:
+        """Called when the train batch ends.
+        Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
+            loss returned from ``training_step``.
+        """
+        for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
+            is_now = batch_idx % monitor_batch['frequency'] == 0
+            if not is_now:
+                continue
+             #NOTE: should detach
+            for step in monitor_batch.get('steps', []):
+                outputs = module.graphs[step](outputs)
+            metrics = {}
+            for monitor_metrics in monitor_batch['metrics']:
+                metrics.update(module.named_monitors[monitor_metrics](outputs))            
+            module.log_dict(outputs['losses']['weighted'], prog_bar=True, logger=True, on_step=True, on_epoch=False)
+            module.log_dict(outputs['metrics'], prog_bar=True, logger=True, on_step=True, on_epoch=False)
+        # return outputs
 
-class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
+
+class PerBatch(torch.nn.Identity, L.Callback):
     def __init__(self):
         super(PerBatch, self).__init__()
 
     def on_train_batch_start(
         self,
-        trainer: pytorch_lightning.Trainer,
-        pl_module: pytorch_lightning.LightningModule,
+        trainer: L.Trainer,
+        pl_module: L.LightningModule,
         batch: typing.Dict[
             str,
             typing.Union[
@@ -62,8 +84,8 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
 
     def on_train_batch_end(
         self,
-        trainer: pytorch_lightning.Trainer,
-        pl_module: pytorch_lightning.LightningModule,
+        trainer: L.Trainer,
+        pl_module: L.LightningModule,
         outputs: typing.Dict[
             str,
             typing.Union[
@@ -191,14 +213,14 @@ class PerBatch(torch.nn.Identity, pytorch_lightning.Callback):
 #         self.optim_progress.optimizer_position = i + 1
 
 
-class LightningFitter(pytorch_lightning.Trainer):
+class LightningFitter(L.Trainer):
     def __init__(
         self,
         logging: omegaconf.DictConfig = None,
         checkpoint: omegaconf.DictConfig = None,
         regularization: omegaconf.DictConfig = None,
         callbacks: omegaconf.DictConfig = None,
-        model_callbacks: typing.Sequence[pytorch_lightning.Callback] = None,
+        model_callbacks: typing.Sequence[L.Callback] = None,
         default_root_dir: typing.Optional[str] = None,
         gradient_clip_val: float = 0.0,
         gradient_clip_algorithm: str = "norm",  # NOTE: @PTL1.5
@@ -231,7 +253,7 @@ class LightningFitter(pytorch_lightning.Trainer):
         flush_logs_every_n_steps: int = 100,
         log_every_n_steps: int = 10,
         accelerator: typing.Optional[
-            typing.Union[str, pytorch_lightning.accelerators.Accelerator]
+            typing.Union[str, L.accelerators.Accelerator]
         ] = 'auto',
         strategy: str = 'auto',
         sync_batchnorm: bool = False,
@@ -243,7 +265,7 @@ class LightningFitter(pytorch_lightning.Trainer):
         # NOTE: @PTL1.5 truncated_bptt_steps:       typing.Optional[int]=None,
         resume_from_checkpoint: typing.Optional[str] = None,
         profiler: typing.Optional[
-            typing.Union[pytorch_lightning.profilers.Profiler, bool, str]
+            typing.Union[L.profilers.Profiler, bool, str]
         ] = None,
         benchmark: bool = False,
         deterministic: bool = True,
@@ -286,7 +308,7 @@ class LightningFitter(pytorch_lightning.Trainer):
         #     pytl_callbacks = [PerBatch()]
         # else:
         #     pytl_callbacks = [hyu.instantiate(loops.callbacks)]
-        pytl_callbacks = []
+        pytl_callbacks = [BatchMonitor()]
         # pytl_callbacks = [PerBatch() if loops is None or loops.callbacks in None else hyu.instantiate(loops.callbacks)]
         pytl_callbacks.extend(
             [hyu.instantiate(c) for c in callbacks.values()]
@@ -307,7 +329,7 @@ class LightningFitter(pytorch_lightning.Trainer):
         # TODO: add optimizer reset callback https://github.com/PyTorchLightning/pytorch-lightning/issues/3095
         # TODO: add weight re-init callback
         # TODO: add inference callback with no grad forward
-        super(LightningFitter, self).__init__(
+        super().__init__(
             logger=loggers, # logger,
             # checkpoint_callback=checkpoint_callback,
             callbacks=pytl_callbacks,
