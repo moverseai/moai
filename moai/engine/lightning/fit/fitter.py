@@ -28,12 +28,20 @@ class BatchMonitor(L.Callback):
                 continue
              #NOTE: should detach
             for step in monitor_batch.get('steps', []):
-                outputs = module.graphs[step](outputs)
-            metrics = {}
-            for monitor_metrics in monitor_batch['metrics']:
-                metrics.update(module.named_monitors[monitor_metrics](outputs))            
-            module.log_dict(outputs['losses']['weighted'], prog_bar=True, logger=True, on_step=True, on_epoch=False)
-            module.log_dict(outputs['metrics'], prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                outputs = module.graphs[step](outputs)            
+            for monitor_metrics in monitor_batch.get('metrics', []):
+                module.named_monitors[monitor_metrics](outputs)
+            if 'losses' in outputs:
+                losses = toolz.merge(outputs['losses']['weighted'], {
+                    'total': outputs['losses']['total'],                
+                })
+                losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
+                losses['epoch'] = int(trainer.current_epoch)
+                module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+            if 'metrics' in outputs:
+                metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
+                # metrics['epoch'] = trainer.current_epoch
+                module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
         # return outputs
 
 

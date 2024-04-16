@@ -9,13 +9,13 @@ defaults:
   - engine/modules: manual_seed
 
   - engine/visualization: collection
-  - engine/visualization/visdom: vector
+  # - engine/visualization/visdom: vector
 
   - engine/export: collection
   - engine/export/exporter: pkl
 
   - engine/log/lightning: collection
-  - engine/log/lightning/logger: visdom
+  # - engine/log/lightning/logger: visdom
   - engine/log/lightning/logger: tabular
 
   # ###### DATA  

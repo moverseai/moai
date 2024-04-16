@@ -56,25 +56,22 @@ class Tabular(pytorch_lightning.loggers.Logger):
 
         return self._experiment
 
-    def _append_train_losses(
-        self,
-        metrics: typing.Dict[str, typing.Any],
-        epoch: int,
-        step: int,
+    def _append_train_losses(self,
+        metrics: typing.Dict[str, typing.Any], epoch: int, step: int,
     ) -> None:
-        loss = metrics["total_loss"]
-        train_metrics = toolz.dissoc(metrics, "train", "epoch", "total_loss")
+        # loss = metrics["total_loss"]
+        # train_metrics = toolz.dissoc(metrics, "train", "epoch", "total_loss")
         if self.train_logs.headers is None and not self.train_headers_written:
             self.train_logs.headers = list(
                 toolz.concat(
                     [
-                        [str("epoch"), str("iteration"), str("total_loss")],
-                        [k for k in train_metrics.keys()],
+                        [str("epoch"), str("iteration")],
+                        [k for k in metrics.keys()],
                     ]
                 )
             )
         self.train_logs.append(
-            list(toolz.concat([[epoch, step, loss], train_metrics.values()]))
+            list(toolz.concat([[epoch, step], metrics.values()]))
         )
 
     def _append_val_loss(
@@ -154,16 +151,16 @@ class Tabular(pytorch_lightning.loggers.Logger):
                 metrics,
             )
         train_metrics = toolz.keymap(
-            lambda k: k.replace("train_", ""),
-            toolz.keyfilter(lambda k: k.startswith("train_"), metrics),
+            lambda k: k.replace("train/", ""),
+            toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
         )
         val_metrics = toolz.keymap(
-            lambda k: k.replace("val_", ""),
-            toolz.keyfilter(lambda k: k.startswith("val_"), metrics),
+            lambda k: k.replace("val/", ""),
+            toolz.keyfilter(lambda k: k.startswith("val/"), metrics),
         )
         test_metrics = toolz.keymap(
-            lambda k: k.replace("test_", "").replace("/epoch_0", ""),
-            toolz.keyfilter(lambda k: k.startswith("test_"), metrics),
+            lambda k: k.replace("test/", "").replace("/epoch_0", ""),
+            toolz.keyfilter(lambda k: k.startswith("test/"), metrics),
         )
         # test_metrics = toolz.keymap(lambda k: k.replace('test_', '').replace('/epoch_0', ''),
         #     toolz.keyfilter(
@@ -171,9 +168,11 @@ class Tabular(pytorch_lightning.loggers.Logger):
         #         (toolz.keyfilter(lambda k: k.startswith('test_'), metrics))
         #     ) if dataloader_index is not None else toolz.keyfilter(lambda k: k.startswith('test_'), metrics)
         # )
+        
         if train_metrics:
             self._append_train_losses(
-                toolz.assoc(train_metrics, "total_loss", metrics["total_loss"]),
+                # toolz.assoc(train_metrics, "total_loss", metrics["total_loss"]),
+                train_metrics,
                 metrics["epoch"],
                 step,
             )

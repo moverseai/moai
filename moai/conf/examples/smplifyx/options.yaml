@@ -14,19 +14,19 @@ fitter:
 
 logging:
   name: ${experiment.name}
-  loggers:
-    visdom:
-      name: ${experiment.name}
-      ip: ${experiment.visdom_ip}
+  # loggers:
+  #   visdom:
+  #     name: ${experiment.name}
+  #     ip: ${experiment.visdom_ip}
 
 visualization:
   batch_interval: 1
-  visualizers:
-    vector:
-      name: ${experiment.name}
-      ip: ${experiment.visdom_ip}
-      vector: [body.betas]
-      type: [box]
+  # visualizers:
+  #   vector:
+  #     name: ${experiment.name}
+  #     ip: ${experiment.visdom_ip}
+  #     vector: [body.betas]
+  #     type: [box]
 
 export:
   batch_interval: 1

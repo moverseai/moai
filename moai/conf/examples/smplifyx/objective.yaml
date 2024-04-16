@@ -327,7 +327,7 @@ model:
           batch:
             log_results:
               frequency: 1
-              steps: []
+              # steps: []
               metrics:
                 - fit_quality
               

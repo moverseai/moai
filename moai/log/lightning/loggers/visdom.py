@@ -231,14 +231,14 @@ class Visdom(pytorch_lightning.loggers.Logger):
             metrics = toolz.keyfilter(
                 lambda k: k.endswith(str(int(dataloader_index))),
                 metrics,
-            )
+            )            
         train_metrics = toolz.keymap(
-            lambda k: k.replace("train_", ""),
-            toolz.keyfilter(lambda k: k.startswith("train_"), metrics),
+            lambda k: k.replace("train/", ""),
+            toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
         )
         val_metrics = toolz.keymap(
-            lambda k: k.replace("val_", ""),
-            toolz.keyfilter(lambda k: k.startswith("val_"), metrics),
+            lambda k: k.replace("val/", ""),
+            toolz.keyfilter(lambda k: k.startswith("val/"), metrics),
         )
         if train_metrics:
             epoch = int(metrics["epoch"])
