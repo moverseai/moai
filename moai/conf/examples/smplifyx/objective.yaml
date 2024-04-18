@@ -322,8 +322,11 @@ model:
           step:
             show_optimization:
               frequency: 1
-              steps:
-                - show_mesh
+              # steps:
+                # - show_mesh
+              tensors:
+                - save_params
+              
           batch:
             log_results:
               frequency: 1

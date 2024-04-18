@@ -71,6 +71,8 @@ defaults:
   - model/validation: collection
   - model/validation/metric: rmse
 
+  - engine/monitor/exporting/local: pkl
+
   - examples/smplifyx/data
   - examples/smplifyx/options
   - examples/smplifyx/model

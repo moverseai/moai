@@ -3,9 +3,23 @@
 model:
   # validation:
 
-  monitoring:
+  monitors:
     metrics:
       fit_quality:
         rmse:
           gt: [keypoints]
           pred: [joints2d]
+    tensors:
+      save_params:
+        pkl:
+          path: '.'
+          keys: 
+            - translation
+            - embedding
+            - body.betas
+            - body.rotation
+            - body.left_hand
+            - body.right_hand
+            - body.jaw
+            - body.pose
+            - body.expression

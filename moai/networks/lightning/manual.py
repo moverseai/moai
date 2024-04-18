@@ -30,7 +30,7 @@ import moai.utils.parsing.rtp as mirtp
 from moai.utils.iterators import partition
 
 from moai.monads.execution.cascade import Cascade
-from moai.monads.execution.models import Models
+from moai.monads.execution.models import Models, Tensors
 
 from collections import defaultdict, OrderedDict
 
@@ -51,19 +51,33 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Manual']
 
+def _create_tensor_monitoring_block(
+    cfg: omegaconf.DictConfig,
+    force: bool=True
+):
+    if force and not cfg:
+        log.warning("Empty tensor monitoring block in feedforward model.")    
+    # if not cfg:
+    #     return NoValidation()
+    if '_target_' not in cfg:
+        return Tensors(**cfg)
+    else:
+        return hyu.instantiate(cfg)
+
 class Manual(pytorch_lightning.LightningModule):
     def __init__(self,
         configuration:      omegaconf.DictConfig,
-        modules:             omegaconf.DictConfig=None,
+        modules:            omegaconf.DictConfig=None,
         data:               omegaconf.DictConfig=None,
         parameters:         omegaconf.DictConfig=None,
         graphs:             omegaconf.DictConfig=None,
         monads:             omegaconf.DictConfig=None,
         supervision:        omegaconf.DictConfig=None,
         validation:         omegaconf.DictConfig=None,
+        monitors:           omegaconf.DictConfig=None,
         monitoring:         omegaconf.DictConfig=None,
-        visualization:      omegaconf.DictConfig=None,
-        export:             omegaconf.DictConfig=None,
+        # visualization:      omegaconf.DictConfig=None,
+        # export:             omegaconf.DictConfig=None,
         hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
     ):
         super().__init__()
@@ -95,11 +109,17 @@ class Manual(pytorch_lightning.LightningModule):
             self.named_objectives[k] = _create_supervision_block(
                 omegaconf.OmegaConf.merge(supervision, v)
             )
-        self.named_monitors = torch.nn.ModuleDict()
-        for k in monitoring.metrics or {}:
-            v = monitoring.metrics[k]
-            self.named_monitors[k] = _create_validation_block(
+        self.named_metrics = torch.nn.ModuleDict()
+        for k in monitors.metrics or {}:
+            v = monitors.metrics[k]
+            self.named_metrics[k] = _create_validation_block(
                 omegaconf.OmegaConf.merge(validation, v)
+            )
+        self.named_monitors = {}
+        for k in monitors.tensors or {}:
+            v = monitors.tensors[k]
+            self.named_monitors[k] = _create_tensor_monitoring_block(
+                omegaconf.OmegaConf.merge(v, monitoring) #NOTE: for some reason the order needs to be reverted
             )
         #NOTE: up to here anything with optimizable parameters that can be selected
         #       should be created and available in `self`
@@ -156,7 +176,7 @@ class Manual(pytorch_lightning.LightningModule):
         #           !!! to make sure the intermediate results are available to the following ops
         # 4. the batch gets deleted from memory after the training step
         # 5. should return a dict /w `loss`
-        def closure(tensors, index, steps, iters, optimizer, objective):
+        def closure(tensors, index, steps, stage, optimizer, objective):
             # step_fn = self._make_step_fn(kwargs)            
             # def backward_fn(loss: torch.Tensor, optimizer: torch.optim.Optimizer) -> None:
                 # call._call_strategy_hook(self.trainer, "backward", loss, optimizer)        
@@ -169,6 +189,21 @@ class Manual(pytorch_lightning.LightningModule):
                 call._call_lightning_module_hook(self.trainer, "on_before_zero_grad", optimizer)
                 call._call_lightning_module_hook(self.trainer, "optimizer_zero_grad", self.trainer.current_epoch, index, optimizer)
             call._call_strategy_hook(self.trainer, "backward", loss, optimizer)
+            self.optimization_step += 1
+            for k in toolz.get_in(['fit', 'step'], self.monitor) or {}:
+                monitor = self.monitor['fit']['step'][k]
+                tensor_monitor_steps = toolz.get_in(['tensors'], monitor) or []                
+                if tensor_monitor_steps and self.optimization_step % monitor['frequency'] == 0:
+                    with torch.no_grad():
+                        for step in toolz.get_in(['steps'], monitor) or []:
+                            self.graphs[step](tensors)
+                        extras = {
+                            'step': self.global_step, 'epoch': self.current_epoch,
+                            'optimization_step': self.optimization_step,
+                            'batch_idx': batch_idx, 'stage': stage,
+                        }
+                        for step in tensor_monitor_steps:
+                            self.named_monitors[step](tensors, extras)            
             return loss
         #TODO: check for refresh optimizers each step
         # self.log_dict()
@@ -180,7 +215,7 @@ class Manual(pytorch_lightning.LightningModule):
             optimizer = self.optimizers()[list(self.named_optimizers.keys()).index(optim)]\
                 if optim is not None else None #NOTE: this can be cached at ctor
             objective = proc.get('objective', None)
-            current_closure = functools.partial(closure, batch, batch_idx, steps, iters, optimizer, objective)
+            current_closure = functools.partial(closure, batch, batch_idx, steps, k, optimizer, objective)
             for iter in range(iters):
                 if (# when the strategy handles accumulation, we want to always call the optimizer step
                     not self.trainer.strategy.handles_gradient_accumulation and self.trainer.fit_loop._should_accumulate()
@@ -192,9 +227,9 @@ class Manual(pytorch_lightning.LightningModule):
                         self.optimizer_step(self.trainer.current_epoch, batch_idx, optimizer, current_closure)
                     else: #NOTE: w/o an optim, it is a tensor setup step (e.g. inference)
                         with torch.no_grad():
-                            for iter in range(iters): #NOTE: is this necessary?
-                                for step in steps:
-                                    batch = self.graphs[step](batch)
+                            # for iter in range(iters): #NOTE: is this necessary?
+                            for step in steps:
+                                batch = self.graphs[step](batch)
         return batch
             
 
@@ -265,92 +300,3 @@ class Manual(pytorch_lightning.LightningModule):
             ]
             #test_loader = hyu.instantiate(self.data.test.loader, test_iterator)
         return test_loaders
-
-        '''
-            monads:
-                monad#1:
-                    ...
-                monad#2:
-                    ...
-            graphs:
-                generator:
-                    noise: [z1, z2]
-                    out: [fake1, fake2]
-                discriminator:
-                    real: [real1, real2]
-                    fake: [fake1, fake2]
-                    score: [score1, score2]
-                pre_disc_only_gen:
-                    ...
-                post_generator_disc_only:
-                    ...
-                ...
-            optimization.objectives:
-                objective1:
-                    loss1:
-                        ...
-                    loss2:
-                        ...
-            optimization.process.graphs:
-                disc_only:
-                    scope: 
-                    cascade:
-                        - pre_disc_only_gen
-                        - generator
-                        - post_generator_disc_only
-                        - discriminator
-                        - post_disc_only
-                gen_disc:
-                    scope: 
-                    cascade:
-                        - 
-            optimization.process.steps:            
-                disc:
-                    iterations: 5 # frequency: 5
-                    objective: obj#1
-                    optimizer: adam1
-                    scheduler: null
-                    graph: disc_only
-                    parameters: selector#2
-                gen:
-                    iterations: 1 # frequency: 1
-                    objective: obj#2
-                    optimizer: adam#2
-                    scheduler: cyclic#1
-                    graph: gen_disc
-                    parameters: selector#1
-                rec:
-                    iterations: 1 # frequency: 1
-                    objective: obj#3
-                    optimizer: adam#2
-                    scheduler: [exp, gamma] # both on adam#2
-                disc_global:
-                    iterations: 1 # frequency: 1
-                    objective: obj#4
-                    optimizer: [sgd#1, sgd#2]
-                    scheduler: [cyclic#2, exp] # 1-to-1 w/ optims
-
-            optimization.process.epochs:
-                start: # scope
-                    milestone:10                        
-                    steps:
-                        - disc
-                        - gen
-                        - rec
-                tune:
-                    milestone: 20
-                    steps:
-                        - disc
-                        - gen
-                        - rec
-                        - disc_global
-                wrap:
-                    milestone: 25
-                    steps:
-                        - disc
-                        - gen
-                        
-            optimization.process.criteria: # auto detach.cpu.numpy & split-like monads
-                autoencode:
-                    frequency: 50
-        '''        
