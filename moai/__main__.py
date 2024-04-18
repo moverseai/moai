@@ -27,6 +27,8 @@ import logging
 import sys
 import os
 
+logging.captureWarnings(True)
+
 from rich.traceback import install
 
 install(width=120, extra_lines=5, theme=None,

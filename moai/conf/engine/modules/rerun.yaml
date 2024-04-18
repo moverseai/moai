@@ -1,0 +1,5 @@
+# @package engine.modules.rerun
+
+_target_: moai.engine.modules.rerun.Rerun
+name: ${experiment.name}
+export: null

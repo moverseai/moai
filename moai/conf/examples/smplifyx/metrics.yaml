@@ -12,14 +12,36 @@ model:
     tensors:
       save_params:
         pkl:
-          path: '.'
-          keys: 
-            - translation
-            - embedding
-            - body.betas
-            - body.rotation
-            - body.left_hand
-            - body.right_hand
-            - body.jaw
-            - body.pose
-            - body.expression
+          params:
+            path: '.'
+            keys: 
+              - translation
+              - embedding
+              - body.betas
+              - body.rotation
+              - body.left_hand
+              - body.right_hand
+              - body.jaw
+              - body.pose
+              - body.expression
+      show_mesh_step:
+        mesh:
+          vertices: body.vertices
+          faces: body.faces
+          params:
+            color: green
+            path: fit/body/mesh/step
+      show_mesh_iter:
+        mesh:
+          vertices: body.vertices
+          faces: body.faces
+          params:
+            color: cyan
+            path: fit/body/mesh/iter
+      show_mesh_batch:
+        mesh:
+          vertices: body.vertices
+          faces: body.faces
+          params:
+            color: red
+            path: fit/body/mesh/batch

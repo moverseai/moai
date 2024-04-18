@@ -326,13 +326,20 @@ model:
                 # - show_mesh
               tensors:
                 - save_params
-              
+                - show_mesh_step
+          iter:
+            show_optimization:
+              frequency: 1
+              # steps:
+                # - show_mesh
+              tensors:
+                - show_mesh_iter
           batch:
             log_results:
               frequency: 1
               # steps: []
               metrics:
                 - fit_quality
-              
-                # - save_mask
+              tensors:
+                - show_mesh_batch
 

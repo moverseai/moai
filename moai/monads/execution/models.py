@@ -17,10 +17,10 @@ log = logging.getLogger(__name__)
 
 __all__ = ["Models"]
 
-from moai.export.local.pkl import TensorMonitor
+from moai.export.local.pkl import TensorMonitor #TODO: use this as base class
     
 class Tensors():
-    __PRESET_ARGS__ = set(['step', 'epoch', 'batch_idx'])
+    __PRESET_ARGS__ = set(['step', 'epoch', 'batch_idx', 'optimization_step', 'stage'])
     
     class ArgsOperation():
         def __init__(self,
@@ -29,7 +29,7 @@ class Tensors():
             kwargs: typing.Set[str],
         ):
             self.func = func
-            self.args = {k: _create_accessor(a) for k, a in args}
+            self.args = {k: _create_accessor(a) for k, a in args.items()}
             self.kwargs = kwargs
 
         # def _access_tensors(self, 
@@ -43,8 +43,11 @@ class Tensors():
             meta: typing.Mapping[str, int]
         ) -> None:
             # kwargs = toolz.valmap(self._access_tensors, self.args)
-            kwargs = toolz.valmap(lambda a: a(tensors), self.args)
-            kwargs.update({k: meta[k] for k in self.kwargs})
+            kwargs = toolz.valmap(
+                lambda a: a(tensors).detach().cpu().numpy().squeeze(), 
+                self.args
+            )
+            kwargs.update({k: meta[k] for k in self.kwargs if k in meta})
             self.func(**kwargs)
 
     class DictOperation():
@@ -71,18 +74,21 @@ class Tensors():
     ) -> None:
         self.operations = []
         for k in kwargs or {}:
-            override_params = kwargs[k] #NOTE: list args for multi calling
+            params = kwargs[k] #NOTE: list args for multi calling
+            override_params = params.get('params', None) or {}            
             target = tensors[k]
             operation = hyu.instantiate(target, **override_params)
             signature = inspect.signature(operation)
             extras = Tensors.__PRESET_ARGS__.intersection(signature.parameters.keys())
             args = signature.parameters.keys() - Tensors.__PRESET_ARGS__
             #NOTE: operate should change to partial func call
+            # log.error(args)
             if self.is_first_arg_tensor_dict(signature.parameters[next(iter(args))]):
+                # log.error('added dict op')
                 self.operations.append(Tensors.DictOperation(operation, extras))
-            # else:
-            #     op_args = 
-            #     self.operations.append(Tensors.ArgsOperation(operation, *, extras))
+            else:
+                op_args = toolz.keyfilter(lambda k: k in args, params) #NOTE: currently assumes that no arg is named `params`
+                self.operations.append(Tensors.ArgsOperation(operation, op_args, extras))
 
     def __call__(self, 
         tensors:    typing.Mapping[str, torch.Tensor], 

@@ -1,0 +1,5 @@
+# @package monitoring.tensors.mesh
+
+_target_: moai.visualization.rerun.mesh3d.Mesh
+color: ???
+path: ???

@@ -203,19 +203,19 @@ class Manual(pytorch_lightning.LightningModule):
                             'batch_idx': batch_idx, 'stage': stage,
                         }
                         for step in tensor_monitor_steps:
-                            self.named_monitors[step](tensors, extras)            
+                            self.named_monitors[step](tensors, extras)
             return loss
         #TODO: check for refresh optimizers each step
         # self.log_dict()
 
-        for k, proc in self.process['fit']['batch'].items():
+        for stage, proc in self.process['fit']['batch'].items():
             steps = proc['steps']
             iters = proc.get('iterations', 1)
             optim = proc.get('optimizer', None)            
             optimizer = self.optimizers()[list(self.named_optimizers.keys()).index(optim)]\
                 if optim is not None else None #NOTE: this can be cached at ctor
             objective = proc.get('objective', None)
-            current_closure = functools.partial(closure, batch, batch_idx, steps, k, optimizer, objective)
+            current_closure = functools.partial(closure, batch, batch_idx, steps, stage, optimizer, objective)
             for iter in range(iters):
                 if (# when the strategy handles accumulation, we want to always call the optimizer step
                     not self.trainer.strategy.handles_gradient_accumulation and self.trainer.fit_loop._should_accumulate()
@@ -230,6 +230,24 @@ class Manual(pytorch_lightning.LightningModule):
                             # for iter in range(iters): #NOTE: is this necessary?
                             for step in steps:
                                 batch = self.graphs[step](batch)
+                iter_monitor = toolz.get_in(['fit', 'iter'], self.monitor)
+                if iter_monitor is not None:
+                    for _, iter_monitor_stage in iter_monitor.items():                        
+                        frequency = toolz.get('frequency', iter_monitor_stage, 1)
+                        should_monitor = iter % frequency == 0
+                        iter_tensor_monitor = toolz.get('tensors', iter_monitor_stage)
+                        if should_monitor and iter_tensor_monitor is not None:
+                            for step in toolz.get('steps', iter_monitor_stage, None) or []:
+                                self.graphs[step](batch)
+                            for metric in toolz.get('metrics', iter_monitor_stage, None) or []:
+                                self.named_metrics[metric](batch)
+                            extras = {
+                                'step': self.global_step, 'epoch': self.current_epoch,
+                                'batch_idx': batch_idx, 'stage': stage, 'iter': iter
+                            }
+                            for step in iter_tensor_monitor:
+                                self.named_monitors[step](batch, extras)
+
         return batch
             
 

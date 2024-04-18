@@ -47,6 +47,12 @@ class BatchMonitor(L.Callback):
                 outputs = module.graphs[step](outputs)            
             for monitor_metrics in monitor_batch.get('metrics', []):
                 module.named_metrics[monitor_metrics](outputs)
+            extras = {
+                'step': module.global_step, 'epoch': module.current_epoch,
+                'batch_idx': batch_idx,
+            }
+            for monitor_tensors in monitor_batch.get('tensors', []):
+                module.named_monitors[monitor_tensors](outputs, extras)
             if 'losses' in outputs:
                 losses = toolz.merge(outputs['losses']['weighted'], {
                     'total': outputs['losses']['total'],                
