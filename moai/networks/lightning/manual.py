@@ -238,7 +238,6 @@ class Manual(pytorch_lightning.LightningModule):
             objective = proc.get('objective', None)
             current_closure = functools.partial(closure, batch, batch_idx, steps, stage, optimizer, objective)
             for iter in range(iters):
-                log.info(f"Training step {iter+1}/{iters} for {k} with {steps} steps")
                 if (# when the strategy handles accumulation, we want to always call the optimizer step
                     not self.trainer.strategy.handles_gradient_accumulation and self.trainer.fit_loop._should_accumulate()
                 ): # For gradient accumulation calculate loss (train step + train step end)
