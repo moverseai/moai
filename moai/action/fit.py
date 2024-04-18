@@ -20,8 +20,9 @@ def fit(cfg):
     engine = hydra.utils.instantiate(cfg.engine)
     model = hydra.utils.instantiate(cfg.model,
         data=cfg.data,
-        visualization=assign(cfg, "visualization"),
-        export=assign(cfg, "export"),    
+        # visualization=assign(cfg, "visualization"),
+        # export=assign(cfg, "export"),    
+        monitoring=assign(cfg, "monitoring")
     )
     for name, remodel in (assign(cfg ,"remodel") or {}).items():
         hydra.utils.instantiate(remodel)(model)

@@ -14,9 +14,25 @@ log = logging.getLogger(__name__)
 
 __all__ = ["LightningFitter"]
 
-class BatchMonitor(L.Callback):    
-    def on_train_batch_end(self, trainer: L.Trainer, module: L.LightningModule, 
-        outputs: L.utilities.types.STEP_OUTPUT, batch: typing.Any, batch_idx: int
+class BatchMonitor(L.Callback):   
+
+    def setup(self, trainer: L.Trainer, module: L.LightningModule, stage: str) -> None:
+        """Called when fit, validate, test, predict, or tune begins."""
+        module.initialize_parameters()
+
+    @torch.no_grad
+    def on_train_batch_start(self, 
+        trainer: L.Trainer, module: L.LightningModule,  
+        batch: typing.Mapping[str, torch.Tensor], batch_idx: int
+    ) -> None:
+        """Called when the train batch begins."""
+        module.optimization_step = 0
+
+    @torch.no_grad
+    def on_train_batch_end(self, 
+        trainer: L.Trainer, module: L.LightningModule, 
+        outputs: L.utilities.types.STEP_OUTPUT, 
+        batch: typing.Mapping[str, torch.Tensor], batch_idx: int
     ) -> None:
         """Called when the train batch ends.
         Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
@@ -28,12 +44,20 @@ class BatchMonitor(L.Callback):
                 continue
              #NOTE: should detach
             for step in monitor_batch.get('steps', []):
-                outputs = module.graphs[step](outputs)
-            metrics = {}
-            for monitor_metrics in monitor_batch['metrics']:
-                metrics.update(module.named_monitors[monitor_metrics](outputs))            
-            module.log_dict(outputs['losses']['weighted'], prog_bar=True, logger=True, on_step=True, on_epoch=False)
-            module.log_dict(outputs['metrics'], prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                outputs = module.graphs[step](outputs)            
+            for monitor_metrics in monitor_batch.get('metrics', []):
+                module.named_metrics[monitor_metrics](outputs)
+            if 'losses' in outputs:
+                losses = toolz.merge(outputs['losses']['weighted'], {
+                    'total': outputs['losses']['total'],                
+                })
+                losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
+                losses['epoch'] = int(trainer.current_epoch)
+                module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+            if 'metrics' in outputs:
+                metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
+                # metrics['epoch'] = trainer.current_epoch
+                module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
         # return outputs
 
 

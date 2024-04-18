@@ -5,7 +5,9 @@ FOLDER: ???
 
 data:
   train:
-    iterator:      
+    loader:
+      shuffle: false
+    iterator:
       datasets:
         openpose:
           image_glob: ${openpose_root}\${FOLDER}\images\*.jp*g
