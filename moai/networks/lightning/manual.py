@@ -6,6 +6,7 @@ from moai.utils.engine import NoOp as NoInterval
 from moai.parameters.optimization import NoOp as NoOptimization
 from moai.parameters.optimization.schedule import NoOp as NoScheduling
 from moai.parameters.initialization import Default as NoInit
+from moai.data.datasets.generic import Empty
 from moai.validation import (
     NoOp as NoValidation,
     Collection as DefaultValidation,
@@ -153,6 +154,14 @@ class Manual(pytorch_lightning.LightningModule):
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
         init(self)
+    
+    def copy_params(self,
+        initializers: typing.List[typing.Tuple[str, functools.partial]],
+        tensors: typing.Dict[str, torch.Tensor]
+    ) -> None:
+        for i, a in initializers:
+            accessor = _create_accessor(i)
+            a(self,accessor(tensors))
 
     def training_step(self, 
         batch:                  typing.Dict[str, torch.Tensor],
@@ -211,12 +220,25 @@ class Manual(pytorch_lightning.LightningModule):
         for stage, proc in self.process['fit']['batch'].items():
             steps = proc['steps']
             iters = proc.get('iterations', 1)
-            optim = proc.get('optimizer', None)            
-            optimizer = self.optimizers()[list(self.named_optimizers.keys()).index(optim)]\
-                if optim is not None else None #NOTE: this can be cached at ctor
+            optim = proc.get('optimizer', None)
+            copy_params = proc.get('copy_params', None)
+            if optim is not None:
+                optimizers = self.optimizers()
+                if isinstance(optimizers, list):
+                    optimizer = optimizers[list(self.named_optimizers.keys()).index(optim)]
+                else:
+                    if list(self.named_optimizers.keys()).index(optim) == 0:
+                        optimizer = optimizers
+                    else:
+                        log.warning(f"Optimizer {optim} with index {list(self.named_optimizers.keys()).index(optim)} is not found!")
+            else:
+                optimizer = None
+            # optimizer = self.optimizers()[list(self.named_optimizers.keys()).index(optim)]\
+                # if optim is not None else None #NOTE: this can be cached at ctor
             objective = proc.get('objective', None)
             current_closure = functools.partial(closure, batch, batch_idx, steps, stage, optimizer, objective)
             for iter in range(iters):
+                log.info(f"Training step {iter+1}/{iters} for {k} with {steps} steps")
                 if (# when the strategy handles accumulation, we want to always call the optimizer step
                     not self.trainer.strategy.handles_gradient_accumulation and self.trainer.fit_loop._should_accumulate()
                 ): # For gradient accumulation calculate loss (train step + train step end)
@@ -248,6 +270,26 @@ class Manual(pytorch_lightning.LightningModule):
                             for step in iter_tensor_monitor:
                                 self.named_monitors[step](batch, extras)
 
+            # call the copy params for initialization
+            if copy_params is not None:
+                frequency = copy_params.get('frequency', 1) # default to each batch end
+                initializers = []
+                if batch_idx == 0:
+                    # get initializers only in the first batch
+                    for i, o in copy_params.items():
+                        if i == 'frequency':
+                            continue
+                        initializers.append((i, _create_assigner(o)))
+                # if frequency is 0 call only once
+                # use torch no grad as most params
+                # are leaf tensors and assign is an inplace operation
+                with torch.no_grad():
+                    if frequency == 0:
+                        if batch_idx == 0:
+                            self.copy_params(initializers, batch)
+                    else:
+                        if batch_idx % frequency == 0:
+                            self.copy_params(initializers, batch)
         return batch
             
 
@@ -277,6 +319,11 @@ class Manual(pytorch_lightning.LightningModule):
         return train_loader
 
     def val_dataloader(self) -> torch.utils.data.DataLoader:
+        # check if key val is in struct
+        if not hasattr(self.data, 'val'):
+            log.warning("Validation data missing. An empty validation set will be used.")
+            validation_loaders = [torch.utils.data.DataLoader(Empty())]
+            return validation_loaders
         if hasattr(self.data.val.iterator, '_target_'):
             log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
             val_iterators = [hyu.instantiate(self.data.val.iterator)]

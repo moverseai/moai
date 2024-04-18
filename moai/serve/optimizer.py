@@ -146,11 +146,11 @@ class OptimizerServer(BaseHandler):
         optimizers, schedulers = self.optimizer.configure_optimizers()
         iters = list(toolz.mapcat(lambda o: o.iterations, toolz.unique(optimizers)))
         stages = list(toolz.mapcat(lambda o: o.name, toolz.unique(optimizers)))
-        if self.optimizer.mode == 'inference':                
+        if self.optimizer.mode == 'inference':
             with torch.no_grad():
                 self.optimizer.preprocess(data)
                 self.optimizer(data)
-                self.optimizer.initialize(data)            
+                self.optimizer.initialize(data)
         for i, (optim, iters, stage, sched) in enumerate(zip(
             optimizers, iters, stages, schedulers
         )):
