@@ -42,7 +42,7 @@ def _create_supervision_block(
     if '_target_' not in cfg:
         return DefaultSupervision(**cfg)
     else:
-        return hyu.instantiate(cfg)
+        return hyu.instantiate(cfg, _recursive_=False)
 
 def _create_validation_block(
     cfg: omegaconf.DictConfig,
@@ -55,7 +55,7 @@ def _create_validation_block(
     if '_target_' not in cfg:
         return DefaultValidation(**cfg)
     else:
-        return hyu.instantiate(cfg)
+        return hyu.instantiate(cfg, _recursive_=False)
 
 def _create_processing_block(
     cfg: omegaconf.DictConfig, 

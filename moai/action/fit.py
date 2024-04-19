@@ -22,7 +22,8 @@ def fit(cfg):
         data=cfg.data,
         # visualization=assign(cfg, "visualization"),
         # export=assign(cfg, "export"),    
-        monitoring=assign(cfg, "monitoring")
+        monitoring=assign(cfg, "monitoring"),
+        _recursive_=False
     )
     for name, remodel in (assign(cfg ,"remodel") or {}).items():
         hydra.utils.instantiate(remodel)(model)
@@ -30,6 +31,7 @@ def fit(cfg):
     fitter = hydra.utils.instantiate(cfg.fitter, 
         logging=assign(cfg, "logging"),
         model_callbacks=ModelCallbacks(model=model),
+        _recursive_=False
     )
     log.info("Fitting started.")
     fitter.run(model)

@@ -17,16 +17,16 @@ class Collection(Callable): #TODO: inherit from UserList as well, need to update
         name: str="items",
     ):
         self.name = name
-        items = [hyu.instantiate(item) for item in items.values()]\
-            if not arguments else [
-                hyu.instantiate(item, arg) for item, arg in zip(items.values(), arguments)
-            ]
+        # items = [hyu.instantiate(item) for item in items.values()]\
+        #     if not arguments else [
+        #         hyu.instantiate(item, arg) for item, arg in zip(items.values(), arguments)
+        #     ]
         setattr(self, name, items)
         if arguments and len(items) != len(arguments):
             log.warning(f"Inconsistent item ({len(items)}) and argument ({len(arguments)}) count, the matching subset is only used.")
 
     def items(self) -> typing.Iterable[typing.Any]:
-        return getattr(self, self.name)
+        return getattr(self, self.name).values()
 
     def __call__(self, 
         tensors:    typing.Dict[str, torch.Tensor],

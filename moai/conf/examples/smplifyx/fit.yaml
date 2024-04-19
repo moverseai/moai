@@ -6,8 +6,8 @@ defaults:
   ###### ENGINE
   - engine: engine
   - engine/fit: lightning
-  - engine/modules: manual_seed
-  - engine/modules: rerun
+  - engine/modules: [manual_seed, rerun]
+  # - engine/modules: 
 
   - engine/visualization: collection
   # - engine/visualization/visdom: vector
@@ -38,19 +38,18 @@ defaults:
   # ###### MODEL 
   - model: manual
   # - model/monads/human/body: init_translation
-  - model/monads/human/body: initialize_translation
+  - model/monads/human/body: [initialize_translation, smplx]
   - remodel: module_mode
 
   # - model/feedforward: preprocess
   - examples/smplifyx/embedding
   - examples/smplifyx/translation
   - examples/smplifyx/betas
-  - model/monads/human/body: smplx
+  # - model/monads/human/body: smplx
   - model/monads/human/body/prior: vposer2
 
   # - model/feedforward: postprocess 
-  - model/monads/masking: index  
-  - model/monads/masking: binary
+  - model/monads/masking: [index, binary]  
   - model/monads/geometry/projection: weak_perspective_camera
   - model/monads/human/pose/openpose: split
 
@@ -58,9 +57,8 @@ defaults:
   - model/parameters/initialization/custom: vposer2
   - model/parameters/initialization/scheme: zero_params
   - model/parameters/optimization/optimizer: lbfgsls
-  - model/parameters/selectors/human/body: global
-  - model/parameters/selectors/human/body: expressive
-
+  - model/parameters/selectors/human/body: [global, expressive]
+  
   - model/parameters/regularization: none
 
   - model/supervision: weighted
@@ -75,8 +73,17 @@ defaults:
   - engine/monitor/exporting/local: pkl
   - engine/monitor/visualization/rerun: mesh
 
-  - examples/smplifyx/data
-  - examples/smplifyx/options
-  - examples/smplifyx/model
-  - examples/smplifyx/metrics
-  - examples/smplifyx/objective
+  # - examples/smplifyx/data
+  # - examples/smplifyx/options
+  # - examples/smplifyx/model
+  # - examples/smplifyx/metrics
+  # - examples/smplifyx/objective
+  
+
+  - data
+  - options
+  - model
+  - metrics
+  - objective
+
+  # - override model/parameters/selectors/human/body: expressive

@@ -10,7 +10,7 @@ data:
     iterator:
       datasets:
         openpose:
-          image_glob: ${openpose_root}\${FOLDER}\images\*.jp*g
+          image_glob: ${openpose_root}/${FOLDER}/images/*.jp*g
           load_face: true
           load_hands: true
           load_face_contour: false
@@ -21,7 +21,7 @@ data:
     iterator:
       datasets:
         openpose:
-          image_glob: ${openpose_root}\${FOLDER}\images\*.jp*g
+          image_glob: ${openpose_root}/${FOLDER}/images/*.jp*g
           load_face: true
           load_hands: true
           load_face_contour: false
@@ -32,7 +32,7 @@ data:
     iterator:
       datasets:
         openpose:
-            image_glob: ${openpose_root}\${FOLDER}\images\*.jp*g
+            image_glob: ${openpose_root}/${FOLDER}/images/*.jp*g
             load_face: true
             load_hands: true
             load_face_contour: false

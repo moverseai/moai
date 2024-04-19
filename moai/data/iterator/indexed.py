@@ -14,7 +14,8 @@ class Indexed(torch.utils.data.Dataset):
         if augmentation is not None:
             self.dataset = hyu.instantiate(
                 augmentation,
-                hyu.instantiate(next(iter(datasets.values())))
+                hyu.instantiate(next(iter(datasets.values()))),
+                # _recursive_=False
             )
         else:
             from moai.data.augmentation import NoOp

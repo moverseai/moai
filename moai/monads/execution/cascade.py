@@ -94,7 +94,7 @@ class Cascade(torch.nn.ModuleDict): #TODO: check if x: ['arg'] is the same as x:
             # last_module = toolz.last(self.modules()) #NOTE: moduledict is ordered            
             module = self[k]
             sig = inspect.signature(module.forward)
-            props = [prop for prop in sig.parameters if p[prop] is not None]
+            props = [prop for prop in sig.parameters if prop in p]
             for keys in zip(*list(p[prop] for prop in itertools.chain(props, ['out']))):
                 accessors = [_create_accessor(k if isinstance(k, str) or k is None else k[0]) for k in keys[:-1]]
                 self.execs.append(lambda tensor_dict, 

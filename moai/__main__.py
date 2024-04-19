@@ -108,7 +108,12 @@ def moai():
         sys.argv.append(f"+mode={mode}")
     else:
         sys.argv.append(f"+reprod={mode}")
-    main = hydra.main(config_path="conf", config_name=config)(run)
+    file_name = os.path.splitext(os.path.basename(config))[0]
+    base_path = os.path.dirname(config)
+    # main = hydra.main(config_path="conf", config_name=config)(run)
+    # main = hydra.main(config_path="conf/examples/smplifyx", config_name="fit")(run)
+    main = hydra.main(config_path=base_path, config_name=file_name)(run)
+    # main = hydra.main(config_path=None, config_name=config)(run)
     main()
 
 if __name__ == "__main__":

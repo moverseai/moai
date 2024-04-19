@@ -67,7 +67,7 @@ def _create_tensor_monitoring_block(
 
 class Manual(pytorch_lightning.LightningModule):
     def __init__(self,
-        configuration:      omegaconf.DictConfig,
+        # configuration:      omegaconf.DictConfig,
         modules:            omegaconf.DictConfig=None,
         data:               omegaconf.DictConfig=None,
         parameters:         omegaconf.DictConfig=None,
@@ -305,7 +305,7 @@ class Manual(pytorch_lightning.LightningModule):
     def train_dataloader(self) -> torch.utils.data.DataLoader:
         if hasattr(self.data.train.iterator, '_target_'):
             log.info(f"Instantiating ({self.data.train.iterator._target_.split('.')[-1]}) train set data iterator")
-            train_iterator = hyu.instantiate(self.data.train.iterator)
+            train_iterator = hyu.instantiate(self.data.train.iterator, _recursive_=False)
         else:
             train_iterator = Indexed(
                 self.data.train.iterator.datasets,
@@ -314,7 +314,7 @@ class Manual(pytorch_lightning.LightningModule):
         if not hasattr(self.data.train, 'loader'):
             log.error("Train data loader missing. Please add a data loader (i.e. \'- data/train/loader: torch\') entry in the configuration.")
         else:
-            train_loader = hyu.instantiate(self.data.train.loader, train_iterator)
+            train_loader = hyu.instantiate(self.data.train.loader, train_iterator, _recursive_=False)
         return train_loader
 
     def val_dataloader(self) -> torch.utils.data.DataLoader:
@@ -325,7 +325,7 @@ class Manual(pytorch_lightning.LightningModule):
             return validation_loaders
         if hasattr(self.data.val.iterator, '_target_'):
             log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
-            val_iterators = [hyu.instantiate(self.data.val.iterator)]
+            val_iterators = [hyu.instantiate(self.data.val.iterator, _recursive_=False)]
         else:
             val_iterators = [Indexed(
                 {k: v }, # self.data.val.iterator.datasets,
@@ -335,7 +335,7 @@ class Manual(pytorch_lightning.LightningModule):
             log.error("Validation data loader missing. Please add a data loader (i.e. \'- data/val/loader: torch\') entry in the configuration.")
         else:
             validation_loaders = [
-                hyu.instantiate(self.data.val.loader, val_iterator)
+                hyu.instantiate(self.data.val.loader, val_iterator, _recursive_=False)
                 for val_iterator in val_iterators
             ]
         # return validation_loaders[0] if len(validation_loaders) == 1 else validation_loaders
