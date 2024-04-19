@@ -112,7 +112,7 @@ def moai():
     base_path = os.path.dirname(config)
     # main = hydra.main(config_path="conf", config_name=config)(run)
     # main = hydra.main(config_path="conf/examples/smplifyx", config_name="fit")(run)
-    main = hydra.main(config_path=base_path, config_name=file_name, version_base='1.2')(run)
+    main = hydra.main(config_path=base_path, config_name=file_name, version_base='1.3')(run)
     # main = hydra.main(config_path=None, config_name=config)(run)
     main()
 

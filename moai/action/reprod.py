@@ -111,5 +111,5 @@ if __name__ == "__main__":
     # os.environ['HYDRA_FULL_ERROR'] = '1'
     config_filename = get_conf_path(sys.argv.pop(1)) #TODO: argparser integration?
     sys.argv.append("hydra.run.dir=actions/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}")    
-    reprod = hydra.main(config_path="conf", config_name=config_filename)(reprod)
+    reprod = hydra.main(config_path="conf", config_name=config_filename, version_base='1.3')(reprod)
     reprod()

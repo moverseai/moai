@@ -219,5 +219,5 @@ def get_command_output(command, path=None, strip=True):
 if __name__ == "__main__":  
     config_filename = sys.argv.pop(1) #TODO: argparser integration?
     sys.argv.append("hydra.run.dir=actions/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}-${export.name}")
-    export = hydra.main(config_path="conf", config_name=config_filename)(export)
+    export = hydra.main(config_path="conf", config_name=config_filename, version_base='1.3')(export)
     export()

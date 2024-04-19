@@ -41,5 +41,5 @@ if __name__ == "__main__":
     # os.environ['HYDRA_FULL_ERROR'] = '1'
     config_filename = sys.argv.pop(1) #TODO: argparser integration?
     sys.argv.append("hydra.run.dir=actions/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}")    
-    fit = hydra.main(config_path="conf", config_name=config_filename)(fit)
+    fit = hydra.main(config_path="conf", config_name=config_filename, version_base='1.3')(fit)
     fit()

@@ -192,7 +192,7 @@ def post_process(
                     consolidated_data.append(toolz.merge(res, row))
     return consolidated_data
 
-@hydra.main(config_name="tools/plot.yaml", config_path="conf", version_base='1.2')
+@hydra.main(config_name="tools/plot.yaml", config_path="conf", version_base='1.3')
 def plot(cfg):
     from_date = parse_human_date_time(cfg.filter.date.start.day, cfg.filter.date.start.time)
     to_date = parse_human_date_time(cfg.filter.date.end.day, cfg.filter.date.end.time)
