@@ -277,7 +277,7 @@ def replace_bool(conf: dict) -> None:
 
 #NOTE: https://github.com/ikatyang/emoji-cheat-sheet 
 
-@hydra.main(config_name="tools/diff.yaml", config_path="conf")
+@hydra.main(config_name="tools/diff.yaml", config_path="conf", version_base='1.2')
 def diff(cfg):    
     console = Console()
     console.rule("Config Diff", style="magenta")

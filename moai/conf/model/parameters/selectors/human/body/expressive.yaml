@@ -1,4 +1,4 @@
-# @package model.parameters.selectors._name_
+# @package model.parameters.selectors.expressive
 
 _target_: moai.parameters.selectors.MonadParameterSelector
 keys:

@@ -1,6 +1,6 @@
-# @package model.supervision.losses._name_
+# @package model.supervision.losses.interpenetration
 
-_target_: moai.supervision.losses.mesh.Interpenetration
+_target_: moai.supervision.losses.mesh.interpenetration.Interpenetration
 max_collisions: 128
 df_cone_height: 0.0001
 penalize_outside:  true

@@ -1,4 +1,4 @@
-from moai.supervision.losses.regression import L2
+from moai.supervision.losses.regression.L2 import L2
 
 import torch
 

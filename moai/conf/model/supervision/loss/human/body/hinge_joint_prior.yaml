@@ -1,4 +1,4 @@
-# @package model.supervision.losses._name_
+# @package model.supervision.losses.hinge_joint_prior
 
-_target_: moai.supervision.losses.human.body.HingeJointPrior
+_target_: moai.supervision.losses.human.body.hinge_joint_prior.HingeJointPrior
 with_global_pose: true

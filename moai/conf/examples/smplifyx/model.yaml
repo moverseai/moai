@@ -1,9 +1,9 @@
 # @package _global_
 
 remodel:
-    module_mode:
-      modules:
-        graphs.preprocess.vposer2: eval
+  module_mode:
+    modules:
+      graphs.preprocess.vposer2: eval
 
 model:  
   # configuration:

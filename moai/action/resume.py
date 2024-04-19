@@ -27,7 +27,7 @@ def get_conf(path: str) -> omegaconf.OmegaConf:
 def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any,typing.Any]:
     return getattr(cfg, attr) if hasattr(cfg, attr) else None
 
-@hydra.main(config_name="tools/resume.yaml", config_path="conf")
+@hydra.main(config_name="tools/resume.yaml", config_path="conf", version_base='1.2')
 def resume(cfg):
     #find last checkpoint
     regex = re.compile('(last.*ckpt)')

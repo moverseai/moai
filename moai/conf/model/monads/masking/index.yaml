@@ -1,6 +1,6 @@
-# @package model.monads._name_
+# @package model.monads.index
 
-_target_: moai.monads.masking.Index
+_target_: moai.monads.masking.mask.Index
 indices: ???
 dim: 1
 persistent: true

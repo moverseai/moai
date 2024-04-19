@@ -1,4 +1,4 @@
-# @package model.parameters.selectors._name_
+# @package model.parameters.selectors.global
 
 _target_: moai.parameters.selectors.NamedParameterSelector
 keys:

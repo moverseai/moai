@@ -1,6 +1,6 @@
-# @package data.train.iterator.datasets._name_
+# @package data.train.iterator.datasets.openpose
 
-_target_: moai.data.datasets.human.pose.OpenPoseInferred
+_target_: moai.data.datasets.human.pose.openpose.OpenPoseInferred
 image_glob: ???
 load_hands: false
 load_face: false

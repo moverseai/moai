@@ -1,4 +1,4 @@
-# @package monitoring.tensors._name_
+# @package monitoring.tensors.pkl
 
 _target_: moai.export.local.Pkl
 mode: append # [all, append]

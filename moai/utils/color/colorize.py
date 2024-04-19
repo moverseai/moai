@@ -19,6 +19,7 @@ def _matplotlib_colormap(
     data = tensor.cpu().detach().numpy() if tensor.is_cuda else tensor.detach().numpy()
     return colormap(data).squeeze(1).transpose(0, 3, 1, 2)[:, :3, :, :]
 
+#NOTE: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed two minor releases later. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap(obj)`` instead.
 jet = functools.partial(_matplotlib_colormap, cm.get_cmap('jet'))
 magma = functools.partial(_matplotlib_colormap, cm.get_cmap('magma'))
 inferno = functools.partial(_matplotlib_colormap, cm.get_cmap('inferno'))

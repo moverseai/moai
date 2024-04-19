@@ -1,6 +1,6 @@
-# @package model.monads._name_
+# @package model.monads.weak_perspective_camera
 
-_target_: moai.monads.geometry.WeakPerspectiveCamera
+_target_: moai.monads.geometry.camera.WeakPerspective
 focal_length: 5000.0
 principal_point: 0.5
 width: null

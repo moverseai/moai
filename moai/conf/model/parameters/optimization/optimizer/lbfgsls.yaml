@@ -1,6 +1,6 @@
-# @package model.parameters.optimization.optimizers._name_
+# @package model.parameters.optimization.optimizers.lbfgsls
 
-_target_: moai.parameters.optimization.optimizers.LBFGS
+_target_: moai.parameters.optimization.optimizers.lbfgsls.LBFGS
 lr: 1.0
 max_iter: 20
 max_eval: null

@@ -1,4 +1,4 @@
-# @package model.monads.openpose__name_
+# @package model.monads.openpose_split
 
-_target_: moai.monads.human.pose.OpenposeSplit
+_target_: moai.monads.human.pose.openpose.Split
 format: coco25

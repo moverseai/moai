@@ -1,4 +1,4 @@
-# @package model.supervision.losses._name_
+# @package model.supervision.losses.gm
 
-_target_: moai.supervision.losses.regression.robust.GemanMcClure
+_target_: moai.supervision.losses.regression.robust.gm.GemanMcClure
 rho: 1.0

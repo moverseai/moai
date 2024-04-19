@@ -1,3 +1,3 @@
-# @package model.monads._name_
+# @package model.monads.binary
 
-_target_: moai.monads.masking.Binary
+_target_: moai.monads.masking.binary.Binary

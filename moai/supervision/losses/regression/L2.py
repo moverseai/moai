@@ -1,5 +1,7 @@
 import torch
 
+__all__ = ['L2']
+
 class L2(torch.nn.Module):
     def __init__(self):
         super(L2, self).__init__()

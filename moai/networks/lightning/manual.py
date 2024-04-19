@@ -16,7 +16,7 @@ from moai.supervision import (
     Weighted as DefaultSupervision,
 )
 from moai.data.iterator import Indexed
-from moai.parameters.optimization.optimizers import LBFGS as miLBFGS
+# from moai.parameters.optimization.optimizers import LBFGS as miLBFGS
 from moai.monads.execution.cascade import _create_accessor
 from moai.networks.lightning.optimizer import (
     _create_optimization_block,

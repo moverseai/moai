@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.vposer2
 
-_target_: moai.monads.human.body.prior.VPoser2
+_target_: moai.monads.human.body.prior.vposer2.VPoser2
 flatten_pose: true

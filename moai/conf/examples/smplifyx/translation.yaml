@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.translation
 
 _target_: moai.monads.generation.tensor.Parameter
 shape: 
