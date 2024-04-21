@@ -66,8 +66,8 @@ defaults:
   - model/validation: collection
   - model/validation/metric: rmse
 
-  - engine/monitor/exporting/local: pkl
-  - engine/monitor/visualization/rerun: mesh
+  - engine/monitor/exporting/local: [pkl, append_pkl]
+  - engine/monitor/visualization/rerun: [mesh, mesh3d]
   
   - data
   - options

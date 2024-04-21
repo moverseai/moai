@@ -1,0 +1,4 @@
+# @package monitoring.tensors.append_pkl
+
+_target_: moai.export.local.pkl.append_pkl
+_partial_: true

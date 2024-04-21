@@ -10,7 +10,7 @@ import logging
 import os
 import toolz
 
-__all__ = ["Pkl"]
+__all__ = ["Pkl", "append_pkl"]
 
 log = logging.getLogger(__name__)
 
@@ -80,6 +80,28 @@ class Pkl(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.Di
             mode = 'b'
             log.error("Pickle exporting is not yet enabled in non append mode.")
         
+def append_pkl(
+        tensors:            typing.Dict[str, torch.Tensor],
+        path:               str,
+        keys:               typing.Union[str, typing.Sequence[str]],
+        step:               typing.Optional[int]=None,
+        batch_idx:          typing.Optional[int]=None,
+        optimization_step:  typing.Optional[int]=None,
+        stage:              typing.Optional[str]=None,
+        fmt:                str="05d",
+) -> None:
+    arrays = { }
+    for key in keys:
+        split = key.split('.')
+        arrays[key] = toolz.get_in(split, tensors).detach().cpu().numpy()
+    save = { 
+        'optimization_state': {
+            'iteration': str(optimization_step),
+            'stage': stage,
+        }, 'parameters_state': arrays
+    } if step is not None else arrays
+    with open(os.path.join(path, f"new_results_{batch_idx:{fmt}}.pkl"), 'ab') as f:
+        pickle.dump(save, f)
 
 class _Pkl(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]], None]):
 

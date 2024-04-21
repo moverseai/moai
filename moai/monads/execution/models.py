@@ -1,6 +1,7 @@
 from moai.monads.execution.cascade import (
     _create_accessor,
 )
+import numpy as np
 import torch
 import hydra.utils as hyu
 import omegaconf.omegaconf
@@ -9,7 +10,7 @@ import typing
 import itertools
 import toolz
 import logging
-import functools
+# import functools
 
 log = logging.getLogger(__name__)
 
@@ -20,42 +21,47 @@ __all__ = ["Models"]
 from moai.export.local.pkl import TensorMonitor #TODO: use this as base class
     
 class Tensors():
-    __PRESET_ARGS__ = set(['step', 'epoch', 'batch_idx', 'optimization_step', 'stage'])
+    __PRESET_ARGS__ = set(['step', 'epoch', 'batch_idx', 'optimization_step', 'stage', 'iter'])
+    
+    @classmethod
+    def _dict_of_lists_to_list_of_dicts(_, DL): # https://stackoverflow.com/questions/5558418/list-of-dicts-to-from-dict-of-lists
+        return [dict(zip(DL,t)) for t in zip(*DL.values())]
     
     class ArgsOperation():
+        def __init__(self,
+            func: typing.Callable[[typing.Union[torch.Tensor, typing.Sequence[torch.Tensor], typing.Mapping[str, torch.Tensor]]], None],
+            tensor_args: typing.Mapping[str, str],
+            other_args: typing.Mapping[str, str],
+            kwargs: typing.Set[str],
+        ):
+            self.func = func
+            #NOTE: DL to LD needs to ensure lists
+            tensor_args = toolz.valmap(lambda v: [_create_accessor(a) for a in v], tensor_args)
+            self.tensor_args = Tensors._dict_of_lists_to_list_of_dicts(tensor_args)
+            self.other_args = Tensors._dict_of_lists_to_list_of_dicts(other_args)
+            self.kwargs = kwargs
+
+        def __call__(self, 
+            tensors: typing.Mapping[str, torch.Tensor],
+            meta: typing.Mapping[str, int]
+        ) -> None:
+            for i, args in enumerate(self.tensor_args):
+                kwargs = toolz.valmap(
+                    lambda a: a(tensors).detach().cpu().numpy().squeeze(), 
+                    args
+                )
+                kwargs.update(toolz.get(i, self.other_args, {}))
+                kwargs.update({k: meta[k] for k in self.kwargs if k in meta})
+                self.func(**kwargs)
+
+    class DictOperation():
         def __init__(self,
             func: typing.Callable[[typing.Union[torch.Tensor, typing.Sequence[torch.Tensor], typing.Mapping[str, torch.Tensor]]], None],
             args: typing.Mapping[str, str],
             kwargs: typing.Set[str],
         ):
             self.func = func
-            self.args = {k: _create_accessor(a) for k, a in args.items()}
-            self.kwargs = kwargs
-
-        # def _access_tensors(self, 
-        #     tensors: typing.Mapping[str, torch.Tensor],
-        #     accessor: typing.Callable
-        # ) -> torch.Tensor:
-        #     return accessor(tensors)
-
-        def __call__(self, 
-            tensors: typing.Mapping[str, torch.Tensor],
-            meta: typing.Mapping[str, int]
-        ) -> None:
-            # kwargs = toolz.valmap(self._access_tensors, self.args)
-            kwargs = toolz.valmap(
-                lambda a: a(tensors).detach().cpu().numpy().squeeze(), 
-                self.args
-            )
-            kwargs.update({k: meta[k] for k in self.kwargs if k in meta})
-            self.func(**kwargs)
-
-    class DictOperation():
-        def __init__(self,
-            func: typing.Callable[[typing.Union[torch.Tensor, typing.Sequence[torch.Tensor], typing.Mapping[str, torch.Tensor]]], None],
-            kwargs: typing.Set[str],
-        ):
-            self.func = func
+            self.args = Tensors._dict_of_lists_to_list_of_dicts(args)
             self.kwargs = kwargs
 
         def __call__(self, 
@@ -63,10 +69,18 @@ class Tensors():
             meta: typing.Mapping[str, int]
         ) -> None:
             kwargs = {k: meta[k] for k in self.kwargs}
-            self.func(tensors, **kwargs)
+            for args in self.args or [{}]:
+                self.func(tensors, **args, **kwargs)
 
     def is_first_arg_tensor_dict(self, arg: inspect.Parameter) -> bool:
         return typing.get_args(arg.annotation) == (str, torch.Tensor)
+
+    def _get_tensor_args(self, 
+        args: typing.Mapping[str, inspect.Parameter]
+    ) -> typing.Mapping[str, inspect.Parameter]: #NOTE: do we need tensor args? or just numpy?
+        def is_annotation_array_or_tensor(p: inspect.Parameter):
+            return p.annotation == np.ndarray or p.annotation == torch.Tensor
+        return toolz.keyfilter(lambda k: is_annotation_array_or_tensor(args[k]), args)
 
     def __init__(self, 
         tensors: omegaconf.DictConfig,
@@ -79,16 +93,20 @@ class Tensors():
             target = tensors[k]
             operation = hyu.instantiate(target, **override_params)
             signature = inspect.signature(operation)
-            extras = Tensors.__PRESET_ARGS__.intersection(signature.parameters.keys())
-            args = signature.parameters.keys() - Tensors.__PRESET_ARGS__
+            extras = Tensors.__PRESET_ARGS__.intersection(signature.parameters.keys())            
             #NOTE: operate should change to partial func call
-            # log.error(args)
-            if self.is_first_arg_tensor_dict(signature.parameters[next(iter(args))]):
-                # log.error('added dict op')
-                self.operations.append(Tensors.DictOperation(operation, extras))
-            else:
+            if self.is_first_arg_tensor_dict(next(iter(signature.parameters.values()))):# signature.parameters[next(iter(args))]):
+                args = set(toolz.drop(1, signature.parameters.keys())) - Tensors.__PRESET_ARGS__
                 op_args = toolz.keyfilter(lambda k: k in args, params) #NOTE: currently assumes that no arg is named `params`
-                self.operations.append(Tensors.ArgsOperation(operation, op_args, extras))
+                self.operations.append(Tensors.DictOperation(operation, op_args, extras))
+            else:
+                args = signature.parameters.keys() - Tensors.__PRESET_ARGS__
+                op_args = toolz.keyfilter(lambda k: k in args, params) #NOTE: currently assumes that no arg is named `params`
+                tensor_args = self._get_tensor_args(signature.parameters)
+                self.operations.append(Tensors.ArgsOperation(operation, 
+                    toolz.dissoc(op_args,*(args-tensor_args.keys())), 
+                    toolz.dissoc(op_args,*tensor_args.keys()),
+                    extras))
 
     def __call__(self, 
         tensors:    typing.Mapping[str, torch.Tensor], 

@@ -20,7 +20,27 @@ except:
     from pytorch_lightning.core.module import warning_cache
     warning_cache.warn(f"Please `pip install rerun-sdk` to use rerun visualisation.")
 
-__all__ = ['Mesh']
+__all__ = ['Mesh', 'mesh3d']
+
+def mesh3d(
+    vertices: np.ndarray, faces: np.ndarray, 
+    path: str, color: str,
+    optimization_step: typing.Optional[int]=None,
+    step: typing.Optional[int]=None,
+    iter: typing.Optional[int]=None,
+) -> None:
+    if optimization_step is not None:
+        rr.set_time_sequence("optimization_step", optimization_step)
+    elif step is not None:
+        rr.set_time_sequence("step", step)
+    elif iter is not None:
+        rr.set_time_sequence("iter", iter)
+    color = colour.Color(color)
+    rr.log(path, rr.Mesh3D(
+        vertex_positions=vertices, 
+        indices=faces, 
+        vertex_colors=np.tile(np.array(color.get_rgb() + (1,)), (vertices.shape[0], 1)) #TODO: memoize
+    ))
 
 class Mesh(Callable):
     def __init__(self, path: str, color: str):
