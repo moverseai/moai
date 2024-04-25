@@ -69,98 +69,98 @@ class BatchMonitor(L.Callback):
         # return outputs
 
 
-class PerBatch(torch.nn.Identity, L.Callback):
-    def __init__(self):
-        super(PerBatch, self).__init__()
+# class PerBatch(torch.nn.Identity, L.Callback):
+#     def __init__(self):
+#         super(PerBatch, self).__init__()
 
-    def on_train_batch_start(
-        self,
-        trainer: L.Trainer,
-        pl_module: L.LightningModule,
-        batch: typing.Dict[
-            str,
-            typing.Union[
-                torch.Tensor,
-                typing.Sequence[torch.Tensor],
-                typing.Dict[str, torch.Tensor],
-            ],
-        ],
-        batch_idx: int,
-        unused: typing.Optional[int] = 0,
-    ) -> None:
-        """Called when the train batch begins."""
-        pl_module.initialize_parameters() if not trainer.init_once or batch_idx == 0 else None
-        if batch_idx > 0:
-            trainer.accelerator.setup_optimizers(trainer)
-        if "inference" in pl_module.mode:
-            with torch.no_grad():
-                pl_module.preprocess(batch)
-                pl_module(batch)
-                pl_module.initialize(
-                    batch
-                ) if not trainer.init_once or batch_idx == 0 else None
-            if pl_module.optimized_predictions:
-                for key, values in pl_module.optimized_predictions.items():
-                    for optim in filter(
-                        lambda o: o.name == key, trainer.accelerator.optimizers
-                    ):
-                        for v in values:
-                            params = pl_module.predictions[v]
-                            if isinstance(optim, torch.optim.LBFGS) or isinstance(
-                                optim, miLBFGS
-                            ):
-                                optim._params.append(params)
-                            else:
-                                optim.param_groups.append({"params": params})
-        pl_module.optimization_step = 0
+#     def on_train_batch_start(
+#         self,
+#         trainer: L.Trainer,
+#         pl_module: L.LightningModule,
+#         batch: typing.Dict[
+#             str,
+#             typing.Union[
+#                 torch.Tensor,
+#                 typing.Sequence[torch.Tensor],
+#                 typing.Dict[str, torch.Tensor],
+#             ],
+#         ],
+#         batch_idx: int,
+#         unused: typing.Optional[int] = 0,
+#     ) -> None:
+#         """Called when the train batch begins."""
+#         pl_module.initialize_parameters() if not trainer.init_once or batch_idx == 0 else None
+#         if batch_idx > 0:
+#             trainer.accelerator.setup_optimizers(trainer)
+#         if "inference" in pl_module.mode:
+#             with torch.no_grad():
+#                 pl_module.preprocess(batch)
+#                 pl_module(batch)
+#                 pl_module.initialize(
+#                     batch
+#                 ) if not trainer.init_once or batch_idx == 0 else None
+#             if pl_module.optimized_predictions:
+#                 for key, values in pl_module.optimized_predictions.items():
+#                     for optim in filter(
+#                         lambda o: o.name == key, trainer.accelerator.optimizers
+#                     ):
+#                         for v in values:
+#                             params = pl_module.predictions[v]
+#                             if isinstance(optim, torch.optim.LBFGS) or isinstance(
+#                                 optim, miLBFGS
+#                             ):
+#                                 optim._params.append(params)
+#                             else:
+#                                 optim.param_groups.append({"params": params})
+#         pl_module.optimization_step = 0
 
-    def on_train_batch_end(
-        self,
-        trainer: L.Trainer,
-        pl_module: L.LightningModule,
-        outputs: typing.Dict[
-            str,
-            typing.Union[
-                torch.Tensor,
-                typing.Sequence[torch.Tensor],
-                typing.Dict[str, torch.Tensor],
-            ],
-        ],
-        batch: typing.Dict[
-            str,
-            typing.Union[
-                torch.Tensor,
-                typing.Sequence[torch.Tensor],
-                typing.Dict[str, torch.Tensor],
-            ],
-        ],
-        batch_idx: int,
-        unused: typing.Optional[int] = 0,
-    ) -> None:
-        """Called when the train batch ends."""
-        metrics = pl_module.validation(batch)
-        pl_module.log_dict(
-            metrics,
-            prog_bar=True,
-            logger=False,
-            on_epoch=False,
-            on_step=True,
-            sync_dist=True,
-        )
-        log_metrics = toolz.keymap(lambda k: f"val_{k}", metrics)
-        pl_module.log_dict(
-            log_metrics,
-            prog_bar=False,
-            logger=True,
-            on_epoch=False,
-            on_step=True,
-            sync_dist=True,
-        )
-        # NOTE Why metrics results are not available to visualizers?
-        pl_module.visualization(
-            toolz.merge(batch, metrics), pl_module.optimization_step
-        )
-        pl_module.exporter(batch, pl_module.optimization_step)
+#     def on_train_batch_end(
+#         self,
+#         trainer: L.Trainer,
+#         pl_module: L.LightningModule,
+#         outputs: typing.Dict[
+#             str,
+#             typing.Union[
+#                 torch.Tensor,
+#                 typing.Sequence[torch.Tensor],
+#                 typing.Dict[str, torch.Tensor],
+#             ],
+#         ],
+#         batch: typing.Dict[
+#             str,
+#             typing.Union[
+#                 torch.Tensor,
+#                 typing.Sequence[torch.Tensor],
+#                 typing.Dict[str, torch.Tensor],
+#             ],
+#         ],
+#         batch_idx: int,
+#         unused: typing.Optional[int] = 0,
+#     ) -> None:
+#         """Called when the train batch ends."""
+#         metrics = pl_module.validation(batch)
+#         pl_module.log_dict(
+#             metrics,
+#             prog_bar=True,
+#             logger=False,
+#             on_epoch=False,
+#             on_step=True,
+#             sync_dist=True,
+#         )
+#         log_metrics = toolz.keymap(lambda k: f"val_{k}", metrics)
+#         pl_module.log_dict(
+#             log_metrics,
+#             prog_bar=False,
+#             logger=True,
+#             on_epoch=False,
+#             on_step=True,
+#             sync_dist=True,
+#         )
+#         # NOTE Why metrics results are not available to visualizers?
+#         pl_module.visualization(
+#             toolz.merge(batch, metrics), pl_module.optimization_step
+#         )
+#         pl_module.exporter(batch, pl_module.optimization_step)
 
 
 # class OptimizationLoop(pytorch_lightning.loops.OptimizerLoop):
@@ -426,13 +426,7 @@ class LightningFitter(L.Trainer):
             # stochastic_weight_avg=stochastic_weight_avg,
             # num_processes=num_processes,  # NOTE: @PTL1.5 fix
             **kwargs,
-        )        
-        # self.fit_loop.epoch_loop.batch_loop.connect(
-        #     optimizer_loop=OptimizationLoop(
-        #         relative_tolerance=relative_tolerance,
-        #         gradient_tolerance=gradient_tolerance,
-        #     ) if loops is None else hyu.instantiate(loops.optimization)
-        # )
+        )
 
     def run(self, model):
         self.fit(model)
