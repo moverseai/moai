@@ -38,10 +38,12 @@ class BatchMonitor(L.Callback):
         Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
             loss returned from ``training_step``.
         """
-        for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
+        # for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
+        monitor_batch = toolz.get_in(['fit', 'batch'], module.monitor)
+        if monitor_batch is not None:
             is_now = batch_idx % monitor_batch['frequency'] == 0
             if not is_now:
-                continue
+                return # continue
              #NOTE: should detach
             for step in monitor_batch.get('steps', []):
                 outputs = module.graphs[step](outputs)            

@@ -54,7 +54,8 @@ defaults:
   - model/parameters/initialization/scheme: zero_params
   - model/parameters/optimization/optimizer: lbfgsls
   - model/parameters/selectors/human/body: [global, expressive]
-  
+  - model/parameters/optimization/criteria: rmse
+
   - model/parameters/regularization: none
 
   - model/supervision: weighted

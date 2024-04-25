@@ -313,7 +313,7 @@ model:
               steps:
                 - preprocess
                 - postprocess
-              objective: initial_torso_fit
+              objective: initial_torso_fit              
           # epoch:
           #   termination: 
             # - milestone: 30
@@ -361,7 +361,7 @@ model:
       monitor:
         fit:
           step:
-            show_optimization:
+            initial_torso_fit:
               frequency: 1
               # steps:
                 # - show_mesh
@@ -369,18 +369,21 @@ model:
                 - save_params
                 - show_mesh_step
           iter:
-            show_optimization:
+            initial_torso_fit:
               frequency: 1
               # steps:
                 # - show_mesh
               tensors:
                 - show_mesh_iter
-          batch:
-            log_results:
-              frequency: 1
-              # steps: []
               metrics:
                 - fit_quality
-              tensors:
-                - show_mesh_batch
+              termination: [bad_fit]
+          batch:
+            # log_results:
+            frequency: 1
+            # steps: []
+            metrics:
+              - fit_quality
+            tensors:
+              - show_mesh_batch
 

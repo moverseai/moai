@@ -22,7 +22,8 @@ def fit(cfg):
         data=cfg.data,
         # visualization=assign(cfg, "visualization"),
         # export=assign(cfg, "export"),    
-        monitoring=assign(cfg, "monitoring"),
+        monitoring=assign(cfg, "monitoring"), #NOTE: should this be added to `model.` ?
+        stopping=assign(cfg, "stopping"), #NOTE: should this be added to `model.` ?
         _recursive_=False
     )
     for name, remodel in (assign(cfg ,"remodel") or {}).items():

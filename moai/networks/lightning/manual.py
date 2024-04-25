@@ -77,6 +77,7 @@ class Manual(pytorch_lightning.LightningModule):
         validation:         omegaconf.DictConfig=None,
         monitors:           omegaconf.DictConfig=None,
         monitoring:         omegaconf.DictConfig=None,
+        stopping:           omegaconf.DictConfig=None,
         # visualization:      omegaconf.DictConfig=None,
         # export:             omegaconf.DictConfig=None,
         hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
@@ -199,8 +200,10 @@ class Manual(pytorch_lightning.LightningModule):
                 call._call_lightning_module_hook(self.trainer, "optimizer_zero_grad", self.trainer.current_epoch, index, optimizer)
             call._call_strategy_hook(self.trainer, "backward", loss, optimizer)
             self.optimization_step += 1
-            for k in toolz.get_in(['fit', 'step'], self.monitor) or {}:
-                monitor = self.monitor['fit']['step'][k]
+            # for k in toolz.get_in(['fit', 'step', stage], self.monitor) or {}:
+                # monitor = self.monitor['fit']['step'][k]
+            monitor = toolz.get_in(['fit', 'step', stage], self.monitor)
+            if monitor is not None:
                 tensor_monitor_steps = toolz.get_in(['tensors'], monitor) or []                
                 if tensor_monitor_steps and self.optimization_step % monitor['frequency'] == 0:
                     with torch.no_grad():
@@ -251,23 +254,23 @@ class Manual(pytorch_lightning.LightningModule):
                             # for iter in range(iters): #NOTE: is this necessary?
                             for step in steps:
                                 batch = self.graphs[step](batch)
-                iter_monitor = toolz.get_in(['fit', 'iter'], self.monitor)
-                if iter_monitor is not None:
-                    for _, iter_monitor_stage in iter_monitor.items():                        
-                        frequency = toolz.get('frequency', iter_monitor_stage, 1)
-                        should_monitor = iter % frequency == 0
-                        iter_tensor_monitor = toolz.get('tensors', iter_monitor_stage)
-                        if should_monitor and iter_tensor_monitor is not None:
-                            for step in toolz.get('steps', iter_monitor_stage, None) or []:
-                                self.graphs[step](batch)
-                            for metric in toolz.get('metrics', iter_monitor_stage, None) or []:
-                                self.named_metrics[metric](batch)
-                            extras = {
-                                'step': self.global_step, 'epoch': self.current_epoch,
-                                'batch_idx': batch_idx, 'stage': stage, 'iter': iter
-                            }
-                            for step in iter_tensor_monitor:
-                                self.named_monitors[step](batch, extras)
+                iter_monitor_stage = toolz.get_in(['fit', 'iter', stage], self.monitor)
+                if iter_monitor_stage is not None:
+                    # for _, iter_monitor_stage in iter_monitor.items():                        
+                    frequency = toolz.get('frequency', iter_monitor_stage, 1)
+                    should_monitor = iter % frequency == 0
+                    iter_tensor_monitor = toolz.get('tensors', iter_monitor_stage)
+                    if should_monitor and iter_tensor_monitor is not None:
+                        for step in toolz.get('steps', iter_monitor_stage, None) or []:
+                            self.graphs[step](batch)
+                        for metric in toolz.get('metrics', iter_monitor_stage, None) or []:
+                            self.named_metrics[metric](batch)
+                        extras = {
+                            'step': self.global_step, 'epoch': self.current_epoch,
+                            'batch_idx': batch_idx, 'stage': stage, 'iter': iter
+                        }
+                        for step in iter_tensor_monitor:
+                            self.named_monitors[step](batch, extras)
 
             # call the copy params for initialization
             if copy_params is not None:
