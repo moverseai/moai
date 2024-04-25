@@ -1,4 +1,5 @@
-from moai.validation.metrics.common.rmse import RMSE
+# from moai.validation.metrics.common.rmse import RMSE
+
 from moai.validation.metrics.common.rmsle import RMSLE
 from moai.validation.metrics.common.absrel import AbsRel
 from moai.validation.metrics.common.sqrel import SqRel
@@ -10,7 +11,7 @@ from moai.validation.metrics.common.accuracy import (
 from moai.validation.metrics.common.distance_accuracy import DistanceAccuracy
 
 __all__ = [
-    "RMSE",
+    # "RMSE",
     "RMSLE",
     "AbsRel",
     "SqRel",

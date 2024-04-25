@@ -2,6 +2,8 @@ from moai.monads.utils.common import dim_list
 
 import torch
 
+__all__ = ["RMSE"]
+
 class RMSE(torch.nn.Module):
     def __init__(self):
         super(RMSE, self).__init__()

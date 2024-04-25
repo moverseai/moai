@@ -5,6 +5,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
+__all__ = ['L1']
+
 class L1(torch.nn.Module):
     
     __MODES__ = ['raw', 'ln', 'log']

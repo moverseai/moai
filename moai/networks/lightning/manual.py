@@ -117,7 +117,7 @@ class Manual(pytorch_lightning.LightningModule):
                 omegaconf.OmegaConf.merge(validation, v)
             )
         self.named_monitors = {}
-        for k in monitors.tensors or {}:
+        for k in toolz.get_in(['tensors'], monitors) or {}:
             v = monitors.tensors[k]
             self.named_monitors[k] = _create_tensor_monitoring_block(
                 omegaconf.OmegaConf.merge(v, monitoring) #NOTE: for some reason the order needs to be reverted

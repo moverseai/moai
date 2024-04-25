@@ -3,7 +3,7 @@ from moai.data.datasets.generic.structured_geometry import StructuredGeometry
 from moai.data.datasets.generic.npz import (
     Npz,
     StandaloneNpz,
-    RepeatedNpz,
+    # RepeatedNpz,
 )
 from moai.data.datasets.generic.pkl import Pkl
 from moai.data.datasets.generic.dummy import (
@@ -21,7 +21,7 @@ __all__ = [
     "Npz",
     "Pkl",
     "StandaloneNpz",
-    "RepeatedNpz",
+    # "RepeatedNpz",
     "Txt",
     "Json",
 ]

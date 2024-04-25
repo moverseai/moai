@@ -7,7 +7,7 @@ from moai.monads.math.common import (
     Multiply,
     PlusOne,
     MinusOne,
-    MatrixTranspose,
+    # MatrixTranspose,
     Rad2Deg,
     Deg2Rad,
 )
@@ -32,7 +32,7 @@ __all__ = [
     "Znorm",
     "MinMaxNorm",
     "Dot",
-    "MatrixTranspose",
+    # "MatrixTranspose",
     "Rad2Deg",
     "Deg2Rad",
 ]

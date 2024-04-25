@@ -1,4 +1,4 @@
-# @package model.parameters.optimization.optimizers._name_
+# @package model.parameters.optimization.optimizers.adam
 
 _target_: torch.optim.Adam
 lr: 0.0001

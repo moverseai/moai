@@ -1,12 +1,12 @@
 from moai.validation.metrics.common import (
-    RMSE,
+    # RMSE,
     RMSLE,
     AbsRel,
     SqRel,
 )
 
 __all__ = [
-    "RMSE",
+    # "RMSE",
     "RMSLE",
     "AbsRel",
     "SqRel",

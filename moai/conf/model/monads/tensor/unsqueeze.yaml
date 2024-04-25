@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.unsqueeze
 
-_target_: moai.monads.tensor.Unsqueeze
+_target_: moai.monads.tensor.torch.Unsqueeze
 dim: 0

@@ -8,11 +8,11 @@ from moai.monads.tensor.torch import (
     Flatten,
     ReshapeAs,
     Slice,
-    Alias,
+    # Alias,
     Identity,
     Passthrough,
     Squeeze,
-    Unsqueeze,
+    # Unsqueeze,
 )
 
 __all__ = [
@@ -25,9 +25,9 @@ __all__ = [
     'Flatten',
     'ReshapeAs',
     'Slice',
-    'Alias',
+    # 'Alias',
     'Identity',
     'Passthrough',
     'Squeeze',
-    'Unsqueeze',
+    # 'Unsqueeze',
 ]
