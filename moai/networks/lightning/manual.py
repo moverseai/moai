@@ -31,7 +31,7 @@ import moai.utils.parsing.rtp as mirtp
 from moai.utils.iterators import partition
 
 from moai.monads.execution.cascade import Cascade
-from moai.monads.execution.models import Models, Tensors
+from moai.monads.execution.models import Models, Tensors, Criteria
 
 from collections import defaultdict, OrderedDict
 
@@ -51,6 +51,19 @@ import functools
 log = logging.getLogger(__name__)
 
 __all__ = ['Manual']
+
+def _create_criteria_monitoring_block(
+    cfg: omegaconf.DictConfig,
+    force: bool=True
+):
+    if force and not cfg:
+        log.warning("Empty termination criteria block in feedforward model.")    
+    # if not cfg:
+    #     return NoValidation()
+    if '_target_' not in cfg:
+        return Criteria(**cfg)
+    else:
+        return hyu.instantiate(cfg)
 
 def _create_tensor_monitoring_block(
     cfg: omegaconf.DictConfig,
@@ -122,6 +135,12 @@ class Manual(pytorch_lightning.LightningModule):
             v = monitors.tensors[k]
             self.named_monitors[k] = _create_tensor_monitoring_block(
                 omegaconf.OmegaConf.merge(v, monitoring) #NOTE: for some reason the order needs to be reverted
+            )
+        self.named_criteria = {}
+        for k in toolz.get_in(['criteria'], monitors) or {}:
+            v = monitors.criteria[k]
+            self.named_criteria[k] = _create_criteria_monitoring_block(
+                omegaconf.OmegaConf.merge(v, stopping) #NOTE: for some reason the order needs to be reverted
             )
         #NOTE: up to here anything with optimizable parameters that can be selected
         #       should be created and available in `self`
@@ -271,6 +290,14 @@ class Manual(pytorch_lightning.LightningModule):
                         }
                         for step in iter_tensor_monitor:
                             self.named_monitors[step](batch, extras)
+                        should_stop = False
+                        for criterion in toolz.get('termination', iter_monitor_stage, None) or []:
+                            if self.named_criteria[criterion](batch, extras):
+                                should_stop = True
+                                break
+                        if should_stop:
+                            log.info(f"Terminating {stage} @ {iter} !")
+                            break
 
             # call the copy params for initialization
             if copy_params is not None:

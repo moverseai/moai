@@ -1,7 +1,7 @@
-import torch
+import numpy as np
 
 __all__ = ['rmse']
 
-def rmse(rmse: torch.Tensor, threshold: float) -> bool:
+def rmse(rmse: np.ndarray, threshold: float) -> bool:
     return float(rmse) > threshold
     
