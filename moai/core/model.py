@@ -318,12 +318,23 @@ class Model(L.LightningModule):
         return batch
             
 
+    @torch.no_grad
     def validation_step(self,
         batch:              typing.Dict[str, torch.Tensor],
         batch_nb:           int,
         dataloader_idx:   int=0,
-    ) -> dict:        
-        pass
+    ) -> None:
+        datasets = list(self.data.val.iterator.datasets.keys())
+        monitor = toolz.get_in(['val', 'batch'], self.monitor)
+        for stage, proc in self.process['val']['batch'][datasets[dataloader_idx]].items():
+            steps = proc['steps']
+            with torch.no_grad():
+                for step in steps:
+                    batch = self.graphs[step](batch)
+                for _, monitor_stage in monitor.items():
+                    for metric in toolz.get('metrics', monitor_stage, None) or []:
+                        self.named_metrics[metric](batch) #TODO add visualization
+
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:
         return list(self.named_optimizers.values()), list(self.named_schedulers.values())

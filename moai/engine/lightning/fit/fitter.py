@@ -67,7 +67,44 @@ class BatchMonitor(L.Callback):
                 # metrics['epoch'] = trainer.current_epoch
                 module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
         # return outputs
+    
+    @torch.no_grad
+    # def on_validation_batch_end(self, outputs, batch: call.Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+    
+    def on_validation_batch_end(self,
+        trainer: L.Trainer, module: L.LightningModule,
+        outputs: L.utilities.types.STEP_OUTPUT,
+        batch: typing.Mapping[str, torch.Tensor], batch_idx: int,
+        dataloader_idx: int = 0,
+    ) -> None:
+        datasets = list(module.data.val.iterator.datasets.keys())
+        if 'metrics' in batch:
+            metrics = toolz.keymap(
+                lambda k: f'val/metric/{k}', 
+                toolz.valfilter(lambda x: len(x.shape) == 0, batch['metrics'])
+            ) #TODO change to facilitate batch-avg
+            metrics["epoch"] = module.current_epoch
+            module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+            module.all_metrics[datasets[dataloader_idx]].append(
+                toolz.valmap(
+                    lambda x: x.detach().cpu().numpy(),
+                    toolz.keymap(lambda k: f'val/metrics/{k}', batch['metrics'])
+                )
+            )
 
+    @torch.no_grad
+    def on_validation_epoch_end(self, 
+        trainer: L.Trainer, 
+        module: L.LightningModule
+    ) -> None:
+        scalar_metrics = {}
+        for d in module.all_metrics: #TODO change to facilitate batch-avg for scalar metrics
+            scalar_metrics[d] = [
+                toolz.valfilter(
+                    lambda x: len(x.shape) == 0, 
+                    self.all_metrics[d][i]) for i in range(len(self.all_metrics[d])
+                )
+            ]
 
 # class PerBatch(torch.nn.Identity, L.Callback):
 #     def __init__(self):
