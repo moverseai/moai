@@ -22,3 +22,5 @@ trimesh
 clearml==1.6.4
 scenepic==1.0.10
 importlib-resources # if py>3,7
+lark==1.1.9
+python-benedict==0.33.2
