@@ -1,5 +1,5 @@
 # import moai.log.lightning as milog
-from moai.engine.callbacks import PerBatchCallback
+from moai.engine.callbacks.per_batch import PerBatchCallback
 import pytorch_lightning
 import hydra.utils as hyu
 import omegaconf.omegaconf

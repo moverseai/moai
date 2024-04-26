@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 __all__ = ["Models", "Tensors", "Criteria"]
 
 from moai.export.local.pkl import TensorMonitor #TODO: use this as base class
-    
+
 class Criteria():
     __PRESET_ARGS__ = set(['step', 'epoch', 'batch_idx', 'optimization_step', 'stage', 'iter'])
     

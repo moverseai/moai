@@ -2,7 +2,7 @@ from moai.data.iterator import Indexed
 from moai.statistics import NoOp as NoStatistics
 
 from collections import defaultdict
-import moai.networks.lightning as minet
+import moai.networks.lightning._feedforward as minet
 
 import torch
 import hydra.utils as hyu

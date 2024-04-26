@@ -32,7 +32,7 @@ defaults:
   - data/val/dataset/human/pose: openpose
 
   # ###### MODEL 
-  - model: manual
+  - model: moai # manual
   # - model/monads/human/body: init_translation
   - model/monads/human/body: [initialize_translation, smplx]
   - remodel: module_mode
