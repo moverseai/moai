@@ -32,7 +32,7 @@ defaults:
   - data/val/dataset/human/pose: openpose
 
   # ###### MODEL 
-  - model: manual
+  - model: moai # manual
   # - model/monads/human/body: init_translation
   - model/monads/human/body: [initialize_translation, smplx]
   - remodel: module_mode
@@ -54,7 +54,8 @@ defaults:
   - model/parameters/initialization/scheme: zero_params
   - model/parameters/optimization/optimizer: lbfgsls
   - model/parameters/selectors/human/body: [global, expressive]
-  
+  - model/parameters/optimization/criteria: rmse
+
   - model/parameters/regularization: none
 
   - model/supervision: weighted

@@ -1,7 +1,9 @@
-from moai.monads.execution.cascade import _create_accessor
+# from moai.monads.execution.cascade import _create_accessor
+
 from moai.utils.funcs import passthrough
 from moai.supervision.losses.regression.cosine_distance import _acos_safe
 
+import moai.core.execution.common as mic
 import torch
 import hydra.utils as hyu
 import omegaconf.omegaconf
@@ -50,7 +52,7 @@ class Metrics(torch.nn.ModuleDict):
                 log.warning(f"{k} metric has no assigned reduction, automatically reverting to mean reduction.")
                 reduction = itertools.cycle(['mean'])  
             for keys in zip(*toolz.remove(lambda x: not x, list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p.get(prop) is not None))):
-                accessors = [_create_accessor(k if isinstance(k, str) else toolz.get(0, k, None)) for k in keys[:-1]]
+                accessors = [mic._create_accessor(k if isinstance(k, str) else toolz.get(0, k, None)) for k in keys[:-1]]
                 self.execs.append(lambda tensor_dict, metric_dict,
                     acc=accessors, k=keys, p=sig.parameters.keys(), f=last_module:
                     metric_dict.update({

@@ -5,7 +5,7 @@ import logging
 import typing
 import tablib
 
-from moai.engine.callbacks import ModelCallbacks
+from moai.engine.callbacks.model import ModelCallbacks
 
 log = logging.getLogger(__name__)
 

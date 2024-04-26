@@ -9,7 +9,7 @@ from omegaconf import OmegaConf
 import re
 import os
 import hydra.utils as hyu
-from moai.engine.callbacks import ModelCallbacks
+from moai.engine.callbacks.model import ModelCallbacks
 
 
 log = logging.getLogger(__name__)

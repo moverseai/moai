@@ -1,4 +1,4 @@
-from moai.engine.callbacks import EngineCallbacks
+from moai.engine.callbacks.engine import EngineCallbacks
 import moai.engine.lightning.play as miplay
 
 import sys

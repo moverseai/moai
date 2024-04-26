@@ -4,6 +4,7 @@ from moai.utils.arguments import (
 )
 from collections import OrderedDict
 
+import moai.core.execution.common as mic
 import torch
 import hydra.utils as hyu
 import omegaconf.omegaconf
@@ -17,7 +18,7 @@ log = logging.getLogger(__name__)
 
 __all__ = ["Weighted"]
 
-from moai.monads.execution.cascade import _create_accessor
+# from moai.monads.execution.cascade import _create_accessor
 
 __REDUCTIONS__ = {
     'sum': torch.sum,
@@ -61,7 +62,7 @@ class Weighted(torch.nn.ModuleDict):
                 reduction = itertools.cycle(['mean'])                
             #TODO: there is a bug if you pass in keys that are not bracketed ([]), i.e. as a list, even for a single arg
             for keys in zip(*list(p[prop] for prop in itertools.chain(sig.parameters, ['out']) if p.get(prop) is not None)):
-                accessors = [_create_accessor(k if isinstance(k, str) else toolz.get(0, k, None)) for k in keys[:-1]]
+                accessors = [mic._create_accessor(k if isinstance(k, str) else toolz.get(0, k, None)) for k in keys[:-1]]
                 self.execs.append(lambda tensor_dict, 
                     acc=accessors, k=keys, p=sig.parameters.keys(), f=last_module:
                     tensor_dict['losses']['raw'].update({

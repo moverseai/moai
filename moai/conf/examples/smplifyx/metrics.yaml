@@ -9,6 +9,13 @@ model:
         rmse:
           gt: [keypoints]
           pred: [joints2d]
+    criteria:
+      bad_fit:
+        rmse:
+          # gt: [keypoints]
+          # pred: [joints2d]
+          rmse: [metrics.rmse]
+          threshold: [10000.3] # pixels
     tensors:
       save_params:
         append_pkl:

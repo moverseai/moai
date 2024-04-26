@@ -313,14 +313,55 @@ model:
               steps:
                 - preprocess
                 - postprocess
-              objective: initial_torso_fit
+              objective: initial_torso_fit              
+          # epoch:
+          #   termination: 
+            # - milestone: 30
+            #   batch:
+            #     initialize_torso:
+            #       steps: # graphs
+            #         - preprocess
+            #         - initialize_translation
+            #     initial_torso_fit:
+            #       iterations: 5
+            #       optimizer: initial_torso_fit
+            #       # scheduler: null
+            #       steps:
+            #         - preprocess
+            #         - postprocess
+            #       objective: initial_torso_fit
+            # - milestone: 40
+            #   batch:                  
+            #     initial_torso_fit:
+            #       iterations: 1
+            #       optimizer: initial_torso_fit
+            #       # scheduler: null
+            #       steps:
+            #         - preprocess
+            #       objective: initial_torso_fit
         # predict:
-        # val:
+        val:
+          batch:
+            dataset1: &val
+              metrics: [rmse, fid]
+              steps: [autoencode, sample]
+              termination: []
+              tensors: [show_autoencoded]
+            dataset2:
+              metrics: [rmse]
+              steps: [autoencode]
+              termination: [bad_fit]
+              tensors: [show_autoencoded]
+          epoch:
+            metrics: []
+            steps: [traversal]
+            termination: []
+            tensors: [show_traversals]
         # test:
       monitor:
         fit:
           step:
-            show_optimization:
+            initial_torso_fit:
               frequency: 1
               # steps:
                 # - show_mesh
@@ -328,18 +369,21 @@ model:
                 - save_params
                 - show_mesh_step
           iter:
-            show_optimization:
+            initial_torso_fit:
               frequency: 1
               # steps:
                 # - show_mesh
               tensors:
                 - show_mesh_iter
-          batch:
-            log_results:
-              frequency: 1
-              # steps: []
               metrics:
                 - fit_quality
-              tensors:
-                - show_mesh_batch
+              termination: [bad_fit]
+          batch:
+            # log_results:
+            frequency: 1
+            # steps: []
+            metrics:
+              - fit_quality
+            tensors:
+              - show_mesh_batch
 
