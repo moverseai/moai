@@ -60,7 +60,8 @@ model:
         out: [embedding]
       translation:
         void: 
-          - color # ${mi:color}
+          # - color
+          - ${mi:color}
         out: [translation]
       betas:
         void: [color]

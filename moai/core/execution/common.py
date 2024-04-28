@@ -62,7 +62,7 @@ def _create_accessor(key: typing.Optional[typing.Union[str, typing.Sequence[str]
     return lambda td, k=key: td[k]
 
 def _dict_of_lists_to_list_of_dicts(DL): # https://stackoverflow.com/questions/5558418/list-of-dicts-to-from-dict-of-lists
-    return [dict(zip(DL,t)) for t in zip(*DL.values())]
+    return [dict(zip(DL, [t] if isinstance(t, str) else t)) for t in zip(*DL.values())]
            
 def _is_first_arg_tensor_dict(arg: inspect.Parameter) -> bool:
     return typing.get_args(arg.annotation) == (str, torch.Tensor)
