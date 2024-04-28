@@ -1,4 +1,4 @@
-from lark import Transformer, v_args
+from lark import Tree, Transformer, v_args
 
 import numpy as np
 import torch
@@ -6,7 +6,7 @@ import dataclasses
 import toolz
 import typing
 
-@dataclasses.dataclass()
+@dataclasses.dataclass(unsafe_hash=True) #NOTE: needed for hashing
 class NamedTensor(torch.nn.Module):
     key: str
     extracted: int
@@ -78,20 +78,21 @@ class AggregateOperationTensors(torch.nn.Module): #n-ary
     
 
 @v_args(inline=True) # Affects the signatures of the methods
-class CalculateTreeTorch(torch.nn.Module, Transformer):
-    def __init__(self):
+class TreeModule(torch.nn.Module, Transformer):
+    def __init__(self, key: str, tree: Tree):
         super().__init__()
         self.seq = torch.nn.ModuleList()
         self.index = 0
         self.extracted = 0
         self.operands = []
-        #TODO: need key to add to the tensors
+        self.key = key
+        self.transform(tree)
     
     def forward(self, tensors):
         tmp = {}
         for m in self.seq:
             tensors, tmp = m(tensors, tmp)
-        tensors['result'] = tmp[f'result{m.index}' if m.index >= 0 else m.key]
+        tensors[self.key] = tmp[f'result{m.index}' if m.index >= 0 else m.key]
         #NOTE: what if only extracted?
         return tensors
 
