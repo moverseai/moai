@@ -6,7 +6,7 @@ import dataclasses
 import toolz
 import typing
 
-@dataclasses.dataclass(unsafe_hash=True) #NOTE: needed for hashing
+@dataclasses.dataclass(unsafe_hash=True) #NOTE: needed for hashing https://stackoverflow.com/questions/60289768/error-unhashable-type-dict-with-dataclass
 class NamedTensor(torch.nn.Module):
     key: str
     extracted: int
