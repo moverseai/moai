@@ -107,7 +107,7 @@ def _create_tensor_monitoring_block(
     else:
         return hyu.instantiate(cfg)
 
-class Model(L.LightningModule):
+class MoaiModule(L.LightningModule):
     def __init__(self,
         modules:            omegaconf.DictConfig=None,
         data:               omegaconf.DictConfig=None,
@@ -127,7 +127,7 @@ class Model(L.LightningModule):
         ## Inner modules aka Models
         self.models = torch.nn.ModuleDict()
         for k in modules or {}:            
-            self.models[k] = hyu.instantiate(modules[k])
+            self.models[k] = hyu.instantiate(modules[k])        
         ## Monad & Module Processing Graphs
         self.graphs = torch.nn.ModuleDict()
         monad_graphs, model_graphs = partition(lambda k: k in self.models, graphs or {})
