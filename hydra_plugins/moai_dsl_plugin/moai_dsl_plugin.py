@@ -67,8 +67,10 @@ __MOAI_GRAMMAR__ = """
     
     
     ?primary: "-" NUMBER
-        | NUMBER
-        | name             -> extract
+        | NUMBER                            -> number
+        | name                              -> extract        
+        | "cat" "(" names "," NUMBER ")"    -> cat
+        | "stack" "(" names "," NUMBER ")"  -> stack
         | "(" expr ")"
     ?expr: sum
 

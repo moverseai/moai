@@ -86,7 +86,8 @@ class TreeModule(torch.nn.Module, Transformer):
         self.extracted = 0
         self.operands = []
         self.key = key
-        self.transform(tree)
+        self.results = []
+        self.transform(tree) #NOTE: should be last        
     
     def forward(self, tensors):
         tmp = {}
@@ -97,17 +98,20 @@ class TreeModule(torch.nn.Module, Transformer):
         return tensors
 
     def number(self, value):
-        return torch.scalar_tensor(float(value.value), dtype=torch.float32)
+        # return torch.scalar_tensor(float(value.value), dtype=torch.float32)
+        return float(value.value)
 
     def add(self, lhs, rhs):
-        prev = -1
+        # prev = -1
         if lhs is None:
-            lhs = f'result{self.index + prev}'
-            prev -= 1
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            lhs = self.results.pop()
         if rhs is None:
-            if prev == -2: #NOTE: lhs was None
-                prev -= 1
-            rhs = f'result{self.index + prev}'
+            # if prev == -2: #NOTE: lhs was None
+                # prev -= 1
+            # rhs = f'result{self.index + prev}'
+            rhs = self.results.pop()
         if not isinstance(lhs, str):
             m = OperationScalar('add', rhs, lhs, self.index)
         elif not isinstance(rhs, str):
@@ -115,15 +119,18 @@ class TreeModule(torch.nn.Module, Transformer):
         else:
             m = OperationTensors('add', lhs, rhs, self.index)
         self.seq.add_module(f'add{self.index}', m)
+        self.results.append(f'result{self.index}')
         self.index += 1
 
     def sub(self, lhs, rhs):
-        prev = -1
+        # prev = -1
         if lhs is None: #NOTE: prev?
-            lhs = f'result{self.index + prev}'
-            prev -= 1
+            # lhs = f'result{self.index + prev}'
+            lhs = self.results.pop()
+            # prev -= 1
         if rhs is None:
-            rhs = f'result{self.index + prev}'
+            # rhs = f'result{self.index + prev}'
+            rhs = self.results.pop()
         if not isinstance(lhs, str):
             m = OperationScalar('sub', rhs, lhs, self.index)
         elif not isinstance(rhs, str):
@@ -131,6 +138,7 @@ class TreeModule(torch.nn.Module, Transformer):
         else:
             m = OperationTensors('sub', lhs, rhs, self.index)
         self.seq.add_module(f'sub{self.index}', m)
+        self.results.append(f'result{self.index}')
         self.index += 1
 
     def mul(self, lhs, rhs):
@@ -176,9 +184,11 @@ class TreeModule(torch.nn.Module, Transformer):
     def cat(self, keys, dim):
         m = AggregateOperationTensors('cat', keys, int(str(dim)), self.index)
         self.seq.add_module(f'cat{self.index}', m)
+        self.results.append(f'result{self.index}')
         self.index += 1
 
     def stack(self, keys, dim):
         m = AggregateOperationTensors('stack', keys, int(str(dim)), self.index)
         self.seq.add_module(f'stack{self.index}', m)
+        self.results.append(f'result{self.index}')
         self.index += 1
