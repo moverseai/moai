@@ -7,7 +7,7 @@ import numpy as np
 
 @pytest.fixture
 def parser():
-    return Lark(__MOAI_GRAMMAR__, parser='earley')
+    return Lark(__MOAI_GRAMMAR__, parser='earley', start='expr')
 
 @pytest.fixture
 def various_tensors():

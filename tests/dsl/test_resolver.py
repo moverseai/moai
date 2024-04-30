@@ -28,4 +28,10 @@ class TestDSL:
         expression = "test2 + add.this2 + (another.number2 + another.number3 + add.this3)"
         x = self._parse_and_run(parser, expression, various_tensors)        
         y = torch.scalar_tensor(34.0)
-        assert torch.equal(x, y)
+        assert torch.equal(x.squeeze(), y)
+
+    def test_many_adds(self, parser, various_tensors):
+        expression = "test2 + add.this2 + (another.number2 + another.number3 + add.this3) + (test2 + add.this2 + (test2 + add.this2))"
+        x = self._parse_and_run(parser, expression, various_tensors)        
+        y = torch.scalar_tensor(68.0)
+        assert torch.equal(x.squeeze(), y)

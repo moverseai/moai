@@ -16,7 +16,7 @@ class NamedTensor(torch.nn.Module):
         super().__init__()
     
     def forward(self, td, tmp) -> torch.Tensor:
-        keys = self.key.split('.')
+        keys = self.key.split('.') #TODO: update w/ benedict
         value = toolz.get_in(self.key.split('.'), td)
         tmp = toolz.assoc_in(tmp, keys, value)
         # tmp[f'result{self.index}'] = value
@@ -105,6 +105,8 @@ class TreeModule(torch.nn.Module, Transformer):
             lhs = f'result{self.index + prev}'
             prev -= 1
         if rhs is None:
+            if prev == -2: #NOTE: lhs was None
+                prev -= 1
             rhs = f'result{self.index + prev}'
         if not isinstance(lhs, str):
             m = OperationScalar('add', rhs, lhs, self.index)
@@ -116,10 +118,12 @@ class TreeModule(torch.nn.Module, Transformer):
         self.index += 1
 
     def sub(self, lhs, rhs):
+        prev = -1
         if lhs is None: #NOTE: prev?
-            lhs = f'result{self.index-1}'
+            lhs = f'result{self.index + prev}'
+            prev -= 1
         if rhs is None:
-            rhs = f'result{self.index-1}'
+            rhs = f'result{self.index + prev}'
         if not isinstance(lhs, str):
             m = OperationScalar('sub', rhs, lhs, self.index)
         elif not isinstance(rhs, str):
@@ -138,9 +142,9 @@ class TreeModule(torch.nn.Module, Transformer):
     def neg(self, lhs, rhs):
         pass
 
-    def assign_var(self, name, value):
-        self.td[name] = torch.scalar_tensor(value, dtype=torch.float32)
-        return value
+    # def assign_var(self, name, value):
+    #     self.td[name] = torch.scalar_tensor(value, dtype=torch.float32)
+    #     return value
 
     def extract(self, name):
         key = toolz.reduce(lambda l,r:f"{'' if not l else l.value}{'' if not r else '.' + r.value}", name.children)        
