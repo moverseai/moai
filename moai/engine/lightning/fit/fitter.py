@@ -9,6 +9,11 @@ import tqdm
 import torch
 import toolz
 import logging
+import numpy as np
+
+from collections import defaultdict
+from moai.validation.metrics.generation.fid import FID
+from moai.validation.metrics.generation.diversity import Diversity
 
 log = logging.getLogger(__name__)
 
@@ -41,31 +46,32 @@ class BatchMonitor(L.Callback):
         # for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
         monitor_batch = toolz.get_in(['fit', 'batch'], module.monitor)
         if monitor_batch is not None:
-            is_now = batch_idx % monitor_batch['frequency'] == 0
-            if not is_now:
-                return # continue
-             #NOTE: should detach
-            for step in monitor_batch.get('steps', []):
-                outputs = module.graphs[step](outputs)            
-            for monitor_metrics in monitor_batch.get('metrics', []):
-                module.named_metrics[monitor_metrics](outputs)
-            extras = {
-                'step': module.global_step, 'epoch': module.current_epoch,
-                'batch_idx': batch_idx,
-            }
-            for monitor_tensors in monitor_batch.get('tensors', []):
-                module.named_monitors[monitor_tensors](outputs, extras)
-            if 'losses' in outputs:
-                losses = toolz.merge(outputs['losses']['weighted'], {
-                    'total': outputs['losses']['total'],                
-                })
-                losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
-                losses['epoch'] = int(trainer.current_epoch)
-                module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
-            if 'metrics' in outputs:
-                metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
-                # metrics['epoch'] = trainer.current_epoch
-                module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+            for _, monitor_named_batch in monitor_batch.items():       
+                is_now = batch_idx % monitor_named_batch['frequency'] == 0
+                if not is_now:
+                    return # continue
+                #NOTE: should detach
+                for step in monitor_named_batch.get('steps', []):
+                    outputs = module.graphs[step](outputs)            
+                for monitor_metrics in monitor_named_batch.get('metrics', []):
+                    module.named_metrics[monitor_metrics](outputs)
+                extras = {
+                    'step': module.global_step, 'epoch': module.current_epoch,
+                    'batch_idx': batch_idx,
+                }
+                for monitor_tensors in monitor_named_batch.get('tensors', []):
+                    module.named_monitors[monitor_tensors](outputs, extras)
+                if 'losses' in outputs:
+                    losses = toolz.merge(outputs['losses']['weighted'], {
+                        'total': outputs['losses']['total'],                
+                    })
+                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
+                    losses['epoch'] = int(trainer.current_epoch)
+                    module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                if 'metrics' in outputs:
+                    metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
+                    # metrics['epoch'] = trainer.current_epoch
+                    module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
         # return outputs
     
     @torch.no_grad
@@ -79,16 +85,26 @@ class BatchMonitor(L.Callback):
     ) -> None:
         datasets = list(module.data.val.iterator.datasets.keys())
         if 'metrics' in batch:
-            metrics = toolz.keymap(
+            scalar_metrics = toolz.keymap(
                 lambda k: f'val/metric/{k}', 
                 toolz.valfilter(lambda x: len(x.shape) == 0, batch['metrics'])
-            ) #TODO change to facilitate batch-avg
-            metrics["epoch"] = module.current_epoch
-            module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
-            module.all_metrics[datasets[dataloader_idx]].append(
+            )
+            module.scalar_metrics[datasets[dataloader_idx]].append(
+                    toolz.valmap(
+                        lambda x: x.detach().cpu().numpy(),
+                        scalar_metrics
+                    )
+                )
+            scalar_metrics["epoch"] = module.current_epoch
+            module.log_dict(scalar_metrics, prog_bar=True, logger=False, on_step=True, on_epoch=False)
+            non_scalar_metrics = toolz.keymap(
+                lambda k: f'val/metric/{k}', 
+                toolz.valfilter(lambda x: len(x.shape) > 0, batch['metrics'])
+            )
+            module.non_scalar_metrics[datasets[dataloader_idx]].append(
                 toolz.valmap(
                     lambda x: x.detach().cpu().numpy(),
-                    toolz.keymap(lambda k: f'val/metrics/{k}', batch['metrics'])
+                    non_scalar_metrics
                 )
             )
 
@@ -97,14 +113,58 @@ class BatchMonitor(L.Callback):
         trainer: L.Trainer, 
         module: L.LightningModule
     ) -> None:
-        scalar_metrics = {}
-        for d in module.all_metrics: #TODO change to facilitate batch-avg for scalar metrics
-            scalar_metrics[d] = [
-                toolz.valfilter(
-                    lambda x: len(x.shape) == 0, 
-                    self.all_metrics[d][i]) for i in range(len(self.all_metrics[d])
-                )
-            ]
+        all_scalar_metrics = defaultdict(list)
+        all_features = defaultdict(list)
+        for i, dataset in enumerate(module.scalar_metrics):
+            o = module.scalar_metrics[dataset]
+            keys = next(iter(o), { }).keys()
+            metrics = { }
+            for key in keys:
+                metrics[key] = np.mean(np.array(
+                    [d[key].item() for d in o if key in d]
+                ))
+                all_scalar_metrics[key].append(metrics[key])
+            log_scalar_metrics = toolz.keymap(lambda k: f"{k}/{list(module.data.val.iterator.datasets.keys())[i]}", metrics)
+            module.log_dict(log_scalar_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
+        all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_scalar_metrics)
+        module.scalar_metrics.clear()  # free memory
+        
+        if module.non_scalar_metrics is not None:
+            for i, dataset in enumerate(module.non_scalar_metrics):
+                o = module.non_scalar_metrics[dataset]
+                keys = next(iter(o), { }).keys()
+                non_scalar_metrics = defaultdict(list)
+                for key in keys:
+                    all_features[key].append(
+                        np.vstack(
+                            [d[key] for d in o if key in d]
+                        )
+                    )
+                fid_metric = toolz.get_in(['distribution', 'fid'], module.monitors_metrics)
+                if fid_metric:
+                    dict_elem = toolz.get_in(['pred'], fid_metric)
+                    for j in range(len(dict_elem)):
+                        non_scalar_metrics[f"val/metric/{fid_metric['out'][j]}"].append(
+                                FID().forward(
+                                    pred=torch.from_numpy(all_features['val/metric/'+fid_metric['pred'][j]][0]),
+                                    gt=torch.from_numpy(all_features['val/metric/'+fid_metric['gt'][j]][0])
+                                ).item()
+                        )
+                div_metric = toolz.get_in(['distribution', 'diversity'], module.monitors_metrics)
+                if div_metric:
+                    dict_elem = toolz.get_in(['pred'], div_metric)
+                    for j in range(len(dict_elem)):
+                        non_scalar_metrics[f"val/metric/{div_metric['out'][j]}"].append(
+                                Diversity().forward(
+                                    pred=torch.from_numpy(all_features['val/metric/'+div_metric['pred'][j]][0]),
+                            ).item()
+                        )
+            all_metrics = toolz.merge(
+                            all_metrics,
+                            toolz.valmap(lambda x: x[0], non_scalar_metrics)
+                        )
+            module.non_scalar_metrics.clear()
+        module.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
 
 # class PerBatch(torch.nn.Identity, L.Callback):
 #     def __init__(self):

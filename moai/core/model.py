@@ -123,6 +123,7 @@ class Model(L.LightningModule):
         super().__init__()
         self.automatic_optimization = False
         self.data = data
+        self.monitors_metrics = monitors.metrics
         ## Inner modules aka Models
         self.models = torch.nn.ModuleDict()
         for k in modules or {}:            
@@ -192,6 +193,8 @@ class Model(L.LightningModule):
         hparams = hyperparameters if hyperparameters is not None else { }
         hparams.update({'moai_version': miV})
         self.hparams.update(hparams)
+        self.scalar_metrics = defaultdict(list)
+        self.non_scalar_metrics = defaultdict(list)
         
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
