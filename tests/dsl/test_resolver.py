@@ -47,6 +47,10 @@ class TestDSL:
         x = self._parse_and_run(parser, expression, various_tensors)        
         y = torch.scalar_tensor(2/15)
         assert torch.equal(x, y)
+        expression = "add.this2/test2"
+        x = self._parse_and_run(parser, expression, various_tensors)        
+        y = torch.scalar_tensor(15/2)
+        assert torch.equal(x, y)
 
     def test_pow(self, parser, various_tensors):
         expression = "add.this2 ^ test2"
