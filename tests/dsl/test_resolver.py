@@ -35,3 +35,25 @@ class TestDSL:
         x = self._parse_and_run(parser, expression, various_tensors)        
         y = torch.scalar_tensor(68.0)
         assert torch.equal(x.squeeze(), y)
+
+    def test_mul(self, parser, various_tensors):
+        expression = "test2 * add.this2"
+        x = self._parse_and_run(parser, expression, various_tensors)        
+        y = torch.scalar_tensor(30.0)
+        assert torch.equal(x, y)
+
+    def test_div(self, parser, various_tensors):
+        expression = "test2 / add.this2"
+        x = self._parse_and_run(parser, expression, various_tensors)        
+        y = torch.scalar_tensor(2/15)
+        assert torch.equal(x, y)
+
+    def test_pow(self, parser, various_tensors):
+        expression = "add.this2 ^ test2"
+        x = self._parse_and_run(parser, expression, various_tensors)        
+        y = torch.scalar_tensor(15**2)
+        assert torch.equal(x, y)
+        expression = "test2 ^ add.this2 "
+        x = self._parse_and_run(parser, expression, various_tensors)        
+        y = torch.scalar_tensor(2**15)
+        assert torch.equal(x, y)

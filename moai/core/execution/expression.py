@@ -23,7 +23,7 @@ class NamedTensor(torch.nn.Module):
         return td, tmp
     
 @dataclasses.dataclass(repr=False)
-class OperationTensors(torch.nn.Module): #binary
+class BinaryOperationTensors(torch.nn.Module):
     operation: str
     lhs: str
     rhs: str
@@ -41,7 +41,24 @@ class OperationTensors(torch.nn.Module): #binary
         return td, tmp
 
 @dataclasses.dataclass(repr=False)
-class OperationScalar(torch.nn.Module): #unary
+class UnaryOperationTensors(torch.nn.Module):
+    operation: str
+    key: str
+    index: int
+    
+    def __post_init__(self):
+        super().__init__()
+        self.op = getattr(torch, self.operation)
+    
+    def __repr__(self):
+        return f"{self.operation}:{self.key}"
+    
+    def forward(self, td, tmp) -> torch.Tensor:        
+        tmp[f'result{self.index}'] = self.op(toolz.get_in(self.key.split('.'), tmp))
+        return td, tmp
+    
+@dataclasses.dataclass(repr=False)
+class BinaryOperationScalar(torch.nn.Module):
     operation: str
     lhs: str
     rhs: typing.Union[float, int]
@@ -59,7 +76,7 @@ class OperationScalar(torch.nn.Module): #unary
         return td, tmp
 
 @dataclasses.dataclass(repr=False)
-class AggregateOperationTensors(torch.nn.Module): #n-ary
+class NnaryOperationTensors(torch.nn.Module):
     operation: str
     keys: typing.List[str]
     dim: int
@@ -113,11 +130,11 @@ class TreeModule(torch.nn.Module, Transformer):
             # rhs = f'result{self.index + prev}'
             rhs = self.results.pop()
         if not isinstance(lhs, str):
-            m = OperationScalar('add', rhs, lhs, self.index)
+            m = BinaryOperationScalar('add', rhs, lhs, self.index)
         elif not isinstance(rhs, str):
-            m = OperationScalar('add', lhs, rhs, self.index)
+            m = BinaryOperationScalar('add', lhs, rhs, self.index)
         else:
-            m = OperationTensors('add', lhs, rhs, self.index)
+            m = BinaryOperationTensors('add', lhs, rhs, self.index)
         self.seq.add_module(f'add{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
@@ -132,23 +149,88 @@ class TreeModule(torch.nn.Module, Transformer):
             # rhs = f'result{self.index + prev}'
             rhs = self.results.pop()
         if not isinstance(lhs, str):
-            m = OperationScalar('sub', rhs, lhs, self.index)
+            m = BinaryOperationScalar('sub', rhs, lhs, self.index)
         elif not isinstance(rhs, str):
-            m = OperationScalar('sub', lhs, rhs, self.index)
+            m = BinaryOperationScalar('sub', lhs, rhs, self.index)
         else:
-            m = OperationTensors('sub', lhs, rhs, self.index)
+            m = BinaryOperationTensors('sub', lhs, rhs, self.index)
         self.seq.add_module(f'sub{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 
     def mul(self, lhs, rhs):
-        pass
+        # prev = -1
+        if lhs is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            lhs = self.results.pop()
+        if rhs is None:
+            # if prev == -2: #NOTE: lhs was None
+                # prev -= 1
+            # rhs = f'result{self.index + prev}'
+            rhs = self.results.pop()
+        if not isinstance(lhs, str):
+            m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+        elif not isinstance(rhs, str):
+            m = BinaryOperationScalar('mul', lhs, rhs, self.index)
+        else:
+            m = BinaryOperationTensors('mul', lhs, rhs, self.index)
+        self.seq.add_module(f'mul{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
 
     def div(self, lhs, rhs):
-        pass
+        # prev = -1
+        if lhs is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            lhs = self.results.pop()
+        if rhs is None:
+            # if prev == -2: #NOTE: lhs was None
+                # prev -= 1
+            # rhs = f'result{self.index + prev}'
+            rhs = self.results.pop()
+        if not isinstance(lhs, str):
+            m = BinaryOperationScalar('div', rhs, lhs, self.index)
+        elif not isinstance(rhs, str):
+            m = BinaryOperationScalar('div', lhs, rhs, self.index)
+        else:
+            m = BinaryOperationTensors('div', lhs, rhs, self.index)
+        self.seq.add_module(f'div{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
 
-    def neg(self, lhs, rhs):
-        pass
+    def pow(self, lhs, rhs):
+        # prev = -1
+        if lhs is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            lhs = self.results.pop()
+        if rhs is None:
+            # if prev == -2: #NOTE: lhs was None
+                # prev -= 1
+            # rhs = f'result{self.index + prev}'
+            rhs = self.results.pop()
+        if not isinstance(lhs, str):
+            m = BinaryOperationScalar('pow', rhs, lhs, self.index)
+        elif not isinstance(rhs, str):
+            m = BinaryOperationScalar('pow', lhs, rhs, self.index)
+        else:
+            m = BinaryOperationTensors('pow', lhs, rhs, self.index)
+        self.seq.add_module(f'pow{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def neg(self, key):
+        # prev = -1
+        if key is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            key = self.results.pop()
+        m = UnaryOperationTensors('neg', key, self.index)        
+        self.seq.add_module(f'neg{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
 
     # def assign_var(self, name, value):
     #     self.td[name] = torch.scalar_tensor(value, dtype=torch.float32)
@@ -182,13 +264,13 @@ class TreeModule(torch.nn.Module, Transformer):
         return keys
     
     def cat(self, keys, dim):
-        m = AggregateOperationTensors('cat', keys, int(str(dim)), self.index)
+        m = NnaryOperationTensors('cat', keys, int(str(dim)), self.index)
         self.seq.add_module(f'cat{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 
     def stack(self, keys, dim):
-        m = AggregateOperationTensors('stack', keys, int(str(dim)), self.index)
+        m = NnaryOperationTensors('stack', keys, int(str(dim)), self.index)
         self.seq.add_module(f'stack{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1

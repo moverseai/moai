@@ -36,6 +36,8 @@ POWER_OP: "^"
 !expr: add_expr
 '''
 
+#TODO: reshape, slicing, prod, pow, bmm, ones, zeros, rand(n), (un)squeeze
+
 __MOAI_GRAMMAR__ = """
 
     ?name: FIELD ["." FIELD]
@@ -62,8 +64,10 @@ __MOAI_GRAMMAR__ = """
     //?prod: prod MUL_OP pow
     //    | pow    
     
-    ?pow: primary POWER_OP pow
+    ?pow: primary "^" pow -> pow
         | primary
+    //?pow: primary POWER_OP pow
+    //    | primary
     
     
     ?primary: "-" NUMBER
