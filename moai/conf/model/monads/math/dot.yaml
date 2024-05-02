@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.dot
 
 _target_: moai.monads.math.Dot
 dim: -1

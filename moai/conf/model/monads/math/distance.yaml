@@ -1,4 +1,4 @@
-# @package model.supervision.losses._name_
+# @package model.supervision.losses.distance
 
 _target_: moai.supervision.losses.regression.Distance
 mode: default # one of ['vector', 'matrix', 'default', 'vector_auto', 'matrix_auto', 'default_auto']

@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.slice
 
 _target_: moai.monads.tensor.Slice
 dim: 2
