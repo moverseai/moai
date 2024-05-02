@@ -123,7 +123,16 @@ class Model(L.LightningModule):
         super().__init__()
         self.automatic_optimization = False
         self.data = data
-        self.monitors_metrics = monitors.metrics
+        ## Check for generation metrics
+        self.generation_metrics = {}
+        if toolz.get_in(['generation'], validation) is not None:
+            gen_metrics = validation['generation']['metrics'].keys()
+            groups = list(monitors.metrics.keys())
+            for m in list(gen_metrics):
+                for g in groups:
+                    tmp = toolz.get_in([m], monitors.metrics[g]) or {}
+                    if tmp:
+                        self.generation_metrics[m] = tmp
         ## Inner modules aka Models
         self.models = torch.nn.ModuleDict()
         for k in modules or {}:            

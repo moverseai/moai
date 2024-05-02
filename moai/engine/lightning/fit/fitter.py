@@ -5,13 +5,13 @@ import pytorch_lightning as L
 import hydra.utils as hyu
 import omegaconf.omegaconf
 import typing
-import tqdm
+import tablib
 import torch
 import toolz
 import logging
 import numpy as np
+import os
 
-from collections import defaultdict
 from moai.validation.metrics.generation.fid import FID
 from moai.validation.metrics.generation.diversity import Diversity
 
@@ -85,26 +85,36 @@ class BatchMonitor(L.Callback):
     ) -> None:
         datasets = list(module.data.val.iterator.datasets.keys())
         if 'metrics' in batch:
-            scalar_metrics = toolz.keymap(
-                lambda k: f'val/metric/{k}', 
+            scalar_metrics = toolz.keymap( # format: val/metric/named_metric/dataset
+                lambda k: f'val/metric/{k}/{datasets[dataloader_idx]}', 
                 toolz.valfilter(lambda x: len(x.shape) == 0, batch['metrics'])
             )
-            module.scalar_metrics[datasets[dataloader_idx]].append(
-                    toolz.valmap(
-                        lambda x: x.detach().cpu().numpy(),
-                        scalar_metrics
-                    )
+            dataset_val_metrics = toolz.valmap(
+                lambda v: toolz.keymap(lambda k: k.split("/")[2], dict(v)),
+                toolz.groupby(
+                    lambda k: k[0].split('/')[-1],
+                    scalar_metrics.items()
                 )
+            )
+            module.scalar_metrics[datasets[dataloader_idx]].append( # format: dataset/named_metric
+                toolz.valmap(
+                    lambda x: x.detach().cpu().numpy(),
+                    dataset_val_metrics[datasets[dataloader_idx]]
+                )
+            )
             scalar_metrics["epoch"] = module.current_epoch
-            module.log_dict(scalar_metrics, prog_bar=True, logger=False, on_step=True, on_epoch=False)
+            module.log_dict(scalar_metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
             non_scalar_metrics = toolz.keymap(
-                lambda k: f'val/metric/{k}', 
+                lambda k: f'{datasets[dataloader_idx]}/{k}', 
                 toolz.valfilter(lambda x: len(x.shape) > 0, batch['metrics'])
             )
             module.non_scalar_metrics[datasets[dataloader_idx]].append(
                 toolz.valmap(
                     lambda x: x.detach().cpu().numpy(),
-                    non_scalar_metrics
+                    toolz.keymap(
+                        lambda k: k.split("/")[1],
+                        non_scalar_metrics
+                    )
                 )
             )
 
@@ -113,58 +123,53 @@ class BatchMonitor(L.Callback):
         trainer: L.Trainer, 
         module: L.LightningModule
     ) -> None:
-        all_scalar_metrics = defaultdict(list)
-        all_features = defaultdict(list)
+        all_scalar_metrics = {}
+        all_non_scalar_metrics = {}
+        all_features = {}
+        all_metrics = {}
         for i, dataset in enumerate(module.scalar_metrics):
+            all_scalar_metrics[dataset] = {}
+            all_scalar_metrics[dataset]['epoch'] = module.current_epoch
             o = module.scalar_metrics[dataset]
             keys = next(iter(o), { }).keys()
-            metrics = { }
             for key in keys:
-                metrics[key] = np.mean(np.array(
+                all_scalar_metrics[dataset][key] = np.mean(np.array(
                     [d[key].item() for d in o if key in d]
                 ))
-                all_scalar_metrics[key].append(metrics[key])
-            log_scalar_metrics = toolz.keymap(lambda k: f"{k}/{list(module.data.val.iterator.datasets.keys())[i]}", metrics)
-            module.log_dict(log_scalar_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
-        all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_scalar_metrics)
         module.scalar_metrics.clear()  # free memory
         
         if module.non_scalar_metrics is not None:
             for i, dataset in enumerate(module.non_scalar_metrics):
+                all_non_scalar_metrics[dataset] = {}
                 o = module.non_scalar_metrics[dataset]
                 keys = next(iter(o), { }).keys()
-                non_scalar_metrics = defaultdict(list)
+                features = {}
                 for key in keys:
-                    all_features[key].append(
-                        np.vstack(
+                    features[key] = np.vstack(
                             [d[key] for d in o if key in d]
-                        )
                     )
-                fid_metric = toolz.get_in(['distribution', 'fid'], module.monitors_metrics)
+                all_features[dataset] = features
+                fid_metric = toolz.get_in(['fid'], module.generation_metrics) or {}
                 if fid_metric:
                     dict_elem = toolz.get_in(['pred'], fid_metric)
-                    for j in range(len(dict_elem)):
-                        non_scalar_metrics[f"val/metric/{fid_metric['out'][j]}"].append(
-                                FID().forward(
-                                    pred=torch.from_numpy(all_features['val/metric/'+fid_metric['pred'][j]][0]),
-                                    gt=torch.from_numpy(all_features['val/metric/'+fid_metric['gt'][j]][0])
-                                ).item()
-                        )
-                div_metric = toolz.get_in(['distribution', 'diversity'], module.monitors_metrics)
+                    for elem in range(len(dict_elem)):
+                        all_non_scalar_metrics[dataset][f"{fid_metric['out'][elem]}"] = FID().forward(
+                                pred=torch.from_numpy(all_features[dataset][fid_metric['pred'][elem]]),
+                                gt=torch.from_numpy(all_features[dataset][fid_metric['gt'][elem]])
+                        ).item()
+                div_metric = toolz.get_in(['diversity'], module.generation_metrics) or {}
                 if div_metric:
                     dict_elem = toolz.get_in(['pred'], div_metric)
-                    for j in range(len(dict_elem)):
-                        non_scalar_metrics[f"val/metric/{div_metric['out'][j]}"].append(
-                                Diversity().forward(
-                                    pred=torch.from_numpy(all_features['val/metric/'+div_metric['pred'][j]][0]),
+                    for elem in range(len(dict_elem)):
+                        all_non_scalar_metrics[dataset][f"{div_metric['out'][elem]}"] = Diversity().forward(
+                                    pred=torch.from_numpy(all_features[dataset][div_metric['pred'][elem]]),
                             ).item()
-                        )
-            all_metrics = toolz.merge(
-                            all_metrics,
-                            toolz.valmap(lambda x: x[0], non_scalar_metrics)
-                        )
-            module.non_scalar_metrics.clear()
-        module.log_dict(all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
+            all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])
+        module.non_scalar_metrics.clear()
+        for dataset in all_metrics.keys():
+            ds = tablib.Dataset([v for v in all_metrics[dataset].values()], headers=all_metrics[dataset].keys())
+            with open(os.path.join(os.getcwd(), f'{module.logger.name}_{dataset}_val_average.csv'), 'a', newline='') as f:
+                 f.write(ds.export('csv'))
 
 # class PerBatch(torch.nn.Identity, L.Callback):
 #     def __init__(self):
@@ -478,7 +483,7 @@ class LightningFitter(L.Trainer):
             check_val_every_n_epoch=check_val_every_n_epoch,
             fast_dev_run=fast_dev_run,
             accumulate_grad_batches=accumulate_grad_batches,
-            max_epochs=1,
+            max_epochs=3,
             min_epochs=1,
             max_steps=-1,
             min_steps=-1,

@@ -1,6 +1,8 @@
 import torch
 import typing
 
+__all__ = ['AlphaBlend']
+
 class AlphaBlend(torch.nn.Module):
     def __init__(self, blend: typing.Optional[float]=None) -> None:
         super().__init__()
