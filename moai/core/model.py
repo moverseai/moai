@@ -360,6 +360,9 @@ class Model(L.LightningModule):
         batch_nb:           int,
         dataloader_idx:   int=0,
     ) -> None:
+        if not hasattr(self.data, 'val'):
+            log.warning("Validation data missing. An empty validation set will be used.")
+            return
         datasets = list(self.data.val.iterator.datasets.keys())
         monitor = toolz.get_in(['val', 'batch'], self.monitor)
         for stage, proc in self.process['val']['batch'][datasets[dataloader_idx]].items():

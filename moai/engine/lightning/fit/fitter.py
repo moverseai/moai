@@ -107,48 +107,13 @@ class BatchMonitor(L.Callback):
         # for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
         monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
         if monitor_batch is not None:
-            is_now = batch_idx % monitor_batch["frequency"] == 0
-            if not is_now:
-                return  # continue
-            # NOTE: should detach
-            for step in monitor_batch.get("steps", []):
-                outputs = module.graphs[step](outputs)
-            for monitor_metrics in monitor_batch.get("metrics", []):
-                module.named_metrics[monitor_metrics](outputs)
-            extras = {
-                "step": module.global_step,
-                "epoch": module.current_epoch,
-                "batch_idx": batch_idx,
-            }
-            for monitor_tensors in monitor_batch.get("tensors", []):
-                module.named_monitors[monitor_tensors](outputs, extras)
-            if "losses" in outputs:
-                losses = toolz.merge(
-                    outputs["losses"]["weighted"],
-                    {
-                        "total": outputs["losses"]["total"],
-                    },
-                )
-                losses = toolz.keymap(lambda k: f"train/loss/{k}", losses)
-                losses["epoch"] = int(trainer.current_epoch)
-                module.log_dict(
-                    losses, prog_bar=True, logger=True, on_step=True, on_epoch=False
-                )
-            if "metrics" in outputs:
-                metrics = toolz.keymap(
-                    lambda k: f"train/metric/{k}", outputs["metrics"]
-                )
-                # metrics['epoch'] = trainer.current_epoch
-                module.log_dict(
-                    metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False
-                )
-            for _, monitor_named_batch in monitor_batch.items():       
+            for _, monitor_named_batch in monitor_batch.items():
                 is_now = batch_idx % monitor_named_batch['frequency'] == 0
                 if not is_now:
                     return # continue
                 #NOTE: should detach
                 for step in monitor_named_batch.get('steps', []):
-                    outputs = module.graphs[step](outputs)            
+                    outputs = module.graphs[step](outputs)
                 for monitor_metrics in monitor_named_batch.get('metrics', []):
                     module.named_metrics[monitor_metrics](outputs)
                 extras = {
@@ -179,6 +144,9 @@ class BatchMonitor(L.Callback):
         batch: typing.Mapping[str, torch.Tensor], batch_idx: int,
         dataloader_idx: int = 0,
     ) -> None:
+        if not hasattr(module.data, 'val'):
+            log.warning("No validation data found, validation step will be omitted.")
+            return
         datasets = list(module.data.val.iterator.datasets.keys())
         if 'metrics' in batch:
             scalar_metrics = toolz.keymap(
@@ -225,7 +193,7 @@ class BatchMonitor(L.Callback):
         all_metrics = toolz.valmap(lambda v: sum(v) / len(v), all_scalar_metrics)
         module.scalar_metrics.clear()  # free memory
         
-        if module.non_scalar_metrics is not None:
+        if module.non_scalar_metrics:
             for i, dataset in enumerate(module.non_scalar_metrics):
                 o = module.non_scalar_metrics[dataset]
                 keys = next(iter(o), { }).keys()

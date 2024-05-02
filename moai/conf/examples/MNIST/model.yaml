@@ -64,8 +64,9 @@ model:
       monitor:
         fit:
           batch:
-            frequency: 1
-            steps: []
+            train_encoder:
+              frequency: 1
+              steps: []
             # metrics:
               # - train_loss
             # tensors:
