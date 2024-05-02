@@ -10,7 +10,7 @@ def parser():
     return Lark(__MOAI_GRAMMAR__, parser='earley', start='expr')
 
 @pytest.fixture
-def various_tensors():
+def scalar_tensors():
     return {
         'test': 1, 
         'test2': torch.scalar_tensor(2),
@@ -25,4 +25,10 @@ def various_tensors():
             'this2': torch.scalar_tensor(15),
             'this3': torch.scalar_tensor(15)[np.newaxis],
         }
+    }
+
+@pytest.fixture
+def shaped_tensors():
+    return {
+        'test': torch.tensor([[[1] *5]]),         
     }

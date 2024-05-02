@@ -30,7 +30,7 @@ class BinaryOperationTensors(torch.nn.Module):
     index: int
     
     def __post_init__(self):
-        super().__init__()
+        super().__init__()        
         self.op = getattr(torch, self.operation)
     
     def __repr__(self):
@@ -94,6 +94,24 @@ class NnaryOperationTensors(torch.nn.Module):
         return td, tmp
     
 
+@dataclasses.dataclass(repr=False)
+class TransformOperationTensors(torch.nn.Module):
+    operation: str
+    key: str
+    args: typing.Union[int, typing.Sequence[int]]
+    index: int
+    
+    def __post_init__(self):
+        super().__init__()
+        self.op = getattr(torch, self.operation)
+    
+    def __repr__(self):
+        return f"{self.operation}:{self.key}"
+    
+    def forward(self, td, tmp) -> torch.Tensor:        
+        tmp[f'result{self.index}'] = self.op(toolz.get_in(self.key.split('.'), tmp), self.args)
+        return td, tmp
+    
 @v_args(inline=True) # Affects the signatures of the methods
 class TreeModule(torch.nn.Module, Transformer):
     def __init__(self, key: str, tree: Tree):
@@ -237,7 +255,7 @@ class TreeModule(torch.nn.Module, Transformer):
     #     return value
 
     def extract(self, name):
-        key = toolz.reduce(lambda l,r:f"{'' if not l else l.value}{'' if not r else '.' + r.value}", name.children)        
+        key = toolz.reduce(lambda l,r:f"{'' if not l else l.value}{'' if not r else '.' + r.value}", name.children)
         self.seq.add_module(f"extract{self.extracted}", NamedTensor(key, self.extracted))
         self.extracted += 1
         return key
@@ -272,5 +290,14 @@ class TreeModule(torch.nn.Module, Transformer):
     def stack(self, keys, dim):
         m = NnaryOperationTensors('stack', keys, int(str(dim)), self.index)
         self.seq.add_module(f'stack{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def reshape(self, key, *dims):
+        if not isinstance(key, str): #NOTE: is lark.Tree
+            key = self.extract(key)
+        dims = list(map(int, dims))
+        m = TransformOperationTensors('reshape', key, dims, self.index)
+        self.seq.add_module(f'reshape{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1

@@ -36,16 +36,12 @@ POWER_OP: "^"
 !expr: add_expr
 '''
 
-#TODO: reshape, slicing, prod, pow, bmm, ones, zeros, rand(n), (un)squeeze
+#TODO: reshape, slicing, bmm, ones, zeros, rand(n), (un)squeeze
 
 __MOAI_GRAMMAR__ = """
 
     ?name: FIELD ["." FIELD]
     ?names: name ("," name)*
-
-    ADD_OP: "+" | "-" 
-    MUL_OP: "*" | "/"
-    POWER_OP: "^"
     
     ?add: sum "+" prod -> add
         | prod
@@ -71,10 +67,11 @@ __MOAI_GRAMMAR__ = """
     
     
     ?primary: "-" NUMBER
-        | NUMBER                            -> number
+        | NUMBER                            -> number        
         | name                              -> extract        
         | "cat" "(" names "," NUMBER ")"    -> cat
-        | "stack" "(" names "," NUMBER ")"  -> stack
+        | "stack" "(" names "," NUMBER ")"  -> stack        
+        | "view" "(" name "," NUMBER ("," NUMBER)* ")"  -> reshape
         | "(" expr ")"
     ?expr: sum
 
