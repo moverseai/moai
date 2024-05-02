@@ -1,3 +1,3 @@
-# @package model.validation.metrics._name_
+# @package model.validation.metrics.sqrel
 
-_target_: moai.validation.metrics.SqRel
+_target_: moai.validation.metrics.common.SqRel

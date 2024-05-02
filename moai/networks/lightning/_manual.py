@@ -170,6 +170,7 @@ class Manual(pytorch_lightning.LightningModule):
         hparams.update({'moai_version': miV})
         #NOTE: @PTL1.5 self.hparams =  hparams
         self.hparams.update(hparams)
+        self.all_metrics = defaultdict(list)
         
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
@@ -321,13 +322,41 @@ class Manual(pytorch_lightning.LightningModule):
                             self.copy_params(initializers, batch)
         return batch
             
-
+    @torch.no_grad
     def validation_step(self,
         batch:              typing.Dict[str, torch.Tensor],
         batch_nb:           int,
         dataloader_idx:   int=0,
-    ) -> dict:        
-        pass
+    ) -> None:
+        datasets = list(self.data.val.iterator.datasets.keys())
+        monitor = toolz.get_in(['val', 'batch'], self.monitor)
+        for stage, proc in self.process['val']['batch'][datasets[dataloader_idx]].items():
+            steps = proc['steps']
+            with torch.no_grad():
+                for step in steps:
+                    batch = self.graphs[step](batch)
+                for _, monitor_stage in monitor.items():
+                    for metric in toolz.get('metrics', monitor_stage, None) or []:
+                        self.named_metrics[metric](batch) #TODO add visualization
+
+    def on_validation_batch_end(self, outputs, batch: call.Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+        datasets = list(self.data.val.iterator.datasets.keys())
+        if 'metrics' in batch:
+            metrics = toolz.keymap(lambda k: f'val/metric/{k}', toolz.valfilter(lambda x: len(x.shape) == 0, batch['metrics'])) #TODO change to facilitate batch-avg
+            metrics["epoch"] = self.current_epoch
+            self.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+            self.all_metrics[datasets[dataloader_idx]].append(
+                                                            toolz.valmap(
+                                                                lambda x: x.detach().cpu().numpy(),
+                                                                toolz.keymap(lambda k: f'val/metrics/{k}', batch['metrics'])
+                                                            )
+                                                        )
+
+    def on_validation_epoch_end(self) -> None:
+        scalar_metrics = {}
+        for d in self.all_metrics: #TODO change to facilitate batch-avg for scalar metrics
+            scalar_metrics[d] = [toolz.valfilter(lambda x: len(x.shape) == 0, self.all_metrics[d][i]) for i in range(len(self.all_metrics[d]))]
+        
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:
         return list(self.named_optimizers.values()), list(self.named_schedulers.values())

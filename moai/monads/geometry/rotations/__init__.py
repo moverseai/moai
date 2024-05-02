@@ -2,7 +2,7 @@ from moai.monads.geometry.rotations.conversions import (
     Convert,
     AxisAngle,
     ConvertRotation,
-    RotationMatrix2Quaternion,
+    # RotationMatrix2Quaternion,
     RotationMatrix2RotationVector,
     RotationVector2Quaternion,
     RotationVector2RotationMatrix,
@@ -15,17 +15,17 @@ from moai.monads.geometry.rotations.conversions import (
     RomaQuaternion2RotationVector,
     RomaRotationMatrix2RotationVector,
 )
-from moai.monads.geometry.rotations.gram_schmidt import (
+# from moai.monads.geometry.rotations.gram_schmidt import (
     # GramSchmidt,
-    ExtractSixd as RomaExtractSixd
-)
+    # ExtractSixd as RomaExtractSixd
+# )
 from moai.monads.geometry.rotations.random_group_matrix import RandomGroupMatrices
 
 __all__ = [
     "Convert",
     "AxisAngle",
     'ConvertRotation',
-    'RotationMatrix2Quaternion',
+    # 'RotationMatrix2Quaternion',
     'RotationMatrix2RotationVector',
     'RotationVector2Quaternion',
     'RotationVector2RotationMatrix',
@@ -38,6 +38,6 @@ __all__ = [
     'RomaQuaternion2RotationMatrix',
     'RomaRotationVector2Quaternion',
     'RomaQuaternion2RotationVector',
-    'RomaExtractSixd',
+    # 'RomaExtractSixd',
     'RomaRotationMatrix2RotationVector'
 ]
