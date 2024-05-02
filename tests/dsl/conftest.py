@@ -30,5 +30,19 @@ def scalar_tensors():
 @pytest.fixture
 def shaped_tensors():
     return {
-        'test': torch.tensor([[[1] *5]]),         
+        'test': torch.tensor([[[1] *5]]),
+        'five': torch.scalar_tensor(5),
+        'onedim': {
+            'threes': torch.tensor([[3] * 6])
+        }
+    }
+
+@pytest.fixture
+def shaped_tensors_cuda():
+    return {
+        'test': torch.tensor([[[1] *5]]).cuda(),
+        'five': torch.scalar_tensor(5).cuda(),
+        'onedim': {
+            'threes': torch.tensor([[3] * 6]).cuda()
+        }
     }

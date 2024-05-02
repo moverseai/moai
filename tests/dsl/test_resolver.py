@@ -80,3 +80,21 @@ class TestDSL:
         x = self._parse_and_run(parser, expression, shaped_tensors)        
         y = (5, 1)
         assert np.all(np.equal(x.shape, y))
+        expression = "5 + view(test, 5, 1) + five"
+        x = self._parse_and_run(parser, expression, shaped_tensors)        
+        y = torch.tensor([11] * 5)
+        assert torch.equal(x, y[:, np.newaxis])
+        expression = "5 + view(test, 5, 1) * five"
+        x = self._parse_and_run(parser, expression, shaped_tensors)
+        y = torch.tensor([10] * 5)
+        assert torch.equal(x, y[:, np.newaxis])
+        expression = "(5 + view(test, 5, 1) ) * five"
+        x = self._parse_and_run(parser, expression, shaped_tensors)
+        y = torch.tensor([30] * 5)
+        assert torch.equal(x, y[:, np.newaxis])
+
+    def test_zeros(self, parser, shaped_tensors_cuda):
+        expression = "onedim.threes * zeros(6)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        y = torch.zeros(6)[np.newaxis, :].to(x)
+        assert torch.equal(x, y)

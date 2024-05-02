@@ -28,6 +28,7 @@ class BinaryOperationTensors(torch.nn.Module):
     lhs: str
     rhs: str
     index: int
+    rhs_generated: bool = False # dataclasses.field(default=False)
     
     def __post_init__(self):
         super().__init__()        
@@ -36,8 +37,12 @@ class BinaryOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.lhs},{self.rhs}"
     
-    def forward(self, td, tmp) -> torch.Tensor:        
-        tmp[f'result{self.index}'] = self.op(toolz.get_in(self.lhs.split('.'), tmp), toolz.get_in(self.rhs.split('.'), tmp))
+    def forward(self, td, tmp) -> torch.Tensor:
+        lhs = toolz.get_in(self.lhs.split('.'), tmp)
+        rhs = toolz.get_in(self.rhs.split('.'), tmp)
+        if self.rhs_generated:
+            rhs = rhs.to(lhs)
+        tmp[f'result{self.index}'] = self.op(lhs, rhs)
         return td, tmp
 
 @dataclasses.dataclass(repr=False)
@@ -111,6 +116,23 @@ class TransformOperationTensors(torch.nn.Module):
     def forward(self, td, tmp) -> torch.Tensor:        
         tmp[f'result{self.index}'] = self.op(toolz.get_in(self.key.split('.'), tmp), self.args)
         return td, tmp
+        
+@dataclasses.dataclass(repr=False)
+class GenerationOperationTensors(torch.nn.Module):
+    operation: str
+    args: typing.Union[int, typing.Sequence[int]]
+    index: int
+    
+    def __post_init__(self):
+        super().__init__()
+        self.op = getattr(torch, self.operation)
+    
+    def __repr__(self):
+        return f"{self.operation}:{self.index}"
+    
+    def forward(self, td, tmp) -> torch.Tensor:        
+        tmp[f'result{self.index}'] = self.op(self.args)
+        return td, tmp
     
 @v_args(inline=True) # Affects the signatures of the methods
 class TreeModule(torch.nn.Module, Transformer):
@@ -176,6 +198,16 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
+    def zeros(self, *dims):
+        dims = list(map(int, dims))
+        m = GenerationOperationTensors('zeros', dims, self.index)
+        self.seq.add_module(f'zeros{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def ones(self, *dims):
+        pass
+
     def mul(self, lhs, rhs):
         # prev = -1
         if lhs is None:
@@ -193,6 +225,19 @@ class TreeModule(torch.nn.Module, Transformer):
             m = BinaryOperationScalar('mul', lhs, rhs, self.index)
         else:
             m = BinaryOperationTensors('mul', lhs, rhs, self.index)
+        self.seq.add_module(f'mul{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def mulg(self, lhs, rhs):
+        if lhs is None:
+            lhs = self.results.pop()
+        rhs = self.results.pop()
+        #NOTE: lhs being a scalar is an error, cant derive device
+        # if not isinstance(lhs, str):
+        #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+        # else:
+        m = BinaryOperationTensors('mul', lhs, rhs, self.index, True)
         self.seq.add_module(f'mul{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1

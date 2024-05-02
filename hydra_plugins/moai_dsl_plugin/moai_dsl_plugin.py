@@ -36,7 +36,7 @@ POWER_OP: "^"
 !expr: add_expr
 '''
 
-#TODO: reshape, slicing, bmm, ones, zeros, rand(n), (un)squeeze
+#TODO: slicing, bmm, ones, zeros, rand(n), (un)squeeze
 
 __MOAI_GRAMMAR__ = """
 
@@ -53,6 +53,7 @@ __MOAI_GRAMMAR__ = """
     //    | prod
     
     ?mul: prod "*" pow -> mul
+        | prod "*" gen -> mulg
         | pow
     ?div: prod "/" pow -> div
         | pow
@@ -65,13 +66,15 @@ __MOAI_GRAMMAR__ = """
     //?pow: primary POWER_OP pow
     //    | primary
     
+    ?gen: "ones" "(" NUMBER ("," NUMBER)* ")" -> ones
+        | "zeros" "(" NUMBER ("," NUMBER)* ")" -> zeros
     
     ?primary: "-" NUMBER
         | NUMBER                            -> number        
         | name                              -> extract        
         | "cat" "(" names "," NUMBER ")"    -> cat
         | "stack" "(" names "," NUMBER ")"  -> stack        
-        | "view" "(" name "," NUMBER ("," NUMBER)* ")"  -> reshape
+        | "view" "(" name "," NUMBER ("," NUMBER)* ")"  -> reshape        
         | "(" expr ")"
     ?expr: sum
 
@@ -146,7 +149,7 @@ __MOAI_GRAMMAR_OLD__ = """
 
 class MoaiDSLPlugin(SearchPathPlugin):
     def __init__(self) -> None:
-        self.parser = Lark(__MOAI_GRAMMAR__, parser='earley')
+        self.parser = Lark(__MOAI_GRAMMAR__, parser='earley', start='expr')
         omegaconf.OmegaConf.register_new_resolver("mi", self._parse_expression)
     
     def _parse_expression(self, *expressions):
