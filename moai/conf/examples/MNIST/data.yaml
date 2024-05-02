@@ -1,0 +1,15 @@
+# @package _global_
+
+data:
+  test:
+    iterator:
+      datasets:
+        mnist:
+          root: ${DATA_ROOT}
+          train: false
+          download: true
+          # transform: torchvision.transforms.ToTensor
+        # mnist_2: # Use this for debugging two datasets as test
+        #   root: ${DATA_ROOT}
+        #   train: true
+        #   download: true

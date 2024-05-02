@@ -1,0 +1,22 @@
+# @package _global_
+
+model:
+  monitors:
+    metrics:
+      test_class_acc:
+        multiclass_acc:
+          # gt: [label]
+          # pred: [predicted_label]
+          target: [label]
+          preds: [predicted_label]
+          out: [accuracy]
+        multiclass_f1:
+          target: [label]
+          preds: [predicted_label]
+          out: [f1]
+    # tensors:
+    #   show_image_batch:
+    #     image2d:
+    #       image: [color]
+    #       type: [color]
+    #       colormap: [none]
