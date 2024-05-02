@@ -1,6 +1,6 @@
 # @package model.supervision
 
-_target_: moai.supervision.Weighted
+_target_: moai.supervision.weighted.Weighted
 losses:
   cross_entropy:
     _target_: moai.supervision.losses.classification.CrossEntropy

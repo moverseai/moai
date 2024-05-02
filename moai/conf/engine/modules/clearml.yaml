@@ -1,4 +1,4 @@
-# @package engine.modules._name_
+# @package engine.modules.clearml
 
 _target_: moai.engine.modules.clearml.ClearML
 project_name: ???
