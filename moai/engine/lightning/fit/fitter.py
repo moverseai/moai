@@ -9,63 +9,134 @@ import tqdm
 import torch
 import toolz
 import logging
+from collections import defaultdict
+import tablib
+import numpy as np
+import os
+from moai.log.lightning.loggers.tabular import Tabular
 
 log = logging.getLogger(__name__)
 
 __all__ = ["LightningFitter"]
 
-class BatchMonitor(L.Callback):   
+
+class BatchMonitor(L.Callback):
 
     def setup(self, trainer: L.Trainer, module: L.LightningModule, stage: str) -> None:
         """Called when fit, validate, test, predict, or tune begins."""
         module.initialize_parameters()
 
     @torch.no_grad
-    def on_train_batch_start(self, 
-        trainer: L.Trainer, module: L.LightningModule,  
-        batch: typing.Mapping[str, torch.Tensor], batch_idx: int
+    def on_train_batch_start(
+        self,
+        trainer: L.Trainer,
+        module: L.LightningModule,
+        batch: typing.Mapping[str, torch.Tensor],
+        batch_idx: int,
     ) -> None:
         """Called when the train batch begins."""
         module.optimization_step = 0
 
     @torch.no_grad
-    def on_train_batch_end(self, 
-        trainer: L.Trainer, module: L.LightningModule, 
-        outputs: L.utilities.types.STEP_OUTPUT, 
-        batch: typing.Mapping[str, torch.Tensor], batch_idx: int
+    def on_test_batch_end(
+        self,
+        trainer: L.Trainer,
+        module: L.LightningModule,
+        outputs: L.utilities.types.STEP_OUTPUT,
+        batch: typing.Mapping[str, torch.Tensor],
+        batch_idx: int,
+        dataloader_idx: int = 0,
+    ) -> None:
+        datasets = list(module.data.test.iterator.datasets.keys())
+        # TODO: move batch tensors to cpu
+        if "metrics" in batch:
+            # metrics = toolz.keymap(lambda k: f"test/metric/{k}", batch["metrics"])
+            metrics = toolz.keymap(lambda k: f"test/metric/{k}/{datasets[dataloader_idx]}", batch['metrics'])
+            # move metrics to cpu numpy before logging
+            # log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_idx]}", metrics)
+            module.log_dict(
+                metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False
+            )
+            module.test_step_outputs[datasets[dataloader_idx]].append(metrics)
+    
+    @torch.no_grad
+    def on_test_epoch_end(self, trainer: L.Trainer, pl_module: L.LightningModule) -> None:
+        #NOTE: do we need to calculate the mean of the metrics and saved them as a separate file?
+        all_metrics = defaultdict(list)
+        log_metrics = defaultdict(list)
+        outputs = pl_module.test_step_outputs
+        for i, dataset in enumerate(outputs):
+            o = outputs[dataset]
+            keys = next(iter(o), { }).keys()
+            metrics = { }
+            for key in keys:
+                metrics[key] = np.mean(np.array(
+                    [d[key].item() for d in o if key in d]
+                ))
+                all_metrics[key].append(metrics[key])
+            log_metrics[dataset] = metrics
+        #NOTE: logging a dict is not supported in PTL 2.0
+        # if there is a tabular logger write the metrics to a csv file
+        logger = pl_module.logger
+        if not isinstance(logger, Tabular):
+            return
+        for dataset in log_metrics.keys():
+            ds = tablib.Dataset([v for v in log_metrics[dataset].values()], headers=toolz.keymap(lambda k: k.split("/")[2], dict(log_metrics[dataset])).keys())
+            with open(os.path.join(os.getcwd(), f'{logger.name}_{dataset}_test_average.csv'), 'a', newline='') as f:
+                 f.write(ds.export('csv'))
+        pl_module.test_step_outputs.clear()
+
+    @torch.no_grad
+    def on_train_batch_end(
+        self,
+        trainer: L.Trainer,
+        module: L.LightningModule,
+        outputs: L.utilities.types.STEP_OUTPUT,
+        batch: typing.Mapping[str, torch.Tensor],
+        batch_idx: int,
     ) -> None:
         """Called when the train batch ends.
         Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
             loss returned from ``training_step``.
         """
         # for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
-        monitor_batch = toolz.get_in(['fit', 'batch'], module.monitor)
+        monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
         if monitor_batch is not None:
-            is_now = batch_idx % monitor_batch['frequency'] == 0
+            is_now = batch_idx % monitor_batch["frequency"] == 0
             if not is_now:
-                return # continue
-             #NOTE: should detach
-            for step in monitor_batch.get('steps', []):
-                outputs = module.graphs[step](outputs)            
-            for monitor_metrics in monitor_batch.get('metrics', []):
+                return  # continue
+            # NOTE: should detach
+            for step in monitor_batch.get("steps", []):
+                outputs = module.graphs[step](outputs)
+            for monitor_metrics in monitor_batch.get("metrics", []):
                 module.named_metrics[monitor_metrics](outputs)
             extras = {
-                'step': module.global_step, 'epoch': module.current_epoch,
-                'batch_idx': batch_idx,
+                "step": module.global_step,
+                "epoch": module.current_epoch,
+                "batch_idx": batch_idx,
             }
-            for monitor_tensors in monitor_batch.get('tensors', []):
+            for monitor_tensors in monitor_batch.get("tensors", []):
                 module.named_monitors[monitor_tensors](outputs, extras)
-            if 'losses' in outputs:
-                losses = toolz.merge(outputs['losses']['weighted'], {
-                    'total': outputs['losses']['total'],                
-                })
-                losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
-                losses['epoch'] = int(trainer.current_epoch)
-                module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
-            if 'metrics' in outputs:
-                metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
+            if "losses" in outputs:
+                losses = toolz.merge(
+                    outputs["losses"]["weighted"],
+                    {
+                        "total": outputs["losses"]["total"],
+                    },
+                )
+                losses = toolz.keymap(lambda k: f"train/loss/{k}", losses)
+                losses["epoch"] = int(trainer.current_epoch)
+                module.log_dict(
+                    losses, prog_bar=True, logger=True, on_step=True, on_epoch=False
+                )
+            if "metrics" in outputs:
+                metrics = toolz.keymap(
+                    lambda k: f"train/metric/{k}", outputs["metrics"]
+                )
                 # metrics['epoch'] = trainer.current_epoch
-                module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                module.log_dict(
+                    metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False
+                )
         # return outputs
 
 
@@ -259,7 +330,7 @@ class LightningFitter(L.Trainer):
         process_position: int = 0,
         num_nodes: int = 1,
         num_processes: int = 1,
-        devices: typing.Optional[typing.Union[typing.List[int], str, int]] = 'auto',
+        devices: typing.Optional[typing.Union[typing.List[int], str, int]] = "auto",
         gpus: typing.Optional[typing.Union[typing.List[int], str, int]] = None,
         # https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html#select-gpu-devices
         auto_select_gpus: bool = False,
@@ -273,7 +344,7 @@ class LightningFitter(L.Trainer):
         accumulate_grad_batches: typing.Union[
             int, typing.Dict[int, int], typing.List[list]
         ] = 1,
-        # max_epochs:                 int=1000,
+        max_epochs: int = 1,
         # min_epochs:                 int=1,
         max_steps: typing.Optional[int] = None,
         min_steps: typing.Optional[int] = None,
@@ -286,8 +357,8 @@ class LightningFitter(L.Trainer):
         log_every_n_steps: int = 10,
         accelerator: typing.Optional[
             typing.Union[str, L.accelerators.Accelerator]
-        ] = 'auto',
-        strategy: str = 'auto',
+        ] = "auto",
+        strategy: str = "auto",
         sync_batchnorm: bool = False,
         precision: int = 32,
         enable_model_summary: bool = True,
@@ -296,9 +367,7 @@ class LightningFitter(L.Trainer):
         num_sanity_val_steps: int = 2,
         # NOTE: @PTL1.5 truncated_bptt_steps:       typing.Optional[int]=None,
         resume_from_checkpoint: typing.Optional[str] = None,
-        profiler: typing.Optional[
-            typing.Union[L.profilers.Profiler, bool, str]
-        ] = None,
+        profiler: typing.Optional[typing.Union[L.profilers.Profiler, bool, str]] = None,
         benchmark: bool = False,
         deterministic: bool = True,
         reload_dataloaders_every_epoch: bool = False,
@@ -362,7 +431,7 @@ class LightningFitter(L.Trainer):
         # TODO: add weight re-init callback
         # TODO: add inference callback with no grad forward
         super().__init__(
-            logger=loggers, # logger,
+            logger=loggers,  # logger,
             # checkpoint_callback=checkpoint_callback,
             callbacks=pytl_callbacks,
             default_root_dir=None if not default_root_dir else default_root_dir,
@@ -381,7 +450,7 @@ class LightningFitter(L.Trainer):
             check_val_every_n_epoch=check_val_every_n_epoch,
             fast_dev_run=fast_dev_run,
             accumulate_grad_batches=accumulate_grad_batches,
-            max_epochs=1,
+            max_epochs=max_epochs,
             min_epochs=1,
             max_steps=-1,
             min_steps=-1,
@@ -399,7 +468,7 @@ class LightningFitter(L.Trainer):
             precision=precision,
             enable_model_summary=enable_model_summary,
             enable_progress_bar=True,
-            enable_checkpointing=True,
+            enable_checkpointing=checkpoint_callback,
             # weights_summary=weights_summary,
             # weights_save_path=weights_save_path,
             num_sanity_val_steps=num_sanity_val_steps,

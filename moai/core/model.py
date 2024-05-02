@@ -125,7 +125,7 @@ class Model(L.LightningModule):
         self.data = data
         ## Inner modules aka Models
         self.models = torch.nn.ModuleDict()
-        for k in modules or {}:            
+        for k in modules or {}:
             self.models[k] = hyu.instantiate(modules[k])
         ## Monad & Module Processing Graphs
         self.graphs = torch.nn.ModuleDict()
@@ -136,14 +136,14 @@ class Model(L.LightningModule):
             self.graphs[monad_graph] = Monads(monads=monads, **graphs[monad_graph])
         ## Objectives
         self.named_objectives = torch.nn.ModuleDict()
-        for k in parameters.optimization.objectives or {}:
+        for k in omegaconf.OmegaConf.select(parameters,"optimization.objectives") or {}:
             v = parameters.optimization.objectives[k]
             self.named_objectives[k] = _create_supervision_block(
                 omegaconf.OmegaConf.merge(supervision, v)
             )
         ## Metrics Monitors
         self.named_metrics = torch.nn.ModuleDict()
-        for k in monitors.metrics or {}:
+        for k in toolz.get_in(['metrics'], monitors) or {}:
             v = monitors.metrics[k]
             self.named_metrics[k] = _create_validation_block(
                 omegaconf.OmegaConf.merge(validation, v)
@@ -188,6 +188,8 @@ class Model(L.LightningModule):
         ## Optimization Process & Monitoring
         self.process = omegaconf.OmegaConf.to_container(parameters.optimization.process, resolve=True)
         self.monitor = omegaconf.OmegaConf.to_container(parameters.optimization.monitor, resolve=True)
+        # Keep test results
+        self.test_step_outputs = defaultdict(list)
         #NOTE: __NEEDED__ for loading checkpoint?
         hparams = hyperparameters if hyperparameters is not None else { }
         hparams.update({'moai_version': miV})
@@ -204,6 +206,12 @@ class Model(L.LightningModule):
         for i, a in assigners:
             accessor = mic._create_accessor(i)
             a(self, accessor(tensors))
+
+    def predict_step(self,
+            batch:  typing.Dict[str, torch.Tensor],
+            batch_idx: int,
+    ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
+        log.info(f"Predicting batch {batch_idx}...")
 
     def training_step(self, 
         batch:                  typing.Dict[str, torch.Tensor],
@@ -226,7 +234,7 @@ class Model(L.LightningModule):
                 # monitor = self.monitor['fit']['step'][k]
             monitor = toolz.get_in(['fit', 'step', stage], self.monitor)
             if monitor is not None:
-                tensor_monitor_steps = toolz.get_in(['tensors'], monitor) or []                
+                tensor_monitor_steps = toolz.get_in(['tensors'], monitor) or []
                 if tensor_monitor_steps and self.optimization_step % monitor['frequency'] == 0:
                     with torch.no_grad():
                         for step in toolz.get_in(['steps'], monitor) or []:
@@ -316,13 +324,38 @@ class Model(L.LightningModule):
                         if batch_idx % frequency == 0:
                             self._assign_params(assigners, batch)
         return batch
-            
+
+    @torch.no_grad()
+    def test_step(self,
+        batch:              typing.Dict[str, torch.Tensor],
+        batch_nb:           int,
+        dataloader_idx:     int=0,
+    ) -> dict:
+        datasets = list(self.data.test.iterator.datasets.keys())
+        monitor = toolz.get_in(['test', 'batch'], self.monitor) or []
+        # get graphs for test
+        for stage, proc in self.process['test']['batch'].items():
+            steps = proc['steps']
+            with torch.no_grad(): #TODO: probably this is not needed
+                # for iter in range(iters): #NOTE: is this necessary?
+                for step in steps:
+                    batch = self.graphs[step](batch)
+                if monitor:
+                    # Metrics monitoring
+                    for metric in toolz.get('metrics', monitor, None) or []:
+                        self.named_metrics[metric](batch)
+                    # Tensor monitoring for visualization
+                    tensor_monitors = toolz.get('tensors', monitor, None) or []
+                    for tensor_monitor in tensor_monitors:
+                        self.named_monitors[tensor_monitor](batch)
+
+
 
     def validation_step(self,
         batch:              typing.Dict[str, torch.Tensor],
         batch_nb:           int,
         dataloader_idx:   int=0,
-    ) -> dict:        
+    ) -> dict:
         pass
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:
@@ -365,6 +398,30 @@ class Model(L.LightningModule):
                 for val_iterator in val_iterators
             ]
         # return validation_loaders[0] if len(validation_loaders) == 1 else validation_loaders
+        return validation_loaders
+
+    def predict_dataloader(self) -> torch.utils.data.DataLoader:
+        #NOTE: instead of predict loader use testing or val?
+        # check if key val is in struct
+        if not hasattr(self.data, 'val'):
+            log.warning("Validation data missing. An empty validation set will be used.")
+            validation_loaders = [torch.utils.data.DataLoader(Empty())]
+            return validation_loaders
+        if hasattr(self.data.val.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
+            val_iterators = [hyu.instantiate(self.data.val.iterator, _recursive_=False)]
+        else:
+            val_iterators = [Indexed(
+                {k: v }, # self.data.val.iterator.datasets,
+                self.data.val.iterator.augmentation if hasattr(self.data.val.iterator, 'augmentation') else None,
+            ) for k, v in self.data.val.iterator.datasets.items()]
+        if not hasattr(self.data.val, 'loader'):
+            log.error("Validation data loader missing. Please add a data loader (i.e. \'- data/val/loader: torch\') entry in the configuration.")
+        else:
+            validation_loaders = [
+                hyu.instantiate(self.data.val.loader, val_iterator, _recursive_=False)
+                for val_iterator in val_iterators
+            ]
         return validation_loaders
 
     def test_dataloader(self) -> torch.utils.data.DataLoader:
