@@ -1,4 +1,4 @@
-# @package model.supervision.losses._name_
+# @package model.supervision.losses.cross_entropy
 
 _target_: moai.supervision.losses.classification.CrossEntropy
 ignore_index: -100

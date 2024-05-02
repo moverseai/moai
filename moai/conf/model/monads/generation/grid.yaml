@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.grid
 
 _target_: moai.monads.generation.grid.Grid
 mode: ndc # ndc, coord, norm

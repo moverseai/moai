@@ -1,0 +1,8 @@
+# @package model.validation.metrics.multiclass_auroc
+
+_target_: torchmetrics.classification.MulticlassAUROC
+num_classes: 10
+average: 'macro'
+thresholds: null
+ignore_index: null 
+validate_args: True

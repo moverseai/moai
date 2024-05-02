@@ -1,0 +1,90 @@
+# @package _global_
+
+model:
+  # modules:
+  #   # encoder:
+  #   #   architecture:
+  #   #     num_classes: 10
+  #   encoder:
+  #     configuration:
+  #       in_features: 784
+  #       hidden_features: 512
+  #       out_features: 10
+  #       blocks: 1
+  #       linear:
+  #         type: linear
+  #         activation:
+  #           type: relu
+  #           parameters:
+  #             inplace: true
+  #       prediction:
+  #         type: linear
+  #         activation:
+  #           type: none
+  #           parameters:
+  #             inplace: true
+  
+  monads:
+    argmax:
+      dim: 1
+      keepdim: false
+  
+  parameters:
+    optimization:
+      optimizers:
+        named:
+          train_encoder:
+            type: adam
+            # parameters: encoder
+            params:
+              lr: 1.0e-3
+            selectors: [encoder]
+      objectives:
+        train_encoder:
+          cross_entropy:
+            pred: [prediction]
+            gt: [label]
+            out: [train_loss]
+      
+      process:
+        fit:
+          batch:
+            train_encoder:
+              optimizer: train_encoder
+              objective: train_encoder
+              steps:
+               - encoder
+        test:
+          batch:
+            train_encoder:
+              steps:
+               - encoder
+               - postprocess
+
+      monitor:
+        fit:
+          batch:
+            train_encoder:
+              frequency: 1
+              steps: []
+            # metrics:
+              # - train_loss
+            # tensors:
+            #   - show_image_batch
+        test:
+          batch:
+            metrics:
+              - test_class_acc
+            # tensors:
+            #   - show_image_batch
+
+
+
+  graphs:
+    encoder:
+      input: [image]
+      out:  [prediction]
+    postprocess:
+      argmax:
+        tensor: [prediction]
+        out:  [predicted_label]

@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.spatial_softmax
 
 _target_: moai.monads.distribution.prior.SpatialSoftmax
 temperature: 1.0  # float, used to smoothen the output distribution

@@ -68,7 +68,6 @@ def dump_handlers(
     return False
 
 def archive(cfg):
-    # hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")    
     hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_container(cfg, resolve=True)}")
     omegaconf.omegaconf.OmegaConf.set_struct(cfg, False)
     args = []
@@ -103,9 +102,9 @@ def archive(cfg):
             basename = os.path.basename(requirements)
             shutil.copyfile(requirements, os.path.join(os.getcwd(), basename))
             args += ['-r', basename]
-    if cfg.archive.output_path: #NOYTE
+    if cfg.archive.output_path: #NOTE
         if not os.path.exists(cfg.archive.output_path):
-            os.mkdirs(cfg.archive.output_path, exist_ok=True)
+            os.makedirs(cfg.archive.output_path, exist_ok=True)
         args += ['--export-path', cfg.archive.output_path]
     log.info(f"Running: {args}")
     proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=None)# , shell=True)

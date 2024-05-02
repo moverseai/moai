@@ -43,16 +43,16 @@ class ClearML(pytorch_lightning.loggers.Logger):
                 metrics,
             )
         train_metrics = toolz.keymap(
-            lambda k: k.replace("train_", ""),
-            toolz.keyfilter(lambda k: k.startswith("train_"), metrics),
+            lambda k: k.replace("train/", ""),
+            toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
         )
         val_metrics = toolz.keymap(
             lambda k: k.replace("val_", ""),
             toolz.keyfilter(lambda k: k.startswith("val_"), metrics),
         )
         test_metrics = toolz.keymap(
-            lambda k: k.replace("test_", "").replace("/epoch_0", ""),
-            toolz.keyfilter(lambda k: k.startswith("test_"), metrics),
+            lambda k: k.replace("test/", "").replace("/epoch_0", ""),
+            toolz.keyfilter(lambda k: k.startswith("test/"), metrics),
         )
         # test_metrics = toolz.keymap(lambda k: k.replace('test_', '').replace('/epoch_0', ''),
         #     toolz.keyfilter(
@@ -61,16 +61,16 @@ class ClearML(pytorch_lightning.loggers.Logger):
         #     ) if dataloader_index is not None else toolz.keyfilter(lambda k: k.startswith('test_'), metrics)
         # )
         if train_metrics:
-            loss = float(metrics["total_loss"])
+            loss = float(metrics["train/loss/total"])
             self.logger.report_scalar("train", "loss", loss, step)
             for k, v in train_metrics.items():
                 self.logger.report_scalar("train", k, v, step)
         elif test_metrics:
             # return #TODO: test case
             dataset_test_metrics = toolz.valmap(
-                lambda v: toolz.keymap(lambda k: k.split("/")[0], dict(v)),
+                lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
                 toolz.groupby(
-                    lambda k: toolz.get(1, k[0].split("/"), "metrics"),
+                    lambda k: toolz.get(2, k[0].split("/"), "metrics"),
                     test_metrics.items(),
                 ),
             )

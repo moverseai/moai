@@ -1,0 +1,7 @@
+# @package data.train.iterator.datasets.mnist
+
+_target_: moai.data.datasets.torchvision.MNIST
+root: ${DATA_ROOT}
+train: true
+download: true
+# transform: torchvision.transforms.ToTensor
