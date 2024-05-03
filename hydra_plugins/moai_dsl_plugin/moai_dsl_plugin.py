@@ -67,6 +67,8 @@ __MOAI_GRAMMAR__ = """
         | "ones" "(" name ")"               -> ones_like
         | "rand" "(" name ")"               -> rand_like
         | "randn" "(" name ")"              -> randn_like
+        | "unsq" "(" name "," NUMBER ("," NUMBER)* ")" -> unsqueeze
+        | "sq" "(" name ("," NUMBER)* ")" -> squeeze
         | "(" expr ")"
     ?expr: sum
 

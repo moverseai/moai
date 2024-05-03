@@ -116,8 +116,12 @@ class TransformOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.key}"
     
-    def forward(self, td, tmp) -> torch.Tensor:        
-        tmp[f'result{self.index}'] = self.op(toolz.get_in(self.key.split('.'), tmp), self.args)
+    def forward(self, td, tmp) -> torch.Tensor:
+        key = toolz.get_in(self.key.split('.'), tmp)
+        if self.args is None:
+            tmp[f'result{self.index}'] = self.op(key)
+        else:
+            tmp[f'result{self.index}'] = self.op(key, self.args)
         return td, tmp
         
 @dataclasses.dataclass(repr=False)
@@ -466,5 +470,29 @@ class TreeModule(torch.nn.Module, Transformer):
         dims = list(map(int, dims))
         m = TransformOperationTensors('reshape', key, dims, self.index)
         self.seq.add_module(f'reshape{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def unsqueeze(self, key, *dims):
+        if not isinstance(key, str): #NOTE: is lark.Tree
+            key = self.extract(key)
+        dims = list(map(int, dims))
+        if len(dims) == 1:
+            dims = dims[0]
+        m = TransformOperationTensors('unsqueeze', key, dims, self.index)
+        self.seq.add_module(f'unsqueeze{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def squeeze(self, key, *dims):
+        if not isinstance(key, str): #NOTE: is lark.Tree
+            key = self.extract(key)        
+        dims = list(map(int, dims))
+        if len(dims) == 1:
+            dims = dims[0]
+        elif len(dims) == 0:
+            dims = None
+        m = TransformOperationTensors('squeeze', key, dims, self.index)
+        self.seq.add_module(f'squeeze{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1

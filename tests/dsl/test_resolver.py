@@ -186,3 +186,14 @@ class TestDSL:
         x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         y = torch.ones(6)[np.newaxis, :].to(x)
         assert torch.equal(x, y)
+
+    def test_squeeze(self, parser, shaped_tensors_cuda):
+        expression = "unsq(onedim.threes, 0)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)        
+        assert len(x.shape) == 3 and x.shape[0] == 1
+        expression = "sq(onedim.threes, 0)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)        
+        assert len(x.shape) == 1
+        expression = "sq(onedim.threes)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)        
+        assert len(x.shape) == 1
