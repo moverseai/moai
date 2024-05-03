@@ -182,6 +182,21 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
+    def addg(self, lhs, rhs):        
+        if lhs is None: #NOTE: only one of lhs/rhs should be generated
+            lhs = self.results.pop()
+            m = BinaryOperationTensors('add', lhs, rhs, self.index, True, False)
+        if rhs is None: #NOTE: only one of lhs/rhs should be generated
+            rhs = self.results.pop()
+            m = BinaryOperationTensors('add', lhs, rhs, self.index, False, True)
+        #NOTE: lhs being a scalar is an error, cant derive device
+        # if not isinstance(lhs, str):
+        #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+        # else:        
+        self.seq.add_module(f'add{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
     def sub(self, lhs, rhs):
         # prev = -1
         if lhs is None: #NOTE: prev?
@@ -197,6 +212,21 @@ class TreeModule(torch.nn.Module, Transformer):
             m = BinaryOperationScalar('sub', lhs, rhs, self.index)
         else:
             m = BinaryOperationTensors('sub', lhs, rhs, self.index)
+        self.seq.add_module(f'sub{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def subg(self, lhs, rhs):        
+        if lhs is None: #NOTE: only one of lhs/rhs should be generated
+            lhs = self.results.pop()
+            m = BinaryOperationTensors('sub', lhs, rhs, self.index, True, False)
+        if rhs is None: #NOTE: only one of lhs/rhs should be generated
+            rhs = self.results.pop()
+            m = BinaryOperationTensors('sub', lhs, rhs, self.index, False, True)
+        #NOTE: lhs being a scalar is an error, cant derive device
+        # if not isinstance(lhs, str):
+        #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+        # else:        
         self.seq.add_module(f'sub{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1

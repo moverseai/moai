@@ -168,3 +168,21 @@ class TestDSL:
         x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         y = torch.ones(6)[np.newaxis, :].to(x) / 3
         assert torch.equal(x, y)
+
+    def test_sum_generated(self, parser, shaped_tensors_cuda):
+        expression = "ones(6) + onedim.threes"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        y = torch.ones(6)[np.newaxis, :].to(x) + 3
+        assert torch.equal(x, y)
+        expression = "onedim.threes - ones(6)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        y = -torch.ones(6)[np.newaxis, :].to(x) + 3
+        assert torch.equal(x, y)
+        expression = "onedim.threes + (five * ones(6))"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        y = torch.ones(6)[np.newaxis, :].to(x) * 8
+        assert torch.equal(x, y)
+        expression = "(ones(onedim.threes) * 3) / onedim.threes"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        y = torch.ones(6)[np.newaxis, :].to(x)
+        assert torch.equal(x, y)

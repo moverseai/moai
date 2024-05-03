@@ -20,7 +20,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 '''
 
-#TODO: slicing, bmm, rand(n), (un)squeeze
+#TODO: slicing, bmm, (un)squeeze
 
 __MOAI_GRAMMAR__ = """
 
@@ -28,8 +28,12 @@ __MOAI_GRAMMAR__ = """
     ?names: name ("," name)*
     
     ?add: sum "+" prod -> add
+        | sum "+" gen -> addg
+        | gen "+" sum -> addg
         | prod
     ?sub: sum "-" prod -> sub
+        | sum "-" gen -> subg
+        | gen "-" sum -> subg
         | prod
     ?sum: add | sub
     
