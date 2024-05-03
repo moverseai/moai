@@ -28,6 +28,7 @@ class BinaryOperationTensors(torch.nn.Module):
     lhs: str
     rhs: str
     index: int
+    lhs_generated: bool = False # dataclasses.field(default=False)
     rhs_generated: bool = False # dataclasses.field(default=False)
     
     def __post_init__(self):
@@ -40,6 +41,8 @@ class BinaryOperationTensors(torch.nn.Module):
     def forward(self, td, tmp) -> torch.Tensor:
         lhs = toolz.get_in(self.lhs.split('.'), tmp)
         rhs = toolz.get_in(self.rhs.split('.'), tmp)
+        if self.lhs_generated:
+            lhs = lhs.to(rhs)
         if self.rhs_generated:
             rhs = rhs.to(lhs)
         tmp[f'result{self.index}'] = self.op(lhs, rhs)
@@ -58,7 +61,7 @@ class UnaryOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.key}"
     
-    def forward(self, td, tmp) -> torch.Tensor:        
+    def forward(self, td, tmp) -> torch.Tensor:
         tmp[f'result{self.index}'] = self.op(toolz.get_in(self.key.split('.'), tmp))
         return td, tmp
     
@@ -206,7 +209,25 @@ class TreeModule(torch.nn.Module, Transformer):
         self.index += 1
 
     def ones(self, *dims):
-        pass
+        dims = list(map(int, dims))
+        m = GenerationOperationTensors('ones', dims, self.index)
+        self.seq.add_module(f'ones{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def rand(self, *dims):
+        dims = list(map(int, dims))
+        m = GenerationOperationTensors('rand', dims, self.index)
+        self.seq.add_module(f'rand{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def randn(self, *dims):
+        dims = list(map(int, dims))
+        m = GenerationOperationTensors('randn', dims, self.index)
+        self.seq.add_module(f'randn{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
 
     def mul(self, lhs, rhs):
         # prev = -1
@@ -229,15 +250,17 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
-    def mulg(self, lhs, rhs):
-        if lhs is None:
+    def mulg(self, lhs, rhs):        
+        if lhs is None: #NOTE: only one of lhs/rhs should be generated
             lhs = self.results.pop()
-        rhs = self.results.pop()
+            m = BinaryOperationTensors('mul', lhs, rhs, self.index, True, False)
+        if rhs is None: #NOTE: only one of lhs/rhs should be generated
+            rhs = self.results.pop()
+            m = BinaryOperationTensors('mul', lhs, rhs, self.index, False, True)
         #NOTE: lhs being a scalar is an error, cant derive device
         # if not isinstance(lhs, str):
         #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:
-        m = BinaryOperationTensors('mul', lhs, rhs, self.index, True)
+        # else:        
         self.seq.add_module(f'mul{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
@@ -259,6 +282,21 @@ class TreeModule(torch.nn.Module, Transformer):
             m = BinaryOperationScalar('div', lhs, rhs, self.index)
         else:
             m = BinaryOperationTensors('div', lhs, rhs, self.index)
+        self.seq.add_module(f'div{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def divg(self, lhs, rhs):
+        if lhs is None: #NOTE: only one of lhs/rhs should be generated
+            lhs = self.results.pop()
+            m = BinaryOperationTensors('div', lhs, rhs, self.index, True, False)
+        if rhs is None: #NOTE: only one of lhs/rhs should be generated
+            rhs = self.results.pop()
+            m = BinaryOperationTensors('div', lhs, rhs, self.index, False, True)
+        #NOTE: lhs being a scalar is an error, cant derive device
+        # if not isinstance(lhs, str):
+        #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+        # else:        
         self.seq.add_module(f'div{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
@@ -290,8 +328,62 @@ class TreeModule(torch.nn.Module, Transformer):
             # lhs = f'result{self.index + prev}'
             # prev -= 1
             key = self.results.pop()
-        m = UnaryOperationTensors('neg', key, self.index)        
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors('neg', key, self.index)
         self.seq.add_module(f'neg{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def zeros_like(self, key):
+        # prev = -1
+        if key is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors('zeros_like', key, self.index)
+        self.seq.add_module(f'zeros_like{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def ones_like(self, key):
+        # prev = -1
+        if key is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors('ones_like', key, self.index)
+        self.seq.add_module(f'ones_like{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def rand_like(self, key):
+        # prev = -1
+        if key is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors('rand_like', key, self.index)
+        self.seq.add_module(f'rand_like{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def randn_like(self, key):
+        # prev = -1
+        if key is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors('randn_like', key, self.index)
+        self.seq.add_module(f'randn_like{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 

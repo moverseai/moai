@@ -13,8 +13,8 @@ def parser():
 def scalar_tensors():
     return {
         'test': 1, 
-        'test2': torch.scalar_tensor(2),
-        'test3': torch.scalar_tensor(2)[np.newaxis],
+        'test2': torch.scalar_tensor(2).double(),
+        'test3': torch.scalar_tensor(2)[np.newaxis].float(),
         'another': {
             'number': 10,
             'number2': torch.scalar_tensor(1),
@@ -31,9 +31,9 @@ def scalar_tensors():
 def shaped_tensors():
     return {
         'test': torch.tensor([[[1] *5]]),
-        'five': torch.scalar_tensor(5),
+        'five': torch.scalar_tensor(5.0),
         'onedim': {
-            'threes': torch.tensor([[3] * 6])
+            'threes': torch.tensor([[3] * 6]).float()
         }
     }
 
@@ -43,6 +43,6 @@ def shaped_tensors_cuda():
         'test': torch.tensor([[[1] *5]]).cuda(),
         'five': torch.scalar_tensor(5).cuda(),
         'onedim': {
-            'threes': torch.tensor([[3] * 6]).cuda()
+            'threes': torch.tensor([[3] * 6]).cuda().double()
         }
     }

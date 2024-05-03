@@ -8,7 +8,7 @@ from lark import Lark
 
 import omegaconf.omegaconf
 
-'''
+''' EXAMPLE GRAMMAR USED AS BASE
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -20,23 +20,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 '''
 
-'''
-ADD_OP: "+" | "-" 
-MUL_OP: "*" | "/"
-POWER_OP: "^"
-!add_expr: add_expr ADD_OP mul_expr
-    | mul_expr
-!mul_expr: mul_expr MUL_OP pow_expr
-    | pow_expr
-!pow_expr: primary POWER_OP pow_expr
-    | primary
-!primary: "-" NUMBER
-    | NUMBER
-    | "(" expr ")"
-!expr: add_expr
-'''
-
-#TODO: slicing, bmm, ones, zeros, rand(n), (un)squeeze
+#TODO: slicing, bmm, rand(n), (un)squeeze
 
 __MOAI_GRAMMAR__ = """
 
@@ -48,95 +32,39 @@ __MOAI_GRAMMAR__ = """
     ?sub: sum "-" prod -> sub
         | prod
     ?sum: add | sub
-
-    //?sum: sum ADD_OP prod
-    //    | prod
     
     ?mul: prod "*" pow -> mul
         | prod "*" gen -> mulg
+        | gen "*" prod -> mulg
         | pow
     ?div: prod "/" pow -> div
+        | prod "/" gen -> divg
+        | gen "/" prod -> divg
         | pow
-    ?prod: mul | div
-    //?prod: prod MUL_OP pow
-    //    | pow    
+    ?prod: mul | div 
     
     ?pow: primary "^" pow -> pow
         | primary
-    //?pow: primary POWER_OP pow
-    //    | primary
     
     ?gen: "ones" "(" NUMBER ("," NUMBER)* ")" -> ones
         | "zeros" "(" NUMBER ("," NUMBER)* ")" -> zeros
+        | "rand" "(" NUMBER ("," NUMBER)* ")" -> rand
+        | "randn" "(" NUMBER ("," NUMBER)* ")" -> randn
     
     ?primary: "-" NUMBER
+        | "-" name                          -> neg
+        | "-" expr                          -> neg
         | NUMBER                            -> number        
         | name                              -> extract        
         | "cat" "(" names "," NUMBER ")"    -> cat
         | "stack" "(" names "," NUMBER ")"  -> stack        
-        | "view" "(" name "," NUMBER ("," NUMBER)* ")"  -> reshape        
+        | "view" "(" name "," NUMBER ("," NUMBER)* ")"  -> reshape
+        | "zeros" "(" name ")"              -> zeros_like
+        | "ones" "(" name ")"               -> ones_like
+        | "rand" "(" name ")"               -> rand_like
+        | "randn" "(" name ")"              -> randn_like
         | "(" expr ")"
     ?expr: sum
-
-    %import common.CNAME -> FIELD
-    %import common.NUMBER
-    %import common.WS_INLINE
-    %import common.WS
-
-    %ignore WS
-    %ignore WS_INLINE
-"""
-
-__MOAI_GRAMMAR_TEST__ = """
-    ?name: FIELD ["." FIELD]
-    ?names: name ("," name)*
-    
-    ?start: factor ( ( "-" | "+" ) factor )*
-    
-    ?sum: factor
-        | factor "+" factor   -> add
-        | factor "-" factor   -> sub
-    
-    ?factor: unary ( ( "/" | "*" ) unary )*
-    ?unary: ( "!" | "-" ) unary | nnary
-    ?nnary: "cat" "(" names "," NUMBER ")" -> cat
-        | "stack" "(" names "," NUMBER ")" -> stack
-        | primary
-    ?primary: NUMBER -> number
-        | "-" primary      -> neg
-        | name             -> extract
-        | "(" start ")"
-
-    %import common.CNAME -> FIELD
-    %import common.NUMBER
-    %import common.WS_INLINE
-    %import common.WS
-
-    %ignore WS
-    %ignore WS_INLINE
-"""
-
-__MOAI_GRAMMAR_OLD__ = """
-    ?start: sum
-          | name "=" sum    -> assign_var
-
-    ?name: FIELD ["." FIELD]
-    ?names: name ("," name)*
-
-    ?sum: product
-        | sum "+" product   -> add
-        | sum "-" product   -> sub
-
-    ?product: atom
-        | product "*" atom  -> mul
-        | product "/" atom  -> div
-
-    ?atom: NUMBER           -> number
-         | "-" atom         -> neg
-         | name             -> extract         
-         | "cat" "(" names "," NUMBER ")" -> cat
-         | "stack" "(" names "," NUMBER ")" -> stack
-         | "(" sum ")"
 
     %import common.CNAME -> FIELD
     %import common.NUMBER
