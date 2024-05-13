@@ -5,6 +5,7 @@ from hydra.plugins.search_path_plugin import SearchPathPlugin
 # from hydra.plugins.launcher import Launcher
 
 from lark import Lark
+#NOTE: faster parsing: http://blog.erezsh.com/5-lark-features-you-probably-didnt-know-about/#5-lark-cython
 
 import omegaconf.omegaconf
 
@@ -20,7 +21,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 '''
 
-#TODO: slicing, bmm, (un)squeeze
+#TODO: slicing, bmm
 
 __MOAI_GRAMMAR__ = """
 
