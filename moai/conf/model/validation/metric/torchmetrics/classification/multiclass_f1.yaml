@@ -1,0 +1,9 @@
+# @package model.validation.metrics.multiclass_f1
+
+_target_: torchmetrics.classification.MulticlassF1Score
+num_classes: 10
+top_k: 1
+average: 'macro'
+multidim_average: global
+ignore_index: null 
+validate_args: True

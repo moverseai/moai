@@ -178,10 +178,10 @@ class Tabular(pytorch_lightning.loggers.Logger):
             )
         elif test_metrics:
             dataset_test_metrics = toolz.valmap(
-                lambda v: toolz.keymap(lambda k: k.split("/")[0], dict(v)),
+                lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
                 # toolz.groupby(lambda k: k[0].split('/')[-1], val_metrics.items())
                 toolz.groupby(
-                    lambda k: toolz.get(1, k[0].split("/"), "metrics"),
+                    lambda k: toolz.get(2, k[0].split("/"), "metrics"),
                     test_metrics.items(),
                 ),
             )
@@ -191,10 +191,10 @@ class Tabular(pytorch_lightning.loggers.Logger):
             return
         if val_metrics:
             dataset_val_metrics = toolz.valmap(
-                lambda v: toolz.keymap(lambda k: k.split("/")[0], dict(v)),
+                lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
                 # toolz.groupby(lambda k: k[0].split('/')[-1], val_metrics.items())
                 toolz.groupby(
-                    lambda k: toolz.get(1, k[0].split("/"), "metrics"),
+                    lambda k: toolz.get(-1, k[0].split("/"), "metrics"),
                     val_metrics.items(),
                 ),
             )

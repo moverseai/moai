@@ -9,6 +9,7 @@ try:
     from moai.action.archive import archive
     from moai.action.export import export
     from moai.action.resume import resume
+    from moai.action.run import run
 except:
     from action.train import train
     from action.evaluate import evaluate
@@ -20,6 +21,7 @@ except:
     from action.archive import archive
     from action.export import export
     from action.resume import resume
+    from action.run import run
 
 import omegaconf.omegaconf
 import hydra
@@ -58,6 +60,7 @@ __MODES__ = {
     'archive': archive,
     'export': export,
     'resume': resume,
+    'run': run,
 }
 
 __MIN_ARGS_COUNT__ = {
@@ -72,18 +75,20 @@ __MIN_ARGS_COUNT__ = {
     'archive': 2,
     'export': 2,
     'resume': 1,
+    'run': 2,
 }
 
-def run(cfg: omegaconf.DictConfig):
+def run(cfg: omegaconf.DictConfig) -> None:
     reprod_key = "reprod"
     if not reprod_key in cfg:
         __MODES__[cfg.mode](cfg)
     else:
         __MODES__[cfg.reprod](cfg)
 
-def moai():    
+def moai():
     # os.environ['HYDRA_FULL_ERROR'] = '1'
     mode = sys.argv.pop(1)
+    action = sys.argv.pop(1) if mode != 'archive' else mode
     if mode not in __MODES__:
         log.error(f"Wrong moai execution mode ({mode}), supported modes are: {list(__MODES__.keys())}.")
         sys.exit(-1)
@@ -93,7 +98,7 @@ def moai():
     config = sys.argv.pop(1) if min_args > 1 else f"tools/{mode}.yaml" 
     other_args = ["hydra.job.chdir=True"]
     if min_args > 1 or mode == 'plot':
-        output_dir = "hydra.run.dir=actions/" + mode + "/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}" 
+        output_dir = "hydra.run.dir=actions/" + action + "/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}" 
         other_args.append(output_dir)
     elif mode == 'resume':
         output_dir =  f"hydra.run.dir={sys.argv.pop(1)}"
@@ -106,12 +111,13 @@ def moai():
         sys.argv.append(oarg)
     if mode != 'reprod':
         sys.argv.append(f"+mode={mode}")
+        # add action to config
+        sys.argv.append(f"+action={action}")
     else:
         sys.argv.append(f"+reprod={mode}")
     file_name = os.path.splitext(os.path.basename(config))[0]
     base_path = os.path.dirname(config)
     # main = hydra.main(config_path="conf", config_name=config)(run)
-    # main = hydra.main(config_path="conf/examples/smplifyx", config_name="fit")(run)
     if not os.path.isabs(base_path):
         base_path = os.path.join(os.getcwd(), base_path)
     main = hydra.main(config_path=base_path, config_name=file_name, version_base='1.3')(run)

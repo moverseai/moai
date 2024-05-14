@@ -1,0 +1,5 @@
+# @package model.monads.argmax
+
+_target_: moai.monads.tensor.torch.ArgMax
+dim: 1
+keepdim: false

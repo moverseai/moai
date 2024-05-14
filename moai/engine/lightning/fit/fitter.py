@@ -5,67 +5,134 @@ import pytorch_lightning as L
 import hydra.utils as hyu
 import omegaconf.omegaconf
 import typing
-import tqdm
+import tablib
 import torch
 import toolz
 import logging
+from collections import defaultdict
+import tablib
+import numpy as np
+import os
+from moai.log.lightning.loggers.tabular import Tabular
+import numpy as np
+import os
+
+from moai.validation.metrics.generation.fid import FID
+from moai.validation.metrics.generation.diversity import Diversity
 
 log = logging.getLogger(__name__)
 
 __all__ = ["LightningFitter"]
 
-class BatchMonitor(L.Callback):   
+
+class BatchMonitor(L.Callback):
 
     def setup(self, trainer: L.Trainer, module: L.LightningModule, stage: str) -> None:
         """Called when fit, validate, test, predict, or tune begins."""
         module.initialize_parameters()
 
     @torch.no_grad
-    def on_train_batch_start(self, 
-        trainer: L.Trainer, module: L.LightningModule,  
-        batch: typing.Mapping[str, torch.Tensor], batch_idx: int
+    def on_train_batch_start(
+        self,
+        trainer: L.Trainer,
+        module: L.LightningModule,
+        batch: typing.Mapping[str, torch.Tensor],
+        batch_idx: int,
     ) -> None:
         """Called when the train batch begins."""
         module.optimization_step = 0
 
     @torch.no_grad
-    def on_train_batch_end(self, 
-        trainer: L.Trainer, module: L.LightningModule, 
-        outputs: L.utilities.types.STEP_OUTPUT, 
-        batch: typing.Mapping[str, torch.Tensor], batch_idx: int
+    def on_test_batch_end(
+        self,
+        trainer: L.Trainer,
+        module: L.LightningModule,
+        outputs: L.utilities.types.STEP_OUTPUT,
+        batch: typing.Mapping[str, torch.Tensor],
+        batch_idx: int,
+        dataloader_idx: int = 0,
+    ) -> None:
+        datasets = list(module.data.test.iterator.datasets.keys())
+        # TODO: move batch tensors to cpu
+        if "metrics" in batch:
+            # metrics = toolz.keymap(lambda k: f"test/metric/{k}", batch["metrics"])
+            metrics = toolz.keymap(lambda k: f"test/metric/{k}/{datasets[dataloader_idx]}", batch['metrics'])
+            # move metrics to cpu numpy before logging
+            # log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_idx]}", metrics)
+            module.log_dict(
+                metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False
+            )
+            module.test_step_outputs[datasets[dataloader_idx]].append(metrics)
+    
+    @torch.no_grad
+    def on_test_epoch_end(self, trainer: L.Trainer, pl_module: L.LightningModule) -> None:
+        #NOTE: do we need to calculate the mean of the metrics and saved them as a separate file?
+        all_metrics = defaultdict(list)
+        log_metrics = defaultdict(list)
+        outputs = pl_module.test_step_outputs
+        for i, dataset in enumerate(outputs):
+            o = outputs[dataset]
+            keys = next(iter(o), { }).keys()
+            metrics = { }
+            for key in keys:
+                metrics[key] = np.mean(np.array(
+                    [d[key].item() for d in o if key in d]
+                ))
+                all_metrics[key].append(metrics[key])
+            log_metrics[dataset] = metrics
+        #NOTE: logging a dict is not supported in PTL 2.0
+        # if there is a tabular logger write the metrics to a csv file
+        logger = pl_module.logger
+        if not isinstance(logger, Tabular):
+            return
+        for dataset in log_metrics.keys():
+            ds = tablib.Dataset([v for v in log_metrics[dataset].values()], headers=toolz.keymap(lambda k: k.split("/")[2], dict(log_metrics[dataset])).keys())
+            with open(os.path.join(os.getcwd(), f'{logger.name}_{dataset}_test_average.csv'), 'a', newline='') as f:
+                 f.write(ds.export('csv'))
+        pl_module.test_step_outputs.clear()
+
+    @torch.no_grad
+    def on_train_batch_end(
+        self,
+        trainer: L.Trainer,
+        module: L.LightningModule,
+        outputs: L.utilities.types.STEP_OUTPUT,
+        batch: typing.Mapping[str, torch.Tensor],
+        batch_idx: int,
     ) -> None:
         """Called when the train batch ends.
         Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
             loss returned from ``training_step``.
         """
         # for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
-        monitor_batch = toolz.get_in(['fit', 'batch'], module.monitor)
+        monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
         if monitor_batch is not None:
-            is_now = batch_idx % monitor_batch['frequency'] == 0
-            if not is_now:
-                return # continue
-             #NOTE: should detach
-            for step in monitor_batch.get('steps', []):
-                outputs = module.graphs[step](outputs)            
-            for monitor_metrics in monitor_batch.get('metrics', []):
-                module.named_metrics[monitor_metrics](outputs)
-            extras = {
-                'step': module.global_step, 'epoch': module.current_epoch,
-                'batch_idx': batch_idx,
-            }
-            for monitor_tensors in monitor_batch.get('tensors', []):
-                module.named_monitors[monitor_tensors](outputs, extras)
-            if 'losses' in outputs:
-                losses = toolz.merge(outputs['losses']['weighted'], {
-                    'total': outputs['losses']['total'],                
-                })
-                losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
-                losses['epoch'] = int(trainer.current_epoch)
-                module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
-            if 'metrics' in outputs:
-                metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
-                # metrics['epoch'] = trainer.current_epoch
-                module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+            for _, monitor_named_batch in monitor_batch.items():
+                is_now = batch_idx % monitor_named_batch['frequency'] == 0
+                if not is_now:
+                    return # continue
+                #NOTE: should detach
+                for step in monitor_named_batch.get('steps', []):
+                    outputs = module.graphs[step](outputs)
+                for monitor_metrics in monitor_named_batch.get('metrics', []):
+                    module.named_metrics[monitor_metrics](outputs)
+                extras = {
+                    'step': module.global_step, 'epoch': module.current_epoch,
+                    'batch_idx': batch_idx,
+                }
+                for monitor_tensors in monitor_named_batch.get('tensors', []):
+                    module.named_monitors[monitor_tensors](outputs, extras)
+                if 'losses' in outputs:
+                    losses = toolz.merge(outputs['losses']['weighted'], {
+                        'total': outputs['losses']['total'],                
+                    })
+                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
+                    losses['epoch'] = int(trainer.current_epoch)
+                    module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                if 'metrics' in outputs:
+                    metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
+                    # metrics['epoch'] = trainer.current_epoch
+                    module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
         # return outputs
     
     @torch.no_grad
@@ -77,18 +144,41 @@ class BatchMonitor(L.Callback):
         batch: typing.Mapping[str, torch.Tensor], batch_idx: int,
         dataloader_idx: int = 0,
     ) -> None:
+        if not hasattr(module.data, 'val'):
+            log.warning("No validation data found, validation step will be omitted.")
+            return
         datasets = list(module.data.val.iterator.datasets.keys())
         if 'metrics' in batch:
-            metrics = toolz.keymap(
-                lambda k: f'val/metric/{k}', 
+            scalar_metrics = toolz.keymap( # format: val/metric/named_metric/dataset
+                lambda k: f'val/metric/{k}/{datasets[dataloader_idx]}', 
                 toolz.valfilter(lambda x: len(x.shape) == 0, batch['metrics'])
-            ) #TODO change to facilitate batch-avg
-            metrics["epoch"] = module.current_epoch
-            module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
-            module.all_metrics[datasets[dataloader_idx]].append(
+            )
+            dataset_val_metrics = toolz.valmap(
+                lambda v: toolz.keymap(lambda k: k.split("/")[2], dict(v)),
+                toolz.groupby(
+                    lambda k: k[0].split('/')[-1],
+                    scalar_metrics.items()
+                )
+            )
+            module.scalar_metrics[datasets[dataloader_idx]].append( # format: dataset/named_metric
                 toolz.valmap(
                     lambda x: x.detach().cpu().numpy(),
-                    toolz.keymap(lambda k: f'val/metrics/{k}', batch['metrics'])
+                    dataset_val_metrics[datasets[dataloader_idx]]
+                )
+            )
+            scalar_metrics["epoch"] = module.current_epoch
+            module.log_dict(scalar_metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+            non_scalar_metrics = toolz.keymap(
+                lambda k: f'{datasets[dataloader_idx]}/{k}', 
+                toolz.valfilter(lambda x: len(x.shape) > 0, batch['metrics'])
+            )
+            module.non_scalar_metrics[datasets[dataloader_idx]].append(
+                toolz.valmap(
+                    lambda x: x.detach().cpu().numpy(),
+                    toolz.keymap(
+                        lambda k: k.split("/")[1],
+                        non_scalar_metrics
+                    )
                 )
             )
 
@@ -97,14 +187,53 @@ class BatchMonitor(L.Callback):
         trainer: L.Trainer, 
         module: L.LightningModule
     ) -> None:
-        scalar_metrics = {}
-        for d in module.all_metrics: #TODO change to facilitate batch-avg for scalar metrics
-            scalar_metrics[d] = [
-                toolz.valfilter(
-                    lambda x: len(x.shape) == 0, 
-                    self.all_metrics[d][i]) for i in range(len(self.all_metrics[d])
-                )
-            ]
+        all_scalar_metrics = {}
+        all_non_scalar_metrics = {}
+        all_features = {}
+        all_metrics = {}
+        for i, dataset in enumerate(module.scalar_metrics):
+            all_scalar_metrics[dataset] = {}
+            all_scalar_metrics[dataset]['epoch'] = module.current_epoch
+            o = module.scalar_metrics[dataset]
+            keys = next(iter(o), { }).keys()
+            for key in keys:
+                all_scalar_metrics[dataset][key] = np.mean(np.array(
+                    [d[key].item() for d in o if key in d]
+                ))
+        module.scalar_metrics.clear()  # free memory
+        
+        if module.non_scalar_metrics:
+            for i, dataset in enumerate(module.non_scalar_metrics):
+                all_non_scalar_metrics[dataset] = {}
+                o = module.non_scalar_metrics[dataset]
+                keys = next(iter(o), { }).keys()
+                features = {}
+                for key in keys:
+                    features[key] = np.vstack(
+                            [d[key] for d in o if key in d]
+                    )
+                all_features[dataset] = features
+                fid_metric = toolz.get_in(['fid'], module.generation_metrics) or {}
+                if fid_metric:
+                    dict_elem = toolz.get_in(['pred'], fid_metric)
+                    for elem in range(len(dict_elem)):
+                        all_non_scalar_metrics[dataset][f"{fid_metric['out'][elem]}"] = FID().forward(
+                                pred=torch.from_numpy(all_features[dataset][fid_metric['pred'][elem]]),
+                                gt=torch.from_numpy(all_features[dataset][fid_metric['gt'][elem]])
+                        ).item()
+                div_metric = toolz.get_in(['diversity'], module.generation_metrics) or {}
+                if div_metric:
+                    dict_elem = toolz.get_in(['pred'], div_metric)
+                    for elem in range(len(dict_elem)):
+                        all_non_scalar_metrics[dataset][f"{div_metric['out'][elem]}"] = Diversity().forward(
+                                    pred=torch.from_numpy(all_features[dataset][div_metric['pred'][elem]]),
+                            ).item()
+            all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])
+        module.non_scalar_metrics.clear()
+        for dataset in all_metrics.keys():
+            ds = tablib.Dataset([v for v in all_metrics[dataset].values()], headers=all_metrics[dataset].keys())
+            with open(os.path.join(os.getcwd(), f'{module.logger.name}_{dataset}_val_average.csv'), 'a', newline='') as f:
+                 f.write(ds.export('csv'))
 
 # class PerBatch(torch.nn.Identity, L.Callback):
 #     def __init__(self):
@@ -296,7 +425,7 @@ class LightningFitter(L.Trainer):
         process_position: int = 0,
         num_nodes: int = 1,
         num_processes: int = 1,
-        devices: typing.Optional[typing.Union[typing.List[int], str, int]] = 'auto',
+        devices: typing.Optional[typing.Union[typing.List[int], str, int]] = "auto",
         gpus: typing.Optional[typing.Union[typing.List[int], str, int]] = None,
         # https://pytorch-lightning.readthedocs.io/en/latest/advanced/multi_gpu.html#select-gpu-devices
         auto_select_gpus: bool = False,
@@ -310,7 +439,7 @@ class LightningFitter(L.Trainer):
         accumulate_grad_batches: typing.Union[
             int, typing.Dict[int, int], typing.List[list]
         ] = 1,
-        # max_epochs:                 int=1000,
+        max_epochs: int = 1,
         # min_epochs:                 int=1,
         max_steps: typing.Optional[int] = None,
         min_steps: typing.Optional[int] = None,
@@ -323,8 +452,8 @@ class LightningFitter(L.Trainer):
         log_every_n_steps: int = 10,
         accelerator: typing.Optional[
             typing.Union[str, L.accelerators.Accelerator]
-        ] = 'auto',
-        strategy: str = 'auto',
+        ] = "auto",
+        strategy: str = "auto",
         sync_batchnorm: bool = False,
         precision: int = 32,
         enable_model_summary: bool = True,
@@ -333,9 +462,7 @@ class LightningFitter(L.Trainer):
         num_sanity_val_steps: int = 2,
         # NOTE: @PTL1.5 truncated_bptt_steps:       typing.Optional[int]=None,
         resume_from_checkpoint: typing.Optional[str] = None,
-        profiler: typing.Optional[
-            typing.Union[L.profilers.Profiler, bool, str]
-        ] = None,
+        profiler: typing.Optional[typing.Union[L.profilers.Profiler, bool, str]] = None,
         benchmark: bool = False,
         deterministic: bool = True,
         reload_dataloaders_every_epoch: bool = False,
@@ -399,7 +526,7 @@ class LightningFitter(L.Trainer):
         # TODO: add weight re-init callback
         # TODO: add inference callback with no grad forward
         super().__init__(
-            logger=loggers, # logger,
+            logger=loggers,  # logger,
             # checkpoint_callback=checkpoint_callback,
             callbacks=pytl_callbacks,
             default_root_dir=None if not default_root_dir else default_root_dir,
@@ -418,7 +545,7 @@ class LightningFitter(L.Trainer):
             check_val_every_n_epoch=check_val_every_n_epoch,
             fast_dev_run=fast_dev_run,
             accumulate_grad_batches=accumulate_grad_batches,
-            max_epochs=1,
+            max_epochs=max_epochs,
             min_epochs=1,
             max_steps=-1,
             min_steps=-1,
@@ -436,7 +563,7 @@ class LightningFitter(L.Trainer):
             precision=precision,
             enable_model_summary=enable_model_summary,
             enable_progress_bar=True,
-            enable_checkpointing=True,
+            enable_checkpointing=checkpoint_callback,
             # weights_summary=weights_summary,
             # weights_save_path=weights_save_path,
             num_sanity_val_steps=num_sanity_val_steps,

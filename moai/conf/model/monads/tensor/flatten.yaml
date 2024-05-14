@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.flatten
 
-_target_: moai.monads.tensor.Flatten
+_target_: moai.monads.tensor.torch.Flatten
 start_dim: 1

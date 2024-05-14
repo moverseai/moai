@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.isotropic_gaussian
 
 _target_: moai.monads.distribution.reconstruction.IsotropicGaussian
 std: 1.5 # float, in % of # pixels of the grid's diagonal

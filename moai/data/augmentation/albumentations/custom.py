@@ -1,4 +1,4 @@
-from moai.monads.execution.cascade import _create_accessor
+from moai.monads.execution._cascade import _create_accessor
 
 import albumentations
 import torch
@@ -14,7 +14,7 @@ __all__ = ["Custom"]
 
 class Custom(torch.utils.data.Dataset):
     def __init__(self,
-        dataset:        torch.utils.data.Dataset,        
+        dataset:        torch.utils.data.Dataset,
         inputs:         typing.Sequence[str],        
         outputs:        typing.Sequence[str],
         keys:           typing.Sequence[str],
@@ -28,8 +28,8 @@ class Custom(torch.utils.data.Dataset):
         self.inputs = [_create_accessor(k) if isinstance(k, str) else [_create_accessor(kk) for kk in k] for k in self.inputs]
         self.extra = [{k: _create_accessor(v) for k, v in (e or {}).items()} for e in self.extra]
         self.augmentations = []
-        for k, v in augmentations.items():
-            aug = hyu.instantiate(v)
+        for k, aug in augmentations.items():
+            # aug = hyu.instantiate(v)
             log.info(f"Using {k} augmentation /w a {aug.p * 100.0}% probability.")
             self.augmentations.append(aug)
         self.composition = albumentations.Compose(self.augmentations)

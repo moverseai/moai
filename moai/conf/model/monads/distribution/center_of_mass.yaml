@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.center_of_mass
 
 _target_: moai.monads.distribution.CenterOfMass
 mode: default # one of ['default', 'default_optimized_2d']

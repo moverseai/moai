@@ -1,4 +1,4 @@
-# @package visualization.visualizers._name_
+# @package visualization.visualizers.mesh
 
 _target_: moai.visualization.clearml.Mesh
 name: ${experiment.name}

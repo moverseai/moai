@@ -1,0 +1,4 @@
+# @package handlers.postprocess.mnist_handler
+
+_target_: moai.serve.handlers.mnist_handler.MNISTDigitClassifier
+input_key: predicted_label

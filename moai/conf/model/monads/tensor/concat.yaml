@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.concat
 
-_target_: moai.monads.tensor.Concat
+_target_: moai.monads.tensor.torch.Concat
 dim: 1
