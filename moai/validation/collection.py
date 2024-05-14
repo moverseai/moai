@@ -21,7 +21,7 @@ __all__ = ["Metrics"]
 
 
 class Metrics(torch.nn.ModuleDict):
-    execs: typing.List[typing.Callable] = []
+    # execs: typing.List[typing.Callable] = []
 
     __REDUCTIONS__ = {
         "rmse": torch.sqrt,
@@ -39,6 +39,7 @@ class Metrics(torch.nn.ModuleDict):
     ):
         super(Metrics, self).__init__()
         self.reductions = []
+        self.execs = []
         if not len(metrics):
             log.warning(
                 "A collection of metrics is being used for validating the model, but no metrics have been assigned"
