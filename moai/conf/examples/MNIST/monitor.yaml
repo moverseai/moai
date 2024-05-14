@@ -14,6 +14,13 @@ model:
           target: [label]
           preds: [predicted_label]
           out: [f1]
+      predict_class_acc:
+        multiclass_acc:
+          target: [predicted_label]
+          preds: [predicted_label]
+          out: [accuracy]
+        
+      
     # tensors:
     #   show_image_batch:
     #     image2d:

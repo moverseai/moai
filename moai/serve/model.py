@@ -1,5 +1,8 @@
 from ts.torch_handler.base_handler import BaseHandler
-from hydra.experimental import (
+from ts.handler_utils.timer import timed
+from ts.metrics.metric_type_enum import MetricTypes
+
+from hydra import (
     compose,
     initialize,
 )
@@ -16,6 +19,11 @@ import logging
 import typing
 
 log = logging.getLogger(__name__)
+
+# attach debugpy
+# import debugpy
+# debugpy.listen(('0.0.0.0', 6789))
+# debugpy.wait_for_client()
 
 __all__ = ['ModelServer']
 
@@ -61,7 +69,7 @@ class ModelServer(BaseHandler):
         else:
             return []
 
-    def initialize(self, context):        
+    def initialize(self, context):
         properties = context.system_properties
         # self.map_location = "cuda" if torch.cuda.is_available() and properties.get("gpu_id") is not None else "cpu"
         self.device = torch.device('cpu')
@@ -85,18 +93,28 @@ class ModelServer(BaseHandler):
         log.info(f"Loading the {main_conf} endpoint.")
         self._extract_files()  
         try:
-            with initialize(config_path="conf", job_name=main_conf):
+            with initialize(
+                config_path='conf/' + '/'.join(main_conf.split('/')[0:-1]),
+                job_name=main_conf, 
+                version_base='1.3'
+            ):
                 cfg = compose(
-                    config_name=main_conf, 
+                    config_name=main_conf.split('/')[-1],
                     overrides=self._get_overrides(),
                     return_hydra_config=True,
                 )
-                self.model = hyu.instantiate(cfg.model)
-                self.engine = hyu.instantiate(cfg.engine)
+                # get ckpt if exists
+                ckpt = omegaconf.OmegaConf.select(cfg, 'archive.ckpt')
+                self.ckpt = ckpt
+                self.model = hyu.instantiate(cfg.model, _recursive_= False)
+                # drop clearml if exists from engine as not needed in the serve context
+                if hasattr(cfg.engine, 'modules') and hasattr(cfg.engine.modules, 'clearml'):
+                    del cfg.engine.modules.clearml
+                self.engine = hyu.instantiate(cfg.engine, _recursive_= False)
                 if hasattr(cfg, 'remodel'):
                     log.info(f"Remodeling...")
                     for k, v in cfg.remodel.items():
-                        hyu.instantiate(v)(self.model)
+                        hyu.instantiate(v, _recursive_ = False)(self.model)
         except Exception as e:
             log.error(f"An error has occured while loading the model:\n{e}")
         self.model = self.model.to(self.device)
@@ -109,24 +127,25 @@ class ModelServer(BaseHandler):
                 with open('handler_overrides.yaml') as f:
                     handler_overrides = yaml.load(f, Loader=yaml.FullLoader)
                     log.debug(f"Loaded handler overrides:\n{handler_overrides}")
-            with initialize(config_path="conf", job_name=f"{main_conf}_preprocess_handlers"):
-                cfg = compose(config_name="../pre")
+            with initialize(config_path=".", job_name=f"{main_conf}_preprocess_handlers", version_base='1.3'):
+                cfg = compose(config_name="pre")
                 if handler_overrides is not None and 'preprocess' in handler_overrides.get('handlers', {}):
                     cfg = OmegaConf.merge(cfg, {'handlers': {'preprocess': handler_overrides['handlers']['preprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
                 # self.preproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'preprocess'], cfg) or {}).items()}
-                self.preproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'preprocess'], cfg)).items()}
-            with initialize(config_path="conf", job_name=f"{main_conf}_postprocess_handlers"):
-                cfg = compose(config_name="../post")
+                self.preproc = {k: hyu.instantiate(h, _recursive_ = False) for k, h in _find_all_targets(toolz.get_in(['handlers', 'preprocess'], cfg)).items()}
+            with initialize(config_path=".", job_name=f"{main_conf}_postprocess_handlers", version_base='1.3'):
+                cfg = compose(config_name="post")
                 if handler_overrides is not None and 'postprocess' in handler_overrides.get('handlers', {}):
                     cfg = OmegaConf.merge(cfg, {'handlers': {'postprocess': handler_overrides['handlers']['postprocess']}})
                     log.debug(f"Merged handler overrides:\n{cfg}")
                 # self.postproc = {k: hyu.instantiate(h) for k, h in (toolz.get_in(['handlers', 'postprocess'], cfg) or {}).items()}
-                self.postproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'postprocess'], cfg)).items()}
+                self.postproc = {k: hyu.instantiate(h, _recursive_ = False) for k, h in _find_all_targets(toolz.get_in(['handlers', 'postprocess'], cfg)).items()}
         except Exception as e:
             log.error(f"An error has occured while loading the handlers:\n{e}")
         self.model.initialize_parameters()
 
+    @timed
     def preprocess(self, 
         data:   typing.Mapping[str, typing.Any],
     ) -> typing.Dict[str, torch.Tensor]:
@@ -139,14 +158,24 @@ class ModelServer(BaseHandler):
         log.debug(f"Tensors: {tensors.keys()}")
         return tensors
     
+    @timed
     def inference(self, 
         data:       typing.Mapping[str, torch.Tensor],
     ):
-        metrics, tensors = self.model.test_step(data, batch_nb=0)
-        for k, v in metrics.items(): # self.context is set in base handler's handle method            
-            self.context.metrics.add_metric(name=k, value=float(v.detach().cpu().numpy()), unit='value')
-        return tensors
+        with torch.inference_mode():
+            # run predict step
+            # TODO: retrieve metrics from predict_step
+            # TODO: use batch_idx from predict_step
+            self.model.predict_step(data, batch_idx=0)
+            # metrics, tensors = self.model.predict_step(data, batch_idx=0)
+        metrics = data.get('metrics', {})
+        for k, v in metrics.items(): # self.context is set in base handler's handle method
+            #TODO: metrics types should be passed as an argument 
+            # and not hardcoded in the handler
+            self.context.metrics.add_metric(name=k, value=float(v.detach().cpu().numpy()), unit='value', metric_type=MetricTypes.GAUGE)
+        return data
        
+    @timed
     def postprocess(self,
         data: typing.Mapping[str, torch.Tensor]
     ) -> typing.Sequence[typing.Any]:
@@ -156,7 +185,7 @@ class ModelServer(BaseHandler):
             res = p(data, data['__moai__']['json'])
             if len(outs) == 0:
                 outs = res
-            else:                
+            else:
                 for o, r in zip(outs, res):
                     o = toolz.merge(o, r)
         return outs

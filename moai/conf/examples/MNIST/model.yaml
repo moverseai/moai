@@ -60,6 +60,24 @@ model:
               steps:
                - encoder
                - postprocess
+        predict: # used for torchserve
+          batch:
+            train_encoder:
+              steps:
+               - encoder
+               - postprocess
+        val:
+          batch:
+            mnist:
+              train_encoder:
+                steps:
+                - encoder
+                - postprocess
+        # predict:
+        #   batch:
+        #     classifier:
+        #       steps:
+        #        - encoder
 
       monitor:
         fit:
@@ -71,18 +89,27 @@ model:
               # - train_loss
             # tensors:
             #   - show_image_batch
+        val:
+          batch:
+            train_encoder:
+              metrics:
+                - test_class_acc
         test:
           batch:
             metrics:
               - test_class_acc
             # tensors:
             #   - show_image_batch
+        predict:
+          batch:
+            metrics:
+              - predict_class_acc
 
 
 
   graphs:
     encoder:
-      input: [image]
+      input: [color]
       out:  [prediction]
     postprocess:
       argmax:

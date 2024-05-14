@@ -222,8 +222,21 @@ class Model(L.LightningModule):
     def predict_step(self,
             batch:  typing.Dict[str, torch.Tensor],
             batch_idx: int,
+            dataset_idx: int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
-        log.info(f"Predicting batch {batch_idx}...")
+        log.info(f"Predicting batch {batch_idx} ...")
+        monitor = toolz.get_in(['predict', 'batch'], self.monitor) or []
+        for stage, proc in self.process['predict']['batch'].items():
+            steps = proc['steps']
+            with torch.no_grad(): #TODO: probably this is not needed
+                # for iter in range(iters): #NOTE: is this necessary?
+                for step in steps:
+                    batch = self.graphs[step](batch)
+                # predict step does 
+                if monitor:
+                    # Metrics monitoring used only for serve
+                    for metric in toolz.get('metrics', monitor, None) or []:
+                        self.named_metrics[metric](batch)
 
     def training_step(self, 
         batch:                  typing.Dict[str, torch.Tensor],

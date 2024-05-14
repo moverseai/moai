@@ -18,10 +18,12 @@ defaults:
   - data/train/augmentation: none
   - data/train/dataset/torchvision: mnist
 
-  # - data/val/loader: torch
-  # - data/val/iterator: indexed
-  # - data/val/augmentation: none
-  # - data/val/dataset/torchvision: mnist
+  - data/val/loader: torch
+  - data/val/iterator: indexed
+  - data/val/augmentation: none
+  - data/val/dataset/torchvision: mnist
+  
+  
   - data/test/loader: torch
   # - data/test/iterator: indexed
   - data/test/augmentation: none

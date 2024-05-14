@@ -143,6 +143,18 @@ class Identity(torch.nn.Module):
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor
 
+class ArgMax(torch.nn.Module):
+    def __init__(self,
+        dim: int=1,
+        keepdim: bool=False,
+    ):
+        super(ArgMax, self).__init__()
+        self.dim = dim
+        self.keepdim = keepdim
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return torch.argmax(tensor, dim=self.dim, keepdim=self.keepdim)
+
 # Alias = functools.partial(Identity)
 # Passthrough = functools.partial(Identity)
 Alias = Identity

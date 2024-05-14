@@ -4,7 +4,7 @@ from torch.utils.data.dataloader import default_collate
 from functools import partial
 import typing
 
-def _collate_fn(batch,ingore_keys):    
+def _collate_fn(batch,ingore_keys):
     batch_ = []
     if isinstance(batch[0], dict):
         #remove keys
