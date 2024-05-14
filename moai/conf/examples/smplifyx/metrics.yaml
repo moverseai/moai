@@ -6,6 +6,7 @@ model:
   monitors:
     metrics:
       fit_quality:
+        # frequency: 1
         rmse:
           gt: [keypoints]
           pred: [joints2d]

@@ -387,7 +387,7 @@ class Model(L.LightningModule):
             return
         datasets = list(self.data.val.iterator.datasets.keys())
         monitor = toolz.get_in(['val', 'batch'], self.monitor)
-        for stage, proc in self.process['val']['batch'][datasets[dataloader_idx]].items():
+        for stage, proc in (toolz.get_in(['val', 'batch', datasets[dataloader_idx]], self.process, {}) or {}).items():
             steps = proc['steps']
             with torch.no_grad():
                 for step in steps:
