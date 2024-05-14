@@ -21,7 +21,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 '''
 
-#TODO: slicing, bmm
+#TODO: slicing, bmm, (mod?), dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y))
 
 __MOAI_GRAMMAR__ = """
 
