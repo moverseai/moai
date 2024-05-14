@@ -75,7 +75,7 @@ class AzureBlobOutputHandler(Callable):
         container_name: str,
         blob_paths: typing.List[str],  # keys to extract resources from json
         working_dir: str,  # path to working dir
-        alias: typing.List[str],  # names of files to be uploaded,
+        alias: typing.List[str],  # names of files to be uploaded
         overwrite: bool = True, # overwrite existing files
     ):
         """

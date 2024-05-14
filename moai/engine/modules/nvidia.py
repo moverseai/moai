@@ -12,6 +12,7 @@ __all__ = [
 ]
 
 log = logging.getLogger(__name__)
+
 class NvidiaSMI(object):
     def __init__(self):
         if 'PROGRAMFILES' in os.environ.keys():

@@ -105,7 +105,7 @@ def archive(cfg):
             args += ['-r', basename]
     if cfg.archive.output_path: #NOYTE
         if not os.path.exists(cfg.archive.output_path):
-            os.mkdirs(cfg.archive.output_path, exist_ok=True)
+            os.makedirs(cfg.archive.output_path, exist_ok=True)
         args += ['--export-path', cfg.archive.output_path]
     log.info(f"Running: {args}")
     proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=None)# , shell=True)
