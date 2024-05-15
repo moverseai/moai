@@ -233,8 +233,34 @@ class TestDSL:
         expression = "single[..., [2,5,6,7], -1, 2:5, :] + ones(10, 4, 3, 3)"
         x = self._parse_and_run(parser, expression, highdim_tensors)
         assert x.sum() == 720.0
-        
-        
+        expression = "multi[..., 2:5, :]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 80.0
+        expression = "multi[..., :, 2:5]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 75.0
+        expression = "multi[:, 2:5]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 75.0
+        expression = "linspace[2:5]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.allclose(x, torch.linspace(0, 10, 10)[2:5])        
+        expression = "linspace3[:, 2:5, :]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.allclose(x.squeeze(), torch.linspace(0, 10, 10)[2:5])
+        expression = "linspace3[..., 2:5, 0]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.allclose(x.squeeze(), torch.linspace(0, 10, 10)[2:5])
+        expression = "linspace3[..., -1, 0]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.allclose(x.squeeze(), torch.scalar_tensor(10))
+        expression = "linspace3[-1, -1, -1]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.allclose(x.squeeze(), torch.scalar_tensor(10))
+        expression = "linspace3[:, 9, :]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.allclose(x.squeeze(), torch.scalar_tensor(10))
+
         # expression = "single[0]"
         # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('NUMBER', '0')])
         # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)

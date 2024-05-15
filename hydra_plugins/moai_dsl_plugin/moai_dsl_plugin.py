@@ -21,7 +21,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 '''
 
-#TODO: slicing, bmm, permute/tranpose, (mod?), exp, log, reciprocal,
+#TODO:  bmm, permute/tranpose, (mod?), exp, log, reciprocal,
 #       dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y)), 
 #       einsum, matrix ops (inverse&transpose)
 #       lin/logspace, (a)range, lerp

@@ -66,4 +66,13 @@ def highdim_tensors():
         'single': torch.ones(10, 10, 2, 6, 3),
         'test': torch.ones(10, 4, 3, 3),
         'rand': torch.rand(10, 4, 3, 3),
+        'multi': torch.tensor([
+            [5, 5, 5, 5, 5],
+            [1, 2, 3, 4, 5],
+            [0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1],
+            [15, 15, 15, 15, 15],
+        ]),
+        'linspace': torch.linspace(0, 10, 10),
+        'linspace3': torch.linspace(0, 10, 10)[np.newaxis, :, np.newaxis],
     })

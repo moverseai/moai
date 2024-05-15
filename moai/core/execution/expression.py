@@ -592,10 +592,9 @@ class TreeModule(torch.nn.Module, Transformer):
             dims = list(reversed(range(-1, -n_args, -1)))
             args = args[1:]
         else:
-            dims = list(range(n_args))
+            dims = list(reversed(range(n_args)))
             args = tuple(reversed(args))
         for i, (a, d) in enumerate(filter(lambda ad: ad[0] != ':', zip(args, dims))):
-            # a, d = t
             k = None if i else key
             if isinstance(a, Token):
                 self._index(k, d, int(a))
