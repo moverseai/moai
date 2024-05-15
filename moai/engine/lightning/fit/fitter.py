@@ -136,8 +136,6 @@ class BatchMonitor(L.Callback):
         # return outputs
     
     @torch.no_grad
-    # def on_validation_batch_end(self, outputs, batch: call.Any, batch_idx: int, dataloader_idx: int = 0) -> None:
-    
     def on_validation_batch_end(self,
         trainer: L.Trainer, module: L.LightningModule,
         outputs: L.utilities.types.STEP_OUTPUT,
@@ -231,7 +229,8 @@ class BatchMonitor(L.Callback):
             all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])
         module.non_scalar_metrics.clear()
         for dataset in all_metrics.keys():
-            ds = tablib.Dataset([v for v in all_metrics[dataset].values()], headers=all_metrics[dataset].keys())
+            ds = tablib.Dataset(headers=all_metrics[dataset].keys()) if module.current_epoch < 1 else tablib.Dataset(headers=False)
+            ds.append([v for v in all_metrics[dataset].values()])
             with open(os.path.join(os.getcwd(), f'{module.logger.name}_{dataset}_val_average.csv'), 'a', newline='') as f:
                  f.write(ds.export('csv'))
 
