@@ -9,14 +9,25 @@ import numpy as np
 class TestDSL:
     def _parse_and_run(self, parser: lark.Lark, expression: str, tensors) -> torch.Tensor:
         tree = parser.parse(expression)
-        m = TreeModule('check', tree)        
+        m = TreeModule('check', tree)
         m(tensors)
-        return tensors['check']
-
+        return tensors['check']#TODO: revisit return name
+    
+    def _parse_and_run_dummy(self, parser: lark.Lark, expression: str, tensors) -> torch.Tensor:
+        tree = parser.parse(expression)
+        m = TreeModule('check', tree)        
+    
     def test_combined(self, parser, scalar_tensors):
         expression = "test + ( another.number + add.this - 5) + stack(another.number2, test2, add.this2, 0) + cat(another.number3, test3, add.this3, 0)"
-        x = self._parse_and_run(parser, expression, scalar_tensors)        
-        y = torch.tensor([7.0, 9.0, 35.])        
+        x = self._parse_and_run(parser, expression, scalar_tensors)
+        y = torch.tensor([7.0, 9.0, 35.])
+        expression = "test + ( another.number2 + add.this - 5) + stack(another.number3, test3, add.this3, 0) + cat(another.number3, test3, add.this3, 0)"
+        x = self._parse_and_run(parser, expression, scalar_tensors)
+        y = torch.tensor([
+            [-2., -1., 12.],
+            [-1.,  0., 13.],
+            [12., 13., 26.]
+        ])
         assert torch.equal(x, y)
 
     def test_add(self, parser, scalar_tensors):
@@ -189,11 +200,63 @@ class TestDSL:
 
     def test_squeeze(self, parser, shaped_tensors_cuda):
         expression = "unsq(onedim.threes, 0)"
-        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)        
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         assert len(x.shape) == 3 and x.shape[0] == 1
         expression = "sq(onedim.threes, 0)"
-        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)        
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         assert len(x.shape) == 1
         expression = "sq(onedim.threes)"
-        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)        
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         assert len(x.shape) == 1
+
+    def test_nested_access(self, parser, nested_tensors):
+        expression = "single"
+        x = self._parse_and_run(parser, expression, nested_tensors)
+        assert float(x) == 1
+        expression = "outer.five"
+        x = self._parse_and_run(parser, expression, nested_tensors)
+        assert float(x) == 5
+        expression = "outer.inner.five_ones"
+        x = self._parse_and_run(parser, expression, nested_tensors)
+        assert len(x.shape) == 3 and torch.sum(x) == 5
+
+    def test_slicing(self, parser, highdim_tensors):
+        expression = "single[..., [2,5,6,7], -1, 2:5, :]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 360.0
+        expression = "single[..., [2,5,6,7], -1, 2:5, :] + test"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 720.0
+        expression = "single[..., [2,5,6,7], -1, 2:5, :] + ones(rand)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 720.0
+        expression = "single[..., [2,5,6,7], -1, 2:5, :] + ones(10, 4, 3, 3)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 720.0
+        
+        
+        # expression = "single[0]"
+        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('NUMBER', '0')])
+        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
+        # expression = "outer.five[0]"
+        # # tree = parser.parse(expression) # Tree('select', [Tree(Token('RULE', 'name'), [Token('FIELD', 'outer'), Token('FIELD', 'five')]), Token('NUMBER', '0')])
+        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
+        # expression = "outer.inner.five[0]"
+        # # tree = parser.parse(expression) # Tree('select', [Tree(Token('RULE', 'name'), [Token('FIELD', 'outer'), Token('FIELD', 'inner'), Token('FIELD', 'five')]), Token('NUMBER', '0')])
+        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
+        # expression = "single[:, 0]"
+        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Token('NUMBER', '0')])
+        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
+        # expression = "single[:, 0, :, :]"
+        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Token('NUMBER', '0'), Token('ALL', ':'), Token('ALL', ':')])
+        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
+        # expression = "single[:, :, 0, :, :]"
+        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Token('ALL', ':'), Token('NUMBER', '0'), Token('ALL', ':'), Token('ALL', ':')])
+        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
+        # expression = "single[:, 2:5]"
+        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Tree(Token('RULE', 'slice'), [Token('NUMBER', '2'), Token('NUMBER', '5')])])
+        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
+        # expression = "single[:, [2,5,6,7]]"
+        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Tree(Token('RULE', 'indices'), [Token('NUMBER', '2'), Token('NUMBER', '5')])])
+        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
+        # print(x)

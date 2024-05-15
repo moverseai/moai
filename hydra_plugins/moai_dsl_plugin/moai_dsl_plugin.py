@@ -21,11 +21,20 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 '''
 
-#TODO: slicing, bmm, (mod?), dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y))
+#TODO: slicing, bmm, permute/tranpose, (mod?), exp, log, reciprocal,
+#       dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y)), 
+#       einsum, matrix ops (inverse&transpose)
+#       lin/logspace, (a)range, lerp
+#       full(_like)
+#       (un)flatten,
+#       sigmoid, softmax, mean, std, var,
+#       cartesian product, cdist, covariance, cum(sum/prod),
+#       flip, normalize, roll, multi_dot, 
+#       abs/trig/angles/fused math/clamp/floor/ceil
 
 __MOAI_GRAMMAR__ = """
 
-    ?name: FIELD ["." FIELD]
+    ?name: FIELD ("." FIELD)*
     ?names: name ("," name)*
     
     ?add: sum "+" prod -> add
@@ -55,7 +64,12 @@ __MOAI_GRAMMAR__ = """
         | "zeros" "(" NUMBER ("," NUMBER)* ")" -> zeros
         | "rand" "(" NUMBER ("," NUMBER)* ")" -> rand
         | "randn" "(" NUMBER ("," NUMBER)* ")" -> randn
-    
+
+    // ?index: NUMBER | "-" NUMBER
+    ?indices: "[" INT ("," INT)* "]"
+    ?slice: SIGNED_INT? ":" SIGNED_INT?
+    ?slicing: ALL | ELLIPSIS | SIGNED_INT | NEWAXIS | indices | slice
+        
     ?primary: "-" NUMBER
         | "-" name                          -> neg
         | "-" expr                          -> neg
@@ -70,11 +84,18 @@ __MOAI_GRAMMAR__ = """
         | "randn" "(" name ")"              -> randn_like
         | "unsq" "(" name "," NUMBER ("," NUMBER)* ")" -> unsqueeze
         | "sq" "(" name ("," NUMBER)* ")" -> squeeze
+        | name "[" slicing ("," slicing)* "]" -> slicing
         | "(" expr ")"
     ?expr: sum
 
+    ALL: ":"
+    ELLIPSIS: "..."
+    NEWAXIS: "new"    
+
     %import common.CNAME -> FIELD
     %import common.NUMBER
+    %import common.SIGNED_INT
+    %import common.INT
     %import common.WS_INLINE
     %import common.WS
 

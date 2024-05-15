@@ -1,10 +1,11 @@
-from lark import Tree, Transformer, v_args
+from lark import Tree, Transformer, Token, v_args
 
 import numpy as np
 import torch
 import dataclasses
 import toolz
 import typing
+import benedict
 
 @dataclasses.dataclass(unsafe_hash=True) #NOTE: needed for hashing https://stackoverflow.com/questions/60289768/error-unhashable-type-dict-with-dataclass
 class NamedTensor(torch.nn.Module):
@@ -15,12 +16,13 @@ class NamedTensor(torch.nn.Module):
     def __post_init__(self):
         super().__init__()
     
-    def forward(self, td, tmp) -> torch.Tensor:
-        keys = self.key.split('.') #TODO: update w/ benedict
-        value = toolz.get_in(self.key.split('.'), td)
-        tmp = toolz.assoc_in(tmp, keys, value)
+    def forward(self, td, tmp) -> None: # torch.Tensor:
+        # keys = self.key.split('.') #TODO: update w/ benedict
+        # value = toolz.get_in(self.key.split('.'), td)
+        # tmp = toolz.assoc_in(tmp, keys, value)
+        tmp[self.key] = td[self.key]
         # tmp[f'result{self.index}'] = value
-        return td, tmp
+        # return td, tmp
     
 @dataclasses.dataclass(repr=False)
 class BinaryOperationTensors(torch.nn.Module):
@@ -38,7 +40,7 @@ class BinaryOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.lhs},{self.rhs}"
     
-    def forward(self, td, tmp) -> torch.Tensor:
+    def forward(self, td, tmp) -> None: # torch.Tensor:
         lhs = toolz.get_in(self.lhs.split('.'), tmp)
         rhs = toolz.get_in(self.rhs.split('.'), tmp)
         if self.lhs_generated:
@@ -46,7 +48,7 @@ class BinaryOperationTensors(torch.nn.Module):
         if self.rhs_generated:
             rhs = rhs.to(lhs)
         tmp[f'result{self.index}'] = self.op(lhs, rhs)
-        return td, tmp
+        # return td, tmp
 
 @dataclasses.dataclass(repr=False)
 class UnaryOperationTensors(torch.nn.Module):
@@ -61,9 +63,9 @@ class UnaryOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.key}"
     
-    def forward(self, td, tmp) -> torch.Tensor:
+    def forward(self, td, tmp) -> None: # torch.Tensor:
         tmp[f'result{self.index}'] = self.op(toolz.get_in(self.key.split('.'), tmp))
-        return td, tmp
+        # return td, tmp
     
 @dataclasses.dataclass(repr=False)
 class BinaryOperationScalar(torch.nn.Module):
@@ -79,9 +81,9 @@ class BinaryOperationScalar(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.lhs},{self.rhs}"
     
-    def forward(self, td, tmp) -> torch.Tensor:
+    def forward(self, td, tmp) -> None: # torch.Tensor:
         tmp[f'result{self.index}'] = self.op(toolz.get_in(self.lhs.split('.'), tmp), self.rhs)
-        return td, tmp
+        # return td, tmp
 
 @dataclasses.dataclass(repr=False)
 class NnaryOperationTensors(torch.nn.Module):
@@ -97,10 +99,9 @@ class NnaryOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{','.join(self.keys)}@{self.dim}"
     
-    def forward(self, td, tmp) -> torch.Tensor:
+    def forward(self, td, tmp) -> None: # torch.Tensor:
         tmp[f'result{self.index}'] = self.op([toolz.get_in(k.split('.'), tmp) for k in self.keys], dim=self.dim)
-        return td, tmp
-    
+        # return td, tmp    
 
 @dataclasses.dataclass(repr=False)
 class TransformOperationTensors(torch.nn.Module):
@@ -116,13 +117,13 @@ class TransformOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.key}"
     
-    def forward(self, td, tmp) -> torch.Tensor:
+    def forward(self, td, tmp) -> None: # torch.Tensor:
         key = toolz.get_in(self.key.split('.'), tmp)
         if self.args is None:
             tmp[f'result{self.index}'] = self.op(key)
         else:
             tmp[f'result{self.index}'] = self.op(key, self.args)
-        return td, tmp
+        # return td, tmp
         
 @dataclasses.dataclass(repr=False)
 class GenerationOperationTensors(torch.nn.Module):
@@ -137,10 +138,54 @@ class GenerationOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.index}"
     
-    def forward(self, td, tmp) -> torch.Tensor:        
+    def forward(self, td, tmp) -> None: # torch.Tensor:
         tmp[f'result{self.index}'] = self.op(self.args)
-        return td, tmp
+        # return td, tmp
     
+@dataclasses.dataclass(repr=False)
+class SlicingOperationTensors(torch.nn.Module):    
+    operation: str
+    key: str
+    dim: int
+    args: typing.Union[int, typing.Sequence[int]]
+    index: int
+    
+    def __post_init__(self):
+        super().__init__()
+        self.op = getattr(torch, self.operation)
+    
+    def __repr__(self):
+        return f"{self.operation}:{self.index}"
+    
+    def forward(self, td, tmp) -> None: # torch.Tensor:
+        t = toolz.get_in(self.key.split('.'), tmp)
+        if isinstance(self.args, int):
+            tmp[f'result{self.index}'] = self.op(t, self.dim, self.args)
+        else:
+            tmp[f'result{self.index}'] = self.op(t, self.dim, *self.args)
+        # return td, tmp
+
+@dataclasses.dataclass(repr=False)
+class IndexingOperationTensors(torch.nn.Module):    
+    operation: str
+    key: str
+    dim: int
+    indices: torch.Tensor
+    index: int
+    
+    def __post_init__(self):
+        super().__init__()
+        self.op = getattr(torch, self.operation)
+        self.register_buffer('idx', self.indices)
+    
+    def __repr__(self):
+        return f"{self.operation}:{self.index}"
+    
+    def forward(self, td, tmp) -> None: # torch.Tensor:
+        t = toolz.get_in(self.key.split('.'), tmp)
+        tmp[f'result{self.index}'] = self.op(t, self.dim, self.idx)
+        # return td, tmp
+
 @v_args(inline=True) # Affects the signatures of the methods
 class TreeModule(torch.nn.Module, Transformer):
     def __init__(self, key: str, tree: Tree):
@@ -154,9 +199,10 @@ class TreeModule(torch.nn.Module, Transformer):
         self.transform(tree) #NOTE: should be last        
     
     def forward(self, tensors):
-        tmp = {}
+        tmp = benedict.benedict({})
         for m in self.seq:
-            tensors, tmp = m(tensors, tmp)
+            # tensors, tmp = m(tensors, tmp)
+            m(tensors, tmp)
         tensors[self.key] = tmp[f'result{m.index}' if m.index >= 0 else m.key]
         #NOTE: what if only extracted?
         return tensors
@@ -186,7 +232,7 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
-    def addg(self, lhs, rhs):        
+    def addg(self, lhs, rhs):
         if lhs is None: #NOTE: only one of lhs/rhs should be generated
             lhs = self.results.pop()
             m = BinaryOperationTensors('add', lhs, rhs, self.index, True, False)
@@ -196,7 +242,7 @@ class TreeModule(torch.nn.Module, Transformer):
         #NOTE: lhs being a scalar is an error, cant derive device
         # if not isinstance(lhs, str):
         #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:        
+        # else:
         self.seq.add_module(f'add{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
@@ -220,7 +266,7 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
-    def subg(self, lhs, rhs):        
+    def subg(self, lhs, rhs):
         if lhs is None: #NOTE: only one of lhs/rhs should be generated
             lhs = self.results.pop()
             m = BinaryOperationTensors('sub', lhs, rhs, self.index, True, False)
@@ -230,7 +276,7 @@ class TreeModule(torch.nn.Module, Transformer):
         #NOTE: lhs being a scalar is an error, cant derive device
         # if not isinstance(lhs, str):
         #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:        
+        # else:
         self.seq.add_module(f'sub{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
@@ -284,7 +330,7 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
-    def mulg(self, lhs, rhs):        
+    def mulg(self, lhs, rhs):
         if lhs is None: #NOTE: only one of lhs/rhs should be generated
             lhs = self.results.pop()
             m = BinaryOperationTensors('mul', lhs, rhs, self.index, True, False)
@@ -294,7 +340,7 @@ class TreeModule(torch.nn.Module, Transformer):
         #NOTE: lhs being a scalar is an error, cant derive device
         # if not isinstance(lhs, str):
         #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:        
+        # else:
         self.seq.add_module(f'mul{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
@@ -330,12 +376,12 @@ class TreeModule(torch.nn.Module, Transformer):
         #NOTE: lhs being a scalar is an error, cant derive device
         # if not isinstance(lhs, str):
         #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:        
+        # else:
         self.seq.add_module(f'div{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 
-    def pow(self, lhs, rhs):
+    def pow(self, lhs, rhs): #NOTE: check float_power()
         # prev = -1
         if lhs is None:
             # lhs = f'result{self.index + prev}'
@@ -424,9 +470,18 @@ class TreeModule(torch.nn.Module, Transformer):
     # def assign_var(self, name, value):
     #     self.td[name] = torch.scalar_tensor(value, dtype=torch.float32)
     #     return value
-
+    def _extract_key(self, token_or_rule) -> str:
+        if isinstance(token_or_rule, Token): #NOTE: is FIELD
+            key = str(token_or_rule)
+        elif isinstance(token_or_rule, str):
+            key = token_or_rule
+        else: #NOTE: is RULE
+            # key = toolz.reduce(lambda l,r:f"{'' if not l else l.value}{'' if not r else '.' + r.value}", name.children)
+            key = ".".join(map(str, filter(lambda x: x, token_or_rule.children)))
+        return key
+    
     def extract(self, name):
-        key = toolz.reduce(lambda l,r:f"{'' if not l else l.value}{'' if not r else '.' + r.value}", name.children)
+        key = self._extract_key(name)    
         self.seq.add_module(f"extract{self.extracted}", NamedTensor(key, self.extracted))
         self.extracted += 1
         return key
@@ -435,22 +490,27 @@ class TreeModule(torch.nn.Module, Transformer):
         return sum(array.children)
     
     def names(self, *args):
-        keys = []
-        to_add = []
-        for arg in args:
-            if arg.data.type == 'RULE' and arg.data.value == 'name':
-                k = toolz.reduce(lambda l,r:f"{'' if not l else l.value}{'' if not r else '.' + r.value}", arg.children)
-                add = False
-                for m in self.seq:
-                    if isinstance(m, NamedTensor):                        
-                        if m.key != k:
-                            add = True
-                            break
-                to_add.append(arg)
-                keys.append(k)
-        for a in to_add:
-            self.extract(a)
-        return keys
+        # keys = []
+        # to_add = []
+        # for arg in args:
+        #     if arg.data.type == 'RULE' and arg.data.value == 'name':
+        #         k = toolz.reduce(lambda l,r:f"{'' if not l else l.value}{'' if not r else '.' + r.value}", arg.children)
+        #         add = False
+        #         for m in self.seq:
+        #             if isinstance(m, NamedTensor):                
+        #                 if m.key != k:
+        #                     add = True
+        #                     break
+        #         to_add.append(arg)
+        #         keys.append(k)
+        # for a in to_add:
+        #     self.extract(a)
+        keys = list(map(self._extract_key, args))
+        already_extracted = set(map(lambda m: m.key, filter(lambda m: isinstance(m, NamedTensor), self.seq)))
+        to_extract = set(keys) - already_extracted
+        for k in to_extract:
+            self.extract(k)
+        return list(keys)
     
     def cat(self, keys, dim):
         m = NnaryOperationTensors('cat', keys, int(str(dim)), self.index)
@@ -465,8 +525,8 @@ class TreeModule(torch.nn.Module, Transformer):
         self.index += 1
 
     def reshape(self, key, *dims):
-        if not isinstance(key, str): #NOTE: is lark.Tree
-            key = self.extract(key)
+        # if not isinstance(key, str): #NOTE: is lark.Tree
+        key = self.extract(key)
         dims = list(map(int, dims))
         m = TransformOperationTensors('reshape', key, dims, self.index)
         self.seq.add_module(f'reshape{self.index}', m)
@@ -496,3 +556,52 @@ class TreeModule(torch.nn.Module, Transformer):
         self.seq.add_module(f'squeeze{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
+
+    def _index(self, key, dim, index):
+        if key is None:
+            key = self.results.pop()
+        m = SlicingOperationTensors('select', key, dim, index, self.index)
+        self.seq.add_module(f'select{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def _indices(self, key, dim, indices):
+        if key is None:
+            key = self.results.pop()
+        m = IndexingOperationTensors('index_select', key, dim, indices, self.index)
+        self.seq.add_module(f'select{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def _slice(self, key, dim, range):
+        if key is None:
+            key = self.results.pop()
+        start = range[0]
+        length = range[1] - range[0]
+        if start < 0:
+            length *= -1        
+        m = SlicingOperationTensors('narrow', key, dim, (start, length), self.index)
+        self.seq.add_module(f'narrow{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def slicing(self, token_or_tree, *args):
+        key = self.extract(token_or_tree)
+        n_args = len(args)        
+        if args[0] == '...': #NOTE: error if ELLIPSIS in other position (not 0)
+            dims = list(reversed(range(-1, -n_args, -1)))
+            args = args[1:]
+        else:
+            dims = list(range(n_args))
+            args = tuple(reversed(args))
+        for i, (a, d) in enumerate(filter(lambda ad: ad[0] != ':', zip(args, dims))):
+            # a, d = t
+            k = None if i else key
+            if isinstance(a, Token):
+                self._index(k, d, int(a))
+            elif a.data == 'indices':
+                self._indices(k, d, torch.tensor(list(map(int, a.children))))
+            elif a.data == 'slice':
+                self._slice(k, d, list(map(int, a.children))) #NOTE: error if >2 children
+            else:
+                raise RuntimeError(f"Unexpected RULE {a.data} when parsing a `slicing` expression.")
