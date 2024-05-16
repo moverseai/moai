@@ -186,6 +186,11 @@ class IndexingOperationTensors(torch.nn.Module):
         tmp[f'result{self.index}'] = self.op(t, self.dim, self.idx)
         # return td, tmp
 
+def unary(func):        
+    def unary_wrapper(self, key):
+        return self._unary(func.__name__, key)
+    return unary_wrapper
+
 @v_args(inline=True) # Affects the signatures of the methods
 class TreeModule(torch.nn.Module, Transformer):
     def __init__(self, key: str, tree: Tree):
@@ -402,109 +407,184 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
+    # def neg(self, key):
+    #     # prev = -1
+    #     if key is None:
+    #         # lhs = f'result{self.index + prev}'
+    #         # prev -= 1
+    #         key = self.results.pop()
+    #     else:
+    #         key = self.extract(key)
+    #     m = UnaryOperationTensors('neg', key, self.index)
+    #     self.seq.add_module(f'neg{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def exp(self, key):
+    #     # prev = -1
+    #     if key is None:
+    #         # lhs = f'result{self.index + prev}'
+    #         # prev -= 1
+    #         key = self.results.pop()
+    #     else:
+    #         key = self.extract(key)
+    #     m = UnaryOperationTensors('exp', key, self.index)
+    #     self.seq.add_module(f'exp{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def log(self, key):
+    #     # prev = -1
+    #     if key is None:
+    #         # lhs = f'result{self.index + prev}'
+    #         # prev -= 1
+    #         key = self.results.pop()
+    #     else:
+    #         key = self.extract(key)
+    #     m = UnaryOperationTensors('log', key, self.index)
+    #     self.seq.add_module(f'log{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def reciprocal(self, key):
+    #     # prev = -1
+    #     if key is None:
+    #         # lhs = f'result{self.index + prev}'
+    #         # prev -= 1
+    #         key = self.results.pop()
+    #     else:
+    #         key = self.extract(key)
+    #     m = UnaryOperationTensors('reciprocal', key, self.index)
+    #     self.seq.add_module(f'reciprocal{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    def _unary(self, name, key):        
+        if key is None:
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors(name, key, self.index)
+        self.seq.add_module(f'{name}{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    @unary
     def neg(self, key):
-        # prev = -1
-        if key is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            key = self.results.pop()
-        else:
-            key = self.extract(key)
-        m = UnaryOperationTensors('neg', key, self.index)
-        self.seq.add_module(f'neg{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
+    @unary
     def exp(self, key):
-        # prev = -1
-        if key is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            key = self.results.pop()
-        else:
-            key = self.extract(key)
-        m = UnaryOperationTensors('exp', key, self.index)
-        self.seq.add_module(f'exp{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
+    @unary
     def log(self, key):
-        # prev = -1
-        if key is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            key = self.results.pop()
-        else:
-            key = self.extract(key)
-        m = UnaryOperationTensors('log', key, self.index)
-        self.seq.add_module(f'log{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
+    @unary
     def reciprocal(self, key):
-        # prev = -1
-        if key is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            key = self.results.pop()
-        else:
-            key = self.extract(key)
-        m = UnaryOperationTensors('reciprocal', key, self.index)
-        self.seq.add_module(f'reciprocal{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
+    @unary
+    def sin(self, key):
+        pass
+        # self._unary('sin', key)
+
+    @unary
+    def asin(self, key):
+        pass
+
+    @unary
+    def cos(self, key):
+        pass
+
+    @unary
+    def acos(self, key):
+        pass
+
+    @unary
+    def tan(self, key):
+        pass
+
+    @unary
+    def atan(self, key):
+        pass
+
+    @unary
+    def abs(self, key):
+        pass
+
+    @unary
+    def abs(self, key):
+        pass
+
+    @unary
     def zeros_like(self, key):
-        # prev = -1
-        if key is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            key = self.results.pop()
-        else:
-            key = self.extract(key)
-        m = UnaryOperationTensors('zeros_like', key, self.index)
-        self.seq.add_module(f'zeros_like{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
+    @unary
     def ones_like(self, key):
-        # prev = -1
-        if key is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            key = self.results.pop()
-        else:
-            key = self.extract(key)
-        m = UnaryOperationTensors('ones_like', key, self.index)
-        self.seq.add_module(f'ones_like{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
+    @unary
     def rand_like(self, key):
-        # prev = -1
-        if key is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            key = self.results.pop()
-        else:
-            key = self.extract(key)
-        m = UnaryOperationTensors('rand_like', key, self.index)
-        self.seq.add_module(f'rand_like{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
+    @unary
     def randn_like(self, key):
-        # prev = -1
-        if key is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            key = self.results.pop()
-        else:
-            key = self.extract(key)
-        m = UnaryOperationTensors('randn_like', key, self.index)
-        self.seq.add_module(f'randn_like{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
+
+    # def zeros_like(self, key):
+    #     # prev = -1
+    #     if key is None:
+    #         # lhs = f'result{self.index + prev}'
+    #         # prev -= 1
+    #         key = self.results.pop()
+    #     else:
+    #         key = self.extract(key)
+    #     m = UnaryOperationTensors('zeros_like', key, self.index)
+    #     self.seq.add_module(f'zeros_like{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def ones_like(self, key):
+    #     # prev = -1
+    #     if key is None:
+    #         # lhs = f'result{self.index + prev}'
+    #         # prev -= 1
+    #         key = self.results.pop()
+    #     else:
+    #         key = self.extract(key)
+    #     m = UnaryOperationTensors('ones_like', key, self.index)
+    #     self.seq.add_module(f'ones_like{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def rand_like(self, key):
+    #     # prev = -1
+    #     if key is None:
+    #         # lhs = f'result{self.index + prev}'
+    #         # prev -= 1
+    #         key = self.results.pop()
+    #     else:
+    #         key = self.extract(key)
+    #     m = UnaryOperationTensors('rand_like', key, self.index)
+    #     self.seq.add_module(f'rand_like{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def randn_like(self, key):
+    #     # prev = -1
+    #     if key is None:
+    #         # lhs = f'result{self.index + prev}'
+    #         # prev -= 1
+    #         key = self.results.pop()
+    #     else:
+    #         key = self.extract(key)
+    #     m = UnaryOperationTensors('randn_like', key, self.index)
+    #     self.seq.add_module(f'randn_like{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
 
     # def assign_var(self, name, value):
     #     self.td[name] = torch.scalar_tensor(value, dtype=torch.float32)
@@ -599,8 +679,8 @@ class TreeModule(torch.nn.Module, Transformer):
         if not isinstance(key, str): #NOTE: is lark.Tree
             key = self.extract(key)
         dims = list(map(int, dims))
-        if len(dims) == 1:
-            dims = dims[0]
+        # if len(dims) == 1:
+        #     dims = dims[0]
         m = TransformOperationTensors('unsqueeze', key, dims, self.index)
         self.seq.add_module(f'unsqueeze{self.index}', m)
         self.results.append(f'result{self.index}')
@@ -610,9 +690,10 @@ class TreeModule(torch.nn.Module, Transformer):
         if not isinstance(key, str): #NOTE: is lark.Tree
             key = self.extract(key)        
         dims = list(map(int, dims))
-        if len(dims) == 1:
-            dims = dims[0]
-        elif len(dims) == 0:
+        # if len(dims) == 1:
+        #     dims = dims[0]
+        # elif len(dims) == 0:
+        if len(dims) == 0:
             dims = None
         m = TransformOperationTensors('squeeze', key, dims, self.index)
         self.seq.add_module(f'squeeze{self.index}', m)
