@@ -533,6 +533,14 @@ class TreeModule(torch.nn.Module, Transformer):
     @unary
     def randn_like(self, key):
         pass
+    
+    @unary
+    def rad2deg(self, key):
+        pass
+
+    @unary
+    def deg2rad(self, key):
+        pass
 
     # def zeros_like(self, key):
     #     # prev = -1

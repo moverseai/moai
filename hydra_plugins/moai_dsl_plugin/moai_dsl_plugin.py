@@ -29,7 +29,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 #       sigmoid, softmax, mean, std, var,
 #       cartesian product, cdist, covariance, cum(sum/prod),
 #       flip, normalize, roll, multi_dot, norm,
-#       abs/trig/angles/fused math/clamp/floor/ceil
+#       angles/fused math/clamp/floor/ceil
 
 __MOAI_GRAMMAR__ = """
 
@@ -90,6 +90,10 @@ __MOAI_GRAMMAR__ = """
         | "tan" "(" expr ")"                -> tan
         | "atan" "(" name ")"               -> atan
         | "atan" "(" expr ")"               -> atan
+        | "deg" "(" name ")"                -> rad2deg
+        | "deg" "(" expr ")"                -> rad2deg
+        | "rad" "(" name ")"                -> deg2rad
+        | "rad" "(" expr ")"                -> deg2rad
         | "reciprocal" "(" name ")"         -> reciprocal
         | "reciprocal" "(" expr ")"         -> reciprocal
         | NUMBER                            -> number        

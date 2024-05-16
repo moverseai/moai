@@ -349,3 +349,11 @@ class TestDSL:
         expression = "sin(rand)^2 + cos(rand)^2"
         x = self._parse_and_run(parser, expression, trig_tensors)
         assert x.squeeze() == torch.scalar_tensor(1.0)
+
+    def test_rad_deg(self, parser, trig_tensors):
+        expression = "deg(pi2)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        trig_tensors['x'] = x
+        expression = "rad(x)"
+        y = self._parse_and_run(parser, expression, trig_tensors)
+        assert y == np.pi * 0.5
