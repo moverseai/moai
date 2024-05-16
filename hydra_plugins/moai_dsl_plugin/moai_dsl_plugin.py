@@ -21,7 +21,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 '''
 
-#TODO:  bmm, permute/tranpose, (mod?), exp, log, reciprocal,
+#TODO:  bmm, (mod?), 
 #       dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y)), 
 #       einsum, matrix ops (inverse&transpose)
 #       lin/logspace, (a)range, lerp
@@ -73,6 +73,12 @@ __MOAI_GRAMMAR__ = """
     ?primary: "-" NUMBER
         | "-" name                          -> neg
         | "-" expr                          -> neg
+        | "exp" "(" name ")"                -> exp
+        | "exp" "(" expr ")"                -> exp
+        | "log" "(" name ")"                -> log
+        | "log" "(" expr ")"                -> log
+        | "reciprocal" "(" name ")"         -> reciprocal
+        | "reciprocal" "(" expr ")"         -> reciprocal
         | NUMBER                            -> number        
         | name                              -> extract        
         | "cat" "(" names "," NUMBER ")"    -> cat
@@ -87,6 +93,7 @@ __MOAI_GRAMMAR__ = """
         | "sq" "(" name ("," NUMBER)* ")" -> squeeze
         | name "[" slicing ("," slicing)* "]" -> slicing
         | "(" expr ")"
+    
     ?expr: sum
 
     ALL: ":"

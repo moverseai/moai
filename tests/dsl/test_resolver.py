@@ -272,3 +272,31 @@ class TestDSL:
         expression = "transpose(fourdim, 2, 1, 3, 0)"
         x = self._parse_and_run(parser, expression, highdim_tensors)
         torch.equal(x, highdim_tensors['fourdim'].permute(2, 1, 3, 0))
+
+    def test_exp_log(self, parser, highdim_tensors):
+        expression = "exp(fourdim)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors['fourdim'].exp())
+        expression = "log(fourdim)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors['fourdim'].log())
+        expression = "log(fourdim) + exp(fourdim)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors['fourdim'].log() + highdim_tensors['fourdim'].exp())
+        expression = "log(fourdim + 1) + exp(fourdim - 2)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, (highdim_tensors['fourdim'] + 1).log() + (highdim_tensors['fourdim'] - 2).exp())
+        expression = "log(exp(fourdim))"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors['fourdim'].exp().log())
+        expression = "log(exp(fourdim)) + single[:5, :3, :, :, 0]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors['fourdim'].exp().log() + highdim_tensors['single'][:5, :3, :, :, 0])
+
+    def test_reciprocal(self, parser, highdim_tensors):
+        expression = "reciprocal(fourdim)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors['fourdim'].reciprocal())
+        expression = "reciprocal(reciprocal(fourdim))"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, x)

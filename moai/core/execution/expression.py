@@ -415,6 +415,45 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
+    def exp(self, key):
+        # prev = -1
+        if key is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors('exp', key, self.index)
+        self.seq.add_module(f'exp{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def log(self, key):
+        # prev = -1
+        if key is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors('log', key, self.index)
+        self.seq.add_module(f'log{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def reciprocal(self, key):
+        # prev = -1
+        if key is None:
+            # lhs = f'result{self.index + prev}'
+            # prev -= 1
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        m = UnaryOperationTensors('reciprocal', key, self.index)
+        self.seq.add_module(f'reciprocal{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
     def zeros_like(self, key):
         # prev = -1
         if key is None:
