@@ -122,7 +122,7 @@ class TransformOperationTensors(torch.nn.Module):
         if self.args is None:
             tmp[f'result{self.index}'] = self.op(key)
         else:
-            tmp[f'result{self.index}'] = self.op(key, self.args)
+            tmp[f'result{self.index}'] = self.op(key, *self.args)
         # return td, tmp
         
 @dataclasses.dataclass(repr=False)
@@ -528,8 +528,20 @@ class TreeModule(torch.nn.Module, Transformer):
         # if not isinstance(key, str): #NOTE: is lark.Tree
         key = self.extract(key)
         dims = list(map(int, dims))
-        m = TransformOperationTensors('reshape', key, dims, self.index)
+        m = TransformOperationTensors('reshape', key, [dims], self.index)
         self.seq.add_module(f'reshape{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    def transpose(self, key, *dims):
+        # if not isinstance(key, str): #NOTE: is lark.Tree
+        key = self.extract(key)
+        dims = list(map(int, dims))
+        op = 'transpose' if len(dims) == 2 else 'permute'
+        if len(dims) != 2: #NOTE: permute (similar to reshape) needs a list
+            dims = [dims] 
+        m = TransformOperationTensors(op, key, dims, self.index)
+        self.seq.add_module(f'{op}{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 

@@ -260,29 +260,15 @@ class TestDSL:
         expression = "linspace3[:, 9, :]"
         x = self._parse_and_run(parser, expression, highdim_tensors)
         assert torch.allclose(x.squeeze(), torch.scalar_tensor(10))
-
-        # expression = "single[0]"
-        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('NUMBER', '0')])
-        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
-        # expression = "outer.five[0]"
-        # # tree = parser.parse(expression) # Tree('select', [Tree(Token('RULE', 'name'), [Token('FIELD', 'outer'), Token('FIELD', 'five')]), Token('NUMBER', '0')])
-        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
-        # expression = "outer.inner.five[0]"
-        # # tree = parser.parse(expression) # Tree('select', [Tree(Token('RULE', 'name'), [Token('FIELD', 'outer'), Token('FIELD', 'inner'), Token('FIELD', 'five')]), Token('NUMBER', '0')])
-        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
-        # expression = "single[:, 0]"
-        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Token('NUMBER', '0')])
-        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
-        # expression = "single[:, 0, :, :]"
-        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Token('NUMBER', '0'), Token('ALL', ':'), Token('ALL', ':')])
-        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
-        # expression = "single[:, :, 0, :, :]"
-        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Token('ALL', ':'), Token('NUMBER', '0'), Token('ALL', ':'), Token('ALL', ':')])
-        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
-        # expression = "single[:, 2:5]"
-        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Tree(Token('RULE', 'slice'), [Token('NUMBER', '2'), Token('NUMBER', '5')])])
-        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
-        # expression = "single[:, [2,5,6,7]]"
-        # # tree = parser.parse(expression) # Tree('select', [Token('FIELD', 'single'), Token('ALL', ':'), Tree(Token('RULE', 'indices'), [Token('NUMBER', '2'), Token('NUMBER', '5')])])
-        # x = self._parse_and_run_dummy(parser, expression, highdim_tensors)
-        # print(x)
+        expression = "multi[1:3, 2:5]"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        y = torch.tensor([[3, 4, 5], [0, 0, 0]])
+        assert torch.allclose(x, y)
+        
+    def test_transpose(self, parser, highdim_tensors):
+        expression = "transpose(fourdim, 1, 0)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        torch.equal(x, highdim_tensors['fourdim'].transpose(1, 0))
+        expression = "transpose(fourdim, 2, 1, 3, 0)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        torch.equal(x, highdim_tensors['fourdim'].permute(2, 1, 3, 0))

@@ -78,6 +78,7 @@ __MOAI_GRAMMAR__ = """
         | "cat" "(" names "," NUMBER ")"    -> cat
         | "stack" "(" names "," NUMBER ")"  -> stack        
         | "view" "(" name "," NUMBER ("," NUMBER)* ")"  -> reshape
+        | "transpose" "(" name "," NUMBER ("," NUMBER)* ")"  -> transpose
         | "zeros" "(" name ")"              -> zeros_like
         | "ones" "(" name ")"               -> ones_like
         | "rand" "(" name ")"               -> rand_like

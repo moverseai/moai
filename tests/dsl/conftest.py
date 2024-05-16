@@ -62,6 +62,8 @@ def nested_tensors():
 
 @pytest.fixture
 def highdim_tensors():
+    ones = torch.ones(5, 3, 2, 6)
+    ones[:, 0] = 0.0    
     return benedict.benedict({
         'single': torch.ones(10, 10, 2, 6, 3),
         'test': torch.ones(10, 4, 3, 3),
@@ -75,4 +77,5 @@ def highdim_tensors():
         ]),
         'linspace': torch.linspace(0, 10, 10),
         'linspace3': torch.linspace(0, 10, 10)[np.newaxis, :, np.newaxis],
+        'fourdim': ones,
     })
