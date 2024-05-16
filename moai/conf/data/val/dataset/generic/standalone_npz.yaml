@@ -1,4 +1,4 @@
-# @package data.val.iterator.datasets._name_
+# @package data.val.iterator.datasets.standalone_npz
 
-_target_: moai.data.datasets.generic.StandaloneNpz
+_target_: moai.data.datasets.generic.npz.StandaloneNpz
 filename: ???

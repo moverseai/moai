@@ -136,8 +136,6 @@ class BatchMonitor(L.Callback):
         # return outputs
     
     @torch.no_grad
-    # def on_validation_batch_end(self, outputs, batch: call.Any, batch_idx: int, dataloader_idx: int = 0) -> None:
-    
     def on_validation_batch_end(self,
         trainer: L.Trainer, module: L.LightningModule,
         outputs: L.utilities.types.STEP_OUTPUT,
@@ -191,6 +189,7 @@ class BatchMonitor(L.Callback):
         all_non_scalar_metrics = {}
         all_features = {}
         all_metrics = {}
+        log_all_metrics = defaultdict(list)
         for i, dataset in enumerate(module.scalar_metrics):
             all_scalar_metrics[dataset] = {}
             all_scalar_metrics[dataset]['epoch'] = module.current_epoch
@@ -200,6 +199,7 @@ class BatchMonitor(L.Callback):
                 all_scalar_metrics[dataset][key] = np.mean(np.array(
                     [d[key].item() for d in o if key in d]
                 ))
+                log_all_metrics[key].append(all_scalar_metrics[dataset][key])
         module.scalar_metrics.clear()  # free memory
         
         if module.non_scalar_metrics:
@@ -221,6 +221,7 @@ class BatchMonitor(L.Callback):
                                 pred=torch.from_numpy(all_features[dataset][fid_metric['pred'][elem]]),
                                 gt=torch.from_numpy(all_features[dataset][fid_metric['gt'][elem]])
                         ).item()
+                        log_all_metrics[f"{fid_metric['out'][elem]}"].append(all_non_scalar_metrics[dataset][f"{fid_metric['out'][elem]}"])
                 div_metric = toolz.get_in(['diversity'], module.generation_metrics) or {}
                 if div_metric:
                     dict_elem = toolz.get_in(['pred'], div_metric)
@@ -228,12 +229,16 @@ class BatchMonitor(L.Callback):
                         all_non_scalar_metrics[dataset][f"{div_metric['out'][elem]}"] = Diversity().forward(
                                     pred=torch.from_numpy(all_features[dataset][div_metric['pred'][elem]]),
                             ).item()
-            all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])
-        module.non_scalar_metrics.clear()
+                        log_all_metrics[f"{div_metric['out'][elem]}"].append(all_non_scalar_metrics[dataset][f"{div_metric['out'][elem]}"])
+                all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])
+            module.non_scalar_metrics.clear()
         for dataset in all_metrics.keys():
-            ds = tablib.Dataset([v for v in all_metrics[dataset].values()], headers=all_metrics[dataset].keys())
+            ds = tablib.Dataset(headers=all_metrics[dataset].keys()) if module.current_epoch < 1 else tablib.Dataset(headers=False)
+            ds.append([v for v in all_metrics[dataset].values()])
             with open(os.path.join(os.getcwd(), f'{module.logger.name}_{dataset}_val_average.csv'), 'a', newline='') as f:
                  f.write(ds.export('csv'))
+        log_all_metrics = toolz.valmap(lambda v: sum(v) / len(v), log_all_metrics)
+        module.log_dict(log_all_metrics, prog_bar=False, logger=False, on_epoch=True, sync_dist=True)
 
 # class PerBatch(torch.nn.Identity, L.Callback):
 #     def __init__(self):

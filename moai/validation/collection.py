@@ -13,6 +13,7 @@ import itertools
 import toolz
 import logging
 
+from collections import defaultdict
 from torchmetrics import Metric
 
 log = logging.getLogger(__name__)
@@ -125,5 +126,7 @@ class Metrics(torch.nn.ModuleDict):
                 log.warning(
                     f"Metric [{k}] return type ({type(m)} is not supported and is being ignored."
                 )
+        if toolz.get_in(["metrics"], tensors):
+            returned = toolz.merge(tensors["metrics"], returned)
         tensors["metrics"] = returned
         return returned

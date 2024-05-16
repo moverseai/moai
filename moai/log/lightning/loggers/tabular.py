@@ -192,14 +192,18 @@ class Tabular(pytorch_lightning.loggers.Logger):
         if val_metrics:
             dataset_val_metrics = toolz.valmap(
                 lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
-                # toolz.groupby(lambda k: k[0].split('/')[-1], val_metrics.items())
                 toolz.groupby(
-                    lambda k: toolz.get(-1, k[0].split("/"), "metrics"),
+                    lambda k: toolz.get(2, k[0].split("/"), "metrics"),
                     val_metrics.items(),
                 ),
             )
             for k, v in dataset_val_metrics.items():
-                self._append_val_loss(k, v, metrics["epoch"], step)
+                self._append_val_loss(
+                    k,
+                    v,
+                    toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1],
+                    step
+                )
 
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO or namespace object ?
