@@ -132,9 +132,6 @@ def archive(cfg):
             os.makedirs(cfg.archive.output_path, exist_ok=True)
         args += ["--export-path", cfg.archive.output_path]
     log.info(f"Running: {args}")
-    #NOTE: debugging
-    args[0] = 'D:/venv/pytorch2.2/Scripts/torch-model-archiver.exe'
-    #NOTE: debugging
     proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=None)  # , shell=True)
     output = proc.communicate()[0].decode("UTF-8")
     if not output:

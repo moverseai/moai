@@ -1,8 +1,6 @@
 from collections.abc import Callable
 
 import torch
-import functools
-import typing
 import logging
 
 log = logging.getLogger(__name__)

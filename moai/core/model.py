@@ -46,6 +46,7 @@ import typing
 import toolz
 import logging
 import functools
+import benedict
 
 log = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ def _create_tensor_monitoring_block(
     else:
         return hyu.instantiate(cfg)
 
-class Model(L.LightningModule):
+class MoaiModule(L.LightningModule):
     def __init__(self,
         modules:            omegaconf.DictConfig=None,
         data:               omegaconf.DictConfig=None,
@@ -242,6 +243,7 @@ class Model(L.LightningModule):
         batch:                  typing.Dict[str, torch.Tensor],
         batch_idx:              int,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:        
+        batch = benedict.benedict(batch, keyattr_enabled=False)
         def closure(tensors, index, steps, stage, optimizer, objective):
             # def backward_fn(loss: torch.Tensor, optimizer: torch.optim.Optimizer) -> None:
                 # call._call_strategy_hook(self.trainer, "backward", loss, optimizer)        

@@ -10,6 +10,7 @@ from moai.monads.math.common import (
     # MatrixTranspose,
     Rad2Deg,
     Deg2Rad,
+    Exponential,
 )
 from moai.monads.math.normalization import (
     Znorm,
@@ -35,4 +36,5 @@ __all__ = [
     # "MatrixTranspose",
     "Rad2Deg",
     "Deg2Rad",
+    "Exponential",
 ]

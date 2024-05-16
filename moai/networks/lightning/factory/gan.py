@@ -10,6 +10,8 @@ from moai.networks.lightning.feedforward import _create_scheduling_block,\
 from moai.data.iterator import Indexed
 from moai.monads.execution import Cascade
 from collections import defaultdict
+from functools import reduce
+from operator import add
 
 import moai.utils.parsing.rtp as mirtp
 import pytorch_lightning
@@ -51,6 +53,8 @@ class NullGenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
                 if 'pregeneration' in c else torch.nn.Identity()
             self.predisc[k] = Cascade(monads=monads, **c['prediscrimination'])\
                 if 'prediscrimination' in c else torch.nn.Identity()
+            self.postdisc[k] = Cascade(monads=monads, **c['postdiscrimination'])\
+                if 'postdiscrimination' in c else torch.nn.Identity()
         self.global_test_step = 0
     
     def forward(self, 
@@ -70,7 +74,8 @@ class NullGenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         preprocessed = self.pregen['step_sample'](batch)
         prediction = self(preprocessed)
         outputs = self.predisc['step_sample'](prediction)
-        metrics = self.validation(outputs)
+        postprocessed = self.postdisc['step_sample'](outputs)#TODO: detach when/how?
+        metrics = self.validation(postprocessed)
         self.global_test_step += 1
         log_metrics = toolz.keymap(lambda k: f"test_{k}/{list(self.data.test.iterator.datasets.keys())[dataloader_index]}", metrics)
         # check if iterator is zipped
@@ -82,7 +87,7 @@ class NullGenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         if self.data is not None and zp_target != 'Zipped' and len(self.data.test.iterator.datasets.keys()) > 1:
             log_metrics.update({'__moai__': {'dataloader_index': dataloader_index}})
         self.log_dict(log_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False, sync_dist=True)
-        return metrics, outputs
+        return metrics, postprocessed
     
     def test_step_end(self,
         metrics_tensors: typing.Tuple[typing.Dict[str, torch.Tensor], typing.Dict[str, torch.Tensor]],        
@@ -270,7 +275,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
         # if stage == 'discriminator':
             
         # else if stage == 'generator':            
-        total_loss, losses = self.supervision[self.steps[optimizer_idx]](postprocessed)      
+        total_loss, losses = self.supervision[self.steps[optimizer_idx]](postprocessed)
         losses = toolz.keymap(lambda k: f"train_{k}", losses)
         losses.update({'total_loss': total_loss})        
         self.log_dict(losses, prog_bar=False, logger=True)    
@@ -335,7 +340,7 @@ class GenerativeAdversarialNetwork(pytorch_lightning.LightningModule):
                     oc[key] = value            
             optim_instances[k] = _create_optimization_block(
                 # toolz.merge(self.optimizer_configs[c.optimizer], c.params), parameters['params']
-                oc, parameters['params']
+                oc, reduce(add, toolz.map(lambda p: p['params'], parameters)) if isinstance(parameters, list) else parameters['params']
             )#TODO: check if it works with a list of parameters                
         optim_out = []
         self.optimizer_index_to_stage_n_step = []
