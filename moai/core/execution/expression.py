@@ -584,6 +584,17 @@ class TreeModule(torch.nn.Module, Transformer):
         self.results.append(f'result{self.index}')
         self.index += 1
 
+    def flatten(self, key, *dims):
+        # if not isinstance(key, str): #NOTE: is lark.Tree
+        key = self.extract(key)
+        if dims[-1] is None:
+            dims = [dims[0], -1]
+        dims = list(map(int, dims))        
+        m = TransformOperationTensors('flatten', key, dims, self.index)
+        self.seq.add_module(f'flatten{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
     def unsqueeze(self, key, *dims):
         if not isinstance(key, str): #NOTE: is lark.Tree
             key = self.extract(key)

@@ -300,3 +300,17 @@ class TestDSL:
         expression = "reciprocal(reciprocal(fourdim))"
         x = self._parse_and_run(parser, expression, highdim_tensors)
         assert torch.equal(x, x)
+
+    def test_flatten(self, parser, highdim_tensors):
+        expression = "flatten(fourdim, 1)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors['fourdim'].flatten(1))
+        expression = "flatten(fourdim, 0, 3)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors['fourdim'].flatten(0, 3))
+        expression = "flatten(fourdim, 0) + ones(180)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 300.0
+        expression = "flatten(fourdim, 1) + ones(5, 36)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 300.0
