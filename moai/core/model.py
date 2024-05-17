@@ -384,6 +384,7 @@ class MoaiModule(L.LightningModule):
         batch_nb:           int,
         dataloader_idx:   int=0,
     ) -> None:
+        batch = benedict.benedict(batch, keyattr_enabled=False)
         if not hasattr(self.data, 'val'):
             log.warning("Validation data missing. An empty validation set will be used.")
             return

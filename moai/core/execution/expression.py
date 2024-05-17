@@ -24,7 +24,7 @@ class NamedTensor(torch.nn.Module):
         # tmp[f'result{self.index}'] = value
         # return td, tmp
     
-@dataclasses.dataclass(repr=False)
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
 class BinaryOperationTensors(torch.nn.Module):
     operation: str
     lhs: str
@@ -50,7 +50,7 @@ class BinaryOperationTensors(torch.nn.Module):
         tmp[f'result{self.index}'] = self.op(lhs, rhs)
         # return td, tmp
 
-@dataclasses.dataclass(repr=False)
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
 class UnaryOperationTensors(torch.nn.Module):
     operation: str
     key: str
@@ -67,7 +67,7 @@ class UnaryOperationTensors(torch.nn.Module):
         tmp[f'result{self.index}'] = self.op(toolz.get_in(self.key.split('.'), tmp))
         # return td, tmp
     
-@dataclasses.dataclass(repr=False)
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
 class BinaryOperationScalar(torch.nn.Module):
     operation: str
     lhs: str
@@ -85,10 +85,10 @@ class BinaryOperationScalar(torch.nn.Module):
         tmp[f'result{self.index}'] = self.op(toolz.get_in(self.lhs.split('.'), tmp), self.rhs)
         # return td, tmp
 
-@dataclasses.dataclass(repr=False)
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
 class NnaryOperationTensors(torch.nn.Module):
     operation: str
-    keys: typing.List[str]
+    keys: typing.List[str] = dataclasses.field(compare=False)
     dim: int
     index: int
     
@@ -103,7 +103,7 @@ class NnaryOperationTensors(torch.nn.Module):
         tmp[f'result{self.index}'] = self.op([toolz.get_in(k.split('.'), tmp) for k in self.keys], dim=self.dim)
         # return td, tmp    
 
-@dataclasses.dataclass(repr=False)
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
 class TransformOperationTensors(torch.nn.Module):
     operation: str
     key: str
@@ -125,7 +125,7 @@ class TransformOperationTensors(torch.nn.Module):
             tmp[f'result{self.index}'] = self.op(key, *self.args)
         # return td, tmp
         
-@dataclasses.dataclass(repr=False)
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
 class GenerationOperationTensors(torch.nn.Module):
     operation: str
     args: typing.Union[int, typing.Sequence[int]]
@@ -142,7 +142,7 @@ class GenerationOperationTensors(torch.nn.Module):
         tmp[f'result{self.index}'] = self.op(self.args)
         # return td, tmp
     
-@dataclasses.dataclass(repr=False)
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
 class SlicingOperationTensors(torch.nn.Module):    
     operation: str
     key: str
@@ -165,7 +165,7 @@ class SlicingOperationTensors(torch.nn.Module):
             tmp[f'result{self.index}'] = self.op(t, self.dim, *self.args)
         # return td, tmp
 
-@dataclasses.dataclass(repr=False)
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
 class IndexingOperationTensors(torch.nn.Module):    
     operation: str
     key: str
