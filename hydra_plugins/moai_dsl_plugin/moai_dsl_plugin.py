@@ -64,10 +64,10 @@ __MOAI_GRAMMAR__ = """
         | "rand" "(" NUMBER ("," NUMBER)* ")" -> rand
         | "randn" "(" NUMBER ("," NUMBER)* ")" -> randn
 
-    // ?index: NUMBER | "-" NUMBER
+    ?index: MINUS1 | MINUS2 | MINUS3 | MINUS4 | SIGNED_INT
     ?indices: "[" INT ("," INT)* "]"
-    ?slice: SIGNED_INT? ":" SIGNED_INT?
-    ?slicing: ALL | ELLIPSIS | SIGNED_INT | NEWAXIS | indices | slice
+    ?slice: index? ":" index?
+    ?slicing: ALL | ELLIPSIS | index | NEWAXIS | indices | slice
         
     ?primary: "-" NUMBER
         | "-" name                          -> neg
@@ -116,7 +116,11 @@ __MOAI_GRAMMAR__ = """
 
     ALL: ":"
     ELLIPSIS: "..."
-    NEWAXIS: "new"    
+    NEWAXIS: "new"
+    MINUS1: "-1"
+    MINUS2: "-2"
+    MINUS3: "-3"
+    MINUS4: "-4"
 
     %import common.CNAME -> FIELD
     %import common.NUMBER
