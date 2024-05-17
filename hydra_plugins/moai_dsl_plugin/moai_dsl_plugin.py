@@ -98,17 +98,17 @@ __MOAI_GRAMMAR__ = """
         | "reciprocal" "(" expr ")"         -> reciprocal
         | NUMBER                            -> number        
         | name                              -> extract        
-        | "cat" "(" names "," NUMBER ")"    -> cat
-        | "stack" "(" names "," NUMBER ")"  -> stack        
-        | "view" "(" name "," NUMBER ("," NUMBER)* ")"  -> reshape
-        | "transpose" "(" name "," NUMBER ("," NUMBER)* ")"  -> transpose
-        | "flatten" "(" name "," NUMBER ["," NUMBER] ")"  -> flatten
+        | "cat" "(" names "," SIGNED_INT ")"    -> cat
+        | "stack" "(" names "," SIGNED_INT ")"  -> stack        
+        | "view" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")"  -> reshape
+        | "transpose" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")"  -> transpose
+        | "flatten" "(" name "," SIGNED_INT ["," SIGNED_INT] ")"  -> flatten
         | "zeros" "(" name ")"              -> zeros_like
         | "ones" "(" name ")"               -> ones_like
         | "rand" "(" name ")"               -> rand_like
         | "randn" "(" name ")"              -> randn_like
-        | "unsq" "(" name "," NUMBER ("," NUMBER)* ")" -> unsqueeze
-        | "sq" "(" name ("," NUMBER)* ")" -> squeeze
+        | "unsq" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")" -> unsqueeze
+        | "sq" "(" name ("," SIGNED_INT)* ")" -> squeeze
         | name "[" slicing ("," slicing)* "]" -> slicing
         | "(" expr ")"
     
