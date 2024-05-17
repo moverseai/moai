@@ -79,3 +79,14 @@ def highdim_tensors():
         'linspace3': torch.linspace(0, 10, 10)[np.newaxis, :, np.newaxis],
         'fourdim': ones,
     })
+
+@pytest.fixture
+def trig_tensors():
+    return benedict.benedict({
+        'pi2': torch.scalar_tensor(np.pi * 0.5),
+        'pi': torch.scalar_tensor(np.pi),
+        '2pi': torch.scalar_tensor(np.pi * 2.0),
+        'pi4': torch.scalar_tensor(np.pi * 0.25).repeat(5, 5),
+        'rand': torch.rand(1),
+        'mrand': -torch.rand(1),
+    })

@@ -314,3 +314,46 @@ class TestDSL:
         expression = "flatten(fourdim, 1) + ones(5, 36)"
         x = self._parse_and_run(parser, expression, highdim_tensors)
         assert x.sum() == 300.0
+
+    def test_trig(self, parser, trig_tensors):
+        expression = "sin(pi2)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, torch.sin(torch.scalar_tensor(np.pi * 0.5)))
+        expression = "asin(rand)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, trig_tensors['rand'].asin())
+        expression = "cos(pi2)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, torch.cos(torch.scalar_tensor(np.pi * 0.5)))
+        expression = "acos(rand)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, trig_tensors['rand'].acos())
+        expression = "tan(pi2)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, torch.tan(torch.scalar_tensor(np.pi * 0.5)))
+        expression = "atan(rand)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, trig_tensors['rand'].atan())
+        expression = "abs(mrand)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, torch.abs(trig_tensors['mrand']))
+        expression = "abs(mrand - 1)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, torch.abs(trig_tensors['mrand'] - 1))
+        expression = "abs(rand - 1)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert torch.allclose(x, torch.abs(trig_tensors['rand'] - 1))
+        expression = "sin(pi2)^2 + cos(pi2)^2"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert x == 1
+        expression = "sin(rand)^2 + cos(rand)^2"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        assert x.squeeze() == torch.scalar_tensor(1.0)
+
+    def test_rad_deg(self, parser, trig_tensors):
+        expression = "deg(pi2)"
+        x = self._parse_and_run(parser, expression, trig_tensors)
+        trig_tensors['x'] = x
+        expression = "rad(x)"
+        y = self._parse_and_run(parser, expression, trig_tensors)
+        assert y == np.pi * 0.5

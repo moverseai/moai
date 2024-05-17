@@ -25,12 +25,11 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 #       dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y)), 
 #       einsum, matrix ops (inverse&transpose)
 #       lin/logspace, (a)range, lerp
-#       full(_like)
-#       (un)flatten,
+#       full(_like) [maybe obsolete cause of number math], unflatten (tricky),
 #       sigmoid, softmax, mean, std, var,
 #       cartesian product, cdist, covariance, cum(sum/prod),
-#       flip, normalize, roll, multi_dot, 
-#       abs/trig/angles/fused math/clamp/floor/ceil
+#       flip, normalize, roll, multi_dot, norm,
+#       angles/fused math/clamp/floor/ceil
 
 __MOAI_GRAMMAR__ = """
 
@@ -77,6 +76,24 @@ __MOAI_GRAMMAR__ = """
         | "exp" "(" expr ")"                -> exp
         | "log" "(" name ")"                -> log
         | "log" "(" expr ")"                -> log
+        | "abs" "(" name ")"                -> abs
+        | "abs" "(" expr ")"                -> abs
+        | "cos" "(" name ")"                -> cos
+        | "cos" "(" expr ")"                -> cos        
+        | "acos" "(" name ")"               -> acos
+        | "acos" "(" expr ")"               -> acos
+        | "sin" "(" name ")"                -> sin
+        | "sin" "(" expr ")"                -> sin
+        | "asin" "(" name ")"               -> asin
+        | "asin" "(" expr ")"               -> asin
+        | "tan" "(" name ")"                -> tan
+        | "tan" "(" expr ")"                -> tan
+        | "atan" "(" name ")"               -> atan
+        | "atan" "(" expr ")"               -> atan
+        | "deg" "(" name ")"                -> rad2deg
+        | "deg" "(" expr ")"                -> rad2deg
+        | "rad" "(" name ")"                -> deg2rad
+        | "rad" "(" expr ")"                -> deg2rad
         | "reciprocal" "(" name ")"         -> reciprocal
         | "reciprocal" "(" expr ")"         -> reciprocal
         | NUMBER                            -> number        
