@@ -16,7 +16,7 @@ class NamedTensor(torch.nn.Module):
     def __post_init__(self):
         super().__init__()
     
-    def forward(self, td, tmp) -> None: # torch.Tensor:
+    def forward(self, td, tmp) -> None:
         # keys = self.key.split('.') #TODO: update w/ benedict
         # value = toolz.get_in(self.key.split('.'), td)
         # tmp = toolz.assoc_in(tmp, keys, value)
@@ -40,7 +40,7 @@ class BinaryOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.lhs},{self.rhs}"
     
-    def forward(self, td, tmp) -> None: # torch.Tensor:
+    def forward(self, td, tmp) -> None:
         lhs = toolz.get_in(self.lhs.split('.'), tmp)
         rhs = toolz.get_in(self.rhs.split('.'), tmp)
         if self.lhs_generated:
@@ -48,7 +48,6 @@ class BinaryOperationTensors(torch.nn.Module):
         if self.rhs_generated:
             rhs = rhs.to(lhs)
         tmp[f'result{self.index}'] = self.op(lhs, rhs)
-        # return td, tmp
 
 @dataclasses.dataclass(repr=False, unsafe_hash=True)
 class UnaryOperationTensors(torch.nn.Module):
@@ -63,9 +62,8 @@ class UnaryOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.key}"
     
-    def forward(self, td, tmp) -> None: # torch.Tensor:
+    def forward(self, td, tmp) -> None:
         tmp[f'result{self.index}'] = self.op(toolz.get_in(self.key.split('.'), tmp))
-        # return td, tmp
     
 @dataclasses.dataclass(repr=False, unsafe_hash=True)
 class BinaryOperationScalar(torch.nn.Module):
@@ -81,9 +79,8 @@ class BinaryOperationScalar(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.lhs},{self.rhs}"
     
-    def forward(self, td, tmp) -> None: # torch.Tensor:
+    def forward(self, td, tmp) -> None:
         tmp[f'result{self.index}'] = self.op(toolz.get_in(self.lhs.split('.'), tmp), self.rhs)
-        # return td, tmp
 
 @dataclasses.dataclass(repr=False, unsafe_hash=True)
 class NnaryOperationTensors(torch.nn.Module):
@@ -138,9 +135,8 @@ class GenerationOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.index}"
     
-    def forward(self, td, tmp) -> None: # torch.Tensor:
+    def forward(self, td, tmp) -> None:
         tmp[f'result{self.index}'] = self.op(self.args)
-        # return td, tmp
     
 @dataclasses.dataclass(repr=False, unsafe_hash=True)
 class SlicingOperationTensors(torch.nn.Module):    
@@ -157,13 +153,12 @@ class SlicingOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.index}"
     
-    def forward(self, td, tmp) -> None: # torch.Tensor:
+    def forward(self, td, tmp) -> None:
         t = toolz.get_in(self.key.split('.'), tmp)
         if isinstance(self.args, int):
             tmp[f'result{self.index}'] = self.op(t, self.dim, self.args)
         else:
             tmp[f'result{self.index}'] = self.op(t, self.dim, *self.args)
-        # return td, tmp
 
 @dataclasses.dataclass(repr=False, unsafe_hash=True)
 class IndexingOperationTensors(torch.nn.Module):    
@@ -181,15 +176,35 @@ class IndexingOperationTensors(torch.nn.Module):
     def __repr__(self):
         return f"{self.operation}:{self.index}"
     
-    def forward(self, td, tmp) -> None: # torch.Tensor:
+    def forward(self, td, tmp) -> None:
         t = toolz.get_in(self.key.split('.'), tmp)
         tmp[f'result{self.index}'] = self.op(t, self.dim, self.idx)
-        # return td, tmp
 
 def unary(func):        
     def unary_wrapper(self, key):
         return self._unary(func.__name__, key)
     return unary_wrapper
+
+def binary(func):        
+    def binary_wrapper(self, lhs, rhs):
+        return self._binary(func.__name__, lhs, rhs)
+    return binary_wrapper
+
+def binary_generated(func):        
+    def binary_generated_wrapper(self, lhs, rhs):
+        #NOTE: assumes the (torch) func name is suffixed only with a 'g'
+        return self._binary_generated(func.__name__[:-1], lhs, rhs)
+    return binary_generated_wrapper
+
+def generation(func):        
+    def generation_wrapper(self, *dims):
+        return self._generation(func.__name__, *dims)
+    return generation_wrapper
+
+def nnary(func):        
+    def nnary_wrapper(self, keys, dim):
+        return self._nnary(func.__name__, keys, dim)
+    return nnary_wrapper
 
 @v_args(inline=True) # Affects the signatures of the methods
 class TreeModule(torch.nn.Module, Transformer):
@@ -205,259 +220,262 @@ class TreeModule(torch.nn.Module, Transformer):
     
     def forward(self, tensors):
         tmp = benedict.benedict({})
-        for m in self.seq:
-            # tensors, tmp = m(tensors, tmp)
-            m(tensors, tmp)
-        tensors[self.key] = tmp[f'result{m.index}' if m.index >= 0 else m.key]
-        #NOTE: what if only extracted?
-        return tensors
+        for m in self.seq:            
+            m(tensors, tmp) # tensors, tmp = m(tensors, tmp)
+        tensors[self.key] = tmp[f'result{m.index}' if m.index >= 0 else m.key]        
+        return tensors #NOTE: what if only extracted?
 
     def number(self, value):
-        # return torch.scalar_tensor(float(value.value), dtype=torch.float32)
-        return float(value.value)
+        return float(value.value) # torch.scalar_tensor(float(value.value), dtype=torch.float32)
 
+    def _binary(self, name, lhs, rhs):        
+        if lhs is None:
+            lhs = self.results.pop()
+        if rhs is None:            
+            rhs = self.results.pop()
+        if not isinstance(lhs, str):
+            m = BinaryOperationScalar(name, rhs, lhs, self.index)
+        elif not isinstance(rhs, str):
+            m = BinaryOperationScalar(name, lhs, rhs, self.index)
+        else:
+            m = BinaryOperationTensors(name, lhs, rhs, self.index)
+        self.seq.add_module(f'{name}{self.index}', m)
+        self.results.append(f'result{self.index}')
+        self.index += 1
+
+    @binary
     def add(self, lhs, rhs):
-        # prev = -1
-        if lhs is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            lhs = self.results.pop()
-        if rhs is None:
-            # if prev == -2: #NOTE: lhs was None
-                # prev -= 1
-            # rhs = f'result{self.index + prev}'
-            rhs = self.results.pop()
-        if not isinstance(lhs, str):
-            m = BinaryOperationScalar('add', rhs, lhs, self.index)
-        elif not isinstance(rhs, str):
-            m = BinaryOperationScalar('add', lhs, rhs, self.index)
-        else:
-            m = BinaryOperationTensors('add', lhs, rhs, self.index)
-        self.seq.add_module(f'add{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
-    def addg(self, lhs, rhs):
-        if lhs is None: #NOTE: only one of lhs/rhs should be generated
-            lhs = self.results.pop()
-            m = BinaryOperationTensors('add', lhs, rhs, self.index, True, False)
-        if rhs is None: #NOTE: only one of lhs/rhs should be generated
-            rhs = self.results.pop()
-            m = BinaryOperationTensors('add', lhs, rhs, self.index, False, True)
-        #NOTE: lhs being a scalar is an error, cant derive device
-        # if not isinstance(lhs, str):
-        #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:
-        self.seq.add_module(f'add{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
-
+    @binary
     def sub(self, lhs, rhs):
-        # prev = -1
-        if lhs is None: #NOTE: prev?
-            # lhs = f'result{self.index + prev}'
-            lhs = self.results.pop()
-            # prev -= 1
-        if rhs is None:
-            # rhs = f'result{self.index + prev}'
-            rhs = self.results.pop()
-        if not isinstance(lhs, str):
-            m = BinaryOperationScalar('sub', rhs, lhs, self.index)
-        elif not isinstance(rhs, str):
-            m = BinaryOperationScalar('sub', lhs, rhs, self.index)
-        else:
-            m = BinaryOperationTensors('sub', lhs, rhs, self.index)
-        self.seq.add_module(f'sub{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
-    def subg(self, lhs, rhs):
-        if lhs is None: #NOTE: only one of lhs/rhs should be generated
-            lhs = self.results.pop()
-            m = BinaryOperationTensors('sub', lhs, rhs, self.index, True, False)
-        if rhs is None: #NOTE: only one of lhs/rhs should be generated
-            rhs = self.results.pop()
-            m = BinaryOperationTensors('sub', lhs, rhs, self.index, False, True)
-        #NOTE: lhs being a scalar is an error, cant derive device
-        # if not isinstance(lhs, str):
-        #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:
-        self.seq.add_module(f'sub{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
-
-    def zeros(self, *dims):
-        dims = list(map(int, dims))
-        m = GenerationOperationTensors('zeros', dims, self.index)
-        self.seq.add_module(f'zeros{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
-
-    def ones(self, *dims):
-        dims = list(map(int, dims))
-        m = GenerationOperationTensors('ones', dims, self.index)
-        self.seq.add_module(f'ones{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
-
-    def rand(self, *dims):
-        dims = list(map(int, dims))
-        m = GenerationOperationTensors('rand', dims, self.index)
-        self.seq.add_module(f'rand{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
-
-    def randn(self, *dims):
-        dims = list(map(int, dims))
-        m = GenerationOperationTensors('randn', dims, self.index)
-        self.seq.add_module(f'randn{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
-
+    @binary
     def mul(self, lhs, rhs):
-        # prev = -1
-        if lhs is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            lhs = self.results.pop()
-        if rhs is None:
-            # if prev == -2: #NOTE: lhs was None
-                # prev -= 1
-            # rhs = f'result{self.index + prev}'
-            rhs = self.results.pop()
-        if not isinstance(lhs, str):
-            m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        elif not isinstance(rhs, str):
-            m = BinaryOperationScalar('mul', lhs, rhs, self.index)
-        else:
-            m = BinaryOperationTensors('mul', lhs, rhs, self.index)
-        self.seq.add_module(f'mul{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
-    def mulg(self, lhs, rhs):
-        if lhs is None: #NOTE: only one of lhs/rhs should be generated
-            lhs = self.results.pop()
-            m = BinaryOperationTensors('mul', lhs, rhs, self.index, True, False)
-        if rhs is None: #NOTE: only one of lhs/rhs should be generated
-            rhs = self.results.pop()
-            m = BinaryOperationTensors('mul', lhs, rhs, self.index, False, True)
-        #NOTE: lhs being a scalar is an error, cant derive device
-        # if not isinstance(lhs, str):
-        #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:
-        self.seq.add_module(f'mul{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
-
+    @binary
     def div(self, lhs, rhs):
-        # prev = -1
-        if lhs is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            lhs = self.results.pop()
-        if rhs is None:
-            # if prev == -2: #NOTE: lhs was None
-                # prev -= 1
-            # rhs = f'result{self.index + prev}'
-            rhs = self.results.pop()
-        if not isinstance(lhs, str):
-            m = BinaryOperationScalar('div', rhs, lhs, self.index)
-        elif not isinstance(rhs, str):
-            m = BinaryOperationScalar('div', lhs, rhs, self.index)
-        else:
-            m = BinaryOperationTensors('div', lhs, rhs, self.index)
-        self.seq.add_module(f'div{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        pass
 
-    def divg(self, lhs, rhs):
+    @binary
+    def pow(self, lhs, rhs):
+        pass
+
+    # def add(self, lhs, rhs):
+    #     if lhs is None:
+    #         lhs = self.results.pop()
+    #     if rhs is None:            
+    #         rhs = self.results.pop()
+    #     if not isinstance(lhs, str):
+    #         m = BinaryOperationScalar('add', rhs, lhs, self.index)
+    #     elif not isinstance(rhs, str):
+    #         m = BinaryOperationScalar('add', lhs, rhs, self.index)
+    #     else:
+    #         m = BinaryOperationTensors('add', lhs, rhs, self.index)
+    #     self.seq.add_module(f'add{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def sub(self, lhs, rhs):
+    #     if lhs is None: #NOTE: prev?
+    #         lhs = self.results.pop()
+    #     if rhs is None:
+    #         rhs = self.results.pop()
+    #     if not isinstance(lhs, str):
+    #         m = BinaryOperationScalar('sub', rhs, lhs, self.index)
+    #     elif not isinstance(rhs, str):
+    #         m = BinaryOperationScalar('sub', lhs, rhs, self.index)
+    #     else:
+    #         m = BinaryOperationTensors('sub', lhs, rhs, self.index)
+    #     self.seq.add_module(f'sub{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def mul(self, lhs, rhs):
+    #     if lhs is None:
+    #         lhs = self.results.pop()
+    #     if rhs is None:
+    #         rhs = self.results.pop()
+    #     if not isinstance(lhs, str):
+    #         m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+    #     elif not isinstance(rhs, str):
+    #         m = BinaryOperationScalar('mul', lhs, rhs, self.index)
+    #     else:
+    #         m = BinaryOperationTensors('mul', lhs, rhs, self.index)
+    #     self.seq.add_module(f'mul{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def div(self, lhs, rhs):
+    #     if lhs is None:
+    #         lhs = self.results.pop()
+    #     if rhs is None:
+    #         rhs = self.results.pop()
+    #     if not isinstance(lhs, str):
+    #         m = BinaryOperationScalar('div', rhs, lhs, self.index)
+    #     elif not isinstance(rhs, str):
+    #         m = BinaryOperationScalar('div', lhs, rhs, self.index)
+    #     else:
+    #         m = BinaryOperationTensors('div', lhs, rhs, self.index)
+    #     self.seq.add_module(f'div{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def pow(self, lhs, rhs): #NOTE: check float_power()
+    #     if lhs is None:
+    #         lhs = self.results.pop()
+    #     if rhs is None:
+    #         rhs = self.results.pop()
+    #     if not isinstance(lhs, str):
+    #         m = BinaryOperationScalar('pow', rhs, lhs, self.index)
+    #     elif not isinstance(rhs, str):
+    #         m = BinaryOperationScalar('pow', lhs, rhs, self.index)
+    #     else:
+    #         m = BinaryOperationTensors('pow', lhs, rhs, self.index)
+    #     self.seq.add_module(f'pow{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    def _binary_generated(self, name, lhs, rhs):        
         if lhs is None: #NOTE: only one of lhs/rhs should be generated
             lhs = self.results.pop()
-            m = BinaryOperationTensors('div', lhs, rhs, self.index, True, False)
+            m = BinaryOperationTensors(name, lhs, rhs, self.index, True, False)
         if rhs is None: #NOTE: only one of lhs/rhs should be generated
             rhs = self.results.pop()
-            m = BinaryOperationTensors('div', lhs, rhs, self.index, False, True)
-        #NOTE: lhs being a scalar is an error, cant derive device
-        # if not isinstance(lhs, str):
-        #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
-        # else:
-        self.seq.add_module(f'div{self.index}', m)
+            m = BinaryOperationTensors(name, lhs, rhs, self.index, False, True)
+        #NOTE: lhs being a scalar is an error, cant derive device        
+        self.seq.add_module(f'{name}{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 
-    def pow(self, lhs, rhs): #NOTE: check float_power()
-        # prev = -1
-        if lhs is None:
-            # lhs = f'result{self.index + prev}'
-            # prev -= 1
-            lhs = self.results.pop()
-        if rhs is None:
-            # if prev == -2: #NOTE: lhs was None
-                # prev -= 1
-            # rhs = f'result{self.index + prev}'
-            rhs = self.results.pop()
-        if not isinstance(lhs, str):
-            m = BinaryOperationScalar('pow', rhs, lhs, self.index)
-        elif not isinstance(rhs, str):
-            m = BinaryOperationScalar('pow', lhs, rhs, self.index)
-        else:
-            m = BinaryOperationTensors('pow', lhs, rhs, self.index)
-        self.seq.add_module(f'pow{self.index}', m)
+    @binary_generated
+    def addg(self, lhs, rhs):
+        pass
+
+    @binary_generated
+    def subg(self, lhs, rhs):
+        pass
+    
+    @binary_generated
+    def mulg(self, lhs, rhs):
+        pass
+    
+    @binary_generated
+    def divg(self, lhs, rhs):
+        pass
+    
+    # def addg(self, lhs, rhs):
+    #     if lhs is None: #NOTE: only one of lhs/rhs should be generated
+    #         lhs = self.results.pop()
+    #         m = BinaryOperationTensors('add', lhs, rhs, self.index, True, False)
+    #     if rhs is None: #NOTE: only one of lhs/rhs should be generated
+    #         rhs = self.results.pop()
+    #         m = BinaryOperationTensors('add', lhs, rhs, self.index, False, True)
+    #     #NOTE: lhs being a scalar is an error, cant derive device
+    #     # if not isinstance(lhs, str):
+    #     #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+    #     # else:
+    #     self.seq.add_module(f'add{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def subg(self, lhs, rhs):
+    #     if lhs is None: #NOTE: only one of lhs/rhs should be generated
+    #         lhs = self.results.pop()
+    #         m = BinaryOperationTensors('sub', lhs, rhs, self.index, True, False)
+    #     if rhs is None: #NOTE: only one of lhs/rhs should be generated
+    #         rhs = self.results.pop()
+    #         m = BinaryOperationTensors('sub', lhs, rhs, self.index, False, True)
+    #     #NOTE: lhs being a scalar is an error, cant derive device
+    #     # if not isinstance(lhs, str):
+    #     #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+    #     # else:
+    #     self.seq.add_module(f'sub{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def mulg(self, lhs, rhs):
+    #     if lhs is None: #NOTE: only one of lhs/rhs should be generated
+    #         lhs = self.results.pop()
+    #         m = BinaryOperationTensors('mul', lhs, rhs, self.index, True, False)
+    #     if rhs is None: #NOTE: only one of lhs/rhs should be generated
+    #         rhs = self.results.pop()
+    #         m = BinaryOperationTensors('mul', lhs, rhs, self.index, False, True)
+    #     #NOTE: lhs being a scalar is an error, cant derive device
+    #     # if not isinstance(lhs, str):
+    #     #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+    #     # else:
+    #     self.seq.add_module(f'mul{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def divg(self, lhs, rhs):
+    #     if lhs is None: #NOTE: only one of lhs/rhs should be generated
+    #         lhs = self.results.pop()
+    #         m = BinaryOperationTensors('div', lhs, rhs, self.index, True, False)
+    #     if rhs is None: #NOTE: only one of lhs/rhs should be generated
+    #         rhs = self.results.pop()
+    #         m = BinaryOperationTensors('div', lhs, rhs, self.index, False, True)
+    #     #NOTE: lhs being a scalar is an error, cant derive device
+    #     # if not isinstance(lhs, str):
+    #     #     m = BinaryOperationScalar('mul', rhs, lhs, self.index)
+    #     # else:
+    #     self.seq.add_module(f'div{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    def _generation(self, name, *dims):
+        dims = list(map(int, dims))
+        m = GenerationOperationTensors(name, dims, self.index)
+        self.seq.add_module(f'{name}{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 
-    # def neg(self, key):
-    #     # prev = -1
-    #     if key is None:
-    #         # lhs = f'result{self.index + prev}'
-    #         # prev -= 1
-    #         key = self.results.pop()
-    #     else:
-    #         key = self.extract(key)
-    #     m = UnaryOperationTensors('neg', key, self.index)
-    #     self.seq.add_module(f'neg{self.index}', m)
+    @generation
+    def zeros(self, *dims):
+        pass
+
+    @generation
+    def ones(self, *dims):
+        pass
+
+    @generation
+    def rand(self, *dims):
+        pass
+
+    @generation
+    def randn(self, *dims):
+        pass
+
+    # def zeros(self, *dims):
+    #     dims = list(map(int, dims))
+    #     m = GenerationOperationTensors('zeros', dims, self.index)
+    #     self.seq.add_module(f'zeros{self.index}', m)
     #     self.results.append(f'result{self.index}')
     #     self.index += 1
 
-    # def exp(self, key):
-    #     # prev = -1
-    #     if key is None:
-    #         # lhs = f'result{self.index + prev}'
-    #         # prev -= 1
-    #         key = self.results.pop()
-    #     else:
-    #         key = self.extract(key)
-    #     m = UnaryOperationTensors('exp', key, self.index)
-    #     self.seq.add_module(f'exp{self.index}', m)
+    # def ones(self, *dims):
+    #     dims = list(map(int, dims))
+    #     m = GenerationOperationTensors('ones', dims, self.index)
+    #     self.seq.add_module(f'ones{self.index}', m)
     #     self.results.append(f'result{self.index}')
     #     self.index += 1
 
-    # def log(self, key):
-    #     # prev = -1
-    #     if key is None:
-    #         # lhs = f'result{self.index + prev}'
-    #         # prev -= 1
-    #         key = self.results.pop()
-    #     else:
-    #         key = self.extract(key)
-    #     m = UnaryOperationTensors('log', key, self.index)
-    #     self.seq.add_module(f'log{self.index}', m)
+    # def rand(self, *dims):
+    #     dims = list(map(int, dims))
+    #     m = GenerationOperationTensors('rand', dims, self.index)
+    #     self.seq.add_module(f'rand{self.index}', m)
     #     self.results.append(f'result{self.index}')
     #     self.index += 1
 
-    # def reciprocal(self, key):
-    #     # prev = -1
-    #     if key is None:
-    #         # lhs = f'result{self.index + prev}'
-    #         # prev -= 1
-    #         key = self.results.pop()
-    #     else:
-    #         key = self.extract(key)
-    #     m = UnaryOperationTensors('reciprocal', key, self.index)
-    #     self.seq.add_module(f'reciprocal{self.index}', m)
+    # def randn(self, *dims):
+    #     dims = list(map(int, dims))
+    #     m = GenerationOperationTensors('randn', dims, self.index)
+    #     self.seq.add_module(f'randn{self.index}', m)
     #     self.results.append(f'result{self.index}')
-    #     self.index += 1
+    #     self.index += 1    
 
     def _unary(self, name, key):        
         if key is None:
@@ -488,7 +506,6 @@ class TreeModule(torch.nn.Module, Transformer):
     @unary
     def sin(self, key):
         pass
-        # self._unary('sin', key)
 
     @unary
     def asin(self, key):
@@ -542,61 +559,10 @@ class TreeModule(torch.nn.Module, Transformer):
     def deg2rad(self, key):
         pass
 
-    # def zeros_like(self, key):
-    #     # prev = -1
-    #     if key is None:
-    #         # lhs = f'result{self.index + prev}'
-    #         # prev -= 1
-    #         key = self.results.pop()
-    #     else:
-    #         key = self.extract(key)
-    #     m = UnaryOperationTensors('zeros_like', key, self.index)
-    #     self.seq.add_module(f'zeros_like{self.index}', m)
-    #     self.results.append(f'result{self.index}')
-    #     self.index += 1
-
-    # def ones_like(self, key):
-    #     # prev = -1
-    #     if key is None:
-    #         # lhs = f'result{self.index + prev}'
-    #         # prev -= 1
-    #         key = self.results.pop()
-    #     else:
-    #         key = self.extract(key)
-    #     m = UnaryOperationTensors('ones_like', key, self.index)
-    #     self.seq.add_module(f'ones_like{self.index}', m)
-    #     self.results.append(f'result{self.index}')
-    #     self.index += 1
-
-    # def rand_like(self, key):
-    #     # prev = -1
-    #     if key is None:
-    #         # lhs = f'result{self.index + prev}'
-    #         # prev -= 1
-    #         key = self.results.pop()
-    #     else:
-    #         key = self.extract(key)
-    #     m = UnaryOperationTensors('rand_like', key, self.index)
-    #     self.seq.add_module(f'rand_like{self.index}', m)
-    #     self.results.append(f'result{self.index}')
-    #     self.index += 1
-
-    # def randn_like(self, key):
-    #     # prev = -1
-    #     if key is None:
-    #         # lhs = f'result{self.index + prev}'
-    #         # prev -= 1
-    #         key = self.results.pop()
-    #     else:
-    #         key = self.extract(key)
-    #     m = UnaryOperationTensors('randn_like', key, self.index)
-    #     self.seq.add_module(f'randn_like{self.index}', m)
-    #     self.results.append(f'result{self.index}')
-    #     self.index += 1
-
     # def assign_var(self, name, value):
     #     self.td[name] = torch.scalar_tensor(value, dtype=torch.float32)
     #     return value
+
     def _extract_key(self, token_or_rule) -> str:
         if isinstance(token_or_rule, Token): #NOTE: is FIELD
             key = str(token_or_rule)
@@ -617,21 +583,6 @@ class TreeModule(torch.nn.Module, Transformer):
         return sum(array.children)
     
     def names(self, *args):
-        # keys = []
-        # to_add = []
-        # for arg in args:
-        #     if arg.data.type == 'RULE' and arg.data.value == 'name':
-        #         k = toolz.reduce(lambda l,r:f"{'' if not l else l.value}{'' if not r else '.' + r.value}", arg.children)
-        #         add = False
-        #         for m in self.seq:
-        #             if isinstance(m, NamedTensor):                
-        #                 if m.key != k:
-        #                     add = True
-        #                     break
-        #         to_add.append(arg)
-        #         keys.append(k)
-        # for a in to_add:
-        #     self.extract(a)
         keys = list(map(self._extract_key, args))
         already_extracted = set(map(lambda m: m.key, filter(lambda m: isinstance(m, NamedTensor), self.seq)))
         to_extract = set(keys) - already_extracted
@@ -639,15 +590,35 @@ class TreeModule(torch.nn.Module, Transformer):
             self.extract(k)
         return list(keys)
     
-    def cat(self, keys, dim):
-        m = NnaryOperationTensors('cat', keys, int(str(dim)), self.index)
-        self.seq.add_module(f'cat{self.index}', m)
+    def _nnary(self, name, keys, dim):
+        m = NnaryOperationTensors(name, keys, int(str(dim)), self.index)
+        self.seq.add_module(f'{name}{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 
+    @nnary
+    def cat(self, keys, dim):
+        pass
+
+    @nnary
     def stack(self, keys, dim):
-        m = NnaryOperationTensors('stack', keys, int(str(dim)), self.index)
-        self.seq.add_module(f'stack{self.index}', m)
+        pass
+    
+    # def cat(self, keys, dim):
+    #     m = NnaryOperationTensors('cat', keys, int(str(dim)), self.index)
+    #     self.seq.add_module(f'cat{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    # def stack(self, keys, dim):
+    #     m = NnaryOperationTensors('stack', keys, int(str(dim)), self.index)
+    #     self.seq.add_module(f'stack{self.index}', m)
+    #     self.results.append(f'result{self.index}')
+    #     self.index += 1
+
+    def _transform_operation(self, name, key, dims):
+        m = TransformOperationTensors(name, key, dims, self.index)
+        self.seq.add_module(f'{name}{self.index}', m)
         self.results.append(f'result{self.index}')
         self.index += 1
 
@@ -655,10 +626,11 @@ class TreeModule(torch.nn.Module, Transformer):
         # if not isinstance(key, str): #NOTE: is lark.Tree
         key = self.extract(key)
         dims = list(map(int, dims))
-        m = TransformOperationTensors('reshape', key, [dims], self.index)
-        self.seq.add_module(f'reshape{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        self._transform_operation('reshape', key, [dims])
+        # m = TransformOperationTensors('reshape', key, [dims], self.index)
+        # self.seq.add_module(f'reshape{self.index}', m)
+        # self.results.append(f'result{self.index}')
+        # self.index += 1
 
     def transpose(self, key, *dims):
         # if not isinstance(key, str): #NOTE: is lark.Tree
@@ -667,21 +639,23 @@ class TreeModule(torch.nn.Module, Transformer):
         op = 'transpose' if len(dims) == 2 else 'permute'
         if len(dims) != 2: #NOTE: permute (similar to reshape) needs a list
             dims = [dims] 
-        m = TransformOperationTensors(op, key, dims, self.index)
-        self.seq.add_module(f'{op}{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        self._transform_operation(op, key, dims)
+        # m = TransformOperationTensors(op, key, dims, self.index)
+        # self.seq.add_module(f'{op}{self.index}', m)
+        # self.results.append(f'result{self.index}')
+        # self.index += 1
 
     def flatten(self, key, *dims):
         # if not isinstance(key, str): #NOTE: is lark.Tree
         key = self.extract(key)
         if dims[-1] is None:
             dims = [dims[0], -1]
-        dims = list(map(int, dims))        
-        m = TransformOperationTensors('flatten', key, dims, self.index)
-        self.seq.add_module(f'flatten{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        dims = list(map(int, dims))
+        self._transform_operation('flatten', key, dims)
+        # m = TransformOperationTensors('flatten', key, dims, self.index)
+        # self.seq.add_module(f'flatten{self.index}', m)
+        # self.results.append(f'result{self.index}')
+        # self.index += 1
 
     def unsqueeze(self, key, *dims):
         if not isinstance(key, str): #NOTE: is lark.Tree
@@ -689,10 +663,11 @@ class TreeModule(torch.nn.Module, Transformer):
         dims = list(map(int, dims))
         # if len(dims) == 1:
         #     dims = dims[0]
-        m = TransformOperationTensors('unsqueeze', key, dims, self.index)
-        self.seq.add_module(f'unsqueeze{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        self._transform_operation('unsqueeze', key, dims)
+        # m = TransformOperationTensors('unsqueeze', key, dims, self.index)
+        # self.seq.add_module(f'unsqueeze{self.index}', m)
+        # self.results.append(f'result{self.index}')
+        # self.index += 1
 
     def squeeze(self, key, *dims):
         if not isinstance(key, str): #NOTE: is lark.Tree
@@ -703,10 +678,11 @@ class TreeModule(torch.nn.Module, Transformer):
         # elif len(dims) == 0:
         if len(dims) == 0:
             dims = None
-        m = TransformOperationTensors('squeeze', key, dims, self.index)
-        self.seq.add_module(f'squeeze{self.index}', m)
-        self.results.append(f'result{self.index}')
-        self.index += 1
+        self._transform_operation('squeeze', key, dims)
+        # m = TransformOperationTensors('squeeze', key, dims, self.index)
+        # self.seq.add_module(f'squeeze{self.index}', m)
+        # self.results.append(f'result{self.index}')
+        # self.index += 1
 
     def _index(self, key, dim, index):
         if key is None:
