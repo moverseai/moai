@@ -214,6 +214,12 @@ class TestDSL:
         expression = "unsq(onedim.threes, 0, 1)"
         x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         assert len(x.shape) == 4 and x.shape[0] == 1
+        expression = "five * unsq(onedim.threes, 0, 1)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        assert len(x.shape) == 4 and x.shape[0] == 1 and x.ravel()[0] == 15.0
+        expression = "five * unsq(test, 0, 1)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        assert len(x.shape) == 5 and x.shape[0] == 1 and x.ravel()[0] == 5.0
 
     def test_nested_access(self, parser, nested_tensors):
         expression = "single"
