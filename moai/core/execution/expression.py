@@ -658,14 +658,14 @@ class TreeModule(torch.nn.Module, Transformer):
         # self.index += 1
 
     def unsqueeze(self, key, *dims):
-        if not isinstance(key, str): #NOTE: is lark.Tree
+        if not isinstance(key, str) or isinstance(key, Token): #NOTE: is lark.Tree
             key = self.extract(key)
         dims = list(map(int, dims))
         # if len(dims) == 1:
         #     dims = dims[0]
         # self._transform_operation('unsqueeze', key, dims)
         first, *rest = dims
-        self._transform_operation('unsqueeze', key, [first])
+        self._transform_operation('unsqueeze', str(key), [first])
         for dim in rest:
             key = self.results.pop()
             self._transform_operation('unsqueeze', key, [dim])
