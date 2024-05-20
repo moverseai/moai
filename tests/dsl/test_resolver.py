@@ -208,6 +208,12 @@ class TestDSL:
         expression = "sq(onedim.threes)"
         x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         assert len(x.shape) == 1
+        # expression = "unsq(unsq(onedim.threes, 0), 0)"
+        # x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        # assert len(x.shape) == 4 and x.shape[0] == 1
+        expression = "unsq(onedim.threes, 0, 1)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        assert len(x.shape) == 4 and x.shape[0] == 1
 
     def test_nested_access(self, parser, nested_tensors):
         expression = "single"

@@ -663,7 +663,12 @@ class TreeModule(torch.nn.Module, Transformer):
         dims = list(map(int, dims))
         # if len(dims) == 1:
         #     dims = dims[0]
-        self._transform_operation('unsqueeze', key, dims)
+        # self._transform_operation('unsqueeze', key, dims)
+        first, *rest = dims
+        self._transform_operation('unsqueeze', key, [first])
+        for dim in rest:
+            key = self.results.pop()
+            self._transform_operation('unsqueeze', key, [dim])
         # m = TransformOperationTensors('unsqueeze', key, dims, self.index)
         # self.seq.add_module(f'unsqueeze{self.index}', m)
         # self.results.append(f'result{self.index}')
