@@ -104,7 +104,7 @@ class NnaryOperationTensors(torch.nn.Module):
 class TransformOperationTensors(torch.nn.Module):
     operation: str
     key: str
-    args: typing.Union[int, typing.Sequence[int]]
+    args: typing.Union[int, typing.Sequence[int]] = dataclasses.field(compare=False)
     index: int
     
     def __post_init__(self):
