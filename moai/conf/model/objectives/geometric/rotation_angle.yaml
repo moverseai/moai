@@ -1,0 +1,4 @@
+# @package model.objectives.rotation_angle
+
+_target_: moai.supervision.losses.geometric.RotationMatrixAngle
+safe: false

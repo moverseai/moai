@@ -1,0 +1,6 @@
+# @package model.objectives.balanced_mvnmse
+
+_target_: moai.supervision.losses.regression.balanced.BalancedMVNMSE
+sigma: ??? # float
+mode: auto
+dim: ??? # int

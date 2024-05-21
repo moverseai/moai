@@ -1,0 +1,4 @@
+# @package model.objectives.gm
+
+_target_: moai.supervision.losses.regression.robust.gm.GemanMcClure
+rho: 1.0

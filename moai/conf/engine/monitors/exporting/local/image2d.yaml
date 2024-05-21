@@ -1,0 +1,11 @@
+# @package model.monitors.image2d
+
+_target_: moai.export.local.image2d.save_image
+modality: [color] # or depth
+colormap: [none] # bone, etc.
+transform: [none] # minmax, etc.
+mode: overwrite # [all, overwrite]
+keys: ???
+path: ???
+extension: ??? # [png, exr, jpg]
+_partial_: true

@@ -1,0 +1,42 @@
+# @package _global_
+
+_moai_:
+  _flows_:
+    initialize_translation:
+      joints2d: [keypoints]
+      joints3d: [body.joints]
+      out: [init_trans]
+    preprocess:
+      embedding:
+        void: [color]
+        out: [embedding]
+      translation:
+        void: 
+          # - color
+          - ${mi:"color -1"}
+        out: [translation]
+      betas:
+        void: [color]
+        out: [betas]
+      vposer2:
+        decode: [embedding]
+        out: [decoded]
+      smplx:
+        pose: [decoded.pose]
+        shape: [betas]
+        out: [body]
+    postprocess:
+      weak_perspective_camera:
+        points: [body.joints]
+        translation: [translation]
+        image: [color]
+        out: [joints2d]
+      index:
+        tensor: [joints2d, keypoints]
+        out: [torso_joints2d, torso_keypoints]
+      binary:
+        tensor: [init_trans]
+        out: [z_mask]
+      openpose_split:
+        joints: [joints2d, keypoints, confidence]
+        out: [split_joints2d, split_keypoints, split_confidence]

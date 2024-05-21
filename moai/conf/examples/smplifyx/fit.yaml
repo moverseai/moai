@@ -1,7 +1,8 @@
 defaults:
   ###### ENGINE
-  - engine: engine
-  - engine/fit: lightning
+  - engine: lightning
+  # - lightning: runner
+  # - engine/fit: lightning
   - engine/modules: [manual_seed, rerun]
   # - engine/modules: 
 
@@ -49,32 +50,45 @@ defaults:
   - model/monads/geometry/projection: weak_perspective_camera
   - model/monads/human/pose/openpose: split
 
-  - model/parameters/initialization: cascade
-  - model/parameters/initialization/custom: vposer2
-  - model/parameters/initialization/scheme: zero_params
-  - model/parameters/optimization/optimizer: lbfgsls
-  - model/parameters/selectors/human/body: [global, expressive]
-  - model/parameters/optimization/criteria: rmse
+  # - model/parameters/initialization: cascade
+  # - model/parameters/initialization/custom: vposer2
+  # - model/parameters/initialization/scheme: zero_params
+  # - model/parameters/optimization/optimizer: lbfgsls
+  # - model/parameters/selectors/human/body: [global, expressive]
+  # - model/parameters/optimization/criteria: rmse
 
-  - model/parameters/regularization: none
+  - model/_parameters/initialization: cascade
+  - model/_parameters/initialization/custom: vposer2
+  - model/_parameters/initialization/scheme: zero_params
+  - model/parameters/optimizers: lbfgsls
+  - model/parameters/groups/human/body: [global, expressive]
+  - model/parameters/criteria: rmse
 
-  - model/supervision: weighted
-  - model/supervision/loss/regression: L2
-  - model/supervision/loss/regression/robust: gm
-  - model/supervision/loss/human/body: hinge_joint_prior
-  - model/supervision/loss/mesh: interpenetration
+  # - model/parameters/regularization: none
 
-  - model/validation: collection
-  - model/validation/metric: rmse
+  # - model/supervision: weighted
+  # - model/supervision/loss/regression: L2
+  # - model/supervision/loss/regression/robust: gm
+  # - model/supervision/loss/human/body: hinge_joint_prior
+  # - model/supervision/loss/mesh: interpenetration
 
-  - engine/monitor/exporting/local: [pkl, append_pkl]
-  - engine/monitor/visualization/rerun: [mesh, mesh3d]
+  - model/objectives/regression: L2
+  - model/objectives/regression/robust: gm
+  - model/objectives/human/body: hinge_joint_prior
+  - model/objectives/mesh: interpenetration
+
+  # - model/validation: collection
+  # - model/validation/metric: rmse
+
+  - engine/monitors/exporting/local: [pkl, append_pkl]
+  - engine/monitors/visualization/rerun: [mesh, mesh3d]
   
   - data
   - options
   - model
   - metrics
   - objective
+  - _moai_
   
   - override hydra/hydra_logging: colorlog
   - override hydra/job_logging: colorlog

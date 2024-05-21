@@ -1,0 +1,9 @@
+# @package model.objectives.std_kl
+
+_target_: moai.supervision.losses.distribution.StandardNormalKL
+mode: standard
+is_var_log: true
+beta: 1.0
+C_max: 0
+C_max_iter: 0
+persistent: true

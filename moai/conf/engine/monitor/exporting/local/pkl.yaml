@@ -1,6 +1,0 @@
-# @package monitoring.tensors.pkl
-
-_target_: moai.export.local.pkl.Pkl
-mode: append # [all, append]
-keys: ???
-path: ???

@@ -59,8 +59,9 @@ smplifyx:
       w_pen: 0.0
       
 model:
-  supervision:
-    losses:
+  # supervision:
+    # losses:
+  objectives:
       gm:
         rho: 100.0
       interpenetration:

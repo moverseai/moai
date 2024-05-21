@@ -1,0 +1,3 @@
+# @package model.objectives.binary_cross_entropy
+
+_target_: moai.supervision.losses.classification.BinaryCrossEntropy

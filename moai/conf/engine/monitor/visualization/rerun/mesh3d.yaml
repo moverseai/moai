@@ -1,4 +1,0 @@
-# @package monitoring.tensors.mesh3d
-
-_target_: moai.visualization.rerun.mesh3d.mesh3d
-_partial_: true

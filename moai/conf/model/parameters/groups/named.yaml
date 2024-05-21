@@ -1,0 +1,5 @@
+# @package model.parameters.groups.named
+
+_target_: moai.parameters.selectors.NamedParameterSelector
+keys: ???
+force_grad: true

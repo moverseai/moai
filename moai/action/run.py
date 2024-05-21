@@ -7,7 +7,10 @@ import typing
 import os
 import re
 
+from moai.utils.funcs import select
+from moai.engine import Engine
 from moai.engine.callbacks.model import ModelCallbacks
+from moai.core.execution.constants import Constants
 
 log = logging.getLogger(__name__)
 
@@ -20,19 +23,21 @@ def run(cfg):
         f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=True, sort_keys=False))
     with open("config.yaml", 'w') as f:
         f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False))
-    engine = hydra.utils.instantiate(cfg.engine)
+    # engine = hydra.utils.instantiate(cfg.engine)
+    engine = Engine(cfg.engine.modules) #NOTE: ctor before model/runner
     model = hydra.utils.instantiate(cfg.model,
         data=cfg.data,
         # visualization=assign(cfg, "visualization"),
         # export=assign(cfg, "export"),
-        monitoring=assign(cfg, "monitoring"), #NOTE: should this be added to `model.` ?
-        stopping=assign(cfg, "stopping"), #NOTE: should this be added to `model.` ?
+        # monitoring=assign(cfg, "monitoring"), #NOTE: should this be added to `model.` ?
+        # stopping=assign(cfg, "stopping"), #NOTE: should this be added to `model.` ?
+        _moai_=select(cfg, Constants._MOAI_),
         _recursive_=False
     )
     for name, remodel in (assign(cfg ,"remodel") or {}).items():
         hydra.utils.instantiate(remodel)(model)
     #NOTE: why do we need to pass model a
-    fitter = hydra.utils.instantiate(cfg.fitter, 
+    runner = hydra.utils.instantiate(cfg.runner, 
         logging=assign(cfg, "logging"),
         model_callbacks=ModelCallbacks(model=model),
         _recursive_=False
@@ -45,7 +50,7 @@ def run(cfg):
         #TODO: check how can we have different intialisation for test, train, etc.
         if ckpt_path is None:
             log.warning("No checkpoint path provided, test will be done with custom initialisation if present.")
-        fitter.test(model, ckpt_path=ckpt_path)
+        runner.test(model, ckpt_path=ckpt_path)
         log.info("Evaluation finished.")
     elif cfg.action == "predict":
         log.info("Prediction started.")
@@ -53,11 +58,11 @@ def run(cfg):
         #TODO: check how can we have different intialisation for test, train, etc.
         if ckpt_path is None:
             log.warning("No checkpoint path provided, test will be done with custom initialisation if present.")
-        fitter.predict(model, ckpt_path=ckpt_path)
+        runner.predict(model, ckpt_path=ckpt_path)
         log.info("Prediction finished.")
     elif cfg.action == "fit":
         log.info("Fitting started.")
-        fitter.run(model)
+        runner.run(model)
         log.info("Fitting completed.")
     elif cfg.action == "resume":
         pass

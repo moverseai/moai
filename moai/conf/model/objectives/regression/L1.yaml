@@ -1,0 +1,5 @@
+# @package model.objectives.L1
+
+_target_: moai.supervision.losses.regression.L1.L1
+mode: raw # one of [raw, ln, log]
+bias: 0.0

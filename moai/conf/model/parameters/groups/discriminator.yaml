@@ -1,0 +1,5 @@
+# @package model.parameters.groups.discriminator
+
+_target_: moai.parameters.selectors.ModelParameterSelector
+keys:
+  - discriminator

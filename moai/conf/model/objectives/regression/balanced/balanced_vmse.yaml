@@ -1,0 +1,5 @@
+# @package model.objectives.balanced_vmse
+
+_target_: moai.supervision.losses.regression.balanced.BalancedVectorMSE
+sigma: ??? # float
+mode: auto

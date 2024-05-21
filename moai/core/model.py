@@ -26,11 +26,16 @@ from moai.validation.collection import Metrics as DefaultValidation
 from moai.supervision.noop import NoOp as NoSupervision
 from moai.supervision.weighted import Weighted as DefaultSupervision
 from moai.utils.iterators import partition
+from moai.utils.funcs import (
+    select, select_dict, select_list,
+    get, get_dict, get_list,
+)
 
 from moai.core.execution.monads import Monads
 from moai.core.execution.tensors import Tensors
 from moai.core.execution.criteria import Criteria
 from moai.core.execution.models import Models
+from moai.core.execution.constants import Constants
 
 from collections import defaultdict, OrderedDict
 
@@ -107,24 +112,27 @@ def _create_tensor_monitoring_block(
     else:
         return hyu.instantiate(cfg)
 
-class MoaiModule(L.LightningModule):
+class MoaiLightningModule(L.LightningModule):
     def __init__(self,
         modules:            omegaconf.DictConfig=None,
-        data:               omegaconf.DictConfig=None,
+        monads:             omegaconf.DictConfig=None,        
         parameters:         omegaconf.DictConfig=None,
-        graphs:             omegaconf.DictConfig=None,
-        monads:             omegaconf.DictConfig=None,
-        supervision:        omegaconf.DictConfig=None,
-        validation:         omegaconf.DictConfig=None,
-        monitors:           omegaconf.DictConfig=None,
-        monitoring:         omegaconf.DictConfig=None,
-        stopping:           omegaconf.DictConfig=None,
+        # graphs:             omegaconf.DictConfig=None,#TODO: remove        
+        objectives:         omegaconf.DictConfig=None,
+        metrics:            omegaconf.DictConfig=None,
+        monitors:           omegaconf.DictConfig=None,        
+        # monitoring:         omegaconf.DictConfig=None,#TODO: remove
+        # stopping:           omegaconf.DictConfig=None,
         hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
+        data:               omegaconf.DictConfig=None,
+        _moai_:             omegaconf.DictConfig=None,
     ):
         super().__init__()
         self.automatic_optimization = False
         self.data = data
         ## Check for generation metrics
+        #TODO: how to integrate?
+        '''
         self.generation_metrics = {}
         if toolz.get_in(['generation'], validation) is not None:
             gen_metrics = validation['generation']['metrics'].keys()
@@ -134,19 +142,22 @@ class MoaiModule(L.LightningModule):
                     tmp = toolz.get_in([m], monitors.metrics[g]) or {}
                     if tmp:
                         self.generation_metrics[m] = tmp
+        '''
         ## Inner modules aka Models
         self.models = torch.nn.ModuleDict()
         for k in modules or {}:
             self.models[k] = hyu.instantiate(modules[k])
         ## Monad & Module Processing Graphs
-        self.graphs = torch.nn.ModuleDict()
-        monad_graphs, model_graphs = partition(lambda k: k in self.models, graphs or {})
-        for model_graph in model_graphs:
-            self.graphs[model_graph] = Models(models=self.models, **{model_graph: graphs[model_graph]})
-        for monad_graph in monad_graphs:
-            self.graphs[monad_graph] = Monads(monads=monads, **graphs[monad_graph])
+        self.flows = torch.nn.ModuleDict()
+        flows = select_dict(_moai_, Constants._FLOWS_)
+        monad_flows, model_flows = partition(lambda k: k in self.models, flows or {})
+        for model_flow in model_flows:
+            self.flows[model_flow] = Models(models=self.models, **{model_flow: flows[model_flow]})
+        for monad_flow in monad_flows:
+            self.flows[monad_flow] = Monads(monads=monads, **flows[monad_flow])
         ## Objectives
         self.named_objectives = torch.nn.ModuleDict()
+        # for k, v in select_dict(parameters,"optimization.objectives"): #NOTE: _moai_._objectives_
         for k in omegaconf.OmegaConf.select(parameters,"optimization.objectives") or {}:
             v = parameters.optimization.objectives[k]
             self.named_objectives[k] = _create_supervision_block(
@@ -159,6 +170,7 @@ class MoaiModule(L.LightningModule):
             self.named_metrics[k] = _create_validation_block(
                 omegaconf.OmegaConf.merge(validation, v)
             )
+        #NOTE: use masked_copy to keep only metrics w/ the key
         ## Tensor Monitors
         self.named_monitors = {}
         for k in toolz.get_in(['tensors'], monitors) or {}:
@@ -221,9 +233,9 @@ class MoaiModule(L.LightningModule):
             a(self, accessor(tensors))
 
     def predict_step(self,
-            batch:  typing.Dict[str, torch.Tensor],
-            batch_idx: int,
-            dataset_idx: int=0,
+        batch:  typing.Dict[str, torch.Tensor],
+        batch_idx: int,
+        dataset_idx: int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
         monitor = toolz.get_in(['predict', 'batch'], self.monitor) or []
         for stage, proc in self.process['predict']['batch'].items():
@@ -231,7 +243,7 @@ class MoaiModule(L.LightningModule):
             with torch.no_grad(): #TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
                 for step in steps:
-                    batch = self.graphs[step](batch)
+                    batch = self.flows[step](batch)
                 # predict step does 
                 if monitor:
                     # Metrics monitoring used only for serve
@@ -258,7 +270,7 @@ class MoaiModule(L.LightningModule):
             # def backward_fn(loss: torch.Tensor, optimizer: torch.optim.Optimizer) -> None:
                 # call._call_strategy_hook(self.trainer, "backward", loss, optimizer)        
             for step in steps:
-                tensors = self.graphs[step](tensors)
+                tensors = self.flows[step](tensors)
             loss, losses = self.named_objectives[objective](tensors)
             is_first_batch_to_accumulate = index % self.trainer.accumulate_grad_batches == 0
             if self.trainer.accumulate_grad_batches == 1 or not is_first_batch_to_accumulate:
@@ -275,7 +287,7 @@ class MoaiModule(L.LightningModule):
                 if tensor_monitor_steps and self.optimization_step % monitor['frequency'] == 0:
                     with torch.no_grad():
                         for step in toolz.get_in(['steps'], monitor) or []:
-                            self.graphs[step](tensors)
+                            self.flows[step](tensors)
                         extras = {
                             'step': self.global_step, 'epoch': self.current_epoch,
                             'optimization_step': self.optimization_step,
@@ -318,7 +330,7 @@ class MoaiModule(L.LightningModule):
                         with torch.no_grad():
                             # for iter in range(iters): #NOTE: is this necessary?
                             for step in steps:
-                                batch = self.graphs[step](batch)
+                                batch = self.flows[step](batch)
                 iter_monitor_stage = toolz.get_in(['fit', 'iter', stage], self.monitor)
                 if iter_monitor_stage is not None:
                     # for _, iter_monitor_stage in iter_monitor.items():                        
@@ -327,7 +339,7 @@ class MoaiModule(L.LightningModule):
                     iter_tensor_monitor = toolz.get('tensors', iter_monitor_stage)
                     if should_monitor and iter_tensor_monitor is not None:
                         for step in toolz.get('steps', iter_monitor_stage, None) or []:
-                            self.graphs[step](batch)
+                            self.flows[step](batch)
                         for metric in toolz.get('metrics', iter_monitor_stage, None) or []:
                             self.named_metrics[metric](batch)
                         extras = {
@@ -376,7 +388,7 @@ class MoaiModule(L.LightningModule):
             with torch.no_grad(): #TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
                 for step in steps:
-                    batch = self.graphs[step](batch)
+                    batch = self.flows[step](batch)
                 if monitor:
                     # Metrics monitoring
                     for metric in toolz.get('metrics', monitor, None) or []:
@@ -404,7 +416,7 @@ class MoaiModule(L.LightningModule):
             steps = proc['steps']
             with torch.no_grad():
                 for step in steps:
-                    batch = self.graphs[step](batch)
+                    batch = self.flows[step](batch)
                 for _, monitor_stage in monitor.items():
                     for metric in toolz.get('metrics', monitor_stage, None) or []:
                         self.named_metrics[metric](batch) #TODO add visualization
