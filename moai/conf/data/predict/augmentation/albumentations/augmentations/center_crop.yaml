@@ -1,0 +1,7 @@
+# @package data.predict.iterator.augmentation.augmentations._name_
+
+_target_: albumentations.augmentations.crops.transforms.CenterCrop
+height: ???
+width: ???
+always_apply: false
+p: 1.0

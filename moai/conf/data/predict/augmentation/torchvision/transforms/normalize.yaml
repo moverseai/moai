@@ -1,0 +1,6 @@
+# @package data.test.iterator.augmentation.transforms._name_
+
+_target_: torchvision.transforms.Normalize
+mean: ??? # sequence of means for each channel.
+std: ??? # sequence of standard deviations for each channel.
+inplace: false

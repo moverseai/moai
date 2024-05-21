@@ -19,6 +19,16 @@ model:
           target: [predicted_label]
           preds: [predicted_label]
           out: [accuracy]
+    tensors:
+      save_image_batch:
+        image2d:
+          modality: [color] # or depth
+          colormap: [none] # bone, etc.
+          transform: [none] # minmax, etc.
+          mode: [overwrite] # [all, overwrite]
+          keys: [color]
+          path: .
+          extension: [png] # [png, exr, jpg]
         
       
     # tensors:

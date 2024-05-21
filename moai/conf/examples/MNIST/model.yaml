@@ -104,6 +104,8 @@ model:
           batch:
             metrics:
               - predict_class_acc
+            tensors: # used for visualization & exporting
+              - save_image_batch
 
 
 
