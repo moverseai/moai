@@ -1,0 +1,5 @@
+# @package data.test.iterator.augmentation
+
+_target_: moai.data.augmentation.torchvision.Combine
+inputs: ??? # list of input keys
+outputs: ??? # list of corresponding output keys

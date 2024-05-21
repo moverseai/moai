@@ -5,6 +5,6 @@ type: [color] # or depth
 colormap: [none] # bone, etc.
 transform: [none] # minmax, etc.
 mode: overwrite # [all, overwrite]
-image: ???
+keys: ???
 path: ???
 extension: ??? # [png, exr, jpg]

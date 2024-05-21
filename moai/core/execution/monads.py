@@ -57,5 +57,5 @@ class Monads(torch.nn.ModuleDict):
             if kwargs:
                 tensors[out] = self[key](**toolz.valmap(lambda v: tensors[v], kwargs))
             else:
-                self[key](tensors)
+                tensors[out] = self[key](tensors)
         return tensors

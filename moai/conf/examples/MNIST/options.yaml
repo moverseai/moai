@@ -31,7 +31,3 @@ fitter:
 
 logging:
   name: ${experiment.name}
-  # loggers:
-  #   visdom:
-  #     name: ${experiment.name}
-  #     ip: ${experiment.visdom_ip}

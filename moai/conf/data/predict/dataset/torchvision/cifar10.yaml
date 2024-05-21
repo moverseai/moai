@@ -1,0 +1,6 @@
+# @package data.predict.iterator.datasets._name_
+
+_target_: moai.data.datasets.torchvision.CIFAR10
+root_path: ${DATA_ROOT}
+download: true
+split: test

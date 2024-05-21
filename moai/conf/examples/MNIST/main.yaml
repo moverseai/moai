@@ -11,7 +11,6 @@ defaults:
 
   - engine/checkpoint/lightning: default
 
-
   # ###### DATA
   - data/train/loader: torch
   - data/train/iterator: indexed
@@ -19,15 +18,21 @@ defaults:
   - data/train/dataset/torchvision: mnist
 
   - data/val/loader: torch
-  - data/val/iterator: indexed
+  # - data/val/iterator: indexed
   - data/val/augmentation: none
-  - data/val/dataset/torchvision: mnist
+  - data/val/dataset/torchvision: [mnist, mnist_2]
   
   
   - data/test/loader: torch
   # - data/test/iterator: indexed
   - data/test/augmentation: none
   - data/test/dataset/torchvision: mnist
+  # - data/test/dataset/torchvision: [mnist, mnist_2]
+
+  - data/predict/loader: torch
+  # - data/test/iterator: indexed
+  - data/predict/augmentation: none
+  - data/predict/dataset/torchvision: mnist
   # - data/test/dataset/torchvision: [mnist, mnist_2]
 
   # ###### MODEL
@@ -53,6 +58,11 @@ defaults:
   # ###### VALIDATION
   - model/validation: collection
   - model/validation/metric/torchmetrics/classification: [multiclass_f1, multiclass_acc]
+
+  ###### EXPORTERS
+  - engine/export: collection
+  - engine/monitor/exporting/local: image2d
+
 
   # ###### EXTRA FILES
   - model
