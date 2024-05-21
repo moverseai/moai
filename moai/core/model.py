@@ -225,7 +225,6 @@ class MoaiModule(L.LightningModule):
             batch_idx: int,
             dataset_idx: int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
-        log.info(f"Predicting batch {batch_idx} ...")
         monitor = toolz.get_in(['predict', 'batch'], self.monitor) or []
         for stage, proc in self.process['predict']['batch'].items():
             steps = proc['steps']
@@ -238,6 +237,17 @@ class MoaiModule(L.LightningModule):
                     # Metrics monitoring used only for serve
                     for metric in toolz.get('metrics', monitor, None) or []:
                         self.named_metrics[metric](batch)
+                    # Tensor monitoring for visualization & exporting
+                    tensor_monitors = toolz.get('tensors', monitor, None) or []
+                    for tensor_monitor in tensor_monitors:
+                        extras = {
+                            'stage': 'predict',
+                            'step': self.global_step,
+                            'batch_idx': batch_idx,
+                            'optimization_step': 0, #TODO: add this for fitting case
+                        }
+                        #TODO: What extras should be passed here?
+                        self.named_monitors[tensor_monitor](batch, extras)
 
     def training_step(self, 
         batch:                  typing.Dict[str, torch.Tensor],
@@ -384,6 +394,7 @@ class MoaiModule(L.LightningModule):
         batch_nb:           int,
         dataloader_idx:   int=0,
     ) -> None:
+        batch = benedict.benedict(batch, keyattr_enabled=False)
         if not hasattr(self.data, 'val'):
             log.warning("Validation data missing. An empty validation set will be used.")
             return
@@ -444,26 +455,26 @@ class MoaiModule(L.LightningModule):
     def predict_dataloader(self) -> torch.utils.data.DataLoader:
         #NOTE: instead of predict loader use testing or val?
         # check if key val is in struct
-        if not hasattr(self.data, 'val'):
-            log.warning("Validation data missing. An empty validation set will be used.")
-            validation_loaders = [torch.utils.data.DataLoader(Empty())]
-            return validation_loaders
-        if hasattr(self.data.val.iterator, '_target_'):
-            log.info(f"Instantiating ({self.data.val.iterator._target_.split('.')[-1]}) validation set data iterator")
-            val_iterators = [hyu.instantiate(self.data.val.iterator, _recursive_=False)]
+        if not hasattr(self.data, 'predict'):
+            log.warning("Predict data missing. An empty predict set will be used.")
+            predict_loaders = [torch.utils.data.DataLoader(Empty())]
+            return predict_loaders
+        if hasattr(self.data.predict.iterator, '_target_'):
+            log.info(f"Instantiating ({self.data.predict.iterator._target_.split('.')[-1]}) prediction set data iterator")
+            predict_iterators = [hyu.instantiate(self.data.predict.iterator, _recursive_=False)]
         else:
-            val_iterators = [Indexed(
-                {k: v }, # self.data.val.iterator.datasets,
-                self.data.val.iterator.augmentation if hasattr(self.data.val.iterator, 'augmentation') else None,
-            ) for k, v in self.data.val.iterator.datasets.items()]
-        if not hasattr(self.data.val, 'loader'):
-            log.error("Validation data loader missing. Please add a data loader (i.e. \'- data/val/loader: torch\') entry in the configuration.")
+            predict_iterators = [Indexed(
+                {k: v },
+                self.data.predict.iterator.augmentation if hasattr(self.data.predict.iterator, 'augmentation') else None,
+            ) for k, v in self.data.predict.iterator.datasets.items()]
+        if not hasattr(self.data.predict, 'loader'):
+            log.error("Prediction data loader missing. Please add a data loader (i.e. \'- data/predict/loader: torch\') entry in the configuration.")
         else:
-            validation_loaders = [
-                hyu.instantiate(self.data.val.loader, val_iterator, _recursive_=False)
-                for val_iterator in val_iterators
+            prediction_loaders = [
+                hyu.instantiate(self.data.predict.loader, predict_iterator, _recursive_=False)
+                for predict_iterator in predict_iterators
             ]
-        return validation_loaders
+        return prediction_loaders
 
     def test_dataloader(self) -> torch.utils.data.DataLoader:
         if hasattr(self.data.test.iterator, '_target_'):

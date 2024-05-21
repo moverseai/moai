@@ -49,7 +49,11 @@ def run(cfg):
         log.info("Evaluation finished.")
     elif cfg.action == "predict":
         log.info("Prediction started.")
-        fitter.predict(model)
+        ckpt_path = cfg.get('ckpt_path', None)
+        #TODO: check how can we have different intialisation for test, train, etc.
+        if ckpt_path is None:
+            log.warning("No checkpoint path provided, test will be done with custom initialisation if present.")
+        fitter.predict(model, ckpt_path=ckpt_path)
         log.info("Prediction finished.")
     elif cfg.action == "fit":
         log.info("Fitting started.")

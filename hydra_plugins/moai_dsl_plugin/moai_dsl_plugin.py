@@ -25,12 +25,11 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 #       dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y)), 
 #       einsum, matrix ops (inverse&transpose)
 #       lin/logspace, (a)range, lerp
-#       full(_like)
-#       (un)flatten,
+#       full(_like) [maybe obsolete cause of number math], unflatten (tricky),
 #       sigmoid, softmax, mean, std, var,
 #       cartesian product, cdist, covariance, cum(sum/prod),
-#       flip, normalize, roll, multi_dot, 
-#       abs/trig/angles/fused math/clamp/floor/ceil
+#       flip, normalize, roll, multi_dot, norm,
+#       angles/fused math/clamp/floor/ceil
 
 __MOAI_GRAMMAR__ = """
 
@@ -65,10 +64,10 @@ __MOAI_GRAMMAR__ = """
         | "rand" "(" NUMBER ("," NUMBER)* ")" -> rand
         | "randn" "(" NUMBER ("," NUMBER)* ")" -> randn
 
-    // ?index: NUMBER | "-" NUMBER
+    ?index: MINUS1 | MINUS2 | MINUS3 | MINUS4 | SIGNED_INT
     ?indices: "[" INT ("," INT)* "]"
-    ?slice: SIGNED_INT? ":" SIGNED_INT?
-    ?slicing: ALL | ELLIPSIS | SIGNED_INT | NEWAXIS | indices | slice
+    ?slice: index? ":" index?
+    ?slicing: ALL | ELLIPSIS | index | NEWAXIS | indices | slice
         
     ?primary: "-" NUMBER
         | "-" name                          -> neg
@@ -77,21 +76,39 @@ __MOAI_GRAMMAR__ = """
         | "exp" "(" expr ")"                -> exp
         | "log" "(" name ")"                -> log
         | "log" "(" expr ")"                -> log
+        | "abs" "(" name ")"                -> abs
+        | "abs" "(" expr ")"                -> abs
+        | "cos" "(" name ")"                -> cos
+        | "cos" "(" expr ")"                -> cos        
+        | "acos" "(" name ")"               -> acos
+        | "acos" "(" expr ")"               -> acos
+        | "sin" "(" name ")"                -> sin
+        | "sin" "(" expr ")"                -> sin
+        | "asin" "(" name ")"               -> asin
+        | "asin" "(" expr ")"               -> asin
+        | "tan" "(" name ")"                -> tan
+        | "tan" "(" expr ")"                -> tan
+        | "atan" "(" name ")"               -> atan
+        | "atan" "(" expr ")"               -> atan
+        | "deg" "(" name ")"                -> rad2deg
+        | "deg" "(" expr ")"                -> rad2deg
+        | "rad" "(" name ")"                -> deg2rad
+        | "rad" "(" expr ")"                -> deg2rad
         | "reciprocal" "(" name ")"         -> reciprocal
         | "reciprocal" "(" expr ")"         -> reciprocal
         | NUMBER                            -> number        
         | name                              -> extract        
-        | "cat" "(" names "," NUMBER ")"    -> cat
-        | "stack" "(" names "," NUMBER ")"  -> stack        
-        | "view" "(" name "," NUMBER ("," NUMBER)* ")"  -> reshape
-        | "transpose" "(" name "," NUMBER ("," NUMBER)* ")"  -> transpose
-        | "flatten" "(" name "," NUMBER ["," NUMBER] ")"  -> flatten
+        | "cat" "(" names "," SIGNED_INT ")"    -> cat
+        | "stack" "(" names "," SIGNED_INT ")"  -> stack        
+        | "view" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")"  -> reshape
+        | "transpose" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")"  -> transpose
+        | "flatten" "(" name "," SIGNED_INT ["," SIGNED_INT] ")"  -> flatten
         | "zeros" "(" name ")"              -> zeros_like
         | "ones" "(" name ")"               -> ones_like
         | "rand" "(" name ")"               -> rand_like
         | "randn" "(" name ")"              -> randn_like
-        | "unsq" "(" name "," NUMBER ("," NUMBER)* ")" -> unsqueeze
-        | "sq" "(" name ("," NUMBER)* ")" -> squeeze
+        | "unsq" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")" -> unsqueeze
+        | "sq" "(" name ("," SIGNED_INT)* ")" -> squeeze
         | name "[" slicing ("," slicing)* "]" -> slicing
         | "(" expr ")"
     
@@ -99,7 +116,11 @@ __MOAI_GRAMMAR__ = """
 
     ALL: ":"
     ELLIPSIS: "..."
-    NEWAXIS: "new"    
+    NEWAXIS: "new"
+    MINUS1: "-1"
+    MINUS2: "-2"
+    MINUS3: "-3"
+    MINUS4: "-4"
 
     %import common.CNAME -> FIELD
     %import common.NUMBER

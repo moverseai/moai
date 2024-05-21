@@ -158,27 +158,29 @@ class BatchMonitor(L.Callback):
                     scalar_metrics.items()
                 )
             )
-            module.scalar_metrics[datasets[dataloader_idx]].append( # format: dataset/named_metric
-                toolz.valmap(
-                    lambda x: x.detach().cpu().numpy(),
-                    dataset_val_metrics[datasets[dataloader_idx]]
+            if len(scalar_metrics.keys()) > 0:
+                module.scalar_metrics[datasets[dataloader_idx]].append( # format: dataset/named_metric
+                    toolz.valmap(
+                        lambda x: x.detach().cpu().numpy(),
+                        dataset_val_metrics[datasets[dataloader_idx]]
+                    )
                 )
-            )
-            scalar_metrics["epoch"] = module.current_epoch
-            module.log_dict(scalar_metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                scalar_metrics["epoch"] = module.current_epoch
+                module.log_dict(scalar_metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
             non_scalar_metrics = toolz.keymap(
                 lambda k: f'{datasets[dataloader_idx]}/{k}', 
                 toolz.valfilter(lambda x: len(x.shape) > 0, batch['metrics'])
             )
-            module.non_scalar_metrics[datasets[dataloader_idx]].append(
-                toolz.valmap(
-                    lambda x: x.detach().cpu().numpy(),
-                    toolz.keymap(
-                        lambda k: k.split("/")[1],
-                        non_scalar_metrics
+            if len(non_scalar_metrics.keys()) > 0:
+                module.non_scalar_metrics[datasets[dataloader_idx]].append(
+                    toolz.valmap(
+                        lambda x: x.detach().cpu().numpy(),
+                        toolz.keymap(
+                            lambda k: k.split("/")[1],
+                            non_scalar_metrics
+                        )
                     )
                 )
-            )
 
     @torch.no_grad
     def on_validation_epoch_end(self, 
@@ -190,17 +192,18 @@ class BatchMonitor(L.Callback):
         all_features = {}
         all_metrics = {}
         log_all_metrics = defaultdict(list)
-        for i, dataset in enumerate(module.scalar_metrics):
-            all_scalar_metrics[dataset] = {}
-            all_scalar_metrics[dataset]['epoch'] = module.current_epoch
-            o = module.scalar_metrics[dataset]
-            keys = next(iter(o), { }).keys()
-            for key in keys:
-                all_scalar_metrics[dataset][key] = np.mean(np.array(
-                    [d[key].item() for d in o if key in d]
-                ))
-                log_all_metrics[key].append(all_scalar_metrics[dataset][key])
-        module.scalar_metrics.clear()  # free memory
+        if module.scalar_metrics:
+            for i, dataset in enumerate(module.scalar_metrics):
+                all_scalar_metrics[dataset] = {}
+                all_scalar_metrics[dataset]['epoch'] = module.current_epoch
+                o = module.scalar_metrics[dataset]
+                keys = next(iter(o), { }).keys()
+                for key in keys:
+                    all_scalar_metrics[dataset][key] = np.mean(np.array(
+                        [d[key].item() for d in o if key in d]
+                    ))
+                    log_all_metrics[key].append(all_scalar_metrics[dataset][key])
+            module.scalar_metrics.clear()  # free memory
         
         if module.non_scalar_metrics:
             for i, dataset in enumerate(module.non_scalar_metrics):
@@ -230,7 +233,9 @@ class BatchMonitor(L.Callback):
                                     pred=torch.from_numpy(all_features[dataset][div_metric['pred'][elem]]),
                             ).item()
                         log_all_metrics[f"{div_metric['out'][elem]}"].append(all_non_scalar_metrics[dataset][f"{div_metric['out'][elem]}"])
-                all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])
+                all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])\
+                                                        if len(all_scalar_metrics.keys()) > 0\
+                                                        else all_non_scalar_metrics[dataset]
             module.non_scalar_metrics.clear()
         for dataset in all_metrics.keys():
             ds = tablib.Dataset(headers=all_metrics[dataset].keys()) if module.current_epoch < 1 else tablib.Dataset(headers=False)
