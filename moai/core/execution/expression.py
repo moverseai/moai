@@ -574,7 +574,8 @@ class TreeModule(torch.nn.Module, Transformer):
         return key
     
     def extract(self, name):
-        key = self._extract_key(name)    
+        key = self._extract_key(name)
+        #TODO: add a set cache for the extracted keys to avoid duplicate ops
         self.seq.add_module(f"extract{self.extracted}", NamedTensor(key, self.extracted))
         self.extracted += 1
         return key
@@ -675,7 +676,7 @@ class TreeModule(torch.nn.Module, Transformer):
         # self.index += 1
 
     def squeeze(self, key, *dims):
-        if not isinstance(key, str): #NOTE: is lark.Tree
+        if not isinstance(key, str) or isinstance(key, Token): #NOTE: is lark.Tree
             key = self.extract(key)        
         dims = list(map(int, dims))
         # if len(dims) == 1:
@@ -683,7 +684,14 @@ class TreeModule(torch.nn.Module, Transformer):
         # elif len(dims) == 0:
         if len(dims) == 0:
             dims = None
-        self._transform_operation('squeeze', key, dims)
+            self._transform_operation('squeeze', str(key), dims)
+        # self._transform_operation('squeeze', key, dims)
+        else:        
+            first, *rest = dims
+            self._transform_operation('squeeze', str(key), [first])
+            for dim in rest:
+                key = self.results.pop()
+                self._transform_operation('squeeze', key, [dim])
         # m = TransformOperationTensors('squeeze', key, dims, self.index)
         # self.seq.add_module(f'squeeze{self.index}', m)
         # self.results.append(f'result{self.index}')

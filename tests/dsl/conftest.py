@@ -45,7 +45,8 @@ def shaped_tensors_cuda():
         'five': torch.scalar_tensor(5).cuda(),
         'onedim': {
             'threes': torch.tensor([[3] * 6]).cuda().double()
-        }
+        },
+        'fourdims': torch.scalar_tensor(1)[np.newaxis][np.newaxis][np.newaxis][np.newaxis]
     })
 
 @pytest.fixture

@@ -208,6 +208,15 @@ class TestDSL:
         expression = "sq(onedim.threes)"
         x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         assert len(x.shape) == 1
+        expression = "sq(fourdims, 0, 0)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        assert len(x.shape) == 2
+        expression = "sq(fourdims, 0, 0, 0)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        assert len(x.shape) == 1
+        expression = "sq(fourdims, 0, 0, 0, 0)"
+        x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
+        assert len(x.shape) == 0
         # expression = "unsq(unsq(onedim.threes, 0), 0)"
         # x = self._parse_and_run(parser, expression, shaped_tensors_cuda)
         # assert len(x.shape) == 4 and x.shape[0] == 1
