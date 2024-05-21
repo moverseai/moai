@@ -40,7 +40,7 @@ class Models(torch.nn.ModuleDict):
                     if isinstance(v, lark.Tree):
                         tmp_key = f"{key}{i}/{k}{j}"
                         self.add_module(tmp_key, mie.TreeModule(tmp_key, v))
-                        self.execs.append((module, tmp_key, None))
+                        self.execs.append((self[tmp_key], tmp_key, None))
                         params[k] = tmp_key
                 self.execs.append((module, params['out'], toolz.dissoc(params, 'out')))
 
