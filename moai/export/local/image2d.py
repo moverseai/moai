@@ -226,7 +226,7 @@ def save_image(
     colorize_map = { "none": lambda x: x.cpu().numpy() }
     colorize_map.update(mic.COLORMAPS)
     mode = ensure_choices(log, "saving mode", mode, Image2d.__MODES__)
-    formats = [ensure_choices(log, "output format", ext, Image2d.__FORMATS__) for ext in extension]
+    formats = [ensure_choices(log, "output format", ext, Image2d.__FORMATS__) for ext in extensions]
     for k, t, tf, c, f in zip(
             keys,
             modalities,
