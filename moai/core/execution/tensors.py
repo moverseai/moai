@@ -20,7 +20,7 @@ class Tensors():
             target = tensors[k]
             operation = hyu.instantiate(target, **override_params)
             signature = inspect.signature(operation)
-            extras = mic.__PRESET_ARGS__.intersection(signature.parameters.keys())            
+            extras = mic.__PRESET_ARGS__.intersection(signature.parameters.keys())
             #NOTE: operate should change to partial func call
             if mic._is_first_arg_tensor_dict(next(iter(signature.parameters.values()))):# signature.parameters[next(iter(args))]):
                 args = set(toolz.drop(1, signature.parameters.keys())) - mic.__PRESET_ARGS__
