@@ -225,6 +225,8 @@ class MoaiModule(L.LightningModule):
             batch_idx: int,
             dataset_idx: int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
+        log.info(f"Predicting batch {batch_idx} ...")
+        batch = benedict.benedict(batch, keyattr_enabled=False)
         monitor = toolz.get_in(['predict', 'batch'], self.monitor) or []
         for stage, proc in self.process['predict']['batch'].items():
             steps = proc['steps']

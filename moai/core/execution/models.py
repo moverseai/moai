@@ -51,5 +51,5 @@ class Models(torch.nn.ModuleDict):
             if kwargs:
                 tensors[out] = module(**toolz.valmap(lambda v: tensors[v], kwargs))
             else:
-                module(tensors)
+                tensors[out] = module(tensors)
         return tensors

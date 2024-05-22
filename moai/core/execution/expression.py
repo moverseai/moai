@@ -222,8 +222,9 @@ class TreeModule(torch.nn.Module, Transformer):
         tmp = benedict.benedict({})
         for m in self.seq:            
             m(tensors, tmp) # tensors, tmp = m(tensors, tmp)
-        tensors[self.key] = tmp[f'result{m.index}' if m.index >= 0 else m.key]        
-        return tensors #NOTE: what if only extracted?
+        return tmp[f'result{m.index}' if m.index >= 0 else m.key]        
+        # tensors[self.key] = tmp[f'result{m.index}' if m.index >= 0 else m.key]        
+        # return tensors #NOTE: what if only extracted?
 
     def number(self, value):
         return float(value.value) # torch.scalar_tensor(float(value.value), dtype=torch.float32)
