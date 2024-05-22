@@ -1,29 +1,29 @@
 try:
-    from moai.action.train import train
-    from moai.action.evaluate import evaluate
-    from moai.action.play import play
+    # from moai.action.train import train
+    # from moai.action.evaluate import evaluate
+    # from moai.action.play import play
     from moai.action.diff import diff
     from moai.action.plot import plot
-    from moai.action.reprod import reprod
-    from moai.action.fit import fit
+    # from moai.action.reprod import reprod
+    # from moai.action.fit import fit
     from moai.action.archive import archive
     from moai.action.export import export
     from moai.action.resume import resume
     from moai.action.run import run
 except:
-    from action.train import train
-    from action.evaluate import evaluate
-    from action.play import play
+    # from action.train import train
+    # from action.evaluate import evaluate
+    # from action.play import play
     from action.diff import diff
     from action.plot import plot
-    from action.reprod import reprod
-    from action.fit import fit
+    # from action.reprod import reprod
+    # from action.fit import fit
     from action.archive import archive
     from action.export import export
     from action.resume import resume
     from action.run import run
 
-import omegaconf.omegaconf
+# import omegaconf.omegaconf
 import hydra
 import logging
 import sys
@@ -49,14 +49,14 @@ def debug(cfg):
     log.info(cfg)
 
 __MODES__ = {
-    'train': train,
-    'evaluate': evaluate,
-    'play': play,
+    # 'train': train,
+    # 'evaluate': evaluate,
+    # 'play': play,
     'diff': diff,
     'plot': plot,
     'debug': debug,
-    'reprod': reprod,
-    'fit': fit,
+    # 'reprod': reprod,
+    # 'fit': fit,
     'archive': archive,
     'export': export,
     'resume': resume,
@@ -78,12 +78,12 @@ __MIN_ARGS_COUNT__ = {
     'run': 2,
 }
 
-def run(cfg: omegaconf.DictConfig) -> None:
-    reprod_key = "reprod"
-    if not reprod_key in cfg:
-        __MODES__[cfg.mode](cfg)
-    else:
-        __MODES__[cfg.reprod](cfg)
+# def run(cfg: omegaconf.DictConfig) -> None:
+#     reprod_key = "reprod"
+#     if not reprod_key in cfg:
+#         __MODES__[cfg.mode](cfg)
+#     else:
+#         __MODES__[cfg.reprod](cfg)
 
 def moai():
     # os.environ['HYDRA_FULL_ERROR'] = '1'

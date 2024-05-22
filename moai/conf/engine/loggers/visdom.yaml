@@ -1,0 +1,6 @@
+# @package engine.runner.loggers.visdom
+
+_target_: moai.log.lightning.loggers.Visdom
+name: ${experiment.name}
+ip: "localhost"
+clear_window: false

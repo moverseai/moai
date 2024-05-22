@@ -34,11 +34,11 @@ def run(cfg):
         _moai_=select(cfg, Constants._MOAI_),
         _recursive_=False
     )
-    for name, remodel in (assign(cfg ,"remodel") or {}).items():
-        hydra.utils.instantiate(remodel)(model)
+    # for name, remodel in (assign(cfg ,"remodel") or {}).items():
+    #     hydra.utils.instantiate(remodel)(model)
     #NOTE: why do we need to pass model a
     runner = hydra.utils.instantiate(cfg.engine.runner, 
-        logging=assign(cfg, "logging"),
+        #logging=assign(cfg, "logging"),
         model_callbacks=ModelCallbacks(model=model),
         _recursive_=False
     )
@@ -71,9 +71,9 @@ def run(cfg):
     else:
         log.error(f"Action {cfg.action} not recognized.")
 
-if __name__ == "__main__":
-    # os.environ['HYDRA_FULL_ERROR'] = '1'
-    config_filename = sys.argv.pop(1) #TODO: argparser integration?
-    sys.argv.append("hydra.run.dir=actions/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}")
-    run = hydra.main(config_path="conf", config_name=config_filename, version_base='1.3')(run)
-    run()
+# if __name__ == "__main__":
+#     # os.environ['HYDRA_FULL_ERROR'] = '1'
+#     config_filename = sys.argv.pop(1) #TODO: argparser integration?
+#     sys.argv.append("hydra.run.dir=actions/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}")
+#     run = hydra.main(config_path="conf", config_name=config_filename, version_base='1.3')(run)
+#     run()

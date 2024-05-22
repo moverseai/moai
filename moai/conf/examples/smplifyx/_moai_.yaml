@@ -1,103 +1,91 @@
 # @package _global_
 
-_helpers_:
-  optimizer_common: &lbfgsls
-    type: lbfgsls
-    params:
-      max_iter: 30
-      lr: 1.0
-
-_moai_:
-  _flows_:
-    initialize_translation:
-      joints2d: [keypoints]
-      joints3d: [body.joints]
-      out: [init_trans]
-    preprocess:
-      embedding:
-        void: [color]
-        out: [embedding]
-      translation:
-        void: 
-          # - color
-          - ${mi:"color -1"}
-        out: [translation]
-      betas:
-        void: [color]
-        out: [betas]
-      vposer2:
-        decode: [embedding]
-        out: [decoded]
-      smplx:
-        pose: [decoded.pose]
-        shape: [betas]
-        out: [body]
-    postprocess:
-      weak_perspective_camera:
-        points: [body.joints]
-        translation: [translation]
-        image: [color]
-        out: [joints2d]
-      index:
-        tensor: [joints2d, keypoints]
-        out: [torso_joints2d, torso_keypoints]
-      binary:
-        tensor: [init_trans]
-        out: [z_mask]
-      openpose_split:
-        joints: [joints2d, keypoints, confidence]
-        out: [split_joints2d, split_keypoints, split_confidence]
-  _collections_:
-    _objectives_:
+_moai_:  
+  _run_:
+    fit:
+      batch:
+        initialize_torso:
+          steps: # graphs
+            - preprocess
+            - initialize_translation
         initial_torso_fit:
-          # iterations: 30
-          # optimizer: lbfgsls
-          # selectors: global
-          # objective:
-            L2:
-              gt: [torso_keypoints, init_trans]
-              pred: [torso_joints2d, translation]
-              mask: [null, z_mask]
-              weight: [0.0625, 10000]
-              reduction: [sum, sum]
-              out: [L2_torso, L2_z]
-        fine_fit_stage1:
-          # iterations: 30
-          # optimizer: lbfgsls
-          # selectors: [expressive]
+          iterations: 5
+          optimizer: initial_torso_fit
           # scheduler: null
-          # objective:
-            gm:
-              gt: [split_keypoints.body, split_keypoints.face, split_keypoints.hands]
-              pred: [split_joints2d.body, split_joints2d.face, split_joints2d.hands]
-              weights: [split_confidence.body, split_confidence.face, split_confidence.hands]
-              reduction: [sum, sum, sum] 
-              weight: 
-                - ${smplifyx.W.S1.w_joint}
-                - ${smplifyx.W.S1.w_face}
-                - ${smplifyx.W.S1.w_hand}
-              out: [gm_j2d, gm_face, gm_hands]
-            L2:
-              # gt: [null]
-              pred: [embedding, body.betas, body.left_hand, body.right_hand, body.expression, body.jaw]
-              reduction: [sum, sum, sum, sum, sum, sum]              
-              weight: 
-                - ${smplifyx.W.S1.w_pose}
-                - ${smplifyx.W.S1.w_shape}
-                - ${smplifyx.W.S1.w_hand_s}
-                - ${smplifyx.W.S1.w_hand_s}
-                - ${smplifyx.W.S1.w_exp_s}
-                - ${smplifyx.W.S1.w_jaw_s}
-              out: [vposer, shape, lhand, rhand, expr, jaw]
-            hinge_joint_prior:
-              pose: [body.expressive]
-              out: [bend]
-              weight: 
-                - ${smplifyx.W.S1.w_bend}
-    _optimizers_:
-      initial_torso_fit: 
-        <<: *lbfgsls      
-        groups: expressive # global
-      fine_fit_stage1:
-        <<: *lbfgsls
-        groups: expressive # [global, expressive]    
+          steps:
+            - preprocess
+            - postprocess
+          objective: initial_torso_fit              
+      # epoch:
+      #   termination: 
+        # - milestone: 30
+        #   batch:
+        #     initialize_torso:
+        #       steps: # graphs
+        #         - preprocess
+        #         - initialize_translation
+        #     initial_torso_fit:
+        #       iterations: 5
+        #       optimizer: initial_torso_fit
+        #       # scheduler: null
+        #       steps:
+        #         - preprocess
+        #         - postprocess
+        #       objective: initial_torso_fit
+        # - milestone: 40
+        #   batch:                  
+        #     initial_torso_fit:
+        #       iterations: 1
+        #       optimizer: initial_torso_fit
+        #       # scheduler: null
+        #       steps:
+        #         - preprocess
+        #       objective: initial_torso_fit
+    # predict:
+    val:
+      batch:
+        openpose: 
+      #   dataset1: &val
+      #     metrics: [rmse, fid]
+      #     steps: [autoencode, sample]
+      #     termination: []
+      #     tensors: [show_autoencoded]
+      #   dataset2:
+      #     metrics: [rmse]
+      #     steps: [autoencode]
+      #     termination: [bad_fit]
+      #     tensors: [show_autoencoded]
+      # epoch:
+      #   metrics: []
+      #   steps: [traversal]
+      #   termination: []
+      #   tensors: [show_traversals]
+    # test:
+  # _monitoring_:
+  #   fit:
+  #     step:
+  #       initial_torso_fit:
+  #         frequency: 1
+  #         # steps:
+  #           # - show_mesh
+  #         tensors:
+  #           - save_params
+  #           - show_mesh_step
+  #     iter:
+  #       initial_torso_fit:
+  #         frequency: 1
+  #         # steps:
+  #           # - show_mesh
+  #         tensors:
+  #           - show_mesh_iter
+  #         metrics:
+  #           - fit_quality
+  #         termination: [bad_fit]
+  #     batch:
+  #       log_results:
+  #         frequency: 1
+  #         # steps: []
+  #         metrics:
+  #           - fit_quality
+  #         tensors:
+  #           - show_mesh_batch

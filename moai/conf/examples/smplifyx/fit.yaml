@@ -1,20 +1,8 @@
 defaults:
   ###### ENGINE
   - engine/runner: lightning
-  # - lightning: runner
-  # - engine/fit: lightning
   - engine/modules: [manual_seed, rerun]
-  # - engine/modules: 
-
-  - engine/visualization: collection
-  # - engine/visualization/visdom: vector
-
-  - engine/export: collection
-  - engine/export/exporter: pkl
-
-  - engine/log/lightning: collection
-  # - engine/log/lightning/logger: visdom
-  - engine/log/lightning/logger: tabular
+  - engine/loggers: tabular
 
   # ###### DATA  
   - data/train/loader: torch
@@ -34,52 +22,32 @@ defaults:
 
   # ###### MODEL 
   - model: moai # manual
-  # - model/monads/human/body: init_translation
   - model/monads/human/body: [initialize_translation, smplx]
-  - remodel: module_mode
+  - model/modifications: forward_mode
 
-  # - model/feedforward: preprocess
   - examples/smplifyx/embedding
   - examples/smplifyx/translation
   - examples/smplifyx/betas
   # - model/monads/human/body: smplx
   - model/monads/human/body/prior: vposer2
 
-  # - model/feedforward: postprocess 
   - model/monads/masking: [index, binary]  
   - model/monads/geometry/projection: weak_perspective_camera
   - model/monads/human/pose/openpose: split
-
-  # - model/parameters/initialization: cascade
-  # - model/parameters/initialization/custom: vposer2
-  # - model/parameters/initialization/scheme: zero_params
-  # - model/parameters/optimization/optimizer: lbfgsls
-  # - model/parameters/selectors/human/body: [global, expressive]
-  # - model/parameters/optimization/criteria: rmse
 
   - model/_parameters/initialization: cascade
   - model/_parameters/initialization/custom: vposer2
   - model/_parameters/initialization/scheme: zero_params
   - model/parameters/optimizers: lbfgsls
-  # - model/parameters/groups/human/body: [global, expressive]
-  - model/parameters/groups/human/body: [expressive]
+  - model/parameters/groups/human/body: [global, expressive]
   - model/parameters/criteria: rmse
-
-  # - model/parameters/regularization: none
-
-  # - model/supervision: weighted
-  # - model/supervision/loss/regression: L2
-  # - model/supervision/loss/regression/robust: gm
-  # - model/supervision/loss/human/body: hinge_joint_prior
-  # - model/supervision/loss/mesh: interpenetration
 
   - model/objectives/regression: L2
   - model/objectives/regression/robust: gm
   - model/objectives/human/body: hinge_joint_prior
   - model/objectives/mesh: interpenetration
 
-  # - model/validation: collection
-  # - model/validation/metric: rmse
+  - model/metrics: rmse
 
   - engine/monitors/exporting/local: [pkl, append_pkl]
   - engine/monitors/visualization/rerun: [mesh, mesh3d]
@@ -87,8 +55,10 @@ defaults:
   - data
   - options
   - model
-  - metrics
+  - monitoring # metrics
   - objective
+  - flows
+  - optimization
   - _moai_
   
   - override hydra/hydra_logging: colorlog

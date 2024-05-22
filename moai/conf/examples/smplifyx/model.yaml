@@ -1,10 +1,5 @@
 # @package _global_
 
-remodel:
-  module_mode:
-    modules:
-      graphs.preprocess.vposer2: eval
-
 model:  
   # configuration:
   #   mode: inference
@@ -49,6 +44,12 @@ model:
       num_betas: ${BETAS}
     index:
       indices: [9, 12, 2, 5]
+
+  modifications:
+    forward_mode:
+      monads:
+        preprocess.vposer2: eval
+
   # graphs: # feedforward:
   #   initialize_translation:
   #     joints2d: [keypoints]

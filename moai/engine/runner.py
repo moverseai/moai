@@ -423,7 +423,8 @@ class BatchMonitor(L.Callback):
 class LightningRunner(L.Trainer):
     def __init__(
         self,
-        logging: omegaconf.DictConfig = None,
+        # logging: omegaconf.DictConfig = None,
+        loggers: omegaconf.DictConfig = None,
         checkpoint: omegaconf.DictConfig = None,
         regularization: omegaconf.DictConfig = None,
         callbacks: omegaconf.DictConfig = None,
@@ -495,17 +496,17 @@ class LightningRunner(L.Trainer):
         gradient_tolerance: float = 1e-9,
         **kwargs,
     ):
-        if (
-            logging and "_target_" not in logging
-        ):  # TODO: needs a workaround for other viz types (e.g. not visdom) if they are moved to top level
-            # TODO: wrap config field setting into a helper method
-            omegaconf.OmegaConf.set_struct(logging, False)
-            logging["_target_"] = "moai.log.lightning.Collection"
-            omegaconf.OmegaConf.set_struct(logging, True)
+        # if (
+        #     logging and "_target_" not in logging
+        # ):  # TODO: needs a workaround for other viz types (e.g. not visdom) if they are moved to top level
+        #     # TODO: wrap config field setting into a helper method
+        #     omegaconf.OmegaConf.set_struct(logging, False)
+        #     logging["_target_"] = "moai.log.lightning.Collection"
+        #     omegaconf.OmegaConf.set_struct(logging, True)
         # logger = hyu.instantiate(logging) if logging is not None else milog.NoOp()
-        loggers = []
-        if logging and logging.loggers:
-            loggers += [hyu.instantiate(logger) for logger in logging.loggers.values()]
+        loggers = [hyu.instantiate(logger) for logger in loggers.values()]
+        # if logging and logging.loggers:            
+            # loggers += [hyu.instantiate(logger) for logger in logging.loggers.values()]
 
         # if loops is None:
         #     pytl_callbacks = [PerBatch()]

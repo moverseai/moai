@@ -1,0 +1,3 @@
+# @package model.metrics.delta2
+
+_target_: moai.validation.metrics.depth.Delta2

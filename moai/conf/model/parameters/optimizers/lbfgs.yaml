@@ -1,4 +1,4 @@
-# @package model.parameters.optimization.optimizers.lbfgs
+# @package model.parameters.optimizers.lbfgs
 
 _target_: torch.optim.LBFGS
 lr: 1.0

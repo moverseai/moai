@@ -1,4 +1,4 @@
-# @package model.parameters.optimization.optimizers.lbfgsls
+# @package model.parameters.optimizers.lbfgsls
 
 _target_: moai.parameters.optimization.optimizers.lbfgsls.LBFGS
 lr: 1.0

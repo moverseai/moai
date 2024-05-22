@@ -1,4 +1,0 @@
-# @package remodel.module_mode
-
-_target_: moai.remodel.module_mode.ModuleMode
-modules: ???

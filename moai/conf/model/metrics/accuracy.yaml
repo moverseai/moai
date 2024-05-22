@@ -1,0 +1,4 @@
+# @package model.metrics.accuracy
+
+_target_: moai.validation.metrics.common.Accuracy
+topk: 1

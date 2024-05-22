@@ -1,6 +1,6 @@
 # @package engine.runner
 
-_target_: moai.engine.lightning.fit.LightningRunner
+_target_: moai.engine.runner.LightningRunner
 ################
 # train options
 ################

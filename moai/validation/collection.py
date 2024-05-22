@@ -33,12 +33,11 @@ class Metrics(torch.nn.ModuleDict):
         # zero dot-distance applies for orthogonal vectors https://www.alamo.edu/contentassets/35e1aad11a064ee2ae161ba2ae3b2559/additional/math2412-dot-product.pdf
     }
 
-    def __init__(
-        self,
+    def __init__(self,
         metrics: omegaconf.DictConfig = {},
         **kwargs: typing.Mapping[str, typing.Any],
     ):
-        super(Metrics, self).__init__()
+        super().__init__()
         self.reductions = []
         self.execs = []
         if not len(metrics):

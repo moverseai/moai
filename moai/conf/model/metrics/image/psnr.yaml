@@ -1,0 +1,3 @@
+# @package model.metrics.image.psnr
+
+_target_: moai.validation.metrics.image.PSNR

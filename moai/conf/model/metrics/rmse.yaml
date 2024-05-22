@@ -1,0 +1,3 @@
+# @package model.metrics.rmse
+
+_target_: moai.validation.metrics.common.rmse.RMSE

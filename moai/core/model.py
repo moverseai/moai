@@ -116,12 +116,13 @@ def _create_tensor_monitoring_block(
 class MoaiLightningModule(L.LightningModule):
     def __init__(self,
         modules:            omegaconf.DictConfig=None,
-        monads:             omegaconf.DictConfig=None,        
+        monads:             omegaconf.DictConfig=None,
         parameters:         omegaconf.DictConfig=None,
         # graphs:             omegaconf.DictConfig=None,#TODO: remove        
         objectives:         omegaconf.DictConfig=None,
         metrics:            omegaconf.DictConfig=None,
-        monitors:           omegaconf.DictConfig=None,        
+        monitors:           omegaconf.DictConfig=None,
+        modifications:      omegaconf.DictConfig=None,        
         # monitoring:         omegaconf.DictConfig=None,#TODO: remove
         # stopping:           omegaconf.DictConfig=None,
         hyperparameters:    typing.Union[omegaconf.DictConfig, typing.Mapping[str, typing.Any]]=None,
@@ -207,8 +208,9 @@ class MoaiLightningModule(L.LightningModule):
             #     selectors = [parameters.selectors[v.selectors]]
             # else:
             #     selectors = [parameters.selectors[s] for s in v.selectors]
-            groups = [parameters.groups[g] for g in ensure_string_list(select(v, 'groups'))]
-            optimizer = parameters.optimization.optimizers[select(v, 'type')]
+            groups = [select(parameters, Constants._GROUPS_)[g] for g in ensure_string_list(select(v, 'groups'))]
+            # optimizer = parameters.optimization.optimizers[select(v, 'type')]
+            optimizer = select(parameters, Constants._OPTIMIZERS_)[select(v, 'type')]
             config = omegaconf.OmegaConf.merge(optimizer, select_dict(v, 'params'))
             selected_params = list(hyu.instantiate(g)(self) for g in groups)
             self.named_optimizers[k] = hyu.instantiate(config, selected_params)
@@ -223,8 +225,14 @@ class MoaiLightningModule(L.LightningModule):
             interval = select(v, 'interval') or 'epoch' #NOTE: if missing defaults to `epoch`
             self.named_schedulers[interval][k] = hyu.instantiate(config, self.named_optimizers[select(v, 'optimizer')])
         ## Optimization Process & Monitoring
-        self.process = omegaconf.OmegaConf.to_container(parameters.optimization.process, resolve=True)
-        self.monitor = omegaconf.OmegaConf.to_container(parameters.optimization.monitor, resolve=True)
+        self.process = omegaconf.OmegaConf.to_container(
+            select(_moai_, Constants._EXECUTION_),#parameters.optimization.process, 
+            resolve=True
+        )
+        self.monitor = omegaconf.OmegaConf.to_container(
+            select(_moai_, Constants._MONITORING_), # parameters.optimization.monitor, 
+            resolve=True
+        )
         # Keep test results
         self.test_step_outputs = defaultdict(list)
         #NOTE: __NEEDED__ for loading checkpoint?
@@ -233,6 +241,9 @@ class MoaiLightningModule(L.LightningModule):
         self.hparams.update(hparams)
         self.scalar_metrics = defaultdict(list)
         self.non_scalar_metrics = defaultdict(list)
+        for name, remodel in (modifications or {}).items():
+            log.info(f"Modifying the model with {name}.")
+            hyu.instantiate(remodel)(self)
         
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()

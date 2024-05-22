@@ -1,4 +1,4 @@
-# @package logging.loggers.clearml
+# @package engine.runner.loggers.clearml
 
 _target_: moai.log.lightning.loggers.clearml.ClearML
 # project_name: ${engine.modules.clearml.project_name}
