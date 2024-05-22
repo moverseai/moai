@@ -13,3 +13,15 @@ data:
         #   root: ${DATA_ROOT}
         #   train: true
         #   download: true
+  val:
+    iterator:
+      datasets:
+        mnist:
+          root: ${DATA_ROOT}
+          train: false
+          download: true
+          # transform: torchvision.transforms.ToTensor
+        mnist_2: # Use this for debugging two datasets as test
+          root: ${DATA_ROOT}
+          train: true
+          download: true

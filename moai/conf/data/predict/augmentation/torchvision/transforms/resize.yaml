@@ -1,0 +1,13 @@
+# @package data.test.iterator.augmentation.transforms._name_
+
+_target_: torchvision.transforms.Resize
+size: ??? # int, minimum image size to be resized to this
+max_size: null # int, longer size max permittable size
+antialias: null # if input is tensor helps brings result closer to pillow
+interpolation: 2 # InterpolationMode.BILINEAR, mapping is:
+              # 0: InterpolationMode.NEAREST,
+              # 1: InterpolationMode.LANCZOS,
+              # 2: InterpolationMode.BILINEAR,
+              # 3: InterpolationMode.BICUBIC,
+              # 4: InterpolationMode.BOX,
+              # 5: InterpolationMode.HAMMING,

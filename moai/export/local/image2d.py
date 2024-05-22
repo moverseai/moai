@@ -14,6 +14,7 @@ import torchvision
 import typing
 import logging
 import cv2
+import toolz
 
 __all__ = ["Image2d"]
 
@@ -134,3 +135,107 @@ class Image2d(Callable):
         min_v = torch.min(log_tensor.view(b, -1), dim=1, keepdim=True)[0].unsqueeze(2).unsqueeze(3)
         max_v = torch.max(log_tensor.view(b, -1), dim=1, keepdim=True)[0].unsqueeze(2).unsqueeze(3)
         return (log_tensor - min_v) / (max_v - min_v)
+
+
+
+
+def _save_color(
+    path:               str,
+    array:              np.ndarray,
+    key:                str,
+    index:              int,
+    ext:                str,
+) -> int:
+    b, _, __, ___ = array.shape
+    for i in range(b):
+        cv2.imwrite(
+            f'{key}_{index + i:05d}.{ext}',
+            array[i, :, :, :].transpose(1, 2, 0),
+        )
+    return b
+
+def _save_depth(
+    path:               str,
+    array:              np.ndarray,
+    key:                str,
+    index:              int,
+    ext:                str,
+) -> int:
+    b, _, __, ___ = array.shape
+    for i in range(b): #NOTE: change to cv2 to support .exr
+        cv2.imwrite(
+            f'{key}_{index + i}.{ext}',
+            array[i, :, :, :].transpose(1, 2, 0),
+        )
+    return b
+
+def _no_transform(tensor: torch.Tensor) -> torch.Tensor:
+    return tensor
+
+def _minmax_normalization(tensor: torch.Tensor, positive_only=False) -> torch.Tensor:
+        b, _, __, ___ = tensor.size()
+        t = tensor
+        if positive_only:
+            t[t < 0.0] = 0.0
+        min_v = torch.min(t.view(b, -1), dim=1, keepdim=True)[0].unsqueeze(2).unsqueeze(3)
+        max_v = torch.max(t.view(b, -1), dim=1, keepdim=True)[0].unsqueeze(2).unsqueeze(3)
+        return (t - min_v) / (max_v - min_v)        
+    
+def _log_minmax_normalization(tensor: torch.Tensor) -> torch.Tensor:
+        b, _, __, ___ = tensor.size()
+        log_tensor = torch.log(tensor + 1e-8)
+        min_v = torch.min(log_tensor.view(b, -1), dim=1, keepdim=True)[0].unsqueeze(2).unsqueeze(3)
+        max_v = torch.max(log_tensor.view(b, -1), dim=1, keepdim=True)[0].unsqueeze(2).unsqueeze(3)
+        return (log_tensor - min_v) / (max_v - min_v)
+
+
+
+def save_image(
+        tensors:            typing.Dict[str, torch.Tensor],
+        path:               typing.List[str],
+        extension:          typing.List[str],
+        keys:               typing.Union[str, typing.Sequence[str]],
+        mode:               typing.List[str]=["overwrite"],
+        transform:           typing.Union[str, typing.Sequence[str]]=[None],
+        colormap:           typing.Union[str, typing.Sequence[str]]=[None],
+        modality:               typing.List[str]=["color"],
+        step:               typing.Optional[int]=None,
+        batch_idx:          typing.Optional[int]=None,
+        optimization_step:  typing.Optional[int]=None,
+        stage:              typing.Optional[str]=None,
+        fmt:                str="05d",
+) -> None:
+    arrays = { }
+    keys = [keys] if type(keys) is str else list(keys)
+    # mode = [mode] if type(mode) is str else list(mode)
+    transforms = [transform] if type(transform) is str else list(transform)
+    colormaps = [colormap] if type(colormap) is str else list(colormap)
+    modalities = [modality] if type(modality) is str else list(modality)
+    extensions = [extension] if type(extension) is str else list(extension)
+    folder = ensure_path(log, "output folder", path)
+    save_map = {
+            'color': functools.partial(_save_color, os.path.join(os.getcwd(), folder)),
+            'depth': functools.partial(_save_depth, os.path.join(os.getcwd(), folder)),
+    }
+    transform_map = {
+            'none': functools.partial(_no_transform),
+            'minmax': functools.partial(_minmax_normalization),
+            "positive_minmax": functools.partial(_minmax_normalization, positive_only=True),
+            "log_minmax": functools.partial(_log_minmax_normalization),
+        }
+    colorize_map = { "none": lambda x: x.cpu().numpy() }
+    colorize_map.update(mic.COLORMAPS)
+    mode = ensure_choices(log, "saving mode", mode, Image2d.__MODES__)
+    formats = [ensure_choices(log, "output format", ext, Image2d.__FORMATS__) for ext in extensions]
+    for k, t, tf, c, f in zip(
+            keys,
+            modalities,
+            transforms,
+            colormaps,
+            formats,
+        ):
+            b = save_map[t](
+                colorize_map[c](
+                    transform_map[tf](tensors[k].detach())
+                ), k, step, f
+            )

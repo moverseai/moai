@@ -1,0 +1,4 @@
+# @package data.test.iterator.augmentation.transforms._name_
+
+_target_: torchvision.transforms.ToPILImage
+mode: null # (`PIL.Image mode`_): color space and pixel depth of input data (optional).
