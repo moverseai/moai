@@ -368,6 +368,7 @@ class MoaiModule(L.LightningModule):
         batch_nb:           int,
         dataloader_idx:     int=0,
     ) -> dict:
+        batch = benedict.benedict(batch, keyattr_enabled=False)
         datasets = list(self.data.test.iterator.datasets.keys())
         monitor = toolz.get_in(['test', 'batch'], self.monitor) or []
         # get graphs for test

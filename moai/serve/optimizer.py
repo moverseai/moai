@@ -1,5 +1,5 @@
 from ts.torch_handler.base_handler import BaseHandler
-from hydra.experimental import (
+from hydra import (
     compose,
     initialize,
 )
