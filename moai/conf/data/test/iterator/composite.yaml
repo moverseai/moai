@@ -1,4 +1,4 @@
-# @package _group_
+# @package data.test.iterator
 
 _target_: moai.data.iterator.Composited
 iterators: ???
