@@ -257,21 +257,6 @@ def save_image(
     colorize_map = {"none": lambda x: x.cpu().numpy()}
     colorize_map.update(mic.COLORMAPS)
     mode = ensure_choices(log, "saving mode", mode, Image2d.__MODES__)
-<<<<<<< Updated upstream
-    formats = [ensure_choices(log, "output format", ext, Image2d.__FORMATS__) for ext in extensions]
-    for k, t, tf, c, f in zip(
-            keys,
-            modalities,
-            transforms,
-            colormaps,
-            formats,
-        ):
-            b = save_map[t](
-                colorize_map[c](
-                    transform_map[tf](tensors[k].detach())
-                ), k, step, f
-            )
-=======
     fmt = ensure_choices(log, "output format", extension, Image2d.__FORMATS__)
     save_map[modality](
         colorize_map[colormap](transform_map[transform](tensors[key].detach())),
@@ -279,4 +264,3 @@ def save_image(
         step,
         fmt,
     )
->>>>>>> Stashed changes
