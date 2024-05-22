@@ -13,6 +13,7 @@ __all__ = [
 def passthrough(*args: typing.Any) -> typing.Any:
     return args[0] if len(args) == 1 else args
 
+# OmegaConf Select
 import omegaconf.omegaconf
 
 def select(config: omegaconf.DictConfig, keypath: str) -> omegaconf.AnyNode:
@@ -24,6 +25,7 @@ def select_dict(config: omegaconf.DictConfig, keypath: str) -> omegaconf.AnyNode
 def select_list(config: omegaconf.DictConfig, keypath: str) -> omegaconf.AnyNode:
     return omegaconf.OmegaConf.select(config, keypath, default=[])
 
+# Toolz Get
 import toolz
 
 def get(config: typing.Mapping[str, typing.Any], keypath: str) -> typing.Any:

@@ -28,21 +28,21 @@ __REDUCTIONS__ = {
 
 class Weighted(torch.nn.ModuleDict):
     def __init__(self,
-        losses: omegaconf.DictConfig,
+        objectives: omegaconf.DictConfig,
         **kwargs: typing.Mapping[str, typing.Any]
     ):
         super(Weighted, self).__init__()
         self.execs, self.weights, self.reductions = [], OrderedDict(), [] # [], []
-        if not len(losses):
-            log.warning("A weighted combination of losses is being used for supervising the model, but no losses have been assigned.")
-        loop = ((key, params) for key, params in kwargs.items() if key in losses)
+        if not len(objectives):
+            log.warning("A weighted combination of objectives is being used for supervising the model, but no losses have been assigned.")
+        loop = ((key, params) for key, params in kwargs.items() if key in objectives)
         #NOTE: check for not found keys and notify the potential error
-        errors = [k for k in kwargs if k not in losses]
+        errors = [k for k in kwargs if k not in objectives]
         if errors:
-            log.error("Some losses were not found in the configuration and will be ignored!")
+            log.error("Some objectives were not found in the configuration and will be ignored!")
         self.keyz = []
         for k, p in loop:
-            self.add_module(k, hyu.instantiate(getattr(losses, k)))
+            self.add_module(k, hyu.instantiate(getattr(objectives, k)))
             # last_module = toolz.last(self.modules()) # moduledict is ordered
             last_module = self[k]
             sig = inspect.signature(last_module.forward)

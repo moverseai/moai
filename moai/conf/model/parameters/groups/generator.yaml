@@ -1,5 +1,5 @@
 # @package model.parameters.groups.generator
 
 _target_: moai.parameters.selectors.ModelParameterSelector
-keys:
+modules:
   - generator

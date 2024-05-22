@@ -6,8 +6,14 @@ class Constants(object):
     # _COLLECTIONS_: str = f'{_MOAI_}._collections_'
     # _FLOWS_: str = f'{_MOAI_}._flows_'
     # _MONITORING_: str = f'{_MOAI_}._monitoring_'
-    _EXECUTION_: str = f'_execution_'
+    _EXECUTION_: str = f'_run_'
     _COLLECTIONS_: str = f'_collections_'
+    _METRICS_COLLECTION_: str = f'{_COLLECTIONS_}._metrics_'
+    _OBJECTIVES_COLLECTION_: str = f'{_COLLECTIONS_}._objectives_'
+    _MONITORS_COLLECTION_: str = f'{_COLLECTIONS_}._monitors_'
+    _CRITERIA_COLLECTION_: str = f'{_COLLECTIONS_}._criteria_'
+    _OPTIMIZERS_COLLECTION_: str = f'{_COLLECTIONS_}._optimizers_'
+    _SCHEDULERS_COLLECTION_: str = f'{_COLLECTIONS_}._schedulers_'
     _FLOWS_: str = f'_flows_'
     _MONITORING_: str = f'_monitoring_'
 
@@ -15,10 +21,12 @@ class Constants(object):
     _MODEL_: str = 'model'
 
     _PARAMETERS_: str = 'parameters'
+    _CRITERIA_: str = f'criteria'
+
     _PARAMETER_GROUPS_: str = f'{_MODEL_}.{_PARAMETERS_}.groups'
     _OPTIMIZERS_: str = f'{_MODEL_}.{_PARAMETERS_}.optimizers'
     _INITIALIZERS_: str = f'{_MODEL_}.{_PARAMETERS_}.initializers'
-    _CRITERIA_: str = f'{_MODEL_}.{_PARAMETERS_}.criteria'
+    _PARAMETERS_CRITERIA_: str = f'{_MODEL_}.{_PARAMETERS_}.criteria'
     _SCHEDULERS_: str = f'{_MODEL_}.{_PARAMETERS_}.schedulers'
 
     # _OBJECTIVE_: str = 'objective'
@@ -27,7 +35,7 @@ class Constants(object):
     # _VALIDATION_: str = 'validation'
     # _METRICS_: str = f'{_MODEL_}.{_VALIDATION_}.metrics'
 
-    _OBJECTIVES_: str = f'{_MODEL_}.objectives'
+    _OBJECTIVES_: str = f'objectives'
     
     _METRICS_: str = f'{_MODEL_}.metrics'
 

@@ -30,6 +30,7 @@ from moai.utils.funcs import (
     select, select_dict, select_list,
     get, get_dict, get_list,
 )
+from moai.utils.arguments import ensure_string_list
 
 from moai.core.execution.monads import Monads
 from moai.core.execution.tensors import Tensors
@@ -148,66 +149,79 @@ class MoaiLightningModule(L.LightningModule):
         for k in modules or {}:
             self.models[k] = hyu.instantiate(modules[k])
         ## Monad & Module Processing Graphs
-        self.flows = torch.nn.ModuleDict()
+        self.named_flows = torch.nn.ModuleDict()
         flows = select_dict(_moai_, Constants._FLOWS_)
         monad_flows, model_flows = partition(lambda k: k in self.models, flows or {})
         for model_flow in model_flows:
-            self.flows[model_flow] = Models(models=self.models, **{model_flow: flows[model_flow]})
+            self.named_flows[model_flow] = Models(models=self.models, **{model_flow: flows[model_flow]})
         for monad_flow in monad_flows:
-            self.flows[monad_flow] = Monads(monads=monads, **flows[monad_flow])
+            self.named_flows[monad_flow] = Monads(monads=monads, **flows[monad_flow])
         ## Objectives
         self.named_objectives = torch.nn.ModuleDict()
-        # for k, v in select_dict(parameters,"optimization.objectives"): #NOTE: _moai_._objectives_
-        for k in omegaconf.OmegaConf.select(parameters,"optimization.objectives") or {}:
-            v = parameters.optimization.objectives[k]
-            self.named_objectives[k] = _create_supervision_block(
-                omegaconf.OmegaConf.merge(supervision, v)
+        for k, v in select_dict(_moai_, Constants._OBJECTIVES_COLLECTION_).items():
+        # for k in omegaconf.OmegaConf.select(parameters,"optimization.objectives") or {}:
+            # v = parameters.optimization.objectives[k]
+            self.named_objectives[k] = DefaultSupervision(#_create_supervision_block(
+                objectives, **v
+                # omegaconf.OmegaConf.merge(
+                #     omegaconf.OmegaConf.masked_copy(_moai_, Constants._OBJECTIVES_), 
+                #     v
+                # )
             )
         ## Metrics Monitors
         self.named_metrics = torch.nn.ModuleDict()
-        for k in toolz.get_in(['metrics'], monitors) or {}:
-            v = monitors.metrics[k]
-            self.named_metrics[k] = _create_validation_block(
-                omegaconf.OmegaConf.merge(validation, v)
+        # for k in toolz.get_in(['metrics'], monitors) or {}:
+        for k, v in select_dict(_moai_, Constants._METRICS_COLLECTION_).items():
+            # v = monitors.metrics[k]
+            self.named_metrics[k] = DefaultValidation( #_create_validation_block(
+                metrics, **v
+                # omegaconf.OmegaConf.merge(validation, v)
             )
         #NOTE: use masked_copy to keep only metrics w/ the key
         ## Tensor Monitors
         self.named_monitors = {}
-        for k in toolz.get_in(['tensors'], monitors) or {}:
-            v = monitors.tensors[k]
-            self.named_monitors[k] = _create_tensor_monitoring_block(
-                omegaconf.OmegaConf.merge(v, monitoring) #NOTE: for some reason the order needs to be reverted
+        # for k in toolz.get_in(['tensors'], monitors) or {}:
+        for k, v in select_dict(_moai_, Constants._MONITORS_COLLECTION_).items():
+            # v = monitors.tensors[k]
+            self.named_monitors[k] = Tensors(#_create_tensor_monitoring_block(
+                monitors, **v
+                # omegaconf.OmegaConf.merge(v, monitoring) #NOTE: for some reason the order needs to be reverted
             )
         ## Termination Criteria
         self.named_criteria = {}
-        for k in toolz.get_in(['criteria'], monitors) or {}:
-            v = monitors.criteria[k]
-            self.named_criteria[k] = _create_criteria_monitoring_block(
-                omegaconf.OmegaConf.merge(v, stopping) #NOTE: for some reason the order needs to be reverted
+        # for k in toolz.get_in(['criteria'], monitors) or {}:
+        for k, v in select_dict(_moai_, Constants._CRITERIA_COLLECTION_).items():
+            # v = monitors.criteria[k]
+            self.named_criteria[k] = Criteria(#_create_criteria_monitoring_block(
+                select(parameters, Constants._CRITERIA_), **v
+                # omegaconf.OmegaConf.merge(v, stopping) #NOTE: for some reason the order needs to be reverted
             )
         #NOTE: up to here anything with optimizable parameters that can be selected
         #       should be created and available in `self`
         ## Optimizers & Parameters
         self.named_optimizers = OrderedDict()
-        for k in toolz.get_in(["optimization", "optimizers", "named"], parameters) or {}:
-            v = parameters.optimization.optimizers.named[k]
-            if isinstance(v.selectors, str):
-                selectors = [parameters.selectors[v.selectors]]
-            else:
-                selectors = [parameters.selectors[s] for s in v.selectors]
-            optimizer = parameters.optimization.optimizers[v.type]
-            config = omegaconf.OmegaConf.merge(optimizer, v.params)
-            selected_params = list(hyu.instantiate(s)(self) for s in selectors)
+        # for k in toolz.get_in(["optimization", "optimizers", "named"], parameters) or {}:
+        for k, v in select_dict(_moai_, Constants._OPTIMIZERS_COLLECTION_).items():
+            # v = parameters.optimization.optimizers.named[k]
+            # if isinstance(v.selectors, str):
+            #     selectors = [parameters.selectors[v.selectors]]
+            # else:
+            #     selectors = [parameters.selectors[s] for s in v.selectors]
+            groups = [parameters.groups[g] for g in ensure_string_list(select(v, 'groups'))]
+            optimizer = parameters.optimization.optimizers[select(v, 'type')]
+            config = omegaconf.OmegaConf.merge(optimizer, select_dict(v, 'params'))
+            selected_params = list(hyu.instantiate(g)(self) for g in groups)
             self.named_optimizers[k] = hyu.instantiate(config, selected_params)
         self.initializer = parameters.initialization if parameters is not None else None
         ## Schedulers
         self.named_schedulers = defaultdict(dict) # {'step': {}, 'epoch': {}}
-        for k in toolz.get_in(["optimization", "schedulers", "named"], parameters) or {}:
-            v = parameters.optimization.schedulers.named[k]
-            scheduler = parameters.optimization.schedulers[v.type]
-            config = omegaconf.OmegaConf.merge(scheduler, v.params)
-            interval = v.interval or 'epoch' #NOTE: if missing defaults to `epoch`
-            self.named_schedulers[interval][k] = hyu.instantiate(config, self.optimizers[v.optimizer])
+        # for k in toolz.get_in(["optimization", "schedulers", "named"], parameters) or {}:
+        for k, v in select_dict(_moai_, Constants._SCHEDULERS_COLLECTION_).items():
+            # v = parameters.optimization.schedulers.named[k]
+            scheduler = parameters.optimization.schedulers[select(v, 'type')]
+            config = omegaconf.OmegaConf.merge(scheduler, select_dict(v, 'params'))
+            interval = select(v, 'interval') or 'epoch' #NOTE: if missing defaults to `epoch`
+            self.named_schedulers[interval][k] = hyu.instantiate(config, self.named_optimizers[select(v, 'optimizer')])
         ## Optimization Process & Monitoring
         self.process = omegaconf.OmegaConf.to_container(parameters.optimization.process, resolve=True)
         self.monitor = omegaconf.OmegaConf.to_container(parameters.optimization.monitor, resolve=True)
@@ -243,7 +257,7 @@ class MoaiLightningModule(L.LightningModule):
             with torch.no_grad(): #TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
                 for step in steps:
-                    batch = self.flows[step](batch)
+                    batch = self.named_flows[step](batch)
                 # predict step does 
                 if monitor:
                     # Metrics monitoring used only for serve
@@ -270,7 +284,7 @@ class MoaiLightningModule(L.LightningModule):
             # def backward_fn(loss: torch.Tensor, optimizer: torch.optim.Optimizer) -> None:
                 # call._call_strategy_hook(self.trainer, "backward", loss, optimizer)        
             for step in steps:
-                tensors = self.flows[step](tensors)
+                tensors = self.named_flows[step](tensors)
             loss, losses = self.named_objectives[objective](tensors)
             is_first_batch_to_accumulate = index % self.trainer.accumulate_grad_batches == 0
             if self.trainer.accumulate_grad_batches == 1 or not is_first_batch_to_accumulate:
@@ -287,7 +301,7 @@ class MoaiLightningModule(L.LightningModule):
                 if tensor_monitor_steps and self.optimization_step % monitor['frequency'] == 0:
                     with torch.no_grad():
                         for step in toolz.get_in(['steps'], monitor) or []:
-                            self.flows[step](tensors)
+                            self.named_flows[step](tensors)
                         extras = {
                             'step': self.global_step, 'epoch': self.current_epoch,
                             'optimization_step': self.optimization_step,
@@ -330,7 +344,7 @@ class MoaiLightningModule(L.LightningModule):
                         with torch.no_grad():
                             # for iter in range(iters): #NOTE: is this necessary?
                             for step in steps:
-                                batch = self.flows[step](batch)
+                                batch = self.named_flows[step](batch)
                 iter_monitor_stage = toolz.get_in(['fit', 'iter', stage], self.monitor)
                 if iter_monitor_stage is not None:
                     # for _, iter_monitor_stage in iter_monitor.items():                        
@@ -339,7 +353,7 @@ class MoaiLightningModule(L.LightningModule):
                     iter_tensor_monitor = toolz.get('tensors', iter_monitor_stage)
                     if should_monitor and iter_tensor_monitor is not None:
                         for step in toolz.get('steps', iter_monitor_stage, None) or []:
-                            self.flows[step](batch)
+                            self.named_flows[step](batch)
                         for metric in toolz.get('metrics', iter_monitor_stage, None) or []:
                             self.named_metrics[metric](batch)
                         extras = {
@@ -388,7 +402,7 @@ class MoaiLightningModule(L.LightningModule):
             with torch.no_grad(): #TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
                 for step in steps:
-                    batch = self.flows[step](batch)
+                    batch = self.named_flows[step](batch)
                 if monitor:
                     # Metrics monitoring
                     for metric in toolz.get('metrics', monitor, None) or []:
@@ -416,7 +430,7 @@ class MoaiLightningModule(L.LightningModule):
             steps = proc['steps']
             with torch.no_grad():
                 for step in steps:
-                    batch = self.flows[step](batch)
+                    batch = self.named_flows[step](batch)
                 for _, monitor_stage in monitor.items():
                     for metric in toolz.get('metrics', monitor_stage, None) or []:
                         self.named_metrics[metric](batch) #TODO add visualization

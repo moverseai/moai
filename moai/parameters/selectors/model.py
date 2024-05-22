@@ -8,26 +8,31 @@ __all__ = ['ModelParameterSelector']
 
 class ModelParameterSelector(typing.Callable[[torch.nn.Module], typing.List[torch.Tensor]]):
     def __init__(self,
-        keys:       typing.Sequence[str],
+        modules:       typing.Sequence[str]=[],
+        monads:        typing.Sequence[str]=[],
+        parameters:    typing.Sequence[str]=[],
         force_grad: bool=True,
     ):
-        self.keys = keys
+        self.modules = modules
+        self.monads = monads
+        self.parameters = parameters
         self.force_grad = force_grad
 
-    def __call__(self, module: torch.nn.Module) -> typing.List[torch.Tensor]:
+    def __call__(self, moai_model: torch.nn.Module) -> typing.List[torch.Tensor]:
         params = []
-        # for key in self.keys:
-        #     t = module.predictions[key]
-        #     t.requires_grad_(True)
-        #     params.append(t)
-        for key in self.keys:
-            # split = key.split('.')
-            # m = toolz.reduce(getattr, split, module)
-            m = get_submodule(module.models, key)
+        for key in self.modules:
+            m = get_submodule(moai_model.models, key)
             params.append(m.parameters())
+        for key in self.monads:
+            m = get_submodule(moai_model.named_flows, key)
+            params.append(m.parameters())
+        for key in self.parameters:
+            keys = key.split('.')
+            m = get_submodule(moai_model.named_flows, ".".join(keys[:-1]))
+            p = getattr(m, keys[-1])
+            params.append(p)
         parameters = list(toolz.concat(params))
         if self.force_grad:
             for p in parameters:            
                 p.requires_grad_(True)
         return { 'params': parameters }
-        # return params

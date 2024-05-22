@@ -1,6 +1,6 @@
 defaults:
   ###### ENGINE
-  - engine: lightning
+  - engine/runner: lightning
   # - lightning: runner
   # - engine/fit: lightning
   - engine/modules: [manual_seed, rerun]
@@ -61,7 +61,8 @@ defaults:
   - model/_parameters/initialization/custom: vposer2
   - model/_parameters/initialization/scheme: zero_params
   - model/parameters/optimizers: lbfgsls
-  - model/parameters/groups/human/body: [global, expressive]
+  # - model/parameters/groups/human/body: [global, expressive]
+  - model/parameters/groups/human/body: [expressive]
   - model/parameters/criteria: rmse
 
   # - model/parameters/regularization: none

@@ -1,5 +1,7 @@
 # @package model.parameters.groups.model
 
 _target_: moai.parameters.selectors.ModelParameterSelector
-keys: ???
+modules: ???
+monads: ???
+parameters: ???
 force_grad: true

@@ -1,7 +1,7 @@
 # @package model.parameters.groups.global
 
-_target_: moai.parameters.selectors.NamedParameterSelector
-keys:
-  - graphs.preprocess.smplx.global_orient
-  - graphs.preprocess.translation.value
+_target_: moai.parameters.selectors.model.ModelParameterSelector
+parameters:
+  - preprocess.smplx.global_orient
+  - preprocess.translation.value
 force_grad: true
