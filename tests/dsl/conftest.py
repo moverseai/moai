@@ -35,7 +35,8 @@ def shaped_tensors():
         'five': torch.scalar_tensor(5.0),
         'onedim': {
             'threes': torch.tensor([[3] * 6]).float()
-        }
+        },
+        'random': torch.rand(5, 10, 20, 30),
     })
 
 @pytest.fixture
@@ -46,7 +47,7 @@ def shaped_tensors_cuda():
         'onedim': {
             'threes': torch.tensor([[3] * 6]).cuda().double()
         },
-        'fourdims': torch.scalar_tensor(1)[np.newaxis][np.newaxis][np.newaxis][np.newaxis]
+        'fourdims': torch.scalar_tensor(1)[np.newaxis][np.newaxis][np.newaxis][np.newaxis],        
     })
 
 @pytest.fixture
