@@ -1,5 +1,5 @@
-# @package model.parameters.selectors.encoder
+# @package model.parameters.groups.encoder
 
-_target_: moai.parameters.selectors.ModelParameterSelector
+_target_: moai.parameters.selectors.model.ModelParameterSelector
 modules:
   - encoder
