@@ -40,7 +40,51 @@ class BatchMonitor(L.Callback):
     ) -> None:
         """Called when the train batch begins."""
         module.optimization_step = 0
-
+    
+    @torch.no_grad
+    def on_train_batch_end(
+        self,
+        trainer: L.Trainer,
+        module: L.LightningModule,
+        outputs: L.utilities.types.STEP_OUTPUT,
+        batch: typing.Mapping[str, torch.Tensor],
+        batch_idx: int,
+    ) -> None:
+        """Called when the train batch ends.
+        Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
+            loss returned from ``training_step``.
+        """
+        # for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
+        monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
+        if monitor_batch is not None:
+            for _, monitor_named_batch in monitor_batch.items():
+                is_now = batch_idx % monitor_named_batch['frequency'] == 0
+                if not is_now:
+                    return # continue
+                #NOTE: should detach
+                for step in monitor_named_batch.get('steps', []):
+                    outputs = module.graphs[step](outputs)
+                for monitor_metrics in monitor_named_batch.get('metrics', []):
+                    module.named_metrics[monitor_metrics](outputs)
+                extras = {
+                    'step': module.global_step, 'epoch': module.current_epoch,
+                    'batch_idx': batch_idx,
+                }
+                for monitor_tensors in monitor_named_batch.get('tensors', []):
+                    module.named_monitors[monitor_tensors](outputs, extras)
+                if 'losses' in outputs:
+                    losses = toolz.merge(outputs['losses']['weighted'], {
+                        'total': outputs['losses']['total'],                
+                    })
+                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
+                    losses['epoch'] = int(trainer.current_epoch)
+                    module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                if 'metrics' in outputs:
+                    metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
+                    # metrics['epoch'] = trainer.current_epoch
+                    module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+        # return outputs
+    
     @torch.no_grad
     def on_test_batch_end(
         self,
@@ -90,50 +134,6 @@ class BatchMonitor(L.Callback):
                  f.write(ds.export('csv'))
         pl_module.test_step_outputs.clear()
 
-    @torch.no_grad
-    def on_train_batch_end(
-        self,
-        trainer: L.Trainer,
-        module: L.LightningModule,
-        outputs: L.utilities.types.STEP_OUTPUT,
-        batch: typing.Mapping[str, torch.Tensor],
-        batch_idx: int,
-    ) -> None:
-        """Called when the train batch ends.
-        Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
-            loss returned from ``training_step``.
-        """
-        # for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
-        monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
-        if monitor_batch is not None:
-            for _, monitor_named_batch in monitor_batch.items():
-                is_now = batch_idx % monitor_named_batch['frequency'] == 0
-                if not is_now:
-                    return # continue
-                #NOTE: should detach
-                for step in monitor_named_batch.get('steps', []):
-                    outputs = module.graphs[step](outputs)
-                for monitor_metrics in monitor_named_batch.get('metrics', []):
-                    module.named_metrics[monitor_metrics](outputs)
-                extras = {
-                    'step': module.global_step, 'epoch': module.current_epoch,
-                    'batch_idx': batch_idx,
-                }
-                for monitor_tensors in monitor_named_batch.get('tensors', []):
-                    module.named_monitors[monitor_tensors](outputs, extras)
-                if 'losses' in outputs:
-                    losses = toolz.merge(outputs['losses']['weighted'], {
-                        'total': outputs['losses']['total'],                
-                    })
-                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
-                    losses['epoch'] = int(trainer.current_epoch)
-                    module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
-                if 'metrics' in outputs:
-                    metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
-                    # metrics['epoch'] = trainer.current_epoch
-                    module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
-        # return outputs
-    
     @torch.no_grad
     def on_validation_batch_end(self,
         trainer: L.Trainer, module: L.LightningModule,
@@ -421,8 +421,7 @@ class BatchMonitor(L.Callback):
 
 
 class LightningRunner(L.Trainer):
-    def __init__(
-        self,
+    def __init__(self,
         # logging: omegaconf.DictConfig = None,
         loggers: omegaconf.DictConfig = None,
         checkpoint: omegaconf.DictConfig = None,
