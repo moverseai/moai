@@ -8,7 +8,7 @@ try:
     # from moai.action.fit import fit
     from moai.action.archive import archive
     from moai.action.export import export
-    from moai.action.resume import resume
+    # from moai.action.resume import resume
     from moai.action.run import run
 except:
     # from action.train import train
@@ -20,7 +20,7 @@ except:
     # from action.fit import fit
     from action.archive import archive
     from action.export import export
-    from action.resume import resume
+    # from action.resume import resume
     from action.run import run
 
 # import omegaconf.omegaconf
@@ -59,22 +59,22 @@ __MODES__ = {
     # 'fit': fit,
     'archive': archive,
     'export': export,
-    'resume': resume,
+    # 'resume': resume,
     'run': run,
 }
 
 __MIN_ARGS_COUNT__ = {
-    'train': 2,
-    'evaluate': 2,
-    'play': 2,
+    # 'train': 2,
+    # 'evaluate': 2,
+    # 'play': 2,
     'diff': 1,
     'plot': 1,
     'debug': 2,
-    'reprod': 2,
-    'fit': 2,
+    # 'reprod': 2,
+    # 'fit': 2,
     'archive': 2,
     'export': 2,
-    'resume': 1,
+    # 'resume': 1,
     'run': 2,
 }
 

@@ -1,5 +1,5 @@
 # @package model.modifications.forward_mode
 
-_target_: moai.remodel.module_mode.ForwardMode
+_target_: moai.remodel.forward_mode.ForwardMode
 modules: null # optional
 monads: null # optional

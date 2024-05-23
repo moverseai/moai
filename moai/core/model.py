@@ -20,10 +20,10 @@ from moai.data.iterator import Indexed
 #     _create_supervision_block,
 #     _create_validation_block,
 # )
-from moai.validation.noop import NoOp as NoValidation
+# from moai.validation.noop import NoOp as NoValidation
 from moai.validation.collection import Metrics as DefaultValidation
 
-from moai.supervision.noop import NoOp as NoSupervision
+# from moai.supervision.noop import NoOp as NoSupervision
 from moai.supervision.weighted import Weighted as DefaultSupervision
 from moai.utils.iterators import partition
 from moai.utils.funcs import (
@@ -68,50 +68,6 @@ def _create_assigner(key: str) -> typing.Callable[[torch.nn.Module, torch.Tensor
             to_set.copy_(t.clone())
             # to_set.copy_(t)    
     return functools.partial(_assign, keys=splits)
-
-def _create_supervision_block(cfg: omegaconf.DictConfig, force: bool=True):
-    if force and not cfg:
-        log.warning("Empty supervision block in feedforward model.")
-    if not cfg:
-        return NoSupervision()
-    if '_target_' not in cfg:
-        return DefaultSupervision(**cfg)
-    else:
-        return hyu.instantiate(cfg, _recursive_=False)
-
-def _create_validation_block(cfg: omegaconf.DictConfig, force: bool=True):
-    if force and not cfg:
-        log.warning("Empty validation block in feedforward model.")
-    if not cfg:
-        return NoValidation()
-    if '_target_' not in cfg:
-        return DefaultValidation(**cfg)
-    else:
-        return hyu.instantiate(cfg, _recursive_=False)
-
-#NOTE: this is obsolete, there will be no configs for these
-def _create_criteria_monitoring_block(
-    cfg: omegaconf.DictConfig,
-    force: bool=True
-):
-    if force and not cfg:
-        log.warning("Empty termination criteria block in feedforward model.")
-    if '_target_' not in cfg:
-        return Criteria(**cfg)
-    else:
-        return hyu.instantiate(cfg)
-
-#NOTE: this is obsolete, there will be no configs for these
-def _create_tensor_monitoring_block(
-    cfg: omegaconf.DictConfig,
-    force: bool=True
-):
-    if force and not cfg:
-        log.warning("Empty tensor monitoring block in feedforward model.")
-    if '_target_' not in cfg:
-        return Tensors(**cfg)
-    else:
-        return hyu.instantiate(cfg)
 
 class MoaiLightningModule(L.LightningModule):
     def __init__(self,
@@ -233,17 +189,19 @@ class MoaiLightningModule(L.LightningModule):
             select(_moai_, Constants._MONITORING_), # parameters.optimization.monitor, 
             resolve=True
         )
-        # Keep test results
+        # Aggregate results
         self.test_step_outputs = defaultdict(list)
+        self.scalar_metrics = defaultdict(list)
+        self.non_scalar_metrics = defaultdict(list)
         #NOTE: __NEEDED__ for loading checkpoint?
         hparams = hyperparameters if hyperparameters is not None else { }
         hparams.update({'moai_version': miV})
         self.hparams.update(hparams)
-        self.scalar_metrics = defaultdict(list)
-        self.non_scalar_metrics = defaultdict(list)
+        # remodel
         for name, remodel in (modifications or {}).items():
             log.info(f"Modifying the model with {name}.")
             hyu.instantiate(remodel)(self)
+        #TODO: init
         
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
@@ -422,8 +380,6 @@ class MoaiLightningModule(L.LightningModule):
                     tensor_monitors = toolz.get('tensors', monitor, None) or []
                     for tensor_monitor in tensor_monitors:
                         self.named_monitors[tensor_monitor](batch)
-
-
 
     @torch.no_grad
     def validation_step(self,

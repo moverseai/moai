@@ -3,7 +3,9 @@ defaults:
   - engine/runner: lightning
   - engine/modules: [manual_seed, rerun]
   - engine/loggers: tabular
-
+  - engine/monitors/exporting/local: [pkl, append_pkl]
+  - engine/monitors/visualization/rerun: [mesh, mesh3d]
+  
   # ###### DATA  
   - data/train/loader: torch
   - data/train/iterator: indexed
@@ -23,18 +25,17 @@ defaults:
   # ###### MODEL 
   - model: moai # manual
   - model/monads/human/body: [initialize_translation, smplx]
+  - model/monads/human/body/prior: vposer2
+  - model/monads/masking: [index, binary]  
+  - model/monads/geometry/projection: weak_perspective_camera
+  - model/monads/human/pose/openpose: split
+
   - model/modifications: forward_mode
 
   - examples/smplifyx/embedding
   - examples/smplifyx/translation
   - examples/smplifyx/betas
-  # - model/monads/human/body: smplx
-  - model/monads/human/body/prior: vposer2
-
-  - model/monads/masking: [index, binary]  
-  - model/monads/geometry/projection: weak_perspective_camera
-  - model/monads/human/pose/openpose: split
-
+  
   - model/_parameters/initialization: cascade
   - model/_parameters/initialization/custom: vposer2
   - model/_parameters/initialization/scheme: zero_params
@@ -49,9 +50,6 @@ defaults:
 
   - model/metrics: rmse
 
-  - engine/monitors/exporting/local: [pkl, append_pkl]
-  - engine/monitors/visualization/rerun: [mesh, mesh3d]
-  
   - data
   - options
   - model

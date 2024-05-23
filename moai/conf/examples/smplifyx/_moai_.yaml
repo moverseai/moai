@@ -61,31 +61,3 @@ _moai_:
       #   termination: []
       #   tensors: [show_traversals]
     # test:
-  # _monitoring_:
-  #   fit:
-  #     step:
-  #       initial_torso_fit:
-  #         frequency: 1
-  #         # steps:
-  #           # - show_mesh
-  #         tensors:
-  #           - save_params
-  #           - show_mesh_step
-  #     iter:
-  #       initial_torso_fit:
-  #         frequency: 1
-  #         # steps:
-  #           # - show_mesh
-  #         tensors:
-  #           - show_mesh_iter
-  #         metrics:
-  #           - fit_quality
-  #         termination: [bad_fit]
-  #     batch:
-  #       log_results:
-  #         frequency: 1
-  #         # steps: []
-  #         metrics:
-  #           - fit_quality
-  #         tensors:
-  #           - show_mesh_batch
