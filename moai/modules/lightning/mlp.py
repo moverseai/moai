@@ -49,6 +49,6 @@ class MLP(torch.nn.Module):
         self.sequential = torch.nn.Sequential(*enc_list)
 
     def forward(self,
-        x:  torch.Tensor,
+        input:  torch.Tensor,
     ) -> torch.Tensor:
-        return self.sequential(x)
+        return self.sequential(input)

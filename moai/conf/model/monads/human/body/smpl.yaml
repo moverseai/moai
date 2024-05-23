@@ -1,6 +1,6 @@
-# @package model.monads._name_
+# @package model.monads.smpl
 
-_target_: moai.monads.human.body.smpl.SMPL
+_target_: moai.monads.human.body.smpl.smpl.SMPL
 model_path: ???
 joints_format: none
 gender: neutral

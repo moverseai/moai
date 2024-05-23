@@ -26,7 +26,7 @@ model:
           colormap: [none] # bone, etc.
           transform: [none] # minmax, etc.
           mode: [overwrite] # [all, overwrite]
-          keys: [color]
+          key: [color]
           path: .
           extension: [png] # [png, exr, jpg]
         

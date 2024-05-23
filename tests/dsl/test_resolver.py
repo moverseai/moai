@@ -161,6 +161,9 @@ class TestDSL:
         expression = "randn(onedim.threes)"
         x = self._parse_and_run(parser, expression, shaped_tensors)        
         assert True
+        expression = "randn(random)"
+        x = self._parse_and_run(parser, expression, shaped_tensors)        
+        assert x.shape == shaped_tensors['random'].shape
 
     def test_ones(self, parser, shaped_tensors_cuda):
         expression = "ones(6) * onedim.threes"

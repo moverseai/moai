@@ -1,4 +1,4 @@
-# @package model.supervision.losses._name_
+# @package model.supervision.losses.std_kl
 
 _target_: moai.supervision.losses.distribution.StandardNormalKL
 mode: standard

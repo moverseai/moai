@@ -39,8 +39,12 @@ class Basic(torch.nn.Module):
     def forward(
         self,
         features: torch.Tensor,
-    ) -> typing.Tuple[torch.Tensor, torch.Tensor]:
+    ) -> typing.Mapping[str, torch.Tensor]:
         mu = self.linear_mu(features)
         logvar = self.linear_logvar(features)
 
-        return mu, logvar
+        # return mu, logvar
+        return {
+            "mu": mu,
+            "logvar": logvar,
+        }

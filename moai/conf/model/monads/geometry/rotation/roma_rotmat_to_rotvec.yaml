@@ -1,3 +1,3 @@
-# @package model.monads._name_
+# @package model.monads.roma_rotmat_to_rotvec
 
 _target_: moai.monads.geometry.rotations.RomaRotationMatrix2RotationVector
