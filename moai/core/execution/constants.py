@@ -6,6 +6,7 @@ class Constants(object):
     # _COLLECTIONS_: str = f'{_MOAI_}._collections_'
     # _FLOWS_: str = f'{_MOAI_}._flows_'
     # _MONITORING_: str = f'{_MOAI_}._monitoring_'
+    _MOAI_METRICS_: str = f'{_MOAI_}._metrics_'
     _EXECUTION_: str = f'_run_'
     _COLLECTIONS_: str = f'_collections_'
     _METRICS_COLLECTION_: str = f'{_COLLECTIONS_}._metrics_'

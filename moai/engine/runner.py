@@ -1,5 +1,4 @@
-import pytorch_lightning.profilers
-import moai.log.lightning as milog
+from moai.core.execution.constants import Constants
 
 import pytorch_lightning as L
 import hydra.utils as hyu
@@ -79,8 +78,12 @@ class BatchMonitor(L.Callback):
                     losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
                     losses['epoch'] = int(trainer.current_epoch)
                     module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
-                if 'metrics' in outputs:
-                    metrics = toolz.keymap(lambda k: f'train/metric/{k}', outputs['metrics'])
+                if Constants._MOAI_METRICS_ in outputs:
+                    metrics = toolz.keymap(
+                        lambda k: f'train/metric/{k}', 
+                        outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                    )
+                    # metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
                     # metrics['epoch'] = trainer.current_epoch
                     module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
         # return outputs
@@ -145,10 +148,13 @@ class BatchMonitor(L.Callback):
             log.warning("No validation data found, validation step will be omitted.")
             return
         datasets = list(module.data.val.iterator.datasets.keys())
-        if 'metrics' in batch:
+        if Constants._MOAI_METRICS_ in outputs:
             scalar_metrics = toolz.keymap( # format: val/metric/named_metric/dataset
                 lambda k: f'val/metric/{k}/{datasets[dataloader_idx]}', 
-                toolz.valfilter(lambda x: len(x.shape) == 0, batch['metrics'])
+                toolz.valfilter(
+                    lambda x: len(x.shape) == 0, 
+                    outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                )                
             )
             dataset_val_metrics = toolz.valmap(
                 lambda v: toolz.keymap(lambda k: k.split("/")[2], dict(v)),
@@ -157,7 +163,7 @@ class BatchMonitor(L.Callback):
                     scalar_metrics.items()
                 )
             )
-            if len(scalar_metrics.keys()) > 0:
+            if scalar_metrics:
                 module.scalar_metrics[datasets[dataloader_idx]].append( # format: dataset/named_metric
                     toolz.valmap(
                         lambda x: x.detach().cpu().numpy(),
@@ -168,9 +174,12 @@ class BatchMonitor(L.Callback):
                 module.log_dict(scalar_metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
             non_scalar_metrics = toolz.keymap(
                 lambda k: f'{datasets[dataloader_idx]}/{k}', 
-                toolz.valfilter(lambda x: len(x.shape) > 0, batch['metrics'])
+                toolz.valfilter(
+                    lambda x: len(x.shape) > 0,
+                    outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                )
             )
-            if len(non_scalar_metrics.keys()) > 0:
+            if non_scalar_metrics:
                 module.non_scalar_metrics[datasets[dataloader_idx]].append(
                     toolz.valmap(
                         lambda x: x.detach().cpu().numpy(),

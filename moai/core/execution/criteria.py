@@ -41,7 +41,7 @@ class Criteria():
     ) -> None:
         stop = False
         for operation in self.operations:
-            stop = operation(tensors, extras)
+            stop = operation(tensors['_moai_._metrics_'], extras)
             if stop:
                 break
         return stop

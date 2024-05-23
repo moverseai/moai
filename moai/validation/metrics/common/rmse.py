@@ -1,12 +1,14 @@
 from moai.monads.utils.common import dim_list
-
+from moai.validation.metric import MoaiMetric
 import torch
+import typing
+import numpy as np
 
 __all__ = ["RMSE"]
 
-class RMSE(torch.nn.Module):
+class RMSE(MoaiMetric):
     def __init__(self):
-        super(RMSE, self).__init__()
+        super().__init__()        
 
     def forward(self,
         gt:         torch.Tensor,
@@ -25,3 +27,8 @@ class RMSE(torch.nn.Module):
             diff_sq_sum = torch.sum(diff_sq, dim=dim_list(gt))
             diff_w_sum = torch.sum(weights, dim=dim_list(gt)) # + 1e-18
             return torch.mean(torch.sqrt(diff_sq_sum / diff_w_sum))
+    
+    def compute(self,
+        rmses: typing.Sequence[np.ndarray],
+    ) -> typing.Union[np.ndarray, typing.Mapping[str, np.ndarray]]:
+        return sum(rmses) / len(rmses)
