@@ -59,12 +59,9 @@ defaults:
   - flows
   - optimization
   - _moai_
-  
+
+  ###### HYDRA  
   - override hydra/hydra_logging: colorlog
   - override hydra/job_logging: colorlog
   
   # _self_
-  ###### HYDRA  
-
-  
-  # - override model/parameters/selectors/human/body: expressive
