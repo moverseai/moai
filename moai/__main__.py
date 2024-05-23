@@ -120,7 +120,9 @@ def moai():
     # main = hydra.main(config_path="conf", config_name=config)(run)
     if not os.path.isabs(base_path):
         base_path = os.path.join(os.getcwd(), base_path)
-    main = hydra.main(config_path=base_path, config_name=file_name, version_base='1.3')(run)
+    main = hydra.main(config_path=base_path, config_name=file_name, version_base='1.3')(
+        __MODES__[mode]
+    )
     # main = hydra.main(config_path=None, config_name=config)(run)
     main()
 
