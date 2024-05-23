@@ -1,4 +1,4 @@
-# @package fitter.checkpoint
+# @package engine.runner.checkpoint
 
 _target_: pytorch_lightning.callbacks.ModelCheckpoint
 monitor: ??? # metric to monitor

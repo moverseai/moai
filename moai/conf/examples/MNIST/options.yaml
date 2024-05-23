@@ -17,17 +17,13 @@ engine:
       task_name: MNIST
       tags: [test]
 
-fitter:
-  deterministic: false # required for index add ops
-  # gpus: '0'
-  devices: 1
-  num_sanity_val_steps: 0
-  max_epochs: 2
-  checkpoint:
-    monitor: 'train/loss/train_loss'
-    mode: 'min'
-    filename: 'checkpoint_{epoch:02d}_{train_loss:.2f}'
-
-
-logging:
-  name: ${experiment.name}
+  runner:
+    deterministic: false # required for index add ops
+    # gpus: '0'
+    devices: 1
+    num_sanity_val_steps: 0
+    max_epochs: 2
+    checkpoint:
+      monitor: 'train/loss/train_loss'
+      mode: 'min'
+      filename: 'checkpoint_{epoch:02d}_{train_loss:.2f}'

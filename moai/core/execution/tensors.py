@@ -16,7 +16,7 @@ class Tensors():
         self.operations = []
         for k in kwargs or {}:
             params = kwargs[k] #NOTE: list args for multi calling
-            override_params = params.get('params', None) or {}            
+            override_params = params.get('params', None) or {}
             target = tensors[k]
             operation = hyu.instantiate(target, **override_params)
             signature = inspect.signature(operation)

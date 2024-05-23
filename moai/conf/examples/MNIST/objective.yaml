@@ -1,0 +1,15 @@
+_moai_:
+  _collections_:
+    _objectives_:
+      train_encoder:
+          cross_entropy:
+            pred: [prediction]
+            gt: [label]
+            out: [train_loss]
+    _optimizers_:
+      train_encoder:
+        type: adam
+        params:
+          lr: 1.0e-3
+        groups: [encoder]
+

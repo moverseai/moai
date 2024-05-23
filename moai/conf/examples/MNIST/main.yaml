@@ -1,15 +1,13 @@
 defaults:
   ###### ENGINE
-  - engine: engine
-  - engine/fit: lightning
+  - engine/runner: lightning
   - engine/modules: [manual_seed, import, clearml] # , clearml]
 
   
   ###### LOGGERS
-  - engine/log/lightning: collection
-  - engine/log/lightning/logger: [tabular, clearml]
+  - engine/loggers: [tabular, clearml]
 
-  - engine/checkpoint/lightning: default
+  - engine/runner/checkpoint: lightning
 
   # ###### DATA
   - data/train/loader: torch
@@ -37,31 +35,27 @@ defaults:
 
   # ###### MODEL
   - model: moai # manual
-  - model/networks/lightning/classification: mnist
+  - model/modules/classification: mnist
   - model/monads/tensor: argmax
 
 
 
   # ###### PARAMETERS
-  - model/parameters/initialization: default
-  - model/parameters/optimization: single
-  - model/parameters/optimization/optimizer: adam
-  - model/parameters/optimization/scheduling: single
-  - model/parameters/optimization/scheduling/scheduler: step
-  - model/parameters/selectors: [encoder]
-  - model/parameters/regularization: none
+  - model/_parameters/initialization: default
+  - model/parameters/optimizers: adam
+  # - model/parameters/optimization/scheduling: single
+  # - model/parameters/optimization/scheduling/scheduler: step
+  - model/parameters/groups: [encoder]
+  # - model/parameters/regularization: none
 
   # ###### SUPERVISION
-  - model/supervision: weighted
-  - model/supervision/loss/classification: cross_entropy
+  - model/objectives/classification: cross_entropy
 
   # ###### VALIDATION
-  - model/validation: collection
-  - model/validation/metric/torchmetrics/classification: [multiclass_f1, multiclass_acc]
+  - model/metrics/torchmetrics/classification: [multiclass_f1, multiclass_acc]
 
   ###### EXPORTERS
-  - engine/export: collection
-  - engine/monitor/exporting/local: image2d
+  - model/monitors/exporting/local: [image2d]
 
 
   # ###### EXTRA FILES
@@ -69,6 +63,8 @@ defaults:
   - options
   - monitor
   - data
+  - objective
+  - processes_flow
 
   ###### HYDRA  
   - override hydra/job_logging: colorlog

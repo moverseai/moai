@@ -29,91 +29,91 @@ model:
       dim: 1
       keepdim: false
   
-  parameters:
-    optimization:
-      optimizers:
-        named:
-          train_encoder:
-            type: adam
-            # parameters: encoder
-            params:
-              lr: 1.0e-3
-            selectors: [encoder]
-      objectives:
-        train_encoder:
-          cross_entropy:
-            pred: [prediction]
-            gt: [label]
-            out: [train_loss]
+  # parameters:
+  #   # optimization:
+  #   #   optimizers:
+  #   #     named:
+  #   #       train_encoder:
+  #   #         type: adam
+  #   #         # parameters: encoder
+  #   #         params:
+  #   #           lr: 1.0e-3
+  #   #         selectors: [encoder]
+  #     # objectives:
+  #     #   train_encoder:
+  #     #     cross_entropy:
+  #     #       pred: [prediction]
+  #     #       gt: [label]
+  #     #       out: [train_loss]
       
-      process:
-        fit:
-          batch:
-            train_encoder:
-              optimizer: train_encoder
-              objective: train_encoder
-              steps:
-               - encoder
-        test:
-          batch:
-            train_encoder:
-              steps:
-               - encoder
-               - postprocess
-        predict: # used for torchserve
-          batch:
-            train_encoder:
-              steps:
-               - encoder
-               - postprocess
-        val:
-          batch:
-            mnist:
-              train_encoder:
-                steps:
-                - encoder
-                - postprocess
+  #     process:
+  #       fit:
+  #         batch:
+  #           train_encoder:
+  #             optimizer: train_encoder
+  #             objective: train_encoder
+  #             steps:
+  #              - encoder
+  #       test:
+  #         batch:
+  #           train_encoder:
+  #             steps:
+  #              - encoder
+  #              - postprocess
+  #       predict: # used for torchserve
+  #         batch:
+  #           train_encoder:
+  #             steps:
+  #              - encoder
+  #              - postprocess
+  #       val:
+  #         batch:
+  #           mnist:
+  #             train_encoder:
+  #               steps:
+  #               - encoder
+  #               - postprocess
         # predict:
         #   batch:
         #     classifier:
         #       steps:
         #        - encoder
 
-      monitor:
-        fit:
-          batch:
-            train_encoder:
-              frequency: 1
-              steps: []
-            # metrics:
-              # - train_loss
-            # tensors:
-            #   - show_image_batch
-        val:
-          batch:
-            train_encoder:
-              metrics:
-                - test_class_acc
-        test:
-          batch:
-            metrics:
-              - test_class_acc
-            # tensors:
-            #   - show_image_batch
-        predict:
-          batch:
-            metrics:
-              - predict_class_acc
-            tensors: # used for visualization & exporting
-              - save_image_batch
+      # monitor:
+      #   fit:
+      #     batch:
+      #       train_encoder:
+      #         frequency: 1
+      #         steps: []
+      #       # metrics:
+      #         # - train_loss
+      #       # tensors:
+      #       #   - show_image_batch
+      #   val:
+      #     batch:
+      #       train_encoder:
+      #         metrics:
+      #           - test_class_acc
+      #   test:
+      #     batch:
+      #       metrics:
+      #         - test_class_acc
+      #       # tensors:
+      #       #   - show_image_batch
+      #   predict:
+      #     batch:
+      #       metrics:
+      #         - predict_class_acc
+      #       tensors: # used for visualization & exporting
+      #         - save_image_batch
 
 
 
-  graphs:
-    encoder:
-      input: [color]
-      out:  [prediction]
-    postprocess:
-      argmax:
-        tensor: [prediction]
-        out:  [predicted_label]
+  # graphs:
+  #   encoder:
+  #     input: [color]
+  #     out:  [prediction]
+  #   postprocess:
+  #     argmax:
+  #       tensor: [prediction]
+  #       out:  [predicted_label]

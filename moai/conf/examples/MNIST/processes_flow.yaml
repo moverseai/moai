@@ -1,0 +1,38 @@
+# @package _global_
+
+_moai_:
+  _flows_: # that will be used in the main process
+    encoder:
+      input: [color]
+      out:  [prediction]
+    postprocess:
+      argmax:
+        tensor: [prediction]
+        out:  [predicted_label]
+  _run_: # forces execution of the following flows
+    fit:
+      batch:
+        train_encoder:
+          optimizer: train_encoder
+          objective: train_encoder
+          steps:
+            - encoder
+    test:
+      batch:
+        train_encoder:
+          steps:
+            - encoder
+            - postprocess
+    predict: # used for torchserve
+      batch:
+        train_encoder:
+          steps:
+            - encoder
+            - postprocess
+    val:
+      batch:
+        mnist:
+          train_encoder:
+            steps:
+              - encoder
+              - postprocess
