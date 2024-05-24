@@ -129,9 +129,11 @@ class Metrics(torch.nn.ModuleDict):
     ) -> typing.Dict[str, torch.Tensor]:
         # metrics = {}
         for key, out, kwargs in self.execs:
-            metric = self[key](**toolz.valmap(lambda v: tensors[v], kwargs))
+            metric = self[key].update(**toolz.valmap(lambda v: tensors[v], kwargs))
             if metric is not None:
                 tensors[f"{Constants._MOAI_METRICS_}.{out}"] = metric
+            else:
+                tensors[f"{Constants._MOAI_METRICS_}.{out}"] = torch.empty(0)
         # tensors['_moai_._metrics_'].update(metrics)
 
         # for exe in self.execs:

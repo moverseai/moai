@@ -31,8 +31,9 @@ _moai_:
             - postprocess
     val:
       batch:
-        mnist:
+        mnist: &val_proc
           train_encoder:
             steps:
               - encoder
               - postprocess
+        mnist_2: *val_proc

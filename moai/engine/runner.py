@@ -16,6 +16,7 @@ from moai.log.lightning.loggers.tabular import Tabular
 import numpy as np
 import os
 
+from torchmetrics import Metric as TorchMetric
 from moai.validation.metrics.generation.fid import FID
 from moai.validation.metrics.generation.diversity import Diversity
 
@@ -75,17 +76,17 @@ class BatchMonitor(L.Callback):
                     losses = toolz.merge(outputs['losses']['weighted'], {
                         'total': outputs['losses']['total'],                
                     })
+                    module.log_dict(losses, prog_bar=True, logger=False, on_step=True, on_epoch=False)
                     losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
                     losses['epoch'] = int(trainer.current_epoch)
-                    module.log_dict(losses, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                    module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)
                 if Constants._MOAI_METRICS_ in outputs:
-                    metrics = toolz.keymap(
-                        lambda k: f'train/metric/{k}', 
-                        outputs[Constants._MOAI_METRICS_].flatten(separator='/')
-                    )
+                    flattened_metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                    module.log_dict(flattened_metrics, prog_bar=True, logger=False, on_step=True, on_epoch=False)
+                    metrics = toolz.keymap(lambda k: f'train/metric/{k}',  flattened_metrics)
                     # metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
                     # metrics['epoch'] = trainer.current_epoch
-                    module.log_dict(metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                    module.log_dict(metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False)
         # return outputs
     
     @torch.no_grad
@@ -149,16 +150,20 @@ class BatchMonitor(L.Callback):
             return
         datasets = list(module.data.val.iterator.datasets.keys())
         if Constants._MOAI_METRICS_ in outputs:
+            flattened_metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
             scalar_metrics = toolz.keymap( # format: val/metric/named_metric/dataset
                 lambda k: f'val/metric/{k}/{datasets[dataloader_idx]}', 
                 toolz.valfilter(
-                    lambda x: len(x.shape) == 0, 
-                    outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                    # lambda x: len(x.shape) == 0, 
+                    lambda x: torch.numel(x) <= 1, flattened_metrics                    
                 )                
             )
             dataset_val_metrics = toolz.valmap(
-                lambda v: toolz.keymap(lambda k: k.split("/")[2], dict(v)),
-                toolz.groupby(
+                lambda v: toolz.keymap(# extract metric_type | metric_name
+                    lambda k: k.split("/")[2], 
+                    dict(v)
+                ),
+                toolz.groupby( # group by last key, i.e. dataset
                     lambda k: k[0].split('/')[-1],
                     scalar_metrics.items()
                 )
@@ -170,13 +175,17 @@ class BatchMonitor(L.Callback):
                         dataset_val_metrics[datasets[dataloader_idx]]
                     )
                 )
-                scalar_metrics["epoch"] = module.current_epoch
-                module.log_dict(scalar_metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+                scalar_metrics = toolz.valfilter(#NOTE: filter empty before log
+                    lambda x: torch.numel(x) == 1, scalar_metrics
+                )
+                scalar_metrics["epoch"] = module.current_epoch                
+                module.log_dict(scalar_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False)
             non_scalar_metrics = toolz.keymap(
                 lambda k: f'{datasets[dataloader_idx]}/{k}', 
                 toolz.valfilter(
-                    lambda x: len(x.shape) > 0,
-                    outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                    # lambda x: len(x.shape) > 0,
+                    # outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                    lambda x: torch.numel(x) > 1, flattened_metrics                    
                 )
             )
             if non_scalar_metrics:
@@ -199,18 +208,27 @@ class BatchMonitor(L.Callback):
         all_non_scalar_metrics = {}
         all_features = {}
         all_metrics = {}
-        log_all_metrics = defaultdict(list)
+        log_all_metrics = {} # defaultdict(list)
         if module.scalar_metrics:
-            for i, dataset in enumerate(module.scalar_metrics):
+            for i, (dataset, metrics) in enumerate(module.scalar_metrics.items()):
                 all_scalar_metrics[dataset] = {}
-                all_scalar_metrics[dataset]['epoch'] = module.current_epoch
-                o = module.scalar_metrics[dataset]
-                keys = next(iter(o), { }).keys()
-                for key in keys:
-                    all_scalar_metrics[dataset][key] = np.mean(np.array(
-                        [d[key].item() for d in o if key in d]
-                    ))
-                    log_all_metrics[key].append(all_scalar_metrics[dataset][key])
+                all_scalar_metrics[dataset]['epoch'] = int(module.current_epoch)
+                keys = next(iter(metrics), { }).keys()
+                for metric_name in keys:
+                    # metric_type, metric_name = key.split("|")
+                    # full_name, metric_module = toolz.first(toolz.filter(
+                    #     lambda n: n[0].endswith('multiclass_acc'), 
+                    #     module.named_metrics.named_modules()
+                    # ))
+                    metric_module = module.metric_name_to_module[metric_name]
+                    if isinstance(metric_module, TorchMetric):                        
+                        all_scalar_metrics[dataset][metric_name] = \
+                            metric_module.compute().detach().cpu().numpy()
+                        metric_module.reset()
+                    else:
+                        all_scalar_metrics[dataset][metric_name] = \
+                            metric_module.compute(d[metric_name] for d in metrics)
+                    log_all_metrics[metric_name] = float(all_scalar_metrics[dataset][metric_name])
             module.scalar_metrics.clear()  # free memory
         
         if module.non_scalar_metrics:
@@ -246,12 +264,16 @@ class BatchMonitor(L.Callback):
                                                         else all_non_scalar_metrics[dataset]
             module.non_scalar_metrics.clear()
         for dataset in all_metrics.keys():
-            ds = tablib.Dataset(headers=all_metrics[dataset].keys()) if module.current_epoch < 1 else tablib.Dataset(headers=False)
+            ds = tablib.Dataset(headers=all_metrics[dataset].keys()) \
+                if module.current_epoch < 1 \
+                else tablib.Dataset(headers=False)
             ds.append([v for v in all_metrics[dataset].values()])
             with open(os.path.join(os.getcwd(), f'{module.logger.name}_{dataset}_val_average.csv'), 'a', newline='') as f:
                  f.write(ds.export('csv'))
-        log_all_metrics = toolz.valmap(lambda v: sum(v) / len(v), log_all_metrics)
-        module.log_dict(log_all_metrics, prog_bar=False, logger=False, on_epoch=True, sync_dist=True)
+        # log_all_metrics = toolz.valmap(lambda v: sum(v) / len(v), log_all_metrics)
+        module.log_dict(log_all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True)
+        log_all_metrics = toolz.keymap(lambda k: f"val/metric/{k}", log_all_metrics)
+        module.log_dict(log_all_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True)
 
 # class PerBatch(torch.nn.Identity, L.Callback):
 #     def __init__(self):
@@ -522,7 +544,7 @@ class LightningRunner(L.Trainer):
         #     pytl_callbacks = [PerBatch()]
         # else:
         #     pytl_callbacks = [hyu.instantiate(loops.callbacks)]
-        pytl_callbacks = [BatchMonitor()]
+        pytl_callbacks = [BatchMonitor()] #TODO: only when moai model is used, should not be used for custom models
         # pytl_callbacks = [PerBatch() if loops is None or loops.callbacks in None else hyu.instantiate(loops.callbacks)]
         pytl_callbacks.extend(
             [hyu.instantiate(c) for c in callbacks.values()]

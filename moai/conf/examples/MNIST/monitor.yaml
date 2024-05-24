@@ -28,7 +28,7 @@ _moai_:
         multiclass_acc:
           target: [predicted_label]
           preds: [predicted_label]
-          out: [accuracy]
+          out: [accuracy2]
   _monitoring_:
     fit:
       batch:

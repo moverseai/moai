@@ -6,6 +6,8 @@ import omegaconf.omegaconf
 import hydra.utils as hyu
 import inspect
 
+from moai.core.execution.constants import Constants
+
 __all__ = ['Criteria']
 
 class Criteria():    
@@ -41,7 +43,7 @@ class Criteria():
     ) -> None:
         stop = False
         for operation in self.operations:
-            stop = operation(tensors['_moai_._metrics_'], extras)
+            stop = operation(tensors[Constants._MOAI_METRICS_], extras)
             if stop:
                 break
         return stop
