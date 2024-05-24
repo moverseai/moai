@@ -170,7 +170,18 @@ class MoaiLightningModule(L.LightningModule):
             config = omegaconf.OmegaConf.merge(optimizer, select_dict(v, 'params'))
             selected_params = list(hyu.instantiate(g)(self) for g in groups)
             self.named_optimizers[k] = hyu.instantiate(config, selected_params)
-        self.initializer = parameters.initialization if parameters is not None else None
+        #TODO: mode should be selected from the config and call the 
+        # correct initalizer
+        self.named_initializers = defaultdict(list)
+        # for k, v in select_dict(_moai_, Constants._INITIALIZERS_COLLECTION_).items():
+        for k, v in omegaconf.OmegaConf.to_container(
+            select(_moai_, Constants._INITIALIZE_),#parameters.optimization.process, 
+            resolve=True
+        ).items():
+            # get initializers for each group (e.g. setup, batch, epoch)
+            self.named_initializers[k] = list(hyu.instantiate(parameters.initializers[v])) if isinstance(v, str) \
+                else list(hyu.instantiate(parameters.initializers[i]) for i in v)
+
         ## Schedulers
         self.named_schedulers = defaultdict(dict) # {'step': {}, 'epoch': {}}
         # for k in toolz.get_in(["optimization", "schedulers", "named"], parameters) or {}:
@@ -203,6 +214,23 @@ class MoaiLightningModule(L.LightningModule):
             hyu.instantiate(remodel)(self)
         #TODO: init
         
+    def setup_initializers(self) -> None:
+        # call the initializers once at the beginning
+        # get the initializers to be called at the beginning
+        for init in self.named_initializers['setup']:
+            init(self)
+    
+    def batch_initializers(self) -> None:
+        # call the initializers at the beginning of each batch
+        for init in self.named_initializers['batch']:
+            init(self)
+    
+    def epoch_initializers(self) -> None:
+        # call the initializers at the beginning of each epoch
+        for init in self.named_initializers['epoch']:
+            init(self)
+
+    #TODO: deprecated? to be removed
     def initialize_parameters(self) -> None:
         init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
         init(self)

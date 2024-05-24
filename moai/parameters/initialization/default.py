@@ -11,4 +11,6 @@ class Default(object):
         pass
 
     def __call__(self, model: torch.nn.Module) -> None:
+        log.info(f"Initializing model with default parameters")
         pass
+        

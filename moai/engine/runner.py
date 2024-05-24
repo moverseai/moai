@@ -28,7 +28,8 @@ class BatchMonitor(L.Callback):
 
     def setup(self, trainer: L.Trainer, module: L.LightningModule, stage: str) -> None:
         """Called when fit, validate, test, predict, or tune begins."""
-        module.initialize_parameters()
+        # module.initialize_parameters()
+        module.setup_initializers()
 
     @torch.no_grad
     def on_train_batch_start(
@@ -40,7 +41,13 @@ class BatchMonitor(L.Callback):
     ) -> None:
         """Called when the train batch begins."""
         module.optimization_step = 0
+        # call initialize per batch
+        module.batch_initializers()
     
+    def on_train_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
+        """Called when the train epoch begins."""
+        module.epoch_initializers()
+
     @torch.no_grad
     def on_train_batch_end(
         self,
@@ -245,7 +252,7 @@ class BatchMonitor(L.Callback):
         module.log_dict(log_all_metrics, prog_bar=False, logger=False, on_epoch=True, sync_dist=True)
 
 # class PerBatch(torch.nn.Identity, L.Callback):
-#     def __init__(self):
+#     def __init__(self):f
 #         super(PerBatch, self).__init__()
 
 #     def on_train_batch_start(
