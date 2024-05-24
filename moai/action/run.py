@@ -1,11 +1,7 @@
 import hydra
-import sys
-import omegaconf.omegaconf
+from omegaconf.omegaconf import OmegaConf, DictConfig
 import logging
 import typing
-
-import os
-import re
 
 from moai.utils.funcs import select
 from moai.engine import Engine
@@ -14,15 +10,57 @@ from moai.core.execution.constants import Constants
 
 log = logging.getLogger(__name__)
 
-def assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any,typing.Any]:
-    return getattr(cfg, attr) if hasattr(cfg, attr) else None
+# def _assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any,typing.Any]:
+#     return getattr(cfg, attr) if hasattr(cfg, attr) else None
 
-def run(cfg):
-    hydra.utils.log.debug(f"Configuration:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
+def _specialize_config(cfg: DictConfig) -> None:
+    #TODO: remove unused keys for metrics etc. inside the named collections/flows
+    match cfg.action:
+        case 'fit':
+            if OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}.test'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}').test
+            if OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}.predict'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}').predict
+            if OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}.test'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}').test
+            if OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}.predict'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}').predict                
+        case 'test':
+            if OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}.fit'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}').fit
+            if OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}.val'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}').val
+            if OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}.predict'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}').predict
+            if OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}.fit'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}').fit
+            if OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}.val'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}').val
+            if OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}.predict'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}').predict
+        case 'predict':
+            if OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}.fit'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}').fit
+            if OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}.val'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}').val
+            if OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}.test'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_EXECUTION_}').test
+            if OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}.fit'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}').fit
+            if OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}.val'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}').val
+            if OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}.test'):
+                del OmegaConf.select(cfg, f'{Constants._MOAI_MONITORING_}').test
+        case _:
+            log.error(f"Erroneous `action` [{cfg.action}] specified on `run` mode.")
+
+def run(cfg: DictConfig):
+    _specialize_config(cfg)
+    hydra.utils.log.debug(f"Configuration:\n{OmegaConf.to_yaml(cfg, resolve=True)}")
     with open("config_resolved.yaml", 'w') as f:
-        f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=True, sort_keys=False))
+        f.write(OmegaConf.to_yaml(cfg, resolve=True, sort_keys=False))
     with open("config.yaml", 'w') as f:
-        f.write(omegaconf.OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False))
+        f.write(OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False))
     # engine = hydra.utils.instantiate(cfg.engine)
     engine = Engine(cfg.engine.modules) #NOTE: ctor before model/runner
     model = hydra.utils.instantiate(cfg.model,

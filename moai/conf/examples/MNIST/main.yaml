@@ -5,7 +5,7 @@ defaults:
 
   
   ###### LOGGERS
-  - engine/loggers: [tabular, clearml]
+  - engine/loggers: tabular # [tabular, clearml]
 
   - engine/runner/checkpoint: lightning
 
