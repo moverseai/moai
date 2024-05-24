@@ -260,7 +260,8 @@ class MoaiLightningModule(L.LightningModule):
                 # call._call_strategy_hook(self.trainer, "backward", loss, optimizer)        
             for step in steps:
                 tensors = self.named_flows[step](tensors)
-            loss, losses = self.named_objectives[objective](tensors)
+            self.named_objectives[objective](tensors)
+            loss = tensors[f"{Constants._MOAI_LOSSES_}.total"]
             is_first_batch_to_accumulate = index % self.trainer.accumulate_grad_batches == 0
             if self.trainer.accumulate_grad_batches == 1 or not is_first_batch_to_accumulate:
                 call._call_callback_hooks(self.trainer, "on_before_zero_grad", optimizer)
@@ -287,7 +288,10 @@ class MoaiLightningModule(L.LightningModule):
             return loss
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[Constants._MOAI_METRICS_] = {}
-        batch[Constants._MOAI_LOSSES_] = {}
+        batch[Constants._MOAI_LOSSES_] = { 
+            'raw': {}, 'weighted': {}, 
+            # 'total': torch.scalar_tensor(0.0).to(dtype=self.dtype, device=self.device)
+        }
         #TODO: check for refresh optimizers each step
         for stage, proc in self.process['fit']['batch'].items():
             steps = proc['steps']

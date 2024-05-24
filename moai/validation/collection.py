@@ -46,7 +46,7 @@ class Metrics(torch.nn.ModuleDict):
                 log.warning(f"Skipping metric `{key}` as it is not found in the configuration.")
                 continue
             try:
-                self.add_module(key, hyu.instantiate(metrics[key])) #TODO: stateless monads can be re-used
+                self.add_module(key, hyu.instantiate(metrics[key])) #TODO: stateless metrics can be re-used
             except Exception as e:
                 log.error(f"Could not instantiate the metric '{key}': {e}")
                 continue

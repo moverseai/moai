@@ -72,12 +72,13 @@ class BatchMonitor(L.Callback):
                 }
                 for monitor_tensors in monitor_named_batch.get('tensors', []):
                     module.named_monitors[monitor_tensors](outputs, extras)
-                if 'losses' in outputs:
-                    losses = toolz.merge(outputs['losses']['weighted'], {
-                        'total': outputs['losses']['total'],                
-                    })
+                if Constants._MOAI_LOSSES_ in outputs:
+                    losses = toolz.merge(
+                        outputs[f"{Constants._MOAI_LOSSES_}.weighted"], # outputs['losses']['weighted'], 
+                        {'total': outputs[f"{Constants._MOAI_LOSSES_}.total"]}# {'total': outputs['losses']['total']}
+                    )
                     module.log_dict(losses, prog_bar=True, logger=False, on_step=True, on_epoch=False)
-                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
+                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)                    
                     losses['epoch'] = int(trainer.current_epoch)
                     module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)
                 if Constants._MOAI_METRICS_ in outputs:
