@@ -32,8 +32,8 @@ class ClearML(pytorch_lightning.loggers.Logger):
             toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
         )
         val_metrics = toolz.keymap(
-            lambda k: k.replace("val_", ""),
-            toolz.keyfilter(lambda k: k.startswith("val"), metrics),
+            lambda k: k.replace("val/metric/", ""),
+            toolz.keyfilter(lambda k: k.startswith("val/metric/"), metrics),
         )
         test_metrics = toolz.keymap(
             lambda k: k.replace("test/", "").replace("/epoch_0", ""),
@@ -73,9 +73,9 @@ class ClearML(pytorch_lightning.loggers.Logger):
         if val_metrics:
             #TODO: report the average of the metrics
             dataset_val_metrics = toolz.valmap(
-                lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
+                lambda v: toolz.keymap(lambda k: k.split("/")[-1], dict(v)),
                 toolz.groupby(
-                    lambda k: toolz.get(2, k[0].split("/"), "metrics"),
+                    lambda k: toolz.get(1, k[0].split("/"), "metrics"),
                     val_metrics.items(),
                 ),
             )
