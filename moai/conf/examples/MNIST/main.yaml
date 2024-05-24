@@ -41,7 +41,7 @@ defaults:
 
 
   # ###### PARAMETERS
-  - model/_parameters/initialization: default
+  - model/parameters/initializers: [default, pretrained]
   - model/parameters/optimizers: adam
   # - model/parameters/optimization/scheduling: single
   # - model/parameters/optimization/scheduling/scheduler: step

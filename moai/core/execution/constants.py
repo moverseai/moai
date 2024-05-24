@@ -30,6 +30,7 @@ class Constants(object):
     _PARAMETER_SCHEDULERS_: str = f'{_PARAMETERS_}.schedulers'
     _OPTIMIZERS_: str = f'optimizers'
     _INITIALIZERS_: str = f'initializers'
+    _INITIALIZE_: str = f'_init_'
     _CRITERIA_: str = f'criteria'
     _GROUPS_: str = f'groups'
     _SCHEDULERS_: str = f'schedulers'

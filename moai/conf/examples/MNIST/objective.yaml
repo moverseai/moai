@@ -12,4 +12,3 @@ _moai_:
         params:
           lr: 1.0e-3
         groups: [encoder]
-
