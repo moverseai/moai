@@ -27,21 +27,6 @@ class ClearML(pytorch_lightning.loggers.Logger):
 
     @override
     def log_metrics(self, metrics: typing.Dict[str, typing.Any], step: int) -> None:
-        dataloader_index = (
-            toolz.get_in(
-                ["dataloader_index"],
-                toolz.keyfilter(lambda k: k.startswith("__moai__"), metrics).popitem()[
-                    1
-                ],
-            )
-            if toolz.keyfilter(lambda k: k.startswith("__moai__"), metrics)
-            else None
-        )
-        if dataloader_index is not None:
-            metrics = toolz.keyfilter(
-                lambda k: k.endswith(str(int(dataloader_index))),
-                metrics,
-            )
         train_metrics = toolz.keymap(
             lambda k: k.replace("train/", ""),
             toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
@@ -86,7 +71,6 @@ class ClearML(pytorch_lightning.loggers.Logger):
                     "Metrics", "Per Sample", iteration=step, table_plot=df
                 )
         if val_metrics:
-            e = int(metrics["epoch"])
             #TODO: report the average of the metrics
             dataset_val_metrics = toolz.valmap(
                 lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
@@ -95,9 +79,12 @@ class ClearML(pytorch_lightning.loggers.Logger):
                     val_metrics.items(),
                 ),
             )
-            for d, m in dataset_val_metrics.items():
-                for k, v in m.items():
-                    self.logger.report_scalar(d, k, v, e)
+            dataset = list(val_metrics.items())[0][0].split("/")[3]
+            for k, v in dataset_val_metrics.items():
+                self.logger.report_scalar(
+                    dataset, k, v['metric'],
+                    toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1]
+                )
 
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO: or namespace object ?
