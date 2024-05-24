@@ -64,6 +64,7 @@ _moai_:
         rmse:
           gt: [keypoints]
           pred: [joints2d]
+          out: [rmse]
   _monitoring_:
     fit:
       step:

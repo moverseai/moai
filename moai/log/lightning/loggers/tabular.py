@@ -146,8 +146,8 @@ class Tabular(pytorch_lightning.loggers.Logger):
             toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
         )
         val_metrics = toolz.keymap(
-            lambda k: k.replace("val/", ""),
-            toolz.keyfilter(lambda k: k.startswith("val/"), metrics),
+            lambda k: k.replace("val/metric/", ""),
+            toolz.keyfilter(lambda k: k.startswith("val/metric/"), metrics),
         )
         test_metrics = toolz.keymap(
             lambda k: k.replace("test/", "").replace("/epoch_0", ""),
@@ -163,7 +163,6 @@ class Tabular(pytorch_lightning.loggers.Logger):
         if train_metrics:
             self._append_train_losses(
                 # toolz.assoc(train_metrics, "total_loss", metrics["total_loss"]),
-                # train_metrics,
                 toolz.keymap(lambda k: k.split("/")[-1], train_metrics),
                 metrics["epoch"],
                 step,
@@ -183,19 +182,18 @@ class Tabular(pytorch_lightning.loggers.Logger):
             return
         if val_metrics:
             dataset_val_metrics = toolz.valmap(
-                lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
+                lambda v: toolz.keymap(
+                    lambda k: k.split("/")[0], #.split("|")[-1], 
+                    dict(v)
+                ),
                 toolz.groupby(
-                    lambda k: toolz.get(2, k[0].split("/"), "metrics"),
+                    lambda k: toolz.get(1, k[0].split("/"), "metrics"),
                     val_metrics.items(),
                 ),
             )
-            for k, v in dataset_val_metrics.items():
-                self._append_val_loss(
-                    k,
-                    v,
-                    toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1],
-                    step
-                )
+            for dataset_name, dataset_metrics in dataset_val_metrics.items():
+                epoch = toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1]
+                self._append_val_loss(dataset_name, dataset_metrics, epoch, step)
 
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO or namespace object ?

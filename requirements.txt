@@ -1,17 +1,17 @@
-omegaconf==2.0.2            #TODO: update
-hydra-core==1.0.3           #TODO: update
-hydra-colorlog==1.0.0
+omegaconf==2.3.0
+hydra-core==1.3.2
+hydra-colorlog==1.2.0
 pytorch-lightning==2.2.1    #TODO: update
 kornia==0.7.1
-visdom==0.1.8.9
+# visdom==0.1.8.9           #TODO: remove
 hiplot==0.1.20              #TODO: update
 opencv-python
 albumentations==1.1.0             
 matplotlib>=3.3.4
 toolz
 tablib
-json2html
-pysm==0.3.9
+# json2html                 #TODO: remove
+# pysm==0.3.9               #TODO: remove
 colour
 parsedatetime==2.6
 deepdiff==4.0.9
@@ -20,7 +20,7 @@ pandas
 roma==1.4.0
 trimesh
 clearml==1.6.4
-scenepic==1.0.10
+# scenepic==1.0.10         #TODO: remove
 importlib-resources # if py>3,7
 lark==1.1.9
 python-benedict==0.33.2

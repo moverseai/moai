@@ -83,7 +83,7 @@ class CriteriaArgsOperation():
     ):
         self.func = func
         #NOTE: DL to LD needs to ensure lists
-        tensor_args = toolz.valmap(lambda v: [_create_accessor(a) for a in v], tensor_args)
+        # tensor_args = toolz.valmap(lambda v: [_create_accessor(a) for a in v], tensor_args)        
         self.tensor_args = _dict_of_lists_to_list_of_dicts(tensor_args)
         self.other_args = _dict_of_lists_to_list_of_dicts(other_args)
         self.kwargs = kwargs
@@ -95,7 +95,8 @@ class CriteriaArgsOperation():
         stop = False
         for i, args in enumerate(self.tensor_args):
             kwargs = toolz.valmap(
-                lambda a: a(tensors).detach().cpu().numpy().squeeze(), 
+                # lambda a: a(tensors).detach().cpu().numpy().squeeze(), 
+                lambda a: tensors[a].detach().cpu().numpy().squeeze(), 
                 args
             )
             kwargs.update(toolz.get(i, self.other_args, {}))

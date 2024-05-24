@@ -127,6 +127,7 @@ class MoaiLightningModule(L.LightningModule):
             )
         ## Metrics Monitors
         self.named_metrics = torch.nn.ModuleDict()
+        self.metric_name_to_module = torch.nn.ModuleDict()
         # for k in toolz.get_in(['metrics'], monitors) or {}:
         for k, v in select_dict(_moai_, Constants._METRICS_COLLECTION_).items():
             # v = monitors.metrics[k]
@@ -134,6 +135,10 @@ class MoaiLightningModule(L.LightningModule):
                 metrics, **v
                 # omegaconf.OmegaConf.merge(validation, v)
             )
+            for key, out, _ in self.named_metrics[k].execs:
+                if out in self.metric_name_to_module:
+                    log.error(f"Same metric name [{out}] used in multiple definitions, metrics will not compute correctly!")
+                self.metric_name_to_module[out] = self.named_metrics[k][key]
         #NOTE: use masked_copy to keep only metrics w/ the key
         ## Tensor Monitors
         self.named_monitors = {}
@@ -249,8 +254,7 @@ class MoaiLightningModule(L.LightningModule):
     def training_step(self, 
         batch:                  typing.Dict[str, torch.Tensor],
         batch_idx:              int,
-    ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:        
-        batch = benedict.benedict(batch, keyattr_enabled=False)
+    ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:                
         def closure(tensors, index, steps, stage, optimizer, objective):
             # def backward_fn(loss: torch.Tensor, optimizer: torch.optim.Optimizer) -> None:
                 # call._call_strategy_hook(self.trainer, "backward", loss, optimizer)        
@@ -281,6 +285,9 @@ class MoaiLightningModule(L.LightningModule):
                         for step in tensor_monitor_steps:
                             self.named_monitors[step](tensors, extras)
             return loss
+        batch = benedict.benedict(batch, keyattr_enabled=False)
+        batch[Constants._MOAI_METRICS_] = {}
+        batch[Constants._MOAI_LOSSES_] = {}
         #TODO: check for refresh optimizers each step
         for stage, proc in self.process['fit']['batch'].items():
             steps = proc['steps']
@@ -366,6 +373,7 @@ class MoaiLightningModule(L.LightningModule):
         dataloader_idx:     int=0,
     ) -> dict:
         batch = benedict.benedict(batch, keyattr_enabled=False)
+        batch[Constants._MOAI_METRICS_] = {}
         datasets = list(self.data.test.iterator.datasets.keys())
         monitor = toolz.get_in(['test', 'batch'], self.monitor) or []
         # get graphs for test
@@ -391,6 +399,7 @@ class MoaiLightningModule(L.LightningModule):
         dataloader_idx:   int=0,
     ) -> None:
         batch = benedict.benedict(batch, keyattr_enabled=False)
+        batch[Constants._MOAI_METRICS_] = {}
         if not hasattr(self.data, 'val'):
             log.warning("Validation data missing. An empty validation set will be used.")
             return
@@ -404,7 +413,7 @@ class MoaiLightningModule(L.LightningModule):
                 for _, monitor_stage in monitor.items():
                     for metric in toolz.get('metrics', monitor_stage, None) or []:
                         self.named_metrics[metric](batch) #TODO add visualization
-
+        return batch
 
     def configure_optimizers(self) -> typing.Tuple[typing.List[torch.optim.Optimizer], typing.List[torch.optim.lr_scheduler._LRScheduler]]:
         return list(self.named_optimizers.values()), list(self.named_schedulers.values())
