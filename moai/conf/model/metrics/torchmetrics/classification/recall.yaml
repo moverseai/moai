@@ -1,4 +1,5 @@
 # @package model.metrics.recall
 
-_target_: moai.validation.metrics.classification.recall.MultiClassRecall
-num_classes: 10
+_target_: moai.validation.torchmetric.ClassificationTorchMetric
+type: MultiClassRecall
+num_classes: 10 #TODO: switch to ???

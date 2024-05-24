@@ -1,7 +1,8 @@
 # @package model.metrics.multiclass_auroc
 
-_target_: torchmetrics.classification.MulticlassAUROC
-num_classes: 10
+_target_: moai.validation.torchmetric.ClassificationTorchMetric
+type: MulticlassAUROC
+num_classes: 10 #TODO: switch to ???
 average: 'macro'
 thresholds: null
 ignore_index: null 

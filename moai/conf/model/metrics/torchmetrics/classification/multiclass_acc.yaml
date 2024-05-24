@@ -1,4 +1,5 @@
 # @package model.metrics.multiclass_acc
 
-_target_: torchmetrics.classification.MulticlassAccuracy
-num_classes: 10
+_target_: moai.validation.torchmetric.ClassificationTorchMetric
+type: MulticlassAccuracy
+num_classes: 10 #TODO: switch to ???

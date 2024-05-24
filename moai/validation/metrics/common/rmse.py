@@ -28,7 +28,5 @@ class RMSE(MoaiMetric):
             diff_w_sum = torch.sum(weights, dim=dim_list(gt)) # + 1e-18
             return torch.mean(torch.sqrt(diff_sq_sum / diff_w_sum))
     
-    def compute(self,
-        rmses: typing.Sequence[np.ndarray],
-    ) -> typing.Union[np.ndarray, typing.Mapping[str, np.ndarray]]:
-        return sum(rmses) / len(rmses)
+    def compute(self, rmses: np.ndarray) -> np.ndarray:
+        return rmses.mean() #TODO: sqrt adaptation?

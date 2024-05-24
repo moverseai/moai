@@ -32,8 +32,8 @@ class ClearML(pytorch_lightning.loggers.Logger):
             toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
         )
         val_metrics = toolz.keymap(
-            lambda k: k.replace("val/metric/", ""),
-            toolz.keyfilter(lambda k: k.startswith("val/metric/"), metrics),
+            lambda k: k.replace("val/", ""),
+            toolz.keyfilter(lambda k: k.startswith("val/"), metrics),
         )
         test_metrics = toolz.keymap(
             lambda k: k.replace("test/", "").replace("/epoch_0", ""),
@@ -79,10 +79,10 @@ class ClearML(pytorch_lightning.loggers.Logger):
                     val_metrics.items(),
                 ),
             )
-            dataset = list(val_metrics.items())[0][0].split("/")[3]
+            dataset = list(val_metrics.items())[0][0].split("/")[2]
             for k, v in dataset_val_metrics.items():
                 self.logger.report_scalar(
-                    dataset, k, v['metric'],
+                    dataset, k, v[k],
                     toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1]
                 )
 
