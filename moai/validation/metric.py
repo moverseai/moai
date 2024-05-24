@@ -10,8 +10,8 @@ class MoaiMetric(torch.nn.Module, abc.ABC):
     def __init__(self):
         super().__init__()
 
-    def update(self, **kwargs) -> typing.Union[np.ndarray, typing.Mapping[str, np.ndarray]]:
-        return self.forward(**kwargs)
+    # def update(self, **kwargs) -> typing.Union[np.ndarray, typing.Mapping[str, np.ndarray]]:
+    #     return self.forward(**kwargs)
     
     @abc.abstractmethod
     def forward(self, 

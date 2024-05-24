@@ -5,7 +5,7 @@ defaults:
 
   
   ###### LOGGERS
-  - engine/loggers: tabular # [tabular, clearml]
+  - engine/loggers: [tabular, clearml] # tabular # [tabular, clearml]
 
   - engine/runner/checkpoint: lightning
 
@@ -37,8 +37,6 @@ defaults:
   - model: moai # manual
   - model/modules/classification: mnist
   - model/monads/tensor: argmax
-
-
 
   # ###### PARAMETERS
   - model/parameters/initializers: [default, pretrained]

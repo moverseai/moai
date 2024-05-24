@@ -1,7 +1,8 @@
 # @package model.metrics.multiclass_precision
 
-_target_: torchmetrics.classification.MulticlassAveragePrecision
-num_classes: 10
+_target_: moai.validation.torchmetric.ClassificationTorchMetric
+type: MulticlassAveragePrecision
+num_classes: 10 #TODO: switch to ???
 average: 'macro'
 thresholds: null
 ignore_index: null 

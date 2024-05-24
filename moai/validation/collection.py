@@ -9,7 +9,7 @@ import logging
 import numpy as np
 import benedict
 
-from torchmetrics import Metric as TorchMetric
+from moai.validation.torchmetric import TorchMetric
 from moai.validation.metric import MoaiMetric
 from moai.core.execution.constants import Constants
 
@@ -46,16 +46,14 @@ class Metrics(torch.nn.ModuleDict):
                 log.warning(f"Skipping metric `{key}` as it is not found in the configuration.")
                 continue
             try:
-                self.add_module(key, hyu.instantiate(metrics[key])) #TODO: stateless monads can be re-used
+                self.add_module(key, hyu.instantiate(metrics[key])) #TODO: stateless metrics can be re-used
             except Exception as e:
                 log.error(f"Could not instantiate the metric '{key}': {e}")
                 continue
             metric_kwargs = kwargs[key]
             metric = self[key]
-            if isinstance(metric, MoaiMetric):
-                sig = inspect.signature(metric.forward)
-            elif isinstance(metric, TorchMetric):
-                sig = inspect.signature(metric.update)
+            if isinstance(metric, MoaiMetric) or isinstance(metric, TorchMetric):
+                sig = inspect.signature(metric.forward)            
             else:
                 log.warning(f"Skipping metric `{key}` as it is neither a `MoaiMetric` or a `torchmetrics.Metric`.")
                 continue
@@ -129,11 +127,13 @@ class Metrics(torch.nn.ModuleDict):
     ) -> typing.Dict[str, torch.Tensor]:
         # metrics = {}
         for key, out, kwargs in self.execs:
-            metric = self[key].update(**toolz.valmap(lambda v: tensors[v], kwargs))
-            if metric is not None:
-                tensors[f"{Constants._MOAI_METRICS_}.{out}"] = metric
-            else:
-                tensors[f"{Constants._MOAI_METRICS_}.{out}"] = torch.empty(0)
+            # metric = self[key].update(**toolz.valmap(lambda v: tensors[v], kwargs))
+            metric = self[key](**toolz.valmap(lambda v: tensors[v], kwargs))
+            tensors[f"{Constants._MOAI_METRICS_}.{out}"] = metric
+            # if metric is not None:
+            #     tensors[f"{Constants._MOAI_METRICS_}.{out}"] = metric
+            # else:
+            #     tensors[f"{Constants._MOAI_METRICS_}.{out}"] = torch.empty(0)
         # tensors['_moai_._metrics_'].update(metrics)
 
         # for exe in self.execs:

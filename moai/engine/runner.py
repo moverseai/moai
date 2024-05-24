@@ -97,12 +97,13 @@ class BatchMonitor(L.Callback):
                 }
                 for monitor_tensors in monitor_named_batch.get('tensors', []):
                     module.named_monitors[monitor_tensors](outputs, extras)
-                if 'losses' in outputs:
-                    losses = toolz.merge(outputs['losses']['weighted'], {
-                        'total': outputs['losses']['total'],                
-                    })
+                if Constants._MOAI_LOSSES_ in outputs:
+                    losses = toolz.merge(
+                        outputs[f"{Constants._MOAI_LOSSES_}.weighted"], # outputs['losses']['weighted'], 
+                        {'total': outputs[f"{Constants._MOAI_LOSSES_}.total"]}# {'total': outputs['losses']['total']}
+                    )
                     module.log_dict(losses, prog_bar=True, logger=False, on_step=True, on_epoch=False)
-                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)
+                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)                    
                     losses['epoch'] = int(trainer.current_epoch)
                     module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)
                 if Constants._MOAI_METRICS_ in outputs:
@@ -179,12 +180,12 @@ class BatchMonitor(L.Callback):
             scalar_metrics = toolz.keymap( # format: val/metric/named_metric/dataset
                 lambda k: f'val/metric/{k}/{datasets[dataloader_idx]}', 
                 toolz.valfilter(
-                    # lambda x: len(x.shape) == 0, 
-                    lambda x: torch.numel(x) <= 1, flattened_metrics                    
+                    lambda x: torch.numel(x) == 1, flattened_metrics 
+                    # lambda x: torch.numel(x) <= 1, flattened_metrics
                 )                
             )
             dataset_val_metrics = toolz.valmap(
-                lambda v: toolz.keymap(# extract metric_type | metric_name
+                lambda v: toolz.keymap(
                     lambda k: k.split("/")[2], 
                     dict(v)
                 ),
@@ -200,9 +201,9 @@ class BatchMonitor(L.Callback):
                         dataset_val_metrics[datasets[dataloader_idx]]
                     )
                 )
-                scalar_metrics = toolz.valfilter(#NOTE: filter empty before log
-                    lambda x: torch.numel(x) == 1, scalar_metrics
-                )
+                # scalar_metrics = toolz.valfilter(#NOTE: filter empty before log
+                #     lambda x: torch.numel(x) == 1, scalar_metrics
+                # )
                 scalar_metrics["epoch"] = module.current_epoch                
                 module.log_dict(scalar_metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False)
             non_scalar_metrics = toolz.keymap(
@@ -246,14 +247,14 @@ class BatchMonitor(L.Callback):
                     #     module.named_metrics.named_modules()
                     # ))
                     metric_module = module.metric_name_to_module[metric_name]
-                    if isinstance(metric_module, TorchMetric):                        
-                        all_scalar_metrics[dataset][metric_name] = \
-                            metric_module.compute().detach().cpu().numpy()
-                        metric_module.reset()
-                    else:
-                        all_scalar_metrics[dataset][metric_name] = \
-                            metric_module.compute(d[metric_name] for d in metrics)
-                    log_all_metrics[metric_name] = float(all_scalar_metrics[dataset][metric_name])
+                    # if isinstance(metric_module, TorchMetric):                        
+                    #     all_scalar_metrics[dataset][metric_name] = \
+                    #         metric_module.compute().detach().cpu().numpy()
+                    #     metric_module.reset()
+                    # else:
+                    all_scalar_metrics[dataset][metric_name] = \
+                        metric_module.compute(np.stack([d[metric_name] for d in metrics]))
+                    log_all_metrics[f"{metric_name}/{dataset}"] = float(all_scalar_metrics[dataset][metric_name])
             module.scalar_metrics.clear()  # free memory
         
         if module.non_scalar_metrics:

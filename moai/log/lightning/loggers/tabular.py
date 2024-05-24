@@ -102,6 +102,7 @@ class Tabular(pytorch_lightning.loggers.Logger):
             )
         )
 
+
     def _append_test_metrics(
         self,
         dataset: str,
@@ -140,17 +141,7 @@ class Tabular(pytorch_lightning.loggers.Logger):
     @override
     def log_metrics(self, metrics: typing.Dict[str, typing.Any], step: int) -> None:
         #TODO: manually check the rank zero experiment
-        # get dataloader index
-        dataloader_index = toolz.get_in(
-            ["dataloader_index"],
-            toolz.keyfilter(lambda k: k.startswith("__moai__"), metrics).popitem()[1],
-        ) if toolz.keyfilter(lambda k: k.startswith("__moai__"), metrics) else None
-        if dataloader_index is not None:
-            metrics = toolz.keyfilter(
-                lambda k: k.endswith(str(int(dataloader_index))),
-                metrics,
-            )
-        train_metrics = toolz.keymap(#NOTE: can be losses & metrics (when fitting)
+        train_metrics = toolz.keymap(
             lambda k: k.replace("train/", ""),
             toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
         )
@@ -202,7 +193,7 @@ class Tabular(pytorch_lightning.loggers.Logger):
             )
             for dataset_name, dataset_metrics in dataset_val_metrics.items():
                 epoch = toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1]
-                self._append_val_loss(dataset_name, dataset_metrics, epoch, step)
+                self._append_val_loss(dataset_name, dataset_metrics, int(epoch), int(step))
 
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO or namespace object ?
