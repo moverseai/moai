@@ -44,8 +44,26 @@ class BatchMonitor(L.Callback):
         # call initialize per batch
         module.batch_initializers()
     
+    @torch.no_grad
+    def on_predict_batch_start(self, trainer: L.Trainer, module: L.LightningModule, batch: hyu.Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+        module.batch_initializers()
+
+    @torch.no_grad
+    def on_test_batch_start(self, trainer: L.Trainer, module: L.LightningModule, batch: hyu.Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+        module.batch_initializers()
+    
+    @torch.no_grad
     def on_train_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
         """Called when the train epoch begins."""
+        module.epoch_initializers()
+        
+    @torch.no_grad
+    def on_predict_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
+        """Called when the predict epoch begins."""
+        module.epoch_initializers()
+    
+    @torch.no_grad
+    def on_test_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
         module.epoch_initializers()
 
     @torch.no_grad

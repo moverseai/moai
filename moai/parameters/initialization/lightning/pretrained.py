@@ -1,5 +1,4 @@
-import moai.networks.lightning as minet
-
+from moai.core.model import MoaiLightningModule
 import torch
 import types
 import logging
@@ -8,8 +7,8 @@ log = logging.getLogger(__name__)
 
 __all__ = ["Pretrained"]
 
-class Pretrained(object):    
-    def __init__(self,         
+class Pretrained(object):
+    def __init__(self,
         filename: str,
         strict: bool=True
     ):
@@ -28,9 +27,12 @@ class Pretrained(object):
             model.hparams = ckpt_hparams \
                 if isinstance(ckpt_hparams, types.SimpleNamespace) \
                     else types.SimpleNamespace(**ckpt_hparams)
-        if isinstance(model, minet.Wrapper):
-            model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
-        else:
-            model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
-            model.on_load_checkpoint(checkpoint) #NOTE: check why this is needed
+        #TODO: add wrapper logic if needed
+        # if isinstance(model, minet.Wrapper):
+        #     model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
+        # else:
+        #     model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
+        #     model.on_load_checkpoint(checkpoint) #NOTE: check why this is needed
+        model.load_state_dict(checkpoint['state_dict'], strict=self.strict)
+        model.on_load_checkpoint(checkpoint) #NOTE: check why this is needed
 

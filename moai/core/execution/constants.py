@@ -10,6 +10,7 @@ class Constants(object):
     _MOAI_METRICS_: str = f'{_MOAI_}._metrics_'
     _MOAI_LOSSES_: str = f'{_MOAI_}._losses_'
     _MOAI_EXECUTION_: str = f'{_MOAI_}._run_'
+    _MOAI_INITIALIZE_: str = f'{_MOAI_}._init_'
     _EXECUTION_: str = f'_run_'
     _COLLECTIONS_: str = f'_collections_'
     _METRICS_COLLECTION_: str = f'{_COLLECTIONS_}._metrics_'

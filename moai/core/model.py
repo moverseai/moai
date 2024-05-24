@@ -180,7 +180,7 @@ class MoaiLightningModule(L.LightningModule):
         self.named_initializers = defaultdict(list)
         # for k, v in select_dict(_moai_, Constants._INITIALIZERS_COLLECTION_).items():
         for k, v in omegaconf.OmegaConf.to_container(
-            select(_moai_, Constants._INITIALIZE_),#parameters.optimization.process, 
+            select(_moai_, Constants._INITIALIZE_)[select(_moai_, "_action_")],#parameters.optimization.process, 
             resolve=True
         ).items():
             # get initializers for each group (e.g. setup, batch, epoch)
