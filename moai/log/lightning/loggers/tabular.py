@@ -193,7 +193,7 @@ class Tabular(pytorch_lightning.loggers.Logger):
             )
             for dataset_name, dataset_metrics in dataset_val_metrics.items():
                 epoch = toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1]
-                self._append_val_loss(dataset_name, dataset_metrics, epoch, step)
+                self._append_val_loss(dataset_name, dataset_metrics, int(epoch), int(step))
 
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO or namespace object ?

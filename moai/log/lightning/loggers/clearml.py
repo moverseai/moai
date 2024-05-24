@@ -73,18 +73,18 @@ class ClearML(pytorch_lightning.loggers.Logger):
         if val_metrics:
             #TODO: report the average of the metrics
             dataset_val_metrics = toolz.valmap(
-                lambda v: toolz.keymap(lambda k: k.split("/")[-1], dict(v)),
+                lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
                 toolz.groupby(
-                    lambda k: toolz.get(1, k[0].split("/"), "metrics"),
+                    lambda k: toolz.get(2, k[0].split("/"), "metrics"),
                     val_metrics.items(),
                 ),
             )
-            dataset = list(val_metrics.items())[0][0].split("/")[2]
-            for k, v in dataset_val_metrics.items():
-                self.logger.report_scalar(
-                    dataset, k, v[k],
-                    toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1]
-                )
+            # dataset = list(val_metrics.items())[0][0].split("/")[2]
+            for dataset_name, dataset_metrics in dataset_val_metrics.items():
+                for metric_name, metric_value in dataset_metrics.items():
+                    self.logger.report_scalar(dataset_name, metric_name, metric_value,
+                        int(toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1])
+                    )
 
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO: or namespace object ?
