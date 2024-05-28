@@ -136,7 +136,8 @@ __MOAI_GRAMMAR__ = """
 class MoaiDSLPlugin(SearchPathPlugin):
     def __init__(self) -> None:
         self.parser = Lark(__MOAI_GRAMMAR__, parser='earley', start='expr')
-        omegaconf.OmegaConf.register_new_resolver("mi", self._parse_expression)
+        if not omegaconf.OmegaConf.has_resolver('mi'):
+            omegaconf.OmegaConf.register_new_resolver("mi", self._parse_expression)
     
     def _parse_expression(self, *expressions):
         text = ','.join(expressions)
