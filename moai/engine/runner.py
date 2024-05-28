@@ -43,6 +43,9 @@ class BatchMonitor(L.Callback):
         module.optimization_step = 0
         # call initialize per batch
         module.batch_initializers()
+        if module.process['fit']['_refresh_optimizers_']:
+            module.reset_optimization()
+            trainer.strategy.setup_optimizers(trainer)
     
     @torch.no_grad
     def on_predict_batch_start(self, trainer: L.Trainer, module: L.LightningModule, batch: hyu.Any, batch_idx: int, dataloader_idx: int = 0) -> None:

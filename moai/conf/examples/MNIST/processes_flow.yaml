@@ -1,15 +1,15 @@
 # @package _global_
 
 _moai_:
-  _init_:  # responsible for initializers
+  _initialize_:  # responsible for initializers
     fit:
       setup: [default] # used only at the beginning of the training process
       # batch: [default] # used at the beginning of each batch
       # epoch: [default] # used at the beginning of each epoch
     test:
-      setup: [pretrained]
+      setup: pretrained
     predict:
-      setup: [pretrained]
+      setup: pretrained
   _flows_: # that will be used in the main process
     encoder:
       input: [color]
@@ -18,7 +18,7 @@ _moai_:
       argmax:
         tensor: [prediction]
         out:  [predicted_label]
-  _run_: # forces execution of the following flows
+  _execution_: # forces execution of the following flows
     fit:
       batch:
         train_encoder:

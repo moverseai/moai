@@ -27,7 +27,7 @@ from moai.validation.collection import Metrics as DefaultValidation
 from moai.supervision.weighted import Weighted as DefaultSupervision
 from moai.utils.iterators import partition
 from moai.utils.funcs import (
-    select, select_dict, select_list,
+    select, select_dict, select_list, select_conf,
     get, get_dict, get_list,
 )
 from moai.utils.arguments import ensure_string_list
@@ -162,40 +162,28 @@ class MoaiLightningModule(L.LightningModule):
         #       should be created and available in `self`
         ## Optimizers & Parameters
         self.named_optimizers = OrderedDict()
-        # for k in toolz.get_in(["optimization", "optimizers", "named"], parameters) or {}:
-        for k, v in select_dict(_moai_, Constants._OPTIMIZERS_COLLECTION_).items():
-            # v = parameters.optimization.optimizers.named[k]
-            # if isinstance(v.selectors, str):
-            #     selectors = [parameters.selectors[v.selectors]]
-            # else:
-            #     selectors = [parameters.selectors[s] for s in v.selectors]
-            groups = [select(parameters, Constants._GROUPS_)[g] for g in ensure_string_list(select(v, 'groups'))]
-            # optimizer = parameters.optimization.optimizers[select(v, 'type')]
-            optimizer = select(parameters, Constants._OPTIMIZERS_)[select(v, 'type')]
-            config = omegaconf.OmegaConf.merge(optimizer, select_dict(v, 'params'))
-            selected_params = list(hyu.instantiate(g)(self) for g in groups)
-            self.named_optimizers[k] = hyu.instantiate(config, selected_params)
-        #TODO: mode should be selected from the config and call the 
-        # correct initalizer
-        self.named_initializers = defaultdict(list)
-        # for k, v in select_dict(_moai_, Constants._INITIALIZERS_COLLECTION_).items():
-        for k, v in omegaconf.OmegaConf.to_container(
-            select(_moai_, Constants._INITIALIZE_)[select(_moai_, "_action_")],#parameters.optimization.process, 
-            resolve=True
-        ).items():
-            # get initializers for each group (e.g. setup, batch, epoch)
-            self.named_initializers[k] = list(hyu.instantiate(parameters.initializers[v])) if isinstance(v, str) \
-                else list(hyu.instantiate(parameters.initializers[i]) for i in v)
-
-        ## Schedulers
         self.named_schedulers = defaultdict(dict) # {'step': {}, 'epoch': {}}
-        # for k in toolz.get_in(["optimization", "schedulers", "named"], parameters) or {}:
-        for k, v in select_dict(_moai_, Constants._SCHEDULERS_COLLECTION_).items():
-            # v = parameters.optimization.schedulers.named[k]
-            scheduler = parameters.optimization.schedulers[select(v, 'type')]
-            config = omegaconf.OmegaConf.merge(scheduler, select_dict(v, 'params'))
-            interval = select(v, 'interval') or 'epoch' #NOTE: if missing defaults to `epoch`
-            self.named_schedulers[interval][k] = hyu.instantiate(config, self.named_optimizers[select(v, 'optimizer')])
+        # for k in toolz.get_in(["optimization", "optimizers", "named"], parameters) or {}:
+        self.optimization_config = {
+            '_optimizers_collection_': omegaconf.OmegaConf.to_container(select_conf(_moai_, Constants._OPTIMIZERS_COLLECTION_)),
+            '_groups_': omegaconf.OmegaConf.to_container(select_conf(parameters, Constants._GROUPS_)),
+            '_optimizers_': omegaconf.OmegaConf.to_container(select_conf(parameters, Constants._OPTIMIZERS_)),
+            '_schedulers_collection_': omegaconf.OmegaConf.to_container(select_conf(_moai_, Constants._SCHEDULERS_COLLECTION_)),
+            '_schedulers_': omegaconf.OmegaConf.to_container(select_conf(parameters, Constants._SCHEDULERS_)),
+        }
+        self.reset_optimization()        
+        # Intializers
+        self.named_initializers = defaultdict(list) 
+        # No _init_ in the config means no initializers? TODO: do we need to call NoInit?
+        # if select_dict(_moai_, Constants._INITIALIZE_):
+        #     for k, v in select_dict(select_dict(_moai_, Constants._INITIALIZE_), select(_moai_, "_action_")).items():
+        #         self.named_initializers[k] = [(hyu.instantiate(parameters.initializers[v]))] if isinstance(v, str) \
+        #             else list(hyu.instantiate(parameters.initializers[i]) for i in v)
+        # else:
+        #     log.warning("No initializers found in the configuration!")
+        for k, v in select_dict(_moai_, f"{Constants._INITIALIZE_}.{_moai_._action_}").items():
+            v = ensure_string_list(v)
+            self.named_initializers[k] = [hyu.instantiate(parameters.initializers[i]) for i in v]
         ## Optimization Process & Monitoring
         self.process = omegaconf.OmegaConf.to_container(
             select(_moai_, Constants._EXECUTION_),#parameters.optimization.process, 
@@ -219,6 +207,21 @@ class MoaiLightningModule(L.LightningModule):
             hyu.instantiate(remodel)(self)
         #TODO: init
         
+    def reset_optimization(self) -> None:
+        ## Optimizers
+        for k, v in self.optimization_config['_optimizers_collection_'].items():
+            groups = [self.optimization_config['_groups_'][g] for g in ensure_string_list(get(v, 'groups'))]
+            optimizer = self.optimization_config['_optimizers_'][get(v, 'type')]
+            config = omegaconf.OmegaConf.merge(optimizer, get_dict(v, 'params'))
+            selected_params = list(hyu.instantiate(g)(self) for g in groups)
+            self.named_optimizers[k] = hyu.instantiate(config, selected_params)
+        ## Schedulers
+        for k, v in self.optimization_config['_schedulers_collection_'].items():
+            scheduler = self.optimization_config['_schedulers_'][get(v, 'type')]
+            config = omegaconf.OmegaConf.merge(scheduler, get_dict(v, 'params'))
+            interval = get(v, 'interval') or 'epoch' #NOTE: if missing defaults to `epoch`
+            self.named_schedulers[interval][k] = hyu.instantiate(config, self.named_optimizers[get(v, 'optimizer')])
+
     def setup_initializers(self) -> None:
         # call the initializers once at the beginning
         # get the initializers to be called at the beginning

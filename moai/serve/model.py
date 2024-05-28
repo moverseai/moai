@@ -18,6 +18,11 @@ import yaml
 import logging
 import typing
 
+from moai.engine import Engine
+from moai.utils.funcs import select
+from moai.core.execution.constants import Constants
+from moai.action.run import _specialize_config
+
 log = logging.getLogger(__name__)
 
 # attach debugpy
@@ -103,14 +108,23 @@ class ModelServer(BaseHandler):
                     overrides=self._get_overrides(),
                     return_hydra_config=True,
                 )
+                OmegaConf.set_struct(cfg, False)
+                cfg.action = 'predict'
+                cfg._moai_._action_ = 'predict'
+                OmegaConf.set_struct(cfg, True)
                 # get ckpt if exists
-                ckpt = omegaconf.OmegaConf.select(cfg, 'archive.ckpt')
-                self.ckpt = ckpt
-                self.model = hyu.instantiate(cfg.model, _recursive_= False)
+                # ckpt = omegaconf.OmegaConf.select(cfg, 'archive.ckpt')
+                # self.ckpt = ckpt
                 # drop clearml if exists from engine as not needed in the serve context
                 if hasattr(cfg.engine, 'modules') and hasattr(cfg.engine.modules, 'clearml'):
                     del cfg.engine.modules.clearml
-                self.engine = hyu.instantiate(cfg.engine, _recursive_= False)
+                self.engine = Engine(cfg.engine.modules)
+                self.model = hyu.instantiate(
+                    cfg.model,
+                     _moai_=select(cfg, Constants._MOAI_),
+                     _recursive_= False
+                )
+                #TODO: remodel should be updated
                 if hasattr(cfg, 'remodel'):
                     log.info(f"Remodeling...")
                     for k, v in cfg.remodel.items():
@@ -143,7 +157,7 @@ class ModelServer(BaseHandler):
                 self.postproc = {k: hyu.instantiate(h, _recursive_ = False) for k, h in _find_all_targets(toolz.get_in(['handlers', 'postprocess'], cfg)).items()}
         except Exception as e:
             log.error(f"An error has occured while loading the handlers:\n{e}")
-        self.model.initialize_parameters()
+        self.model.setup_initializers()
 
     @timed
     def preprocess(self, 

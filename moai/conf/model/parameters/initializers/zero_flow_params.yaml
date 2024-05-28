@@ -1,0 +1,4 @@
+# @package model.parameters.initializers.zero_flow_params
+
+_target_: moai.parameters.initialization.schemes.zero_flow_params.ZeroFlowParams
+keys: ???

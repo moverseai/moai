@@ -15,7 +15,7 @@ else:
 
 __all__ = ["Kaiming"]
 
-class Kaiming(Callable):
+class _Kaiming(Callable): #TODO: should break because it needs to be fixed to call module.apply()
     def __init__(self, 
         zero_bias:      bool=False,
         gain:           float=0.0,
