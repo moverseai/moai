@@ -5,8 +5,9 @@ _moai_:
     fit:
       setup: [vposer2]
       batch: [zero_flow_params]
-  _execution_:
+  _execution_:    
     fit:
+      _refresh_optimizers_: true
       batch:
         initialize_torso:
           steps: # graphs
@@ -19,7 +20,7 @@ _moai_:
           steps:
             - preprocess
             - postprocess
-          objective: initial_torso_fit              
+          objective: initial_torso_fit
       # epoch:
       #   termination: 
         # - milestone: 30

@@ -171,40 +171,19 @@ class MoaiLightningModule(L.LightningModule):
             '_schedulers_collection_': omegaconf.OmegaConf.to_container(select_conf(_moai_, Constants._SCHEDULERS_COLLECTION_)),
             '_schedulers_': omegaconf.OmegaConf.to_container(select_conf(parameters, Constants._SCHEDULERS_)),
         }
-        self.reset_optimizers()
-        '''
-        for k, v in select_dict(_moai_, Constants._OPTIMIZERS_COLLECTION_).items():
-            # v = parameters.optimization.optimizers.named[k]
-            # if isinstance(v.selectors, str):
-            #     selectors = [parameters.selectors[v.selectors]]
-            # else:
-            #     selectors = [parameters.selectors[s] for s in v.selectors]
-            groups = [select(parameters, Constants._GROUPS_)[g] for g in ensure_string_list(select(v, 'groups'))]
-            # optimizer = parameters.optimization.optimizers[select(v, 'type')]
-            optimizer = select(parameters, Constants._OPTIMIZERS_)[select(v, 'type')]
-            config = omegaconf.OmegaConf.merge(optimizer, select_dict(v, 'params'))
-            selected_params = list(hyu.instantiate(g)(self) for g in groups)
-            self.named_optimizers[k] = hyu.instantiate(config, selected_params)
-        
-        ## Schedulers
-        self.named_schedulers = defaultdict(dict) # {'step': {}, 'epoch': {}}
-        # for k in toolz.get_in(["optimization", "schedulers", "named"], parameters) or {}:
-        for k, v in select_dict(_moai_, Constants._SCHEDULERS_COLLECTION_).items():
-            # v = parameters.optimization.schedulers.named[k]
-            scheduler = parameters.optimization.schedulers[select(v, 'type')]
-            config = omegaconf.OmegaConf.merge(scheduler, select_dict(v, 'params'))
-            interval = select(v, 'interval') or 'epoch' #NOTE: if missing defaults to `epoch`
-            self.named_schedulers[interval][k] = hyu.instantiate(config, self.named_optimizers[select(v, 'optimizer')])
-        '''
+        self.reset_optimization()        
         # Intializers
         self.named_initializers = defaultdict(list) 
         # No _init_ in the config means no initializers? TODO: do we need to call NoInit?
-        if select_dict(_moai_, Constants._INITIALIZE_):
-            for k, v in select_dict(select_dict(_moai_, Constants._INITIALIZE_), select(_moai_, "_action_")).items():
-                self.named_initializers[k] = [(hyu.instantiate(parameters.initializers[v]))] if isinstance(v, str) \
-                    else list(hyu.instantiate(parameters.initializers[i]) for i in v)
-        else:
-            log.warning("No initializers found in the configuration!")
+        # if select_dict(_moai_, Constants._INITIALIZE_):
+        #     for k, v in select_dict(select_dict(_moai_, Constants._INITIALIZE_), select(_moai_, "_action_")).items():
+        #         self.named_initializers[k] = [(hyu.instantiate(parameters.initializers[v]))] if isinstance(v, str) \
+        #             else list(hyu.instantiate(parameters.initializers[i]) for i in v)
+        # else:
+        #     log.warning("No initializers found in the configuration!")
+        for k, v in select_dict(_moai_, f"{Constants._INITIALIZE_}.{_moai_._action_}").items():
+            v = ensure_string_list(v)
+            self.named_initializers[k] = [hyu.instantiate(parameters.initializers[i]) for i in v]
         ## Optimization Process & Monitoring
         self.process = omegaconf.OmegaConf.to_container(
             select(_moai_, Constants._EXECUTION_),#parameters.optimization.process, 
@@ -228,7 +207,7 @@ class MoaiLightningModule(L.LightningModule):
             hyu.instantiate(remodel)(self)
         #TODO: init
         
-    def reset_optimizers(self) -> None:
+    def reset_optimization(self) -> None:
         ## Optimizers
         for k, v in self.optimization_config['_optimizers_collection_'].items():
             groups = [self.optimization_config['_groups_'][g] for g in ensure_string_list(get(v, 'groups'))]

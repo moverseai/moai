@@ -26,7 +26,7 @@ class ZeroFlowParams(typing.Callable[[torch.nn.Module], None]):
                 #     return getattr(object, key, None)
                 # m = toolz.reduce(_getattr, split, module)
                 # m = get_submodule(module, key)
-                m = get_parameter(module, key)                
+                m = get_parameter(module.named_flows, key)                
                 if m is not None:
                     log.info(f"Zeroing out parameter: {key}.")
                     with torch.no_grad(): #TODO: remove this and add in root apply call
