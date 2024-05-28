@@ -10,7 +10,7 @@ import logging
 import os
 import toolz
 
-__all__ = ["Npz"]
+__all__ = ["Npz", "append_npz"]
 
 log = logging.getLogger(__name__)
 
@@ -53,4 +53,30 @@ class Npz(typing.Callable[[typing.Dict[str, typing.Union[torch.Tensor, typing.Di
             self.index += 1
         else:
             log.error('Npz exporting is not yet enabled in append mode.')
+
+def append_npz(
+    tensors:    typing.Dict[str, torch.Tensor],
+    path:       str,
+    keys:       typing.Union[str, typing.Sequence[str]],
+    mode:       str="all", # combined
+    combined:   bool=False,
+    compressed: bool=False,
+    batch_idx:  typing.Optional[int]=None,
+    fmt:        str="05d",
+) -> None:
+    arrays = { }
+    folder = ensure_path(log, "output folder", path)
+    for key in keys:
+        split = key.split('.')
+        arrays[key] = toolz.get_in(split, tensors).squeeze().detach().cpu().numpy()
+    if mode == 'all':
+        if combined:
+            f = os.path.join(folder, f"{batch_idx:{fmt}}.npz")
+            np.savez_compressed(f, **arrays) if compressed else np.savez(f, **arrays)
+        else:
+            for key in keys:
+                f = os.path.join(folder, f"{batch_idx:{fmt}}_{key}.npz")
+                np.savez_compressed(f, arrays[key]) if compressed else np.savez(f, arrays[key])
+    else:
+        log.error('Npz exporting is not yet enabled in append mode.')
         

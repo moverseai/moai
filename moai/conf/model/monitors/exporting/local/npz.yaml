@@ -1,0 +1,8 @@
+# @package model.monitors.npz
+
+_target_: moai.export.local.npz.Npz
+mode: all # [all, append]
+keys: ???
+path: ???
+combined: False
+compressed: False
