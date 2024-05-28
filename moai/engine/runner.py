@@ -1,4 +1,5 @@
 from moai.core.execution.constants import Constants
+from moai.utils.funcs import get
 
 import pytorch_lightning as L
 import hydra.utils as hyu
@@ -13,8 +14,6 @@ import tablib
 import numpy as np
 import os
 from moai.log.lightning.loggers.tabular import Tabular
-import numpy as np
-import os
 
 from torchmetrics import Metric as TorchMetric
 from moai.validation.metrics.generation.fid import FID
@@ -43,7 +42,7 @@ class BatchMonitor(L.Callback):
         module.optimization_step = 0
         # call initialize per batch
         module.batch_initializers()
-        if module.process['fit']['_refresh_optimizers_']:
+        if module.process['fit'].get('_refresh_optimizers_', False):
             module.reset_optimization()
             trainer.strategy.setup_optimizers(trainer)
     
@@ -59,6 +58,9 @@ class BatchMonitor(L.Callback):
     def on_train_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
         """Called when the train epoch begins."""
         module.epoch_initializers()
+        if module.schedule and module.current_epoch >= module.schedule[0]['epoch']:
+            popped = module.schedule.popleft()
+            module.process['fit']['batch'] = popped['process']
         
     @torch.no_grad
     def on_predict_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:

@@ -46,3 +46,12 @@ _moai_:
               - encoder
               - postprocess
         mnist_2: *val_proc
+  _schedule_:
+    - epoch: 1
+      process:
+        train_encoder:
+          optimizer: train_encoder
+          objective: train_encoder
+          steps:
+            - encoder
+            - postprocess

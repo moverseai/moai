@@ -21,6 +21,7 @@ class Constants(object):
     _SCHEDULERS_COLLECTION_: str = f'{_COLLECTIONS_}._schedulers_'
     _FLOWS_: str = f'_flows_'
     _MONITORING_: str = f'_monitoring_'
+    _SCHEDULE_: str = f'_schedule_'
 
     # MODEL
     _MODEL_: str = 'model'

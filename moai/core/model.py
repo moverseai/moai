@@ -38,7 +38,7 @@ from moai.core.execution.criteria import Criteria
 from moai.core.execution.models import Models
 from moai.core.execution.constants import Constants
 
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, deque
 
 from pytorch_lightning.trainer import call
 from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
@@ -193,6 +193,11 @@ class MoaiLightningModule(L.LightningModule):
             select(_moai_, Constants._MONITORING_), # parameters.optimization.monitor, 
             resolve=True
         )
+        self.schedule = deque(sorted(omegaconf.OmegaConf.to_container(
+                select_conf(_moai_, Constants._SCHEDULE_), resolve=True
+            ),
+            key=lambda item: item['epoch'],
+        ))
         # Aggregate results
         self.test_step_outputs = defaultdict(list)
         self.scalar_metrics = defaultdict(list)
