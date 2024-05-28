@@ -1,6 +1,6 @@
-# @package model.monads._name_
+# @package model.monads.scale_pyramid
 
-_target_: moai.monads.sampling.ScalePyramid
+_target_: moai.monads.sampling.torch.interpolate.ScalePyramid
 scales: null # float[] | 0 means invalid, either scale or dims need to be set
 sizes: null  # int[] | -1 means invalid, either scale or dims need to be set
 mode: bilinear # one of ['nearest', 'linear', 'bilinear', 'area', 'bicubic', 'trilinear']            

@@ -1,0 +1,4 @@
+# @package model.monitors.append_npz
+
+_target_: moai.export.local.npz.append_npz
+_partial_: true
