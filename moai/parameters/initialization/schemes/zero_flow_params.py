@@ -7,9 +7,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
-__all__ = ["ZeroParams"]
+__all__ = ["ZeroFlowParams"]
 
-class ZeroParams(typing.Callable[[torch.nn.Module], None]):
+class ZeroFlowParams(typing.Callable[[torch.nn.Module], None]):
     def __init__(self, 
         keys:           typing.Sequence[str],
     ):

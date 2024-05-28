@@ -24,10 +24,8 @@ class VPoser2(typing.Callable[[torch.nn.Module], None]):
             self.state_dict = torch.load(
                 self.filename, map_location=lambda storage, loc: storage
             )['state_dict']
-        
-    def __call__(self,
-        module: torch.nn.Module
-    ) -> None:        
+
+    def _apply(self, module: torch.nn.Module) -> None:
         if isinstance(module, VPoser):
             state = self.state_dict if hasattr(self, 'state_dict') else torch.load(
                 self.filename, map_location=lambda storage, loc: storage
@@ -37,3 +35,8 @@ class VPoser2(typing.Callable[[torch.nn.Module], None]):
                 strict=False
             )
             log.info(f"Initialized VPoser2 from {self.filename}")
+        
+    def __call__(self,
+        module: torch.nn.Module
+    ) -> None:        
+        module.apply(self._apply)

@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 __all__ = ["PredictionBias"]
 
-class PredictionBias(Callable):
+class _PredictionBias(Callable): #TODO: should break because it needs to be fixed to call module.apply()
     def __init__(self, 
         bias:           float=1.0,
         kernel_size:    int=3,

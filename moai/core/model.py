@@ -196,18 +196,15 @@ class MoaiLightningModule(L.LightningModule):
             interval = select(v, 'interval') or 'epoch' #NOTE: if missing defaults to `epoch`
             self.named_schedulers[interval][k] = hyu.instantiate(config, self.named_optimizers[select(v, 'optimizer')])
         '''
-        #TODO: mode should be selected from the config and call the 
-        # correct initalizer
-        self.named_initializers = defaultdict(list)
-        # for k, v in select_dict(_moai_, Constants._INITIALIZERS_COLLECTION_).items():
-        for k, v in omegaconf.OmegaConf.to_container(
-            select(_moai_, Constants._INITIALIZE_)[select(_moai_, "_action_")],#parameters.optimization.process, 
-            resolve=True
-        ).items():
-            # get initializers for each group (e.g. setup, batch, epoch)
-            self.named_initializers[k] = list(hyu.instantiate(parameters.initializers[v])) if isinstance(v, str) \
-                else list(hyu.instantiate(parameters.initializers[i]) for i in v)
-
+        # Intializers
+        self.named_initializers = defaultdict(list) 
+        # No _init_ in the config means no initializers? TODO: do we need to call NoInit?
+        if select_dict(_moai_, Constants._INITIALIZE_):
+            for k, v in select_dict(select_dict(_moai_, Constants._INITIALIZE_), select(_moai_, "_action_")).items():
+                self.named_initializers[k] = [(hyu.instantiate(parameters.initializers[v]))] if isinstance(v, str) \
+                    else list(hyu.instantiate(parameters.initializers[i]) for i in v)
+        else:
+            log.warning("No initializers found in the configuration!")
         ## Optimization Process & Monitoring
         self.process = omegaconf.OmegaConf.to_container(
             select(_moai_, Constants._EXECUTION_),#parameters.optimization.process, 

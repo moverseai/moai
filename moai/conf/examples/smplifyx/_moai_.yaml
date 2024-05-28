@@ -1,7 +1,11 @@
 # @package _global_
 
 _moai_:  
-  _run_:
+  _initialize_:
+    fit:
+      setup: [vposer2]
+      batch: [zero_flow_params]
+  _execution_:
     fit:
       batch:
         initialize_torso:

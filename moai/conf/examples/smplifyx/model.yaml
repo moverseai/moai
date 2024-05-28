@@ -15,23 +15,39 @@ model:
   #       - init_trans
 
   parameters:
-    initialization:
-      schemes:
-        vposer2:
-          ckpt: ${SMPLX_ROOT}\V02_05\V02_05\
-          cache: true
-        zero_params:
-          keys:
-            - graphs.preprocess.translation.value
-            - graphs.preprocess.smplx.global_orient
-            - graphs.preprocess.smplx.jaw_pose
-            - graphs.preprocess.smplx.leye_pose
-            - graphs.preprocess.smplx.reye_pose
-            - graphs.preprocess.smplx.expression
-            - graphs.preprocess.smplx.left_hand_pose
-            - graphs.preprocess.smplx.right_hand_pose
-            - graphs.preprocess.smplx.betas          
-            - graphs.preprocess.embedding.value
+    # initialization:
+    #   schemes:
+    #     vposer2:
+    #       ckpt: ${SMPLX_ROOT}\V02_05\V02_05\
+    #       cache: true
+    #     zero_params:
+    #       keys:
+    #         - graphs.preprocess.translation.value
+    #         - graphs.preprocess.smplx.global_orient
+    #         - graphs.preprocess.smplx.jaw_pose
+    #         - graphs.preprocess.smplx.leye_pose
+    #         - graphs.preprocess.smplx.reye_pose
+    #         - graphs.preprocess.smplx.expression
+    #         - graphs.preprocess.smplx.left_hand_pose
+    #         - graphs.preprocess.smplx.right_hand_pose
+    #         - graphs.preprocess.smplx.betas          
+    #         - graphs.preprocess.embedding.value
+    initializers:
+      vposer2:
+        ckpt: ${SMPLX_ROOT}\V02_05\V02_05\
+        cache: true
+      zero_flow_params:
+        keys:
+          - preprocess.translation.value
+          - preprocess.smplx.global_orient
+          - preprocess.smplx.jaw_pose
+          - preprocess.smplx.leye_pose
+          - preprocess.smplx.reye_pose
+          - preprocess.smplx.expression
+          - preprocess.smplx.left_hand_pose
+          - preprocess.smplx.right_hand_pose
+          - preprocess.smplx.betas          
+          - preprocess.embedding.value
 
   monads:
     smplx:

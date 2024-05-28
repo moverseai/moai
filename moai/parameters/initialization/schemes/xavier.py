@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 __all__ = ["Xavier"]
 
-class Xavier(Callable):
+class _Xavier(Callable): #TODO: should break because it needs to be fixed to call module.apply()
     def __init__(self,
         zero_bias: bool,
     ):        

@@ -34,9 +34,10 @@ defaults:
   
   - model/modifications: forward_mode
 
-  - model/_parameters/initialization: cascade
-  - model/_parameters/initialization/custom: vposer2
-  - model/_parameters/initialization/scheme: zero_params
+  # - model/_parameters/initialization: cascade
+  # - model/_parameters/initialization/custom: vposer2
+  # - model/_parameters/initialization/scheme: zero_params
+  - model/parameters/initializers: [vposer2, zero_flow_params]
   - model/parameters/optimizers: lbfgsls
   - model/parameters/groups/human/body: [global, expressive]
   - model/parameters/criteria: rmse
