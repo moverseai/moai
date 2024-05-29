@@ -85,7 +85,22 @@ class BatchMonitor(L.Callback):
         Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
             loss returned from ``training_step``.
         """
-        # for k, monitor_batch in module.monitor.get('fit', {}).get('batch', {}).items():
+        if Constants._MOAI_LOSSES_ in outputs:
+            losses = toolz.merge(
+                outputs[f"{Constants._MOAI_LOSSES_}.weighted"], # outputs['losses']['weighted'], 
+                {'total': outputs[f"{Constants._MOAI_LOSSES_}.total"]}# {'total': outputs['losses']['total']}
+            )
+            module.log_dict(losses, prog_bar=True, logger=False, on_step=True, on_epoch=False)
+            losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)                    
+            losses['epoch'] = int(trainer.current_epoch)
+            module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)
+        if Constants._MOAI_METRICS_ in outputs:
+            flattened_metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+            module.log_dict(flattened_metrics, prog_bar=True, logger=False, on_step=True, on_epoch=False)
+            metrics = toolz.keymap(lambda k: f'train/metric/{k}',  flattened_metrics)
+            # metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+            # metrics['epoch'] = trainer.current_epoch
+            module.log_dict(metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False)
         monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
         if monitor_batch is not None:
             for _, monitor_named_batch in monitor_batch.items():
@@ -103,23 +118,6 @@ class BatchMonitor(L.Callback):
                 }
                 for monitor_tensors in monitor_named_batch.get('tensors', []):
                     module.named_monitors[monitor_tensors](outputs, extras)
-                if Constants._MOAI_LOSSES_ in outputs:
-                    losses = toolz.merge(
-                        outputs[f"{Constants._MOAI_LOSSES_}.weighted"], # outputs['losses']['weighted'], 
-                        {'total': outputs[f"{Constants._MOAI_LOSSES_}.total"]}# {'total': outputs['losses']['total']}
-                    )
-                    module.log_dict(losses, prog_bar=True, logger=False, on_step=True, on_epoch=False)
-                    losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)                    
-                    losses['epoch'] = int(trainer.current_epoch)
-                    module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)
-                if Constants._MOAI_METRICS_ in outputs:
-                    flattened_metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
-                    module.log_dict(flattened_metrics, prog_bar=True, logger=False, on_step=True, on_epoch=False)
-                    metrics = toolz.keymap(lambda k: f'train/metric/{k}',  flattened_metrics)
-                    # metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
-                    # metrics['epoch'] = trainer.current_epoch
-                    module.log_dict(metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False)
-        # return outputs
     
     @torch.no_grad
     def on_test_batch_end(
@@ -260,14 +258,10 @@ class BatchMonitor(L.Callback):
                 for metric_name in metric_names:
                     metric_module = module.metric_name_to_module[metric_name]
                     inputs = list(toolz.keyfilter(lambda k: k.startswith(metric_name), metrics[0]).keys())
-                    if len(inputs) > 1:
-                        all_non_scalar_metrics[dataset][metric_name] = metric_module.compute(
-                                                            np.vstack([d[inputs[0]] for d in metrics]),
-                                                            np.vstack([d[inputs[1]] for d in metrics])
-                                                    )
-                    else:
-                        all_non_scalar_metrics[dataset][metric_name] = \
-                                            metric_module.compute(np.vstack([d[inputs[0]] for d in metrics]))
+                    args = []
+                    [args.append(np.vstack([d[i] for d in metrics])) for i in inputs]
+                    #TODO: map keys to the ordered inputs of each metric
+                    all_non_scalar_metrics[dataset][metric_name] = metric_module.compute(*args)
                     log_all_metrics[f"{metric_name}/{dataset}"] = float(all_non_scalar_metrics[dataset][metric_name])
                 all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])\
                                                                                 if len(all_scalar_metrics.keys()) > 0\
