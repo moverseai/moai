@@ -1,0 +1,4 @@
+# @package model.monitors.keypoints
+
+_target_: moai.visualization.rerun.image.keypoints
+_partial_: true

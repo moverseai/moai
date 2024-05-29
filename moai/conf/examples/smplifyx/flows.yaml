@@ -25,8 +25,9 @@ _moai_:
         out: [body]
     postprocess:
       weak_perspective_camera:
-        points: [body.joints]
-        translation: [translation]
+        points: 
+          - ${mi:"body.joints + translation"}
+        # translation: [translation]
         image: [color]
         out: [joints2d]
       index:

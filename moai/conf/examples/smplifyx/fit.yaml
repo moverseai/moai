@@ -51,7 +51,7 @@ defaults:
   - model/metrics: rmse
 
   - model/monitors/exporting/local: [pkl, append_pkl]
-  - model/monitors/visualization/rerun: [mesh, mesh3d, posed_image]
+  - model/monitors/visualization/rerun: [mesh, mesh3d, posed_image, keypoints]
 
   - data
   - options

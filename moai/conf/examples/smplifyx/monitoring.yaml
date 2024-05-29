@@ -32,13 +32,18 @@ _moai_:
               - body.jaw
               - body.pose
               - body.expression
-      show_mesh_step:
+      show_optim_step:
         mesh:
           vertices: [body.vertices]
           faces: [body.faces]
           params:
             color: green
             path: fit/body/mesh/step
+        keypoints:
+          keypoints: [split_joints2d.body, split_keypoints.body]
+          path: [fit/image/body/joints2d, fit/image/keypoints2d]
+          skeleton: [openpose, openpose]
+          color: [red, green]
       show_image:
         posed_image:
           image: [color]
@@ -80,8 +85,13 @@ _moai_:
             # - show_mesh
           tensors:
             # - save_params
-            # - show_mesh_step
+            # - show_mesh_step            
             - show_image
+        fine_fit_stage1:
+          frequency: 1
+          tensors:
+            - show_mesh_iter
+            - show_optim_step
       iter:
         # initial_torso_fit:
         #   frequency: 1
@@ -94,10 +104,6 @@ _moai_:
         #   termination: [bad_fit, error]
         fine_fit_stage1:
           frequency: 1
-          # steps:
-            # - show_mesh
-          tensors:
-            - show_mesh_iter
           metrics:
             - fit_quality
           termination: [bad_fit, error]
@@ -109,76 +115,3 @@ _moai_:
             - fit_quality
           tensors:
             - show_mesh_batch
-# model:
-  # validation:
-
-  # monitors:
-  #   metrics:
-  #     fit_quality:
-  #       # frequency: 1
-  #       rmse:
-  #         gt: [keypoints]
-  #         pred: [joints2d]
-  #   criteria:
-  #     bad_fit:
-  #       rmse:
-  #         # gt: [keypoints]
-  #         # pred: [joints2d]
-  #         rmse: [metrics.rmse]
-  #         threshold: [10000.3] # pixels
-  #   tensors:
-  #     save_params:
-  #       append_pkl:
-  #         path: ['.', '.hydra']
-  #         keys: 
-  #           -
-  #             - translation
-  #             - embedding
-  #             - body.betas
-  #             - body.rotation
-  #             - body.left_hand
-  #             - body.right_hand
-  #             - body.jaw
-  #             - body.pose
-  #             - body.expression
-  #           - 
-  #             - body.pose
-  #       pkl:
-  #         params:
-  #           path: '.'
-  #           keys: 
-  #             - translation
-  #             - embedding
-  #             - body.betas
-  #             - body.rotation
-  #             - body.left_hand
-  #             - body.right_hand
-  #             - body.jaw
-  #             - body.pose
-  #             - body.expression
-  #     show_mesh_step:
-  #       mesh:
-  #         vertices: [body.vertices]
-  #         faces: [body.faces]
-  #         params:
-  #           color: green
-  #           path: fit/body/mesh/step
-  #       mesh3d:
-  #         vertices: [body.vertices, body.vertices]
-  #         faces: [body.faces, body.faces]
-  #         color: [green, blue]
-  #         path: [fit/body/mesh/step, fit/body/mesh/step2]
-  #     show_mesh_iter:
-  #       mesh:
-  #         vertices: [body.vertices]
-  #         faces: [body.faces]
-  #         params:
-  #           color: cyan
-  #           path: fit/body/mesh/iter
-  #     show_mesh_batch:
-  #       mesh:
-  #         vertices: [body.vertices]
-  #         faces: [body.faces]
-  #         params:
-  #           color: red
-  #           path: fit/body/mesh/batch

@@ -13,6 +13,8 @@ _moai_:
           steps: # graphs
             - preprocess
             - initialize_translation
+          assign:
+            init_trans: preprocess.translation.value
         initial_torso_fit:
           iterations: 5
           optimizer: initial_torso_fit
@@ -21,8 +23,6 @@ _moai_:
             - preprocess
             - postprocess
           objective: initial_torso_fit
-          assign:
-            init_trans: preprocess.translation.value
         fine_fit_stage1:
           iterations: 10
           optimizer: fine_fit_stage1
@@ -30,50 +30,7 @@ _moai_:
           steps:
             - preprocess
             - postprocess
-          objective: fine_fit_stage1
-          
-      # epoch:
-      #   termination: 
-        # - milestone: 30
-        #   batch:
-        #     initialize_torso:
-        #       steps: # graphs
-        #         - preprocess
-        #         - initialize_translation
-        #     initial_torso_fit:
-        #       iterations: 5
-        #       optimizer: initial_torso_fit
-        #       # scheduler: null
-        #       steps:
-        #         - preprocess
-        #         - postprocess
-        #       objective: initial_torso_fit
-        # - milestone: 40
-        #   batch:                  
-        #     initial_torso_fit:
-        #       iterations: 1
-        #       optimizer: initial_torso_fit
-        #       # scheduler: null
-        #       steps:
-        #         - preprocess
-        #       objective: initial_torso_fit
-    # predict:
+          objective: fine_fit_stage1          
     val:
       batch:
         openpose: 
-      #   dataset1: &val
-      #     metrics: [rmse, fid]
-      #     steps: [autoencode, sample]
-      #     termination: []
-      #     tensors: [show_autoencoded]
-      #   dataset2:
-      #     metrics: [rmse]
-      #     steps: [autoencode]
-      #     termination: [bad_fit]
-      #     tensors: [show_autoencoded]
-      # epoch:
-      #   metrics: []
-      #   steps: [traversal]
-      #   termination: []
-      #   tensors: [show_traversals]
-    # test:

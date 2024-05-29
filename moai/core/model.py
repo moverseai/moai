@@ -368,13 +368,13 @@ class MoaiLightningModule(L.LightningModule):
                     # for _, iter_monitor_stage in iter_monitor.items():                        
                     frequency = toolz.get('frequency', iter_monitor_stage, 1)
                     should_monitor = iter % frequency == 0
-                    iter_tensor_monitor = toolz.get('tensors', iter_monitor_stage)
+                    iter_tensor_monitor = toolz.get('tensors', iter_monitor_stage, None)
                     if should_monitor and iter_tensor_monitor is not None:
                         for step in toolz.get('steps', iter_monitor_stage, None) or []:
                             self.named_flows[step](batch)
                         for metric in toolz.get('metrics', iter_monitor_stage, None) or []:
                             self.named_metrics[metric](batch)
-                        extras = {
+                        extras = {#TODO: step => 'lightning_step'
                             'step': self.global_step, 'epoch': self.current_epoch,
                             'batch_idx': batch_idx, 'stage': stage, 'iter': iter
                         }

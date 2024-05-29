@@ -1,6 +1,9 @@
 # @package model.parameters.groups.expressive
 
 _target_: moai.parameters.selectors.model.ModelParameterSelector
-monads:
-  - preprocess.smplx
+parameters:
+  - preprocess.smplx.global_orient
+monads:      
+  - preprocess.translation
+  - preprocess.betas
   - preprocess.embedding
