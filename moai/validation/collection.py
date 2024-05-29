@@ -161,8 +161,8 @@ class Metrics(torch.nn.ModuleDict):
         # tensors["metrics"] = returned
         # return returned
     
-    def aggregate(self, ) -> typing.Mapping[str, np.ndarray]:
-        metrics = benedict.benedict({"{Constants._MOAI_METRICS_}": {}})
-        for key, out, _ in self.execs:
-            metrics[f"{Constants._MOAI_METRICS_}.{out}"] = self[key].compute()
+    # def aggregate(self, ) -> typing.Mapping[str, np.ndarray]:
+    #     metrics = benedict.benedict({"{Constants._MOAI_METRICS_}": {}})
+    #     for key, out, _ in self.execs:
+    #         metrics[f"{Constants._MOAI_METRICS_}.{out}"] = self[key].compute()
 

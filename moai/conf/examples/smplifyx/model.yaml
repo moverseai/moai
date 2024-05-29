@@ -45,9 +45,9 @@ model:
           - preprocess.smplx.reye_pose
           - preprocess.smplx.expression
           - preprocess.smplx.left_hand_pose
-          - preprocess.smplx.right_hand_pose
-          - preprocess.smplx.betas          
+          - preprocess.smplx.right_hand_pose          
           - preprocess.embedding.value
+          - preprocess.betas.value
 
   monads:
     smplx:

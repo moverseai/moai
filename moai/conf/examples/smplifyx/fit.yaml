@@ -23,6 +23,7 @@ defaults:
   # ###### MODEL 
   - model: moai
   - model/monads/human/body: [initialize_translation, smplx]
+  - model/monads/tensor: alias
   - model/monads/human/body/prior: vposer2
   - model/monads/masking: [index, binary]  
   - model/monads/geometry/projection: weak_perspective_camera
@@ -40,7 +41,7 @@ defaults:
   - model/parameters/initializers: [vposer2, zero_flow_params]
   - model/parameters/optimizers: lbfgsls
   - model/parameters/groups/human/body: [global, expressive]
-  - model/parameters/criteria: rmse
+  - model/parameters/criteria: [rmse, is_finite]
 
   - model/objectives/regression: L2
   - model/objectives/regression/robust: gm
@@ -50,7 +51,7 @@ defaults:
   - model/metrics: rmse
 
   - model/monitors/exporting/local: [pkl, append_pkl]
-  - model/monitors/visualization/rerun: [mesh, mesh3d]
+  - model/monitors/visualization/rerun: [mesh, mesh3d, posed_image]
 
   - data
   - options

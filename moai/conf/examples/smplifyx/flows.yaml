@@ -11,9 +11,7 @@ _moai_:
         void: [color]
         out: [embedding]
       translation:
-        void: 
-          # - color
-          - ${mi:"color -1"}
+        void: [color]
         out: [translation]
       betas:
         void: [color]
@@ -40,3 +38,7 @@ _moai_:
       openpose_split:
         joints: [joints2d, keypoints, confidence]
         out: [split_joints2d, split_keypoints, split_confidence]
+      alias:
+        tensor: 
+          - ${mi:"body.vertices + translation"}
+        out: [translated_vertices]

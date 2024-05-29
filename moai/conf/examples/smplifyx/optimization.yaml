@@ -19,7 +19,8 @@ _moai_:
     _criteria_:
       bad_fit:
         rmse:
-          # gt: [keypoints]
-          # pred: [joints2d]
           rmse: [rmse]
           threshold: [10000.3] # pixels
+      error:
+        is_finite:
+          monitor: [rmse]
