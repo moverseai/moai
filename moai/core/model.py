@@ -254,7 +254,7 @@ class MoaiLightningModule(L.LightningModule):
     ) -> None:
         for i, a in assigners:
             accessor = mic._create_accessor(i)
-            a(self, accessor(tensors))
+            a(self.named_flows, accessor(tensors))
 
     def predict_step(self,
         batch:  typing.Dict[str, torch.Tensor],
@@ -386,7 +386,7 @@ class MoaiLightningModule(L.LightningModule):
                                 should_stop = True
                                 break
                         if should_stop:
-                            log.info(f"Terminating {stage} @ {iter} !")
+                            log.info(f"Terminating {stage} @ {iter} with criterion [{criterion}] !")
                             break
             # call the copy params for initialization
             if assign_params is not None:

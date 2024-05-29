@@ -21,6 +21,17 @@ _moai_:
             - preprocess
             - postprocess
           objective: initial_torso_fit
+          assign:
+            init_trans: preprocess.translation.value
+        fine_fit_stage1:
+          iterations: 10
+          optimizer: fine_fit_stage1
+          # scheduler: null
+          steps:
+            - preprocess
+            - postprocess
+          objective: fine_fit_stage1
+          
       # epoch:
       #   termination: 
         # - milestone: 30

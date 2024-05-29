@@ -12,6 +12,9 @@ engine:
     # gpus: '0'
     devices: 1
     num_sanity_val_steps: 0
+  modules:
+    rerun:
+      world_coordinates: RFU
 
 # logging:
 #   name: ${experiment.name}

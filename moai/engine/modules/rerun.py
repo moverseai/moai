@@ -14,7 +14,7 @@ class Rerun():
     r"""
     This logger should support all the different types of rr logging.
     """
-    __funtion_map = {
+    __COORD_SYSTEM_MAP__ = {
         'LBU': rr.ViewCoordinates.LBU,
         'LBD': rr.ViewCoordinates.LEFT_HAND_Z_DOWN,
         'RUF': rr.ViewCoordinates.RUF,
@@ -39,7 +39,7 @@ class Rerun():
         else:
             rr.spawn()
         self.world_coordinates = world_coordinates
-        rr.log("world", Rerun.__funtion_map[world_coordinates], timeless=True)
+        rr.log("world", Rerun.__COORD_SYSTEM_MAP__[world_coordinates], timeless=True)
         self.parents = parents
         self.labels = labels
         if parents is not None:

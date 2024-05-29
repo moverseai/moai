@@ -1,0 +1,4 @@
+# @package model.parameters.criteria.is_finite
+
+_target_: moai.parameters.optimization.criteria.is_finite.is_finite
+_partial_: true

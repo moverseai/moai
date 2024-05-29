@@ -60,6 +60,7 @@ class BatchMonitor(L.Callback):
         module.epoch_initializers()
         if module.schedule and module.current_epoch >= module.schedule[0]['epoch']:
             popped = module.schedule.popleft()
+            #TODO: add remodel/modifications here as well
             module.process['fit']['batch'] = popped['process']
         
     @torch.no_grad

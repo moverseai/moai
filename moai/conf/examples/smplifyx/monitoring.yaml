@@ -39,11 +39,17 @@ _moai_:
           params:
             color: green
             path: fit/body/mesh/step
-        mesh3d:
-          vertices: [body.vertices, body.vertices]
-          faces: [body.faces, body.faces]
-          color: [green, blue]
-          path: [fit/body/mesh/step, fit/body/mesh/step2]
+      show_image:
+        posed_image:
+          image: [color]
+          pose: [null]
+          params:
+            path: fit/image
+        # mesh3d:
+        #   vertices: [body.vertices, body.vertices]
+        #   faces: [body.faces, body.faces]
+        #   color: [green, blue]
+        #   path: [fit/body/mesh/step, fit/body/mesh/step2]
       show_mesh_iter:
         mesh:
           vertices: [body.vertices]
@@ -53,7 +59,7 @@ _moai_:
             path: fit/body/mesh/iter
       show_mesh_batch:
         mesh:
-          vertices: [body.vertices]
+          vertices: [translated_vertices] # [body.vertices]
           faces: [body.faces]
           params:
             color: red
@@ -73,10 +79,20 @@ _moai_:
           # steps:
             # - show_mesh
           tensors:
-            - save_params
-            - show_mesh_step
+            # - save_params
+            # - show_mesh_step
+            - show_image
       iter:
-        initial_torso_fit:
+        # initial_torso_fit:
+        #   frequency: 1
+        #   # steps:
+        #     # - show_mesh
+        #   tensors:
+        #     - show_mesh_iter
+        #   metrics:
+        #     - fit_quality
+        #   termination: [bad_fit, error]
+        fine_fit_stage1:
           frequency: 1
           # steps:
             # - show_mesh
@@ -84,7 +100,7 @@ _moai_:
             - show_mesh_iter
           metrics:
             - fit_quality
-          termination: [bad_fit]
+          termination: [bad_fit, error]
       batch:
         log_results:
           frequency: 1
