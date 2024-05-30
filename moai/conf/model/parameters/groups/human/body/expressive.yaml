@@ -5,5 +5,5 @@ parameters:
   - preprocess.smplx.global_orient
 monads:      
   - preprocess.translation
-  - preprocess.betas
+  # - preprocess.betas
   - preprocess.embedding

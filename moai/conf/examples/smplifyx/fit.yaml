@@ -24,7 +24,7 @@ defaults:
   - model: moai
   - model/monads/human/body: [initialize_translation, smplx]
   - model/monads/tensor: alias
-  - model/monads/human/body/prior: vposer2
+  - model/monads/human/body/prior: vposer1 # vposer2
   - model/monads/masking: [index, binary]  
   - model/monads/geometry/projection: weak_perspective_camera
   - model/monads/human/pose/openpose: split
@@ -38,7 +38,7 @@ defaults:
   # - model/_parameters/initialization: cascade
   # - model/_parameters/initialization/custom: vposer2
   # - model/_parameters/initialization/scheme: zero_params
-  - model/parameters/initializers: [vposer2, zero_flow_params]
+  - model/parameters/initializers: [zero_flow_params, vposer1] # vposer2]
   - model/parameters/optimizers: lbfgsls
   - model/parameters/groups/human/body: [global, expressive]
   - model/parameters/criteria: [rmse, is_finite]
@@ -51,7 +51,7 @@ defaults:
   - model/metrics: rmse
 
   - model/monitors/exporting/local: [pkl, append_pkl]
-  - model/monitors/visualization/rerun: [mesh, mesh3d, posed_image, keypoints]
+  - model/monitors/visualization/rerun: [mesh, mesh3d, posed_image, keypoints, optimization_losses]
 
   - data
   - options

@@ -3,6 +3,7 @@ from moai.utils.color.colormap import random_color
 import typing
 import toolz
 import numpy as np
+import colour
 
 try:
     import rerun as rr
@@ -31,11 +32,10 @@ class Rerun():
         name: str,
         export: typing.Optional[typing.Union[bool, str]]=None,
         annotations: typing.Mapping[str, typing.Any]=None,
-        # parents: typing.Mapping[str, typing.Sequence[int]]=None,
-        # labels:  typing.Mapping[str, typing.Sequence[str]]=None,
         world_coordinates: str = "RUF",
         add_floor: bool=True,
         root: str="/",
+        memory_limit: str="75%",
     ) -> None:
         #NOTE: https://github.com/iterative/dvc/issues/9731
         rr.init(name)
@@ -46,20 +46,33 @@ class Rerun():
                 export_path = export
             rr.save(export_path)
         else:
-            rr.spawn()
+            rr.spawn(memory_limit=memory_limit)
         self.world_coordinates = world_coordinates
         rr.log(root, Rerun.__COORD_SYSTEM_MAP__[world_coordinates], timeless=True)
         parents = annotations.parents
         labels = annotations.labels
         if parents is not None:
             self._create_annotation_context(root, parents, labels)
+        plots = annotations.plots
+        if plots is not None:
+            self._create_scalar_plots(root, plots)
         if add_floor:
             self._create_floor(root)
-        #NOTE: add global gizmos (e.g. tr-axis)
+        #NOTE: add more global gizmos (e.g. tr-axis)
         
+    def _create_scalar_plots(self, root: str, plots) -> None:
+        for plot in plots:
+            keypath = f"/plots/{plot.key}" if root == "/" else f"{root}/plots/{plots.key}"
+            color = plot.get('color')
+            if color is None:
+                color = random_color(True)
+            else:
+                color = colour.Color(color)
+            rr.log(keypath, rr.SeriesLine(color=color, name=plot.key), timeless=True)
+
+
     def _create_floor(self, root: str):
-        # Initialize an empty list to hold all line segments
-        line_segments = []
+        line_segments = [] # Initialize an empty list to hold all line segments
         # find up axis and create floor plane
         def create_tile_xy(x, y):
             """Creates a single tile at position (x, y)."""
@@ -78,17 +91,13 @@ class Rerun():
                 [[x, 0, z + 1], [x, 0, z]],  # Left edge (back along Z-axis)
             ]
         if self.world_coordinates[1] == 'U':
-            # y is up axis
-            # floor is in xz plane
-            # Create a 10x10 grid of tiles
-            for x in range(-5,6):
+            # y is up axis, floor is in xz plane            
+            for x in range(-5,6): # Create a 10x10 grid of tiles
                 for y in range(-5,6):
                     line_segments.extend(create_tile_xz(x, y))        
         elif self.world_coordinates[2] == 'U':
-            # z is up axis
-            # floor is in xy plane
-            # Create a 10x10 grid of tiles
-            for x in range(-5,6):
+            # z is up axis, floor is in xy plane            
+            for x in range(-5,6): # Create a 10x10 grid of tiles
                 for y in range(-5,6):
                     line_segments.extend(create_tile_xy(x, y))        
         # Log the floor 
@@ -108,8 +117,4 @@ class Rerun():
                 keypoint_annotations=[rr.AnnotationInfo(id=id, label=j) for id, j in enumerate(label_ids)],
                 keypoint_connections=toolz.filter(lambda t: t[1] > 0, enumerate(ps)),
             ))
-            # rr.log(k, rr.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)
         rr.log(root, rr.AnnotationContext(classes), timeless=True)
-        
-
-

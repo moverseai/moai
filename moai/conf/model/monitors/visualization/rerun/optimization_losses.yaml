@@ -1,0 +1,4 @@
+# @package model.monitors.optimization_losses
+
+_target_: moai.visualization.rerun.scalars.optimization_losses
+_partial_: true

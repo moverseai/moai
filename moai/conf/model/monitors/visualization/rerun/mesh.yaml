@@ -1,5 +1,5 @@
 # @package model.monitors.mesh
 
-_target_: moai.visualization.rerun.mesh3d.Mesh
+_target_: moai.visualization.rerun.mesh.Mesh
 color: ???
 path: ???

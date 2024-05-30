@@ -26,15 +26,15 @@ def mesh3d(
     vertices: np.ndarray, faces: np.ndarray, 
     path: str, color: str,
     optimization_step: typing.Optional[int]=None,
-    step: typing.Optional[int]=None,
-    iter: typing.Optional[int]=None,
+    lightning_step: typing.Optional[int]=None,
+    iteration: typing.Optional[int]=None,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
-    elif step is not None:
-        rr.set_time_sequence("step", step)
-    elif iter is not None:
-        rr.set_time_sequence("iter", iter)
+    elif lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    elif iteration is not None:
+        rr.set_time_sequence("iteration", iteration)
     color = colour.Color(color)
     rr.log(path, rr.Mesh3D(
         vertex_positions=vertices, 
@@ -50,15 +50,15 @@ class Mesh(Callable):
     def __call__(self, 
         vertices: np.ndarray, faces: np.ndarray, 
         optimization_step: typing.Optional[int]=None,
-        step: typing.Optional[int]=None,
-        iter: typing.Optional[int]=None,
+        lightning_step: typing.Optional[int]=None,
+        iteration: typing.Optional[int]=None,
     ) -> None:
         if optimization_step is not None:
             rr.set_time_sequence("optimization_step", optimization_step)
-        elif step is not None:
-            rr.set_time_sequence("step", step)
-        elif iter is not None:
-            rr.set_time_sequence("iter", iter)
+        elif lightning_step is not None:
+            rr.set_time_sequence("lightning_step", lightning_step)
+        elif iteration is not None:
+            rr.set_time_sequence("iteration", iteration)
         rr.log(self.path, rr.Mesh3D(
             vertex_positions=vertices, 
             indices=faces, 

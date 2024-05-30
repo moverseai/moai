@@ -4,7 +4,7 @@ smplifyx:
   W:
     S1:
       w_joint: 0.0615
-      w_pose: 163216.0
+      w_pose: 13216.0 # 163216.0
       w_shape: 10000
       w_face: 0.0
       w_hand: 0.0
@@ -15,7 +15,7 @@ smplifyx:
       w_pen: 0.0
     S2:
       w_joint: 0.0615
-      w_pose: 163216.0
+      w_pose: 13216.0 # 163216.0
       w_shape: 2500
       w_face: 0.0
       w_hand: 0.0
@@ -59,13 +59,11 @@ smplifyx:
       w_pen: 0.0
       
 model:
-  # supervision:
-    # losses:
   objectives:
-      gm:
-        rho: 100.0
-      interpenetration:
-        part_segmentation: ${SMPLX_ROOT}\smpl_segmentation.pkl
+    gm:
+      rho: 100.0
+    interpenetration:
+      part_segmentation: ${SMPLX_ROOT}\smpl_segmentation.pkl
 
 _moai_:
   _collections_:
@@ -75,32 +73,32 @@ _moai_:
           gt: [torso_keypoints, init_trans]
           pred: [torso_joints2d, translation]
           mask: [null, z_mask]
-          weight: [0.0625, 10000]
+          weight: [1.0, 1000]
           reduction: [sum, sum]
           out: [L2_torso, L2_z]
       fine_fit_stage1:
         gm:
-          gt: [split_keypoints.body, split_keypoints.face, split_keypoints.hands]
-          pred: [split_joints2d.body, split_joints2d.face, split_joints2d.hands]
-          weights: [split_confidence.body, split_confidence.face, split_confidence.hands]
-          reduction: [sum, sum, sum] 
+          gt: [split_keypoints.body] # split_keypoints.face, split_keypoints.hands]
+          pred: [split_joints2d.body] # split_joints2d.face, split_joints2d.hands]
+          weights: [split_confidence.body] # split_confidence.face, split_confidence.hands]
+          reduction: [sum] #, sum, sum] 
           weight: 
-            - ${smplifyx.W.S1.w_joint}
-            - ${smplifyx.W.S1.w_face}
-            - ${smplifyx.W.S1.w_hand}
-          out: [gm_j2d, gm_face, gm_hands]
+            - 1.0 # ${smplifyx.W.S1.w_joint}
+            # - ${smplifyx.W.S1.w_face}
+            # - ${smplifyx.W.S1.w_hand}
+          out: [gm_j2d] # , gm_face, gm_hands]
         L2:
           # gt: [null]
-          pred: [embedding, body.betas, body.left_hand, body.right_hand, body.expression, body.jaw]
-          reduction: [sum, sum, sum, sum, sum, sum]              
+          pred: [embedding, body.betas] # , body.left_hand, body.right_hand, body.expression, body.jaw]
+          reduction: [sum, sum] #, sum, sum, sum, sum]              
           weight: 
-            - ${smplifyx.W.S1.w_pose}
-            - ${smplifyx.W.S1.w_shape}
-            - ${smplifyx.W.S1.w_hand_s}
-            - ${smplifyx.W.S1.w_hand_s}
-            - ${smplifyx.W.S1.w_exp_s}
-            - ${smplifyx.W.S1.w_jaw_s}
-          out: [vposer, shape, lhand, rhand, expr, jaw]
+            - 400.0 # ${smplifyx.W.S1.w_pose}
+            - 200.0 # ${smplifyx.W.S1.w_shape}
+            # - ${smplifyx.W.S1.w_hand_s}
+            # - ${smplifyx.W.S1.w_hand_s}
+            # - ${smplifyx.W.S1.w_exp_s}
+            # - ${smplifyx.W.S1.w_jaw_s}
+          out: [vposer, shape] #, lhand, rhand, expr, jaw]
         hinge_joint_prior:
           pose: [body.expressive]
           out: [bend]

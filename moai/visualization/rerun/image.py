@@ -23,15 +23,15 @@ def posed_image(
     path: str, 
     pose: typing.Optional[np.ndarray]=None, 
     optimization_step: typing.Optional[int]=None,
-    step: typing.Optional[int]=None,
-    iter: typing.Optional[int]=None,
+    lightning_step: typing.Optional[int]=None,
+    iteration: typing.Optional[int]=None,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
-    elif step is not None:
-        rr.set_time_sequence("step", step)
-    elif iter is not None:
-        rr.set_time_sequence("iter", iter)
+    elif lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    elif iteration is not None:
+        rr.set_time_sequence("iteration", iteration)
     _, H, W = image.shape
     rr.log(path, rr.Pinhole(focal_length=5000, width=W, height=H))
     rr.log(path, rr.Image(image.transpose(-2, -1, -3)))
@@ -42,15 +42,15 @@ def keypoints(
     color: str,
     skeleton: typing.Optional[str]=None,
     optimization_step: typing.Optional[int]=None,
-    step: typing.Optional[int]=None,
-    iter: typing.Optional[int]=None,
+    lightning_step: typing.Optional[int]=None,
+    iteration: typing.Optional[int]=None,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
-    elif step is not None:
-        rr.set_time_sequence("step", step)
-    elif iter is not None:
-        rr.set_time_sequence("iter", iter)
+    elif lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    elif iteration is not None:
+        rr.set_time_sequence("iteration", iteration)
     color = colour.Color(color)
     if skeleton is None:
         rr.log(path, rr.Points2D(positions=keypoints, 

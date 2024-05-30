@@ -5,7 +5,7 @@ import torch
 import inspect
 import functools
 
-__PRESET_ARGS__ = set(['step', 'epoch', 'batch_idx', 'optimization_step', 'stage', 'iter'])
+__PRESET_ARGS__ = set(['lightning_step', 'epoch', 'batch_idx', 'optimization_step', 'stage', 'iteration'])
     
 def _mul(
     tensor_dict: typing.Dict[str, torch.Tensor],
