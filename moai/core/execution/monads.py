@@ -13,6 +13,13 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Monads']
 
+class Mi(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, expression: torch.Tensor) -> torch.Tensor:
+        return expression
+    
 class Monads(torch.nn.ModuleDict):
     execs: typing.List[typing.Callable]
 
@@ -21,21 +28,27 @@ class Monads(torch.nn.ModuleDict):
         **kwargs: typing.Mapping[str, typing.Any],
     ):
         super().__init__()
-        errors = [k for k in kwargs if k not in monads]
+        self.mi = Mi()
+        errors = [k for k in kwargs if k not in monads and not k.startswith('_mi_')]
         if errors:
             log.error(f"The following monads [{errors}] were not found in the configuration and will be ignored!")
         self.execs = []
         for i, key in enumerate(kwargs):
-            if key not in monads:
+            is_mi = key.startswith('_mi_')
+            if key not in monads and not is_mi:
                 log.warning("Skipping monad '{key}' as it is not found in the configuration. This may lead to downstream errors.")
                 continue
-            try:
-                self.add_module(key, hyu.instantiate(monads[key])) #TODO: stateless monads can be re-used
-            except Exception as e:
-                log.error(f"Could not instantiate the monad '{key}': {e}")
-                continue
+            if not is_mi:
+                try:
+                    self.add_module(key, hyu.instantiate(monads[key])) #TODO: stateless monads can be re-used
+                except Exception as e:
+                    log.error(f"Could not instantiate the monad '{key}': {e}")
+                    continue
             graph_params = kwargs[key]
-            sig = inspect.signature(self[key].forward)
+            if is_mi:
+                sig = inspect.signature(self.mi.forward)
+            else:
+                sig = inspect.signature(self[key].forward)
             sig_params = list(filter(lambda p: p in graph_params, sig.parameters))
             extra_params = set(graph_params.keys()) - set(sig_params) - set(['out'])
             if extra_params:
@@ -48,7 +61,7 @@ class Monads(torch.nn.ModuleDict):
                         self.add_module(tmp_key, mie.TreeModule(tmp_key, v))
                         self.execs.append((tmp_key, tmp_key, None))
                         params[k] = tmp_key
-                self.execs.append((key, params['out'], toolz.dissoc(params, 'out')))
+                self.execs.append(('mi' if is_mi else key, params['out'], toolz.dissoc(params, 'out')))
 
     def forward(self,
         tensors: typing.Dict[str, torch.Tensor]

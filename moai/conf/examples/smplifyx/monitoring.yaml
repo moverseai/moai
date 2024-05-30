@@ -40,7 +40,7 @@ _moai_:
             color: green
             path: /fit/body/mesh/step
         keypoints:
-          keypoints: [split_joints2d.body, split_keypoints.body]
+          keypoints: [split_joints2d_body, split_keypoints_body] # [split_joints2d.body, split_keypoints.body]
           path: [/fit/image/body/joints2d, /fit/image/keypoints2d]
           skeleton: [openpose, openpose_gt]
           color: [red, green]
@@ -77,8 +77,8 @@ _moai_:
       fit_quality:
         # frequency: 1
         rmse:
-          gt: [keypoints]
-          pred: [joints2d]
+          gt: [split_joints2d_body] # [split_keypoints.body] # [keypoints]
+          pred: [split_keypoints_body] # [split_joints2d.body] # [joints2d]
           out: [rmse]
   _monitoring_:
     fit:

@@ -10,8 +10,8 @@ class TestDSL:
     def _parse_and_run(self, parser: lark.Lark, expression: str, tensors) -> torch.Tensor:
         tree = parser.parse(expression)
         m = TreeModule('check', tree)
-        m(tensors)
-        return tensors['check']#TODO: revisit return name
+        return m(tensors)
+        # return tensors['check']#TODO: revisit return name
     
     def _parse_and_run_dummy(self, parser: lark.Lark, expression: str, tensors) -> torch.Tensor:
         tree = parser.parse(expression)
@@ -288,7 +288,12 @@ class TestDSL:
         x = self._parse_and_run(parser, expression, highdim_tensors)
         y = torch.tensor([[3, 4, 5], [0, 0, 0]])
         assert torch.allclose(x, y)
-        
+        #NOTE: this is not yet supported (implied start/end)
+        # expression = "multi[:3, 2:5]"
+        # x = self._parse_and_run(parser, expression, highdim_tensors)
+        # y = torch.tensor([[3, 4, 5], [0, 0, 0]])
+        # assert torch.allclose(x, y)
+
     def test_transpose(self, parser, highdim_tensors):
         expression = "transpose(fourdim, 1, 0)"
         x = self._parse_and_run(parser, expression, highdim_tensors)

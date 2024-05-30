@@ -67,7 +67,9 @@ __MOAI_GRAMMAR__ = """
     ?index: MINUS1 | MINUS2 | MINUS3 | MINUS4 | SIGNED_INT
     ?indices: "[" INT ("," INT)* "]"
     ?slice: index? ":" index?
-    ?slicing: ALL | ELLIPSIS | index | NEWAXIS | indices | slice
+    // ?slice_to: ":" index
+    // ?slice_from: index ":"
+    ?slicing: ALL | ELLIPSIS | index | NEWAXIS | indices | slice // | slice_to | slice_from
         
     ?primary: "-" NUMBER
         | "-" name                          -> neg

@@ -1,5 +1,7 @@
 # @package _global_
 
+torso_indices: [9, 12, 2, 5]
+
 model:  
   # configuration:
   #   mode: inference
@@ -61,8 +63,8 @@ model:
       joints_format: openpose_coco25
       model_path: ${SMPLX_ROOT}\models_smplx_v1_1\models\smplx
       num_betas: ${BETAS}
-    index:
-      indices: [9, 12, 2, 5]
+    # index:
+    #   indices: [9, 12, 2, 5]
 
   modifications:
     forward_mode:

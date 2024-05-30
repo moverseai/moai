@@ -25,7 +25,7 @@ defaults:
   - model/monads/human/body: [initialize_translation, smplx]
   - model/monads/tensor: alias
   - model/monads/human/body/prior: vposer1 # vposer2
-  - model/monads/masking: [index, binary]  
+  - model/monads/masking: [binary]  
   - model/monads/geometry/projection: weak_perspective_camera
   - model/monads/human/pose/openpose: split
 
