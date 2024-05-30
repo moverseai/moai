@@ -27,7 +27,7 @@ class Monads(torch.nn.ModuleDict):
         self.execs = []
         for i, key in enumerate(kwargs):
             if key not in monads:
-                log.warning("Skipping monad '{key}' as it is not found in the configuration. This may lead to downstream errors.")
+                log.warning(f"Skipping monad '{key}' as it is not found in the configuration. This may lead to downstream errors.")
                 continue
             try:
                 self.add_module(key, hyu.instantiate(monads[key])) #TODO: stateless monads can be re-used
