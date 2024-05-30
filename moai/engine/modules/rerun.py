@@ -1,3 +1,5 @@
+from moai.utils.color.colormap import random_color
+
 import typing
 import toolz
 import numpy as np
@@ -21,12 +23,19 @@ class Rerun():
         'RFU': rr.ViewCoordinates.RIGHT_HAND_Z_UP,
     }
 
+    __LABEL_TO_CLASS_ID__ = {
+
+    }
+
     def __init__(self,
         name: str,
         export: typing.Optional[typing.Union[bool, str]]=None,
-        parents: typing.Mapping[str, typing.Sequence[int]]=None,
-        labels:  typing.Mapping[str, typing.Sequence[str]]=None,
+        annotations: typing.Mapping[str, typing.Any]=None,
+        # parents: typing.Mapping[str, typing.Sequence[int]]=None,
+        # labels:  typing.Mapping[str, typing.Sequence[str]]=None,
         world_coordinates: str = "RUF",
+        add_floor: bool=True,
+        root: str="/",
     ) -> None:
         #NOTE: https://github.com/iterative/dvc/issues/9731
         rr.init(name)
@@ -39,16 +48,16 @@ class Rerun():
         else:
             rr.spawn()
         self.world_coordinates = world_coordinates
-        rr.log("world", Rerun.__COORD_SYSTEM_MAP__[world_coordinates], timeless=True)
-        self.parents = parents
-        self.labels = labels
+        rr.log(root, Rerun.__COORD_SYSTEM_MAP__[world_coordinates], timeless=True)
+        parents = annotations.parents
+        labels = annotations.labels
         if parents is not None:
-            self.type_to_class_id = {}
-            self._create_annotation()
-        self._create_floor()
+            self._create_annotation_context(root, parents, labels)
+        if add_floor:
+            self._create_floor(root)
         #NOTE: add global gizmos (e.g. tr-axis)
         
-    def _create_floor(self):
+    def _create_floor(self, root: str):
         # Initialize an empty list to hold all line segments
         line_segments = []
         # find up axis and create floor plane
@@ -74,38 +83,33 @@ class Rerun():
             # Create a 10x10 grid of tiles
             for x in range(-5,6):
                 for y in range(-5,6):
-                    line_segments.extend(create_tile_xz(x, y))
-        
+                    line_segments.extend(create_tile_xz(x, y))        
         elif self.world_coordinates[2] == 'U':
             # z is up axis
             # floor is in xy plane
             # Create a 10x10 grid of tiles
             for x in range(-5,6):
                 for y in range(-5,6):
-                    line_segments.extend(create_tile_xy(x, y))
-        
-        # Log the floor
-        rr.log(
-            "world/floor",
-            rr.LineStrips3D(
-                np.array(
-                    line_segments
-                ),
-                colors=[128,128,128] # grey color
-            ),
-            timeless=True,
-        )
+                    line_segments.extend(create_tile_xy(x, y))        
+        # Log the floor 
+        path = "/floor" if root == "/" else f"{root}/floor"
+        rr.log(path, rr.LineStrips3D(
+            np.array(line_segments),
+            colors=[128,128,128] # grey color
+        ), timeless=True)
     
-    def _create_annotation(self):
-        for i, (k, ps) in enumerate(self.parents.items()):
-            self.type_to_class_id[k] = i
-            labels = self.labels[k]
-            rr.log("/", rr.AnnotationContext(rr.ClassDescription(
-                info=rr.AnnotationInfo(id=i, label=k),
-                keypoint_annotations=[rr.AnnotationInfo(id=id, label=j) for id, j in enumerate(labels)],
+    def _create_annotation_context(self, root, parents, labels):
+        classes = []
+        for i, (k, ps) in enumerate(parents.items()):            
+            Rerun.__LABEL_TO_CLASS_ID__[k] = i
+            label_ids = labels[k]
+            classes.append(rr.ClassDescription(
+                info=rr.AnnotationInfo(id=i, label=k, color=random_color(True)),
+                keypoint_annotations=[rr.AnnotationInfo(id=id, label=j) for id, j in enumerate(label_ids)],
                 keypoint_connections=toolz.filter(lambda t: t[1] > 0, enumerate(ps)),
-            )), timeless=True)
-            rr.log(k, rr.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)
+            ))
+            # rr.log(k, rr.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)
+        rr.log(root, rr.AnnotationContext(classes), timeless=True)
         
 
 

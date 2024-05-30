@@ -3,6 +3,9 @@
 _target_: moai.engine.modules.rerun.Rerun
 name: ${experiment.name}
 export: null
-parents: null #TODO: remove this from here, add a separate annotation context
-labels: null #TODO: remove this from here, add a separate annotation context
+annotations:  
+  parents: null #TODO: remove this from here, add a separate annotation context
+  labels: null #TODO: remove this from here, add a separate annotation context
 world_coordinates: RUF
+add_floor: true
+root: /

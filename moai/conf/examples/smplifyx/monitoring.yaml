@@ -38,18 +38,18 @@ _moai_:
           faces: [body.faces]
           params:
             color: green
-            path: fit/body/mesh/step
+            path: /fit/body/mesh/step
         keypoints:
           keypoints: [split_joints2d.body, split_keypoints.body]
-          path: [fit/image/body/joints2d, fit/image/keypoints2d]
-          skeleton: [openpose, openpose]
+          path: [/fit/image/body/joints2d, /fit/image/keypoints2d]
+          skeleton: [openpose, openpose_gt]
           color: [red, green]
       show_image:
         posed_image:
           image: [color]
           pose: [null]
           params:
-            path: fit/image
+            path: /fit/image
         # mesh3d:
         #   vertices: [body.vertices, body.vertices]
         #   faces: [body.faces, body.faces]
@@ -61,14 +61,14 @@ _moai_:
           faces: [body.faces]
           params:
             color: cyan
-            path: fit/body/mesh/iter
+            path: /fit/body/mesh/iter
       show_mesh_batch:
         mesh:
           vertices: [translated_vertices] # [body.vertices]
           faces: [body.faces]
           params:
             color: red
-            path: fit/body/mesh/batch
+            path: /fit/body/mesh/batch
     _metrics_:
       fit_quality:
         # frequency: 1

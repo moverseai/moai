@@ -1,3 +1,5 @@
+from moai.engine.modules.rerun import Rerun
+
 import logging
 import typing
 import numpy as np
@@ -55,7 +57,8 @@ def keypoints(
             colors=np.tile(np.array(color.get_rgb() + (1,)), (keypoints.shape[0], 1)) #TODO: memoize))
         ))
     else:
-        rr.log(path, rr.Points2D(positions=keypoints, 
+        class_id = Rerun.__LABEL_TO_CLASS_ID__[skeleton]
+        rr.log(path, rr.Points2D(positions=keypoints, class_ids=class_id,
             labels=skeleton, keypoint_ids=np.arange(keypoints.shape[0]),
             colors=np.tile(np.array(color.get_rgb() + (1,)), (keypoints.shape[0], 1)) #TODO: memoize))
         ))
