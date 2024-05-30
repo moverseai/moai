@@ -3,7 +3,7 @@
 _moai_:  
   _initialize_:
     fit:
-      setup: [vposer2]
+      setup: [vposer1] # [vposer2]
       batch: [zero_flow_params]
   _execution_:    
     fit:

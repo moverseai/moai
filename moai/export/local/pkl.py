@@ -84,7 +84,7 @@ def append_pkl(
         tensors:            typing.Dict[str, torch.Tensor],
         path:               str,
         keys:               typing.Union[str, typing.Sequence[str]],
-        step:               typing.Optional[int]=None,
+        lightning_step:     typing.Optional[int]=None,
         batch_idx:          typing.Optional[int]=None,
         optimization_step:  typing.Optional[int]=None,
         stage:              typing.Optional[str]=None,

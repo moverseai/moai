@@ -6,6 +6,8 @@ _helpers_:
     params:
       max_iter: 30
       lr: 1.0
+      tolerance_grad: 1e-9
+      tolerance_change: 1e-12
 
 _moai_:  
   _collections_:
@@ -23,7 +25,7 @@ _moai_:
       bad_fit:
         rmse:
           rmse: [rmse]
-          threshold: [10000.3] # pixels
+          threshold: [1000.3] # pixels
       error:
         is_finite:
           monitor: [rmse]

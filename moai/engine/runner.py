@@ -86,27 +86,20 @@ class BatchMonitor(L.Callback):
             loss returned from ``training_step``.
         """
         if Constants._MOAI_LOSSES_ in outputs:
-            losses = toolz.merge(
+            if losses := toolz.merge(
                 outputs[f"{Constants._MOAI_LOSSES_}.weighted"], # outputs['losses']['weighted'], 
                 {'total': outputs[f"{Constants._MOAI_LOSSES_}.total"]}# {'total': outputs['losses']['total']}
-            )
-            module.log_dict(losses, prog_bar=True, logger=False, on_step=True, on_epoch=False)
-            losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)                    
-            losses['epoch'] = int(trainer.current_epoch)
-            module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)
-        if Constants._MOAI_METRICS_ in outputs:
-            flattened_metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
-            module.log_dict(flattened_metrics, prog_bar=True, logger=False, on_step=True, on_epoch=False)
-            metrics = toolz.keymap(lambda k: f'train/metric/{k}',  flattened_metrics)
-            # metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
-            # metrics['epoch'] = trainer.current_epoch
-            module.log_dict(metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False)
+            ):
+                module.log_dict(losses, prog_bar=True, logger=False, on_step=True, on_epoch=False)
+                losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)                    
+                losses['epoch'] = int(trainer.current_epoch)
+                module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)        
         monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
         if monitor_batch is not None:
             for _, monitor_named_batch in monitor_batch.items():
                 is_now = batch_idx % monitor_named_batch['frequency'] == 0
                 if not is_now:
-                    return # continue
+                    continue
                 #NOTE: should detach
                 for step in monitor_named_batch.get('steps', []):
                     outputs = module.graphs[step](outputs)
@@ -118,7 +111,14 @@ class BatchMonitor(L.Callback):
                 }
                 for monitor_tensors in monitor_named_batch.get('tensors', []):
                     module.named_monitors[monitor_tensors](outputs, extras)
-    
+        if Constants._MOAI_METRICS_ in outputs:
+            if flattened_metrics := outputs[Constants._MOAI_METRICS_].flatten(separator='/'):            
+                module.log_dict(flattened_metrics, prog_bar=True, logger=False, on_step=True, on_epoch=False)
+                metrics = toolz.keymap(lambda k: f'train/metric/{k}',  flattened_metrics)
+                # metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                # metrics['epoch'] = trainer.current_epoch
+                module.log_dict(metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False)
+
     @torch.no_grad
     def on_test_batch_end(
         self,

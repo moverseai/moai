@@ -40,10 +40,14 @@ _moai_:
             color: green
             path: /fit/body/mesh/step
         keypoints:
-          keypoints: [split_joints2d.body, split_keypoints.body]
+          keypoints: [split_joints2d_body, split_keypoints_body] # [split_joints2d.body, split_keypoints.body]
           path: [/fit/image/body/joints2d, /fit/image/keypoints2d]
           skeleton: [openpose, openpose_gt]
           color: [red, green]
+        optimization_losses:
+          params:
+            path: /plots
+            keys: [gm_j2d, vposer, shape, bend, total]
       show_image:
         posed_image:
           image: [color]
@@ -73,39 +77,39 @@ _moai_:
       fit_quality:
         # frequency: 1
         rmse:
-          gt: [keypoints]
-          pred: [joints2d]
+          gt: [split_joints2d_body] # [split_keypoints.body] # [keypoints]
+          pred: [split_keypoints_body] # [split_joints2d.body] # [joints2d]
           out: [rmse]
   _monitoring_:
     fit:
       step:
-        initial_torso_fit:
-          frequency: 1
-          # steps:
-            # - show_mesh
-          tensors:
-            # - save_params
-            # - show_mesh_step            
-            - show_image
-        fine_fit_stage1:
-          frequency: 1
-          tensors:
-            - show_mesh_iter
-            - show_optim_step
-      iter:
-        # initial_torso_fit:
+        # initialize_translation:
         #   frequency: 1
         #   # steps:
         #     # - show_mesh
         #   tensors:
-        #     - show_mesh_iter
+        #     # - save_params
+        #     # - show_mesh_step            
+        #     - show_image
+        initial_torso_fit:
+          tensors: [show_optim_step]
+        fine_fit_stage1:
+          tensors: [show_optim_step]
+      iter:
+        initialize_torso:
+          tensors: [show_image]
+        initial_torso_fit:
+          frequency: 1
+        #   # steps:
+        #     # - show_mesh
+          tensors: [show_mesh_iter]
         #   metrics:
         #     - fit_quality
         #   termination: [bad_fit, error]
         fine_fit_stage1:
           frequency: 1
-          metrics:
-            - fit_quality
+          tensors: [show_mesh_iter]
+          metrics: [fit_quality]
           termination: [bad_fit, error]
       batch:
         log_results:

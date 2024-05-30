@@ -280,7 +280,7 @@ class MoaiLightningModule(L.LightningModule):
                     for tensor_monitor in tensor_monitors:
                         extras = {
                             'stage': 'predict',
-                            'step': self.global_step,
+                            'lightning_step': self.global_step,
                             'batch_idx': batch_idx,
                             'optimization_step': 0, #TODO: add this for fitting case
                         }
@@ -304,18 +304,15 @@ class MoaiLightningModule(L.LightningModule):
                 call._call_lightning_module_hook(self.trainer, "on_before_zero_grad", optimizer)
                 call._call_lightning_module_hook(self.trainer, "optimizer_zero_grad", self.trainer.current_epoch, index, optimizer)
             call._call_strategy_hook(self.trainer, "backward", loss, optimizer)
-            self.optimization_step += 1
-            # for k in toolz.get_in(['fit', 'step', stage], self.monitor) or {}:
-                # monitor = self.monitor['fit']['step'][k]
-            monitor = toolz.get_in(['fit', 'step', stage], self.monitor)
-            if monitor is not None:
-                tensor_monitor_steps = toolz.get_in(['tensors'], monitor) or []
-                if tensor_monitor_steps and self.optimization_step % monitor['frequency'] == 0:
+            self.optimization_step += 1            
+            if monitor := toolz.get_in(['fit', 'step', stage], self.monitor):
+                should_monitor = self.optimization_step % monitor.get('frequency', 1) == 0
+                if (tensor_monitor_steps := get_list(monitor, 'tensors')) and should_monitor:
                     with torch.no_grad():
                         for step in toolz.get_in(['steps'], monitor) or []:
                             self.named_flows[step](tensors)
                         extras = {
-                            'step': self.global_step, 'epoch': self.current_epoch,
+                            'lightning_step': self.global_step, 'epoch': self.current_epoch,
                             'optimization_step': self.optimization_step,
                             'batch_idx': batch_idx, 'stage': stage,
                         }
@@ -324,17 +321,12 @@ class MoaiLightningModule(L.LightningModule):
             return loss
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[Constants._MOAI_METRICS_] = {}
-        batch[Constants._MOAI_LOSSES_] = { 
-            'raw': {}, 'weighted': {}, 
-            # 'total': torch.scalar_tensor(0.0).to(dtype=self.dtype, device=self.device)
-        }
         #TODO: check for refresh optimizers each step
         for stage, proc in self.process['fit']['batch'].items():
             steps = proc['steps']
-            iters = proc.get('iterations', 1)
-            optim = proc.get('optimizer', None)
+            objective = proc.get('objective', None)
             assign_params = proc.get('assign', None)
-            if optim is not None:
+            if optim := proc.get('optimizer', None):
                 optimizers = self.optimizers()
                 if isinstance(optimizers, list):
                     optimizer = optimizers[list(self.named_optimizers.keys()).index(optim)]
@@ -345,11 +337,9 @@ class MoaiLightningModule(L.LightningModule):
                         log.warning(f"Optimizer {optim} with index {list(self.named_optimizers.keys()).index(optim)} is not found!")
             else:
                 optimizer = None
-            # optimizer = self.optimizers()[list(self.named_optimizers.keys()).index(optim)]\
-                # if optim is not None else None #NOTE: this can be cached at ctor
-            objective = proc.get('objective', None)
             current_closure = functools.partial(closure, batch, batch_idx, steps, stage, optimizer, objective)
-            for iter in range(iters):
+            for iter in range(proc.get('iterations', 1)):
+                batch[Constants._MOAI_LOSSES_] = { 'raw': {}, 'weighted': {}, }
                 if (# when the strategy handles accumulation, we want to always call the optimizer step
                     not self.trainer.strategy.handles_gradient_accumulation and self.trainer.fit_loop._should_accumulate()
                 ): # For gradient accumulation calculate loss (train step + train step end)
@@ -362,26 +352,24 @@ class MoaiLightningModule(L.LightningModule):
                         with torch.no_grad():
                             # for iter in range(iters): #NOTE: is this necessary?
                             for step in steps:
-                                batch = self.named_flows[step](batch)
-                iter_monitor_stage = toolz.get_in(['fit', 'iter', stage], self.monitor)
-                if iter_monitor_stage is not None:
+                                batch = self.named_flows[step](batch)                
+                if iter_monitor_stage := toolz.get_in(['fit', 'iter', stage], self.monitor):
                     # for _, iter_monitor_stage in iter_monitor.items():                        
                     frequency = toolz.get('frequency', iter_monitor_stage, 1)
                     should_monitor = iter % frequency == 0
-                    iter_tensor_monitor = toolz.get('tensors', iter_monitor_stage, None)
-                    if should_monitor and iter_tensor_monitor is not None:
+                    if (iter_tensor_monitor := iter_monitor_stage.get('tensors', None)) and should_monitor:
                         for step in toolz.get('steps', iter_monitor_stage, None) or []:
                             self.named_flows[step](batch)
                         for metric in toolz.get('metrics', iter_monitor_stage, None) or []:
                             self.named_metrics[metric](batch)
                         extras = {#TODO: step => 'lightning_step'
-                            'step': self.global_step, 'epoch': self.current_epoch,
-                            'batch_idx': batch_idx, 'stage': stage, 'iter': iter
+                            'lightning_step': self.global_step, 'epoch': self.current_epoch,
+                            'batch_idx': batch_idx, 'stage': stage, 'iteration': iter
                         }
                         for step in iter_tensor_monitor:
                             self.named_monitors[step](batch, extras)
                         should_stop = False
-                        for criterion in toolz.get('termination', iter_monitor_stage, None) or []:
+                        for criterion in get_list(iter_monitor_stage, 'termination'):
                             if self.named_criteria[criterion](batch, extras):
                                 should_stop = True
                                 break

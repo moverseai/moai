@@ -14,8 +14,16 @@ engine:
     num_sanity_val_steps: 0
   modules:
     rerun:
+      memory_limit: 4GB
       world_coordinates: RFU
       annotations:
+        plots:
+          - key: gm_j2d
+            color: green
+          - key: vposer
+          - key: bend
+            color: magenta
+          - key: shape
         parents:
           openpose: &openpose_parents
             - -1
@@ -72,36 +80,3 @@ engine:
             - rsmalltoe
             - rheel
           openpose_gt: *openpose_labels
-
-# logging:
-#   name: ${experiment.name}
-  # loggers:
-  #   visdom:
-  #     name: ${experiment.name}
-  #     ip: ${experiment.visdom_ip}
-
-# visualization:
-#   batch_interval: 1
-  # visualizers:
-  #   vector:
-  #     name: ${experiment.name}
-  #     ip: ${experiment.visdom_ip}
-  #     vector: [body.betas]
-  #     type: [box]
-
-# export:
-#   batch_interval: 1
-#   exporters:
-#     pkl:
-#       path: .
-#       keys: 
-#         - translation
-#         - embedding
-#         - body.betas
-#         - body.rotation
-#         - body.left_hand
-#         - body.right_hand
-#         - body.jaw
-#         - body.pose
-#         - body.expression
-#       mode: append

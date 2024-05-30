@@ -82,11 +82,11 @@ _COLORS = np.array(
         0.000, 0.000, 0.500,
         0.000, 0.000, 0.667,
         0.000, 0.000, 0.833,
-        0.000, 0.000, 1.000,
-        0.000, 0.000, 0.000,
+        0.000, 0.000, 1.000,        
         0.143, 0.143, 0.143,
         0.857, 0.857, 0.857,
-        1.000, 1.000, 1.000
+        1.000, 1.000, 1.000,
+        0.000, 0.000, 0.000,
     ]
 ).astype(np.float32).reshape(-1, 3)
 # fmt: on
@@ -117,7 +117,7 @@ def random_color(rgb=False, maximum=255):
     Returns:
         ndarray: a vector of 3 numbers
     """
-    idx = np.random.randint(0, len(_COLORS))
+    idx = np.random.randint(0, len(_COLORS) - 1) #NOTE: hack to avoid black
     ret = _COLORS[idx] * maximum
     if not rgb:
         ret = ret[::-1]

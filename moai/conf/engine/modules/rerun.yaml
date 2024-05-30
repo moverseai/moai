@@ -6,6 +6,8 @@ export: null
 annotations:  
   parents: null #TODO: remove this from here, add a separate annotation context
   labels: null #TODO: remove this from here, add a separate annotation context
+  plots: null
 world_coordinates: RUF
 add_floor: true
 root: /
+memory_limit: 75% #NOTE: can also be absolute, `4GB` for example
