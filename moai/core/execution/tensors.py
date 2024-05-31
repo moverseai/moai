@@ -1,3 +1,5 @@
+from moai.core.execution.constants import Constants as C
+
 import moai.core.execution.common as mic
 import typing
 import torch
@@ -16,7 +18,7 @@ class Tensors():
         self.operations = []
         for k in kwargs or {}:
             params = kwargs[k] #NOTE: list args for multi calling
-            override_params = params.get('params', None) or {}
+            override_params = params.get(C._PARAMS_, None) or {}
             target = tensors[k]
             operation = hyu.instantiate(target, **override_params)
             signature = inspect.signature(operation)
@@ -35,6 +37,7 @@ class Tensors():
                     toolz.dissoc(op_args,*tensor_args.keys()),
                     extras))
 
+    @torch.no_grad
     def __call__(self, 
         tensors:    typing.Mapping[str, torch.Tensor], 
         extras:     typing.Mapping[str, typing.Any],

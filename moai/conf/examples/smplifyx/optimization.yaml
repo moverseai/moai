@@ -2,8 +2,8 @@
 
 _helpers_:
   optimizer_common: &lbfgsls
-    type: lbfgsls
-    params:
+    _type_: lbfgsls
+    _params_:
       max_iter: 30
       lr: 1.0
       tolerance_grad: 1e-9

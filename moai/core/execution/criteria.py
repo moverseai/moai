@@ -1,3 +1,5 @@
+from moai.core.execution.constants import Constants as C
+
 import moai.core.execution.common as mic
 import typing
 import torch
@@ -5,8 +7,6 @@ import toolz
 import omegaconf.omegaconf
 import hydra.utils as hyu
 import inspect
-
-from moai.core.execution.constants import Constants
 
 __all__ = ['Criteria']
 
@@ -18,7 +18,7 @@ class Criteria():
         self.operations = []
         for k in kwargs or {}:
             params = kwargs[k] #NOTE: list args for multi calling
-            override_params = params.get('params', None) or {}            
+            override_params = params.get(C._PARAMS_, None) or {}            
             target = criteria[k]
             operation = hyu.instantiate(target, **override_params)
             signature = inspect.signature(operation)
@@ -36,14 +36,15 @@ class Criteria():
                     toolz.dissoc(op_args,*(args-tensor_args.keys())), 
                     toolz.dissoc(op_args,*tensor_args.keys()),
                     extras))
-
+    
+    @torch.no_grad
     def __call__(self, 
         tensors:    typing.Mapping[str, torch.Tensor], 
         extras:     typing.Mapping[str, typing.Any],
     ) -> None:
         stop = False
         for operation in self.operations:
-            stop = operation(tensors[Constants._MOAI_METRICS_], extras)
+            stop = operation(tensors[C._MOAI_METRICS_], extras)
             if stop:
                 break
         return stop

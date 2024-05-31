@@ -11,7 +11,7 @@ import benedict
 
 from moai.validation.torchmetric import TorchMetric
 from moai.validation.metric import MoaiMetric
-from moai.core.execution.constants import Constants
+from moai.core.execution.constants import Constants as C
 
 log = logging.getLogger(__name__)
 
@@ -122,6 +122,7 @@ class Metrics(torch.nn.ModuleDict):
         #         self.reductions.append(next(reduction))
 
     # NOTE: consider outputting per batch item metrics
+    @torch.no_grad
     def forward(
         self, tensors: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
@@ -129,11 +130,11 @@ class Metrics(torch.nn.ModuleDict):
         for key, out, kwargs in self.execs:
             # metric = self[key].update(**toolz.valmap(lambda v: tensors[v], kwargs))
             metric = self[key](**toolz.valmap(lambda v: tensors[v], kwargs))
-            tensors[f"{Constants._MOAI_METRICS_}.{out}"] = metric
+            tensors[f"{C._MOAI_METRICS_}.{out}"] = metric
             # if metric is not None:
-            #     tensors[f"{Constants._MOAI_METRICS_}.{out}"] = metric
+            #     tensors[f"{C._MOAI_METRICS_}.{out}"] = metric
             # else:
-            #     tensors[f"{Constants._MOAI_METRICS_}.{out}"] = torch.empty(0)
+            #     tensors[f"{C._MOAI_METRICS_}.{out}"] = torch.empty(0)
         # tensors['_moai_._metrics_'].update(metrics)
 
         # for exe in self.execs:
@@ -162,7 +163,7 @@ class Metrics(torch.nn.ModuleDict):
         # return returned
     
     # def aggregate(self, ) -> typing.Mapping[str, np.ndarray]:
-    #     metrics = benedict.benedict({"{Constants._MOAI_METRICS_}": {}})
+    #     metrics = benedict.benedict({"{C._MOAI_METRICS_}": {}})
     #     for key, out, _ in self.execs:
-    #         metrics[f"{Constants._MOAI_METRICS_}.{out}"] = self[key].compute()
+    #         metrics[f"{C._MOAI_METRICS_}.{out}"] = self[key].compute()
 

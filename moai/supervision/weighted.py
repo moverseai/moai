@@ -3,7 +3,7 @@ from moai.utils.arguments import (
     ensure_string_list,
 )
 from collections import OrderedDict
-from moai.core.execution.constants import Constants
+from moai.core.execution.constants import Constants as C
 
 import moai.core.execution.common as mic
 import torch
@@ -129,9 +129,9 @@ class Weighted(torch.nn.ModuleDict):
         for i, (key, out, weight, reduction, kwargs) in enumerate(self.execs):
             error = self[key](**toolz.valmap(lambda v: tensors[v] if v is not None else v, kwargs))
             error = __REDUCTIONS__[reduction](error)
-            tensors[f"{Constants._MOAI_LOSSES_}.raw.{out}"] = error
-            tensors[f"{Constants._MOAI_LOSSES_}.weighted.{out}"] = weight * error
+            tensors[f"{C._MOAI_LOSSES_}.raw.{out}"] = error
+            tensors[f"{C._MOAI_LOSSES_}.weighted.{out}"] = weight * error
             if i == 0:
-                tensors[f"{Constants._MOAI_LOSSES_}.total"] = tensors[f"{Constants._MOAI_LOSSES_}.weighted.{out}"]
+                tensors[f"{C._MOAI_LOSSES_}.total"] = tensors[f"{C._MOAI_LOSSES_}.weighted.{out}"]
             else:
-                tensors[f"{Constants._MOAI_LOSSES_}.total"] += tensors[f"{Constants._MOAI_LOSSES_}.weighted.{out}"]
+                tensors[f"{C._MOAI_LOSSES_}.total"] += tensors[f"{C._MOAI_LOSSES_}.weighted.{out}"]

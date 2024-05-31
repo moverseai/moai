@@ -20,7 +20,7 @@ import typing
 
 from moai.engine import Engine
 from moai.utils.funcs import select
-from moai.core.execution.constants import Constants
+from moai.core.execution.constants import Constants as C
 from moai.action.run import _specialize_config
 
 log = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class ModelServer(BaseHandler):
                 self.engine = Engine(cfg.engine.modules)
                 self.model = hyu.instantiate(
                     cfg.model,
-                     _moai_=select(cfg, Constants._MOAI_),
+                     _moai_=select(cfg, C._MOAI_),
                      _recursive_= False
                 )
                 #TODO: remodel should be updated
