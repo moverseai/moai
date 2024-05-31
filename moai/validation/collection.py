@@ -122,6 +122,7 @@ class Metrics(torch.nn.ModuleDict):
         #         self.reductions.append(next(reduction))
 
     # NOTE: consider outputting per batch item metrics
+    @torch.no_grad
     def forward(
         self, tensors: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:

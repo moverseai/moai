@@ -36,7 +36,8 @@ class Criteria():
                     toolz.dissoc(op_args,*(args-tensor_args.keys())), 
                     toolz.dissoc(op_args,*tensor_args.keys()),
                     extras))
-
+    
+    @torch.no_grad
     def __call__(self, 
         tensors:    typing.Mapping[str, torch.Tensor], 
         extras:     typing.Mapping[str, typing.Any],
