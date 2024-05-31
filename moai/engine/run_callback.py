@@ -1,6 +1,7 @@
 from moai.core.execution.constants import Constants as C
 from moai.log.lightning.loggers.tabular import Tabular
 from collections import defaultdict
+from toolz.curried import merge_with
 
 import pytorch_lightning as L
 import hydra.utils as hyu
@@ -56,10 +57,10 @@ class RunCallback(L.Callback):
             #TODO: add remodel/modifications here as well
             # module.process[C._FIT_][C._BATCH_] = popped[C._SCHEDULE_STEP_]#NOTE: rename process?
             # module.process[C._VAL_][C._BATCH_] = popped[C._SCHEDULE_STEP_]#NOTE: rename process?
-            if new_fit := popped.get(C._SCHEDULE_FIT_, None):
-                module.process[C._FIT_] = toolz.merge(module.process[C._FIT_], new_fit)
+            if new_fit := popped.get(C._SCHEDULE_FIT_, None): #deep merge from https://github.com/pytoolz/toolz/issues/281
+                module.process[C._FIT_] = merge_with(merge_with(toolz.merge), (module.process[C._FIT_], new_fit))
             if new_val := popped.get(C._SCHEDULE_VAL_, None):
-                module.process[C._VAL_] = toolz.merge(module.process[C._VAL_], new_val)
+                module.process[C._VAL_] = merge_with(merge_with(toolz.merge), (module.process[C._VAL_], new_val))
         
     @torch.no_grad
     def on_predict_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
@@ -103,7 +104,7 @@ class RunCallback(L.Callback):
                 for monitor_metrics in monitor_named_batch.get(C._METRICS_, []):
                     module.named_metrics[monitor_metrics](outputs)
                 extras = {
-                    'step': module.global_step, 'epoch': module.current_epoch,
+                    'lightning_step': module.global_step, 'epoch': module.current_epoch,
                     'batch_idx': batch_idx,
                 }
                 for monitor_tensors in monitor_named_batch.get(C._MONITORS_, []):
