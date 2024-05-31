@@ -71,7 +71,7 @@ class MoaiLightningModule(L.LightningModule):
             self.models[k] = hyu.instantiate(modules[k])
         ## Monad & Module Processing Graphs
         self.named_flows = torch.nn.ModuleDict()
-        flows = select_dict(_moai_, C._FLOWS_)
+        flows = select_dict(_moai_, C._DEFINED_FLOWS_)
         monad_flows, model_flows = partition(lambda k: k in self.models, flows or {})
         for model_flow in model_flows:
             self.named_flows[model_flow] = Models(models=self.models, **{model_flow: flows[model_flow]})
@@ -124,20 +124,18 @@ class MoaiLightningModule(L.LightningModule):
         self.reset_optimization()        
         # Intializers
         self.named_initializers = defaultdict(list)         
-        for k, v in select_dict(_moai_, f"{C._INITIALIZE_}._{_moai_._action_}_").items():
+        for k, v in select_dict(_moai_, f"{C._EXECUTION_INITIALIZE_}._{_moai_._action_}_").items():
             v = ensure_string_list(v)
             self.named_initializers[k] = [hyu.instantiate(parameters.initializers[i]) for i in v]
         ## Optimization Process & Monitoring
         self.process = OmegaConf.to_container(
-            select(_moai_, C._EXECUTION_),#parameters.optimization.process, 
-            resolve=True
+            select(_moai_, C._EXECUTION_LIGHTNING_STEP_), resolve=True
         )
         self.monitor = OmegaConf.to_container(
-            select(_moai_, C._MONITORING_), # parameters.optimization.monitor, 
-            resolve=True
+            select(_moai_, C._EXECUTION_MONITORING_), resolve=True
         )
         self.schedule = deque(sorted(OmegaConf.to_container(
-                select_conf(_moai_, C._SCHEDULE_), resolve=True
+                select_conf(_moai_, C._EXECUTION_SCHEDULE_), resolve=True
             ), key=lambda item: item[C._EPOCH_],
         ))
         # Aggregate results

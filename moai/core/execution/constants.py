@@ -11,31 +11,45 @@ class Constants(object):
     # MOAI EXECUTION
     _MOAI_: str = '_moai_'
 
-    _MOAI_MONITORING_: str = f'{_MOAI_}._monitoring_'
+    # _MOAI_MONITORING_: str = f'{_MOAI_}._monitoring_'
     _MOAI_METRICS_: str = f'{_MOAI_}._metrics_'
     _MOAI_LOSSES_: str = f'{_MOAI_}._losses_'
     _MOAI_LOSSES_RAW_: str = f'{_MOAI_}._losses_.raw'
     _MOAI_LOSSES_WEIGHTED_: str = f'{_MOAI_}._losses_.weighted'
     _MOAI_LOSSES_TOTAL_: str = f'{_MOAI_}._losses_.total'
-    _MOAI_EXECUTION_: str = f'{_MOAI_}._execution_'
-    _MOAI_INITIALIZE_: str = f'{_MOAI_}._initialize_'
+    # _MOAI_EXECUTION_: str = f'{_MOAI_}._execution_'
+    # _MOAI_INITIALIZE_: str = f'{_MOAI_}._initialize_'
 
     _EXECUTION_: str = f'_execution_'
+    
+    _LIGHTNING_STEP_: str = f'_lightning_step_'
+    _MOAI_EXECUTION_LIGHTNING_STEP_: str = f'{_MOAI_}.{_EXECUTION_}.{_LIGHTNING_STEP_}'
+    _MOAI_EXECUTION_MONITORING_: str = f'{_MOAI_}.{_EXECUTION_}._monitoring_'
+    _MOAI_EXECUTION_INITIALIZE_: str = f'{_MOAI_}.{_EXECUTION_}._initialize_'
+    
+    _EXECUTION_LIGHTNING_STEP_: str = f'{_EXECUTION_}.{_LIGHTNING_STEP_}'
+    _EXECUTION_MONITORING_: str = f'{_EXECUTION_}._monitoring_'
+    _SCHEDULE_: str = f'_schedule_'    
+    _EXECUTION_SCHEDULE_: str = f'{_EXECUTION_}._schedule_'
+    _INITIALIZE_: str = f'_initialize_'
+    _EXECUTION_INITIALIZE_: str = f'{_EXECUTION_}._initialize_'
+
     _COLLECTIONS_: str = f'_collections_'
     _MONITORS_: str = f'_monitors_'
     _METRICS_: str = f'_metrics_'
     _FLOWS_: str = f'_flows_'
-    _METRICS_COLLECTION_: str = f'{_COLLECTIONS_}._metrics_'
-    _OBJECTIVES_COLLECTION_: str = f'{_COLLECTIONS_}._objectives_'
-    _MONITORS_COLLECTION_: str = f'{_COLLECTIONS_}._monitors_'
-    _CRITERIA_COLLECTION_: str = f'{_COLLECTIONS_}._criteria_'
-    _OPTIMIZERS_COLLECTION_: str = f'{_COLLECTIONS_}._optimizers_'
-    _SCHEDULERS_COLLECTION_: str = f'{_COLLECTIONS_}._schedulers_'
     _OPTIMIZER_GROUPS_: str = f'_groups_'
-    _FLOWS_: str = f'_flows_'
-    _MONITORING_: str = f'_monitoring_'
-    _SCHEDULE_: str = f'_schedule_'
-    _INITIALIZE_: str = f'_initialize_'
+    
+    _DEFINITIONS_: str = f'_definitions_'
+    _METRICS_COLLECTION_: str = f'{_DEFINITIONS_}.{_COLLECTIONS_}._metrics_'
+    _OBJECTIVES_COLLECTION_: str = f'{_DEFINITIONS_}.{_COLLECTIONS_}._objectives_'
+    _MONITORS_COLLECTION_: str = f'{_DEFINITIONS_}.{_COLLECTIONS_}._monitors_'
+    _CRITERIA_COLLECTION_: str = f'{_DEFINITIONS_}.{_COLLECTIONS_}._criteria_'
+    _OPTIMIZERS_COLLECTION_: str = f'{_DEFINITIONS_}.{_COLLECTIONS_}._optimizers_'
+    _SCHEDULERS_COLLECTION_: str = f'{_DEFINITIONS_}.{_COLLECTIONS_}._schedulers_'
+    _DEFINED_FLOWS_: str = f'{_DEFINITIONS_}._flows_'
+    
+    
     _STAGE_: str = f'_stage_'
 
     _PARAMS_: str = f'_params_'
@@ -47,8 +61,7 @@ class Constants(object):
     _BATCH_: str = f'_batch_'
     _FREQUENCY_: str = f'_frequency_'
     _ITERATIONS_: str = f'_iterations_'
-    _REFRESH_OPTIMIZERS_: str = f'_refresh_optimizers_'
-    _LIGHTNING_STEP_: str = f'_lightning_step_'
+    _REFRESH_OPTIMIZERS_: str = f'_refresh_optimizers_'    
     _OBJECTIVE_: str = f'_objective_'
     _ASSIGN_: str = f'_assign_'
     _OPTIMIZER_: str = f'_optimizer_'
@@ -59,7 +72,8 @@ class Constants(object):
     _INTERVAL_: str = f'_interval_'
     _TYPE_: str = f'_type_'
 
-    _SCHEDULE_STEP_: str = f'_process_'
+    _SCHEDULE_FIT_: str = f'_fit_'
+    _SCHEDULE_VAL_: str = f'_val_'
 
     # MODEL
     _MODEL_: str = 'model'

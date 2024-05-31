@@ -1,119 +1,121 @@
 # @package _global_
 
 _moai_:
-  _collections_:
-    _monitors_:
-      save_params:
-        append_pkl:
-          path: ['.', '.hydra']
-          keys: 
-            -
-              - translation
-              - embedding
-              - body.betas
-              - body.rotation
-              - body.left_hand
-              - body.right_hand
-              - body.jaw
-              - body.pose
-              - body.expression
-            - 
-              - body.pose
-        pkl:
-          _params_:
-            path: '.'
+  _definitions_:
+    _collections_:
+      _monitors_:
+        save_params:
+          append_pkl:
+            path: ['.', '.hydra']
             keys: 
-              - translation
-              - embedding
-              - body.betas
-              - body.rotation
-              - body.left_hand
-              - body.right_hand
-              - body.jaw
-              - body.pose
-              - body.expression
-      show_optim_step:
-        mesh:
-          vertices: [body.vertices]
-          faces: [body.faces]
-          _params_:
-            color: green
-            path: /fit/body/mesh/step
-        keypoints:
-          keypoints: [split_joints2d_body, split_keypoints_body] # [split_joints2d.body, split_keypoints.body]
-          path: [/fit/image/body/joints2d, /fit/image/keypoints2d]
-          skeleton: [openpose, openpose_gt]
-          color: [red, green]
-        optimization_losses:
-          _params_:
-            path: /plots
-            keys: [gm_j2d, vposer, shape, bend, total]
-      show_image:
-        posed_image:
-          image: [color]
-          pose: [null]
-          _params_:
-            path: /fit/image
-        # mesh3d:
-        #   vertices: [body.vertices, body.vertices]
-        #   faces: [body.faces, body.faces]
-        #   color: [green, blue]
-        #   path: [fit/body/mesh/step, fit/body/mesh/step2]
-      show_mesh_iter:
-        mesh:
-          vertices: [body.vertices]
-          faces: [body.faces]
-          _params_:
-            color: cyan
-            path: /fit/body/mesh/iter
-      show_mesh_batch:
-        mesh:
-          vertices: [translated_vertices] # [body.vertices]
-          faces: [body.faces]
-          _params_:
-            color: red
-            path: /fit/body/mesh/batch
-    _metrics_:
-      fit_quality:
-        # frequency: 1
-        rmse:
-          gt: [split_joints2d_body] # [split_keypoints.body] # [keypoints]
-          pred: [split_keypoints_body] # [split_joints2d.body] # [joints2d]
-          out: [rmse]
-  _monitoring_:
-    _fit_:
-      _lightning_step_:
-        # initialize_translation:
-        #   _frequency_: 1
-        #   # _flows_:
-        #     # - show_mesh
-        #   _monitors_:
-        #     # - save_params
-        #     # - show_mesh_step            
-        #     - show_image
-        initial_torso_fit:
-          _monitors_: [show_optim_step]
-        fine_fit_stage1:
-          _monitors_: [show_optim_step]
-      _stage_:
-        initialize_torso:
-          _monitors_: [show_image]
-        initial_torso_fit:
-          _frequency_: 1
-        #   # _flows_:
-        #     # - show_mesh
-          _monitors_: [show_mesh_iter]
-        #   _metrics:_
-        #     - fit_quality
-        #   _termination_: [bad_fit, error]
-        fine_fit_stage1:
-          _frequency_: 1
-          _monitors_: [show_mesh_iter]
-          _metrics_: [fit_quality]
-          _termination_: [bad_fit, error]
-      _batch_:
-        log_results:
-          _frequency_: 1
-          # _flows_: []
-          _metrics_: [fit_quality]
-          _monitors_: [show_mesh_batch]
+              -
+                - translation
+                - embedding
+                - body.betas
+                - body.rotation
+                - body.left_hand
+                - body.right_hand
+                - body.jaw
+                - body.pose
+                - body.expression
+              - 
+                - body.pose
+          pkl:
+            _params_:
+              path: '.'
+              keys: 
+                - translation
+                - embedding
+                - body.betas
+                - body.rotation
+                - body.left_hand
+                - body.right_hand
+                - body.jaw
+                - body.pose
+                - body.expression
+        show_optim_step:
+          mesh:
+            vertices: [body.vertices]
+            faces: [body.faces]
+            _params_:
+              color: green
+              path: /fit/body/mesh/step
+          keypoints:
+            keypoints: [split_joints2d_body, split_keypoints_body] # [split_joints2d.body, split_keypoints.body]
+            path: [/fit/image/body/joints2d, /fit/image/keypoints2d]
+            skeleton: [openpose, openpose_gt]
+            color: [red, green]
+          optimization_losses:
+            _params_:
+              path: /plots
+              keys: [gm_j2d, vposer, shape, bend, total]
+        show_image:
+          posed_image:
+            image: [color]
+            pose: [null]
+            _params_:
+              path: /fit/image
+          # mesh3d:
+          #   vertices: [body.vertices, body.vertices]
+          #   faces: [body.faces, body.faces]
+          #   color: [green, blue]
+          #   path: [fit/body/mesh/step, fit/body/mesh/step2]
+        show_mesh_iter:
+          mesh:
+            vertices: [body.vertices]
+            faces: [body.faces]
+            _params_:
+              color: cyan
+              path: /fit/body/mesh/iter
+        show_mesh_batch:
+          mesh:
+            vertices: [translated_vertices] # [body.vertices]
+            faces: [body.faces]
+            _params_:
+              color: red
+              path: /fit/body/mesh/batch
+      _metrics_:
+        fit_quality:
+          # frequency: 1
+          rmse:
+            gt: [split_joints2d_body] # [split_keypoints.body] # [keypoints]
+            pred: [split_keypoints_body] # [split_joints2d.body] # [joints2d]
+            out: [rmse]
+  _execution_:
+    _monitoring_:
+      _fit_:
+        _lightning_step_:
+          # initialize_translation:
+          #   _frequency_: 1
+          #   # _flows_:
+          #     # - show_mesh
+          #   _monitors_:
+          #     # - save_params
+          #     # - show_mesh_step            
+          #     - show_image
+          initial_torso_fit:
+            _monitors_: [show_optim_step]
+          fine_fit_stage1:
+            _monitors_: [show_optim_step]
+        _stage_:
+          initialize_torso:
+            _monitors_: [show_image]
+          initial_torso_fit:
+            _frequency_: 1
+          #   # _flows_:
+          #     # - show_mesh
+            _monitors_: [show_mesh_iter]
+          #   _metrics:_
+          #     - fit_quality
+          #   _termination_: [bad_fit, error]
+          fine_fit_stage1:
+            _frequency_: 1
+            _monitors_: [show_mesh_iter]
+            _metrics_: [fit_quality]
+            _termination_: [bad_fit, error]
+        _batch_:
+          log_results:
+            _frequency_: 1
+            # _flows_: []
+            _metrics_: [fit_quality]
+            _monitors_: [show_mesh_batch]

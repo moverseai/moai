@@ -13,91 +13,91 @@ def _specialize_config(cfg: DictConfig) -> None:
     #TODO: remove unused keys for metrics etc. inside the named collections/flows
     # match cfg.action:
     #     case 'fit':
-    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}.test'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}').test
-    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}.predict'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}').predict
-    #         if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}.test'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}').test
-    #         if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}.predict'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}').predict
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}.test'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}').test
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}.predict'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}').predict
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}.test'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}').test
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}.predict'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}').predict
     #     case 'test':
-    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}.fit'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}').fit
-    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}.val'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}').val
-    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}.predict'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}').predict
-    #         if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}.fit'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}').fit
-    #         if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}.val'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}').val
-    #         if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}.predict'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}').predict
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}.fit'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}').fit
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}.val'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}').val
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}.predict'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}').predict
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}.fit'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}').fit
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}.val'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}').val
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}.predict'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}').predict
     #     case 'predict':
-    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}.fit'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}').fit
-    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}.val'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}').val
-    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}.test'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}').test
-    #         if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}.fit'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}').fit
-    #         if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}.val'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}').val
-    #         if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}.test'):
-    #             del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}').test
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}.fit'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}').fit
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}.val'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}').val
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}.test'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}').test
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}.fit'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}').fit
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}.val'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}').val
+    #         if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}.test'):
+    #             del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}').test
     #     case _:
     #         log.error(f"Erroneous `action` [{cfg.action}] specified on `run` mode.")
     if cfg.action == C._ACTION_FIT_:
-        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}._test_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}')._test_
-        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}._predict_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}')._predict_
-        if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}._test_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}')._test_
-        if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}._predict_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}')._predict_
-        if OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}._test_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}')._test_
-        if OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}._predict_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}')._predict_        
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}._test_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}')._test_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}._predict_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}')._predict_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}._test_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}')._test_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}._predict_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}')._predict_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}._test_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}')._test_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}._predict_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}')._predict_        
 
     elif cfg.action == C._ACTION_TEST_:
-        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}._fit_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}')._fit_
-        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}._val_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}')._val_
-        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}._predict_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}')._predict_
-        if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}._fit_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}')._fit_
-        if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}._val_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}')._val_
-        if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}._predict_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}')._predict_
-        if OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}._fit_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}')._fit_
-        if OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}._predict_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}')._predict_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}._fit_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}')._fit_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}._val_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}')._val_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}._predict_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}')._predict_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}._fit_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}')._fit_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}._val_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}')._val_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}._predict_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}')._predict_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}._fit_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}')._fit_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}._predict_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}')._predict_
     
     elif cfg.action == C._ACTION_PREDICT_:
-        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}._fit_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}')._fit_
-        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}._val_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}')._val_
-        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}._test_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_}')._test_
-        if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}._fit_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}')._fit_
-        if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}._val_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}')._val_
-        if OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}._test_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_MONITORING_}')._test_
-        if OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}._test_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}')._test_
-        if OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}._fit_'):
-            del OmegaConf.select(cfg, f'{C._MOAI_INITIALIZE_}')._fit_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}._fit_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}')._fit_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}._val_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}')._val_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}._test_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_LIGHTNING_STEP_}')._test_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}._fit_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}')._fit_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}._val_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}')._val_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}._test_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_MONITORING_}')._test_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}._test_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}')._test_
+        if OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}._fit_'):
+            del OmegaConf.select(cfg, f'{C._MOAI_EXECUTION_INITIALIZE_}')._fit_
     else:
         log.error(f"Erroneous `action` [{cfg.action}] specified on `run` mode.")
 

@@ -10,22 +10,23 @@ _helpers_:
       tolerance_change: 1e-12
 
 _moai_:  
-  _collections_:
-    _optimizers_:
-      initial_torso_fit: 
-        <<: *lbfgsls
-        _groups_: global  # groups: expressive # global
-      fine_fit_stage1:
-        <<: *lbfgsls
-        _groups_: [expressive] # groups: expressive # [global, expressive]
-      # fine_fit_stage1:
-      #   <<: *lbfgsls
-      #   groups: [global, expressive] # groups: expressive # [global, expressive]
-    _criteria_:
-      bad_fit:
-        rmse:
-          rmse: [rmse]
-          threshold: [1000.3] # pixels
-      error:
-        is_finite:
-          monitor: [rmse]
+  _definitions_:
+    _collections_:
+      _optimizers_:
+        initial_torso_fit: 
+          <<: *lbfgsls
+          _groups_: global  # groups: expressive # global
+        fine_fit_stage1:
+          <<: *lbfgsls
+          _groups_: [expressive] # groups: expressive # [global, expressive]
+        # fine_fit_stage1:
+        #   <<: *lbfgsls
+        #   groups: [global, expressive] # groups: expressive # [global, expressive]
+      _criteria_:
+        bad_fit:
+          rmse:
+            rmse: [rmse]
+            threshold: [1000.3] # pixels
+        error:
+          is_finite:
+            monitor: [rmse]

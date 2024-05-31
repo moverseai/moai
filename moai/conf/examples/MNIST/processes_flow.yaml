@@ -1,48 +1,51 @@
 # @package _global_
 
 _moai_:
-  _initialize_:  # responsible for initializers
-    _fit_:
-      _setup_: [default] # used only at the beginning of the training process
-      # _batch_: [default] # used at the beginning of each batch
-      # _epoch_: [default] # used at the beginning of each epoch
-    _test_:
-      _setup_: pretrained
-    _predict_:
-      _setup_: pretrained
-  _flows_: # that will be used in the main process
-    encoder:
-      input: [color]
-      out:  [prediction]
-    postprocess:
-      argmax:
-        tensor: [prediction]
-        out:  [predicted_label]
-  _execution_: # forces execution of the following flows
-    _fit_:
-      _batch_:
-        train_encoder:
-          _optimizer_: train_encoder
-          _objective_: train_encoder
-          _flows_: [encoder]
-    _test_:
-      _batch_:
-        train_encoder:
-          _flows_: [encoder, postprocess]
-    _predict_: # used for torchserve
-      _batch_:
-        train_encoder:
-          _flows_: [encoder, postprocess]
-    _val_:
-      _batch_:
-        mnist: &val_proc
+  _definitions_:
+    _flows_: # that will be used in the main process
+      encoder:
+        input: [color]
+        out:  [prediction]
+      postprocess:
+        argmax:
+          tensor: [prediction]
+          out:  [predicted_label]
+  _execution_:
+    _initialize_:  # responsible for initializers
+      _fit_:
+        _setup_: [default] # used only at the beginning of the training process
+        # _batch_: [default] # used at the beginning of each batch
+        # _epoch_: [default] # used at the beginning of each epoch
+      _test_:
+        _setup_: pretrained
+      _predict_:
+        _setup_: pretrained
+    _lightning_step_: # forces execution of the following flows
+      _fit_:
+        _batch_:
+          train_encoder:
+            _optimizer_: train_encoder
+            _objective_: train_encoder
+            _flows_: [encoder]
+      _test_:
+        _batch_:
           train_encoder:
             _flows_: [encoder, postprocess]
-        mnist_2: *val_proc
-  _schedule_:
-    - _epoch_: 1
-      _process_:
-        train_encoder:
-          _optimizer_: train_encoder
-          _objective_: train_encoder
-          _flows_: [encoder, postprocess]
+      _predict_: # used for torchserve
+        _batch_:
+          train_encoder:
+            _flows_: [encoder, postprocess]
+      _val_:
+        _batch_:
+          mnist: &val_proc
+            train_encoder:
+              _flows_: [encoder, postprocess]
+          mnist_2: *val_proc
+    _schedule_:
+      - _epoch_: 1
+        _fit_:
+          _batch_:
+            train_encoder:
+              _optimizer_: train_encoder
+              _objective_: train_encoder
+              _flows_: [encoder, postprocess]

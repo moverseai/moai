@@ -1,36 +1,37 @@
 # @package _global_
 
 _moai_:  
-  _initialize_:
-    _fit_:
-      _setup_: [vposer1] # [vposer2]
-      _batch_: [zero_flow_params]
-  _execution_:    
-    _fit_:
-      _refresh_optimizers_: true
-      _batch_:
-        initialize_torso:
-          _flows_:
-            - preprocess
-            - initialize_translation
-          _assign_:
-            init_trans: preprocess.translation.value
-        initial_torso_fit:
-          _iterations_: 5
-          _optimizer_: initial_torso_fit
-          # _scheduler_: null
-          _flows_:
-            - preprocess
-            - postprocess
-          _objective_: initial_torso_fit
-        fine_fit_stage1:
-          _iterations_: 10
-          _optimizer_: fine_fit_stage1
-          # _scheduler_: null
-          _flows_:
-            - preprocess
-            - postprocess
-          _objective_: fine_fit_stage1          
-    _val_:
-      _batch_:
-        openpose: 
+  _execution_:
+    _initialize_:
+      _fit_:
+        _setup_: [vposer1] # [vposer2]
+        _batch_: [zero_flow_params]
+    _lightning_step_:
+      _fit_:
+        _refresh_optimizers_: true
+        _batch_:
+          initialize_torso:
+            _flows_:
+              - preprocess
+              - initialize_translation
+            _assign_:
+              init_trans: preprocess.translation.value
+          initial_torso_fit:
+            _iterations_: 5
+            _optimizer_: initial_torso_fit
+            # _scheduler_: null
+            _flows_:
+              - preprocess
+              - postprocess
+            _objective_: initial_torso_fit
+          fine_fit_stage1:
+            _iterations_: 10
+            _optimizer_: fine_fit_stage1
+            # _scheduler_: null
+            _flows_:
+              - preprocess
+              - postprocess
+            _objective_: fine_fit_stage1          
+      _val_:
+        _batch_:
+          openpose: 

@@ -21,7 +21,6 @@ class RunCallback(L.Callback):
 
     def setup(self, trainer: L.Trainer, module: L.LightningModule, stage: str) -> None:
         """Called when fit, validate, test, predict, or tune begins."""
-        # module.initialize_parameters()
         module.setup_initializers()
 
     @torch.no_grad
@@ -34,8 +33,7 @@ class RunCallback(L.Callback):
     ) -> None:
         """Called when the train batch begins."""
         module.optimization_step = 0
-        # call initialize per batch
-        module.batch_initializers()
+        module.batch_initializers() # call initialize per batch
         if module.process[C._FIT_].get(C._REFRESH_OPTIMIZERS_, False):
             module.reset_optimization()
             trainer.strategy.setup_optimizers(trainer)
@@ -52,10 +50,16 @@ class RunCallback(L.Callback):
     def on_train_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
         """Called when the train epoch begins."""
         module.epoch_initializers()
-        if module.schedule and module.current_epoch >= module.schedule[0][C._EPOCH_]:
+        if module.schedule and module.current_epoch >= (scheduled_epoch := module.schedule[0][C._EPOCH_]):
+            log.info(f"Updating execution @ epoch {scheduled_epoch}.")
             popped = module.schedule.popleft()
             #TODO: add remodel/modifications here as well
-            module.process[C._FIT_][C._BATCH_] = popped[C._SCHEDULE_STEP_]#NOTE: rename process?
+            # module.process[C._FIT_][C._BATCH_] = popped[C._SCHEDULE_STEP_]#NOTE: rename process?
+            # module.process[C._VAL_][C._BATCH_] = popped[C._SCHEDULE_STEP_]#NOTE: rename process?
+            if new_fit := popped.get(C._SCHEDULE_FIT_, None):
+                module.process[C._FIT_] = toolz.merge(module.process[C._FIT_], new_fit)
+            if new_val := popped.get(C._SCHEDULE_VAL_, None):
+                module.process[C._VAL_] = toolz.merge(module.process[C._VAL_], new_val)
         
     @torch.no_grad
     def on_predict_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
