@@ -12,7 +12,7 @@ from moai.utils.funcs import (
 )
 from moai.utils.arguments import ensure_string_list
 from moai.core.execution.monads import Monads
-from moai.core.execution.tensors import Tensors
+from moai.core.execution.monitors import Monitors
 from moai.core.execution.criteria import Criteria
 from moai.core.execution.models import Models
 from moai.core.execution.constants import Constants as C
@@ -98,7 +98,7 @@ class MoaiLightningModule(L.LightningModule):
         ## Tensor Monitors
         self.named_monitors = {}
         for k, v in select_dict(_moai_, C._MONITORS_COLLECTION_).items():
-            self.named_monitors[k] = Tensors(
+            self.named_monitors[k] = Monitors(
                 monitors, **v
             )
         ## Termination Criteria

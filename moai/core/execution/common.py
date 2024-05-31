@@ -148,7 +148,7 @@ class TensorsArgsOperation():
     ) -> None:
         for i, args in enumerate(self.tensor_args):
             kwargs = toolz.valmap(
-                lambda a: a(tensors).detach().cpu().numpy().squeeze(), 
+                lambda a: a(tensors).detach().cpu().numpy(),#.squeeze(), 
                 args
             )
             kwargs.update(toolz.get(i, self.other_args, {}))
