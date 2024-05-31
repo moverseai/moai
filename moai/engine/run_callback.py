@@ -52,10 +52,10 @@ class RunCallback(L.Callback):
     def on_train_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
         """Called when the train epoch begins."""
         module.epoch_initializers()
-        if module.schedule and module.current_epoch >= module.schedule[0]['epoch']:
+        if module.schedule and module.current_epoch >= module.schedule[0][C._EPOCH_]:
             popped = module.schedule.popleft()
             #TODO: add remodel/modifications here as well
-            module.process[C._FIT_][C._BATCH_] = popped['process']#NOTE: rename process?
+            module.process[C._FIT_][C._BATCH_] = popped[C._SCHEDULE_STEP_]#NOTE: rename process?
         
     @torch.no_grad
     def on_predict_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:

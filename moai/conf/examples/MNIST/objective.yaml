@@ -2,13 +2,13 @@ _moai_:
   _collections_:
     _objectives_:
       train_encoder:
-          cross_entropy:
-            pred: [prediction]
-            gt: [label]
-            out: [train_loss]
+        cross_entropy:
+          pred: [prediction]
+          gt: [label]
+          out: [train_loss]
     _optimizers_:
       train_encoder:
-        type: adam
-        params:
+        _type_: adam
+        _params_:
           lr: 1.0e-3
-        groups: [encoder]
+        _groups_: [encoder]

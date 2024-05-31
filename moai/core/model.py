@@ -138,7 +138,7 @@ class MoaiLightningModule(L.LightningModule):
         )
         self.schedule = deque(sorted(OmegaConf.to_container(
                 select_conf(_moai_, C._SCHEDULE_), resolve=True
-            ), key=lambda item: item['epoch'],
+            ), key=lambda item: item[C._EPOCH_],
         ))
         # Aggregate results
         self.test_step_outputs = defaultdict(list)

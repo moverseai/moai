@@ -30,31 +30,23 @@ _moai_:
           preds: [predicted_label]
           out: [accuracy2]
   _monitoring_:
-    fit:
-      batch:
+    _fit_:
+      _batch_:
         train_encoder:
-          frequency: 1
-          steps: []
-    val:
-      batch:
+          _frequency_: 1
+          _flows_: []
+    _val_:
+      _batch_:
         train_encoder:
-          metrics:
+          _metrics_:
             - test_class_acc
-    test:
-      batch:
-        metrics:
+    _test_:
+      _batch_:
+        _metrics_:
           - test_class_acc
-    predict:
-      batch:
-        metrics:
+    _predict_:
+      _batch_:
+        _metrics_:
           - predict_class_acc
-        tensors: # used for visualization & exporting
+        _monitors_: # used for visualization & exporting
           - save_image_batch
-        
-      
-    # tensors:
-    #   show_image_batch:
-    #     image2d:
-    #       image: [color]
-    #       type: [color]
-    #       colormap: [none]

@@ -59,6 +59,8 @@ class Constants(object):
     _INTERVAL_: str = f'_interval_'
     _TYPE_: str = f'_type_'
 
+    _SCHEDULE_STEP_: str = f'_process_'
+
     # MODEL
     _MODEL_: str = 'model'
 

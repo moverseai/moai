@@ -2,14 +2,14 @@
 
 _moai_:
   _initialize_:  # responsible for initializers
-    fit:
-      setup: [default] # used only at the beginning of the training process
-      # batch: [default] # used at the beginning of each batch
-      # epoch: [default] # used at the beginning of each epoch
-    test:
-      setup: pretrained
-    predict:
-      setup: pretrained
+    _fit_:
+      _setup_: [default] # used only at the beginning of the training process
+      # _batch_: [default] # used at the beginning of each batch
+      # _epoch_: [default] # used at the beginning of each epoch
+    _test_:
+      _setup_: pretrained
+    _predict_:
+      _setup_: pretrained
   _flows_: # that will be used in the main process
     encoder:
       input: [color]
@@ -19,39 +19,30 @@ _moai_:
         tensor: [prediction]
         out:  [predicted_label]
   _execution_: # forces execution of the following flows
-    fit:
-      batch:
+    _fit_:
+      _batch_:
         train_encoder:
-          optimizer: train_encoder
-          objective: train_encoder
-          steps:
-            - encoder
-    test:
-      batch:
+          _optimizer_: train_encoder
+          _objective_: train_encoder
+          _flows_: [encoder]
+    _test_:
+      _batch_:
         train_encoder:
-          steps:
-            - encoder
-            - postprocess
-    predict: # used for torchserve
-      batch:
+          _flows_: [encoder, postprocess]
+    _predict_: # used for torchserve
+      _batch_:
         train_encoder:
-          steps:
-            - encoder
-            - postprocess
-    val:
-      batch:
+          _flows_: [encoder, postprocess]
+    _val_:
+      _batch_:
         mnist: &val_proc
           train_encoder:
-            steps:
-              - encoder
-              - postprocess
+            _flows_: [encoder, postprocess]
         mnist_2: *val_proc
   _schedule_:
-    - epoch: 1
-      process:
+    - _epoch_: 1
+      _process_:
         train_encoder:
-          optimizer: train_encoder
-          objective: train_encoder
-          steps:
-            - encoder
-            - postprocess
+          _optimizer_: train_encoder
+          _objective_: train_encoder
+          _flows_: [encoder, postprocess]
