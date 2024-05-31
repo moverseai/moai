@@ -51,7 +51,7 @@ class Constants(object):
     # _METRICS_: str = f'{_MODEL_}.{_VALIDATION_}.metrics'
 
     _OBJECTIVES_: str = f'objectives'
-    
+        
     _METRICS_: str = f'{_MODEL_}.metrics'
 
     # _TERMINATION_: str = 'termination'

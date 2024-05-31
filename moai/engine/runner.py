@@ -94,6 +94,10 @@ class BatchMonitor(L.Callback):
                 losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)                    
                 losses['epoch'] = int(trainer.current_epoch)
                 module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)        
+        #NOTE: metrics up to now are w/ grad and can't be deepcopied
+        #NOTE: if we get to monitor and they are overwritten they are cleared
+        #NOTE: as this function is decorated w/ no_grad
+        #TODO: metrics should be calculcated w/ no grad in optimization_step/stage
         monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
         if monitor_batch is not None:
             for _, monitor_named_batch in monitor_batch.items():
