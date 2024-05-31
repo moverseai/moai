@@ -6,7 +6,7 @@ _moai_:
           cross_entropy:
             pred: [prediction]
             gt: [label]
-            out: [train_loss]
+            _out_: [train_loss]
       _optimizers_:
         train_encoder:
           _type_: adam

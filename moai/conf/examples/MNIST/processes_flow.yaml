@@ -5,11 +5,11 @@ _moai_:
     _flows_: # that will be used in the main process
       encoder:
         input: [color]
-        out:  [prediction]
+        _out_:  [prediction]
       postprocess:
         argmax:
           tensor: [prediction]
-          out:  [predicted_label]
+          _out_:  [predicted_label]
   _execution_:
     _initialize_:  # responsible for initializers
       _fit_:

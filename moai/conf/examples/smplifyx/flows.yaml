@@ -6,31 +6,31 @@ _moai_:
       initialize_translation:
         joints2d: [keypoints]
         joints3d: [body.joints]
-        out: [init_trans]
+        _out_: [init_trans]
       preprocess:
         embedding:
           void: [color]
-          out: [embedding]
+          _out_: [embedding]
         translation:
           void: [color]
-          out: [translation]
+          _out_: [translation]
         betas:
           void: [color]
-          out: [betas]
+          _out_: [betas]
         vposer1: # vposer2:
           decode: [embedding]
-          out: [decoded]
+          _out_: [decoded]
         smplx:
           pose: [decoded.pose]
           shape: [betas]
-          out: [body]
+          _out_: [body]
       postprocess:
         weak_perspective_camera:
           points: 
             - ${mi:"body.joints + translation"}
           # translation: [translation]
           image: [color]
-          out: [joints2d]
+          _out_: [joints2d]
         # index:
         #   tensor: [joints2d, keypoints]
         #   out: [torso_joints2d, torso_keypoints]
@@ -38,10 +38,10 @@ _moai_:
           expression: # tensor: 
             - ${mi:"joints2d[:, ${torso_indices}, :]"}
             - ${mi:"keypoints[:, ${torso_indices}, :]"}
-          out: [torso_joints2d, torso_keypoints]
+          _out_: [torso_joints2d, torso_keypoints]
         binary:
           tensor: [init_trans]
-          out: [z_mask]
+          _out_: [z_mask]
         # openpose_split:
         #   joints: [joints2d, keypoints, confidence]
         #   out: [split_joints2d, split_keypoints, split_confidence]
@@ -50,10 +50,10 @@ _moai_:
             - ${mi:"joints2d[:, 0:25, :]"}
             - ${mi:"keypoints[:, 0:25, :]"}
             - ${mi:"confidence[:, 0:25, :]"}
-          out: [split_joints2d_body, split_keypoints_body, split_confidence_body]
+          _out_: [split_joints2d_body, split_keypoints_body, split_confidence_body]
         _mi_2: # alias:
           expression: # tensor: 
             - ${mi:"body.vertices + translation"}
             # - ${mi:"joints2d[:, ${torso_indices}]"}
             # - ${mi:"keypoints[:, ${torso_indices}]"}
-          out: [translated_vertices] # , torso_joints2d, torso_keypoints]
+          _out_: [translated_vertices] # , torso_joints2d, torso_keypoints]

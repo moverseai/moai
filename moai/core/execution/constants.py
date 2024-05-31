@@ -53,7 +53,9 @@ class Constants(object):
     _STAGE_: str = f'_stage_'
 
     _PARAMS_: str = f'_params_'
-    _OUT_: str = f'out'
+    _OUT_: str = f'_out_' # f'out'
+    _WEIGHT_: str = f'_weight_'
+    _REDUCTION_: str = f'_reduction_'
     _FIT_: str = f'_fit_'
     _VAL_: str = f'_val_'
     _TEST_: str = f'_test_'

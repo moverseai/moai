@@ -112,8 +112,9 @@ class Rerun():
         for i, (k, ps) in enumerate(parents.items()):            
             Rerun.__LABEL_TO_CLASS_ID__[k] = i
             label_ids = labels[k]
+            color = random_color(True) / 255.0
             classes.append(rr.ClassDescription(
-                info=rr.AnnotationInfo(id=i, label=k, color=random_color(True)),
+                info=rr.AnnotationInfo(id=i, label=k, color=color),
                 keypoint_annotations=[rr.AnnotationInfo(id=id, label=j) for id, j in enumerate(label_ids)],
                 keypoint_connections=toolz.filter(lambda t: t[1] > 0, enumerate(ps)),
             ))

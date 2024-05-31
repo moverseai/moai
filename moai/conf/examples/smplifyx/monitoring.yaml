@@ -80,7 +80,7 @@ _moai_:
           rmse:
             gt: [split_joints2d_body] # [split_keypoints.body] # [keypoints]
             pred: [split_keypoints_body] # [split_joints2d.body] # [joints2d]
-            out: [rmse]
+            _out_: [rmse]
   _execution_:
     _monitoring_:
       _fit_:

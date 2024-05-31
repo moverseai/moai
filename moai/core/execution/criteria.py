@@ -33,9 +33,10 @@ class Criteria():
                 op_args = toolz.keyfilter(lambda k: k in args, params) #NOTE: currently assumes that no arg is named `params`
                 tensor_args = mic._get_tensor_args(signature.parameters)
                 self.operations.append(mic.CriteriaArgsOperation(operation, 
-                    toolz.dissoc(op_args,*(args-tensor_args.keys())), 
-                    toolz.dissoc(op_args,*tensor_args.keys()),
-                    extras))
+                    toolz.dissoc(op_args, *(args-tensor_args.keys())), 
+                    toolz.dissoc(op_args, *tensor_args.keys()),
+                    extras
+                ))
     
     @torch.no_grad
     def __call__(self, 

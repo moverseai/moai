@@ -720,7 +720,7 @@ class TreeModule(torch.nn.Module, Transformer):
         start = range[0]
         length = range[1] - range[0]
         if start < 0:
-            length *= -1        
+            length *= -1
         m = SlicingOperationTensors('narrow', key, dim, (start, length), self.index)
         self.seq.add_module(f'narrow{self.index}', m)
         self.results.append(f'result{self.index}')

@@ -46,12 +46,12 @@ class Metrics(torch.nn.ModuleDict):
                 log.warning(f"Skipping metric `{key}` as it is neither a `MoaiMetric` or a `torchmetrics.Metric`.")
                 continue
             sig_params = list(filter(lambda p: p in metric_kwargs, sig.parameters))
-            extra_params = set(metric_kwargs.keys()) - set(sig_params) - set(['out'])
+            extra_params = set(metric_kwargs.keys()) - set(sig_params) - set([C._OUT_])
             if extra_params:
                 log.error(f"The parameters [{extra_params}] are not part of the `{key}` metric signature.")
             metric_kwargs = mic._dict_of_lists_to_list_of_dicts(metric_kwargs)
             for j, params in enumerate(metric_kwargs):                
-                self.execs.append((key, params['out'], toolz.dissoc(params, 'out')))        
+                self.execs.append((key, params[C._OUT_], toolz.dissoc(params, C._OUT_)))        
 
     # NOTE: consider outputting per batch item metrics
     @torch.no_grad
