@@ -23,7 +23,8 @@ def select_dict(config: omegaconf.DictConfig, keypath: str) -> omegaconf.AnyNode
     return omegaconf.OmegaConf.select(config, keypath, default={})
 
 def select_conf(config: omegaconf.DictConfig, keypath: str) -> omegaconf.AnyNode:
-    return omegaconf.OmegaConf.select(config, keypath, default=omegaconf.DictConfig({}))
+    return omegaconf.OmegaConf.select(config, keypath, default=omegaconf.DictConfig({}))\
+        if config is not None else omegaconf.DictConfig({})
 
 def select_list(config: omegaconf.DictConfig, keypath: str) -> omegaconf.AnyNode:
     return omegaconf.OmegaConf.select(config, keypath, default=[])

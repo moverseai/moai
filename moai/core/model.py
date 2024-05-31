@@ -197,11 +197,10 @@ class MoaiLightningModule(L.LightningModule):
         dataset_idx: int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
         log.info(f"Predicting batch {batch_idx} ...")
-        batch = benedict.benedict(batch, keyattr_enabled=False)
-        #TODO: Update config keys !!!
-        monitor = toolz.get_in(['_predict_', '_batch_'], self.monitor) or []
-        for stage, proc in self.process['_predict_']['_batch_'].items():
-            steps = proc['_flows_']
+        batch = benedict.benedict(batch, keyattr_enabled=False)        
+        monitor = toolz.get_in([C._PREDICT_, C._BATCH_], self.monitor) or []
+        for stage, proc in self.process[C._PREDICT_][C._BATCH_].items():
+            steps = proc[C._FLOWS_]
             with torch.no_grad(): #TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
                 for step in steps:
@@ -209,10 +208,10 @@ class MoaiLightningModule(L.LightningModule):
                 # predict step does 
                 if monitor:
                     # Metrics monitoring used only for serve
-                    for metric in toolz.get('_metrics_', monitor, None) or []: #TODO ADD _metrics_
+                    for metric in toolz.get(C._METRICS_, monitor, None) or []: #TODO ADD _metrics_
                         self.named_metrics[metric](batch)
                     # Tensor monitoring for visualization & exporting
-                    tensor_monitors = toolz.get('_monitoring_', monitor, None) or []
+                    tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
                     for tensor_monitor in tensor_monitors:
                         extras = {
                             'stage': 'predict',

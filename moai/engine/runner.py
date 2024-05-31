@@ -84,27 +84,10 @@ class LightningRunner(L.Trainer):
         relative_tolerance: float = 1e-9,
         gradient_tolerance: float = 1e-9,
         **kwargs,
-    ):
-        # if (
-        #     logging and "_target_" not in logging
-        # ):  # TODO: needs a workaround for other viz types (e.g. not visdom) if they are moved to top level
-        #     # TODO: wrap config field setting into a helper method
-        #     omegaconf.OmegaConf.set_struct(logging, False)
-        #     logging["_target_"] = "moai.log.lightning.Collection"
-        #     omegaconf.OmegaConf.set_struct(logging, True)
-        # logger = hyu.instantiate(logging) if logging is not None else milog.NoOp()
-        loggers = [hyu.instantiate(logger) for logger in loggers.values()]
-        # if logging and logging.loggers:            
-            # loggers += [hyu.instantiate(logger) for logger in logging.loggers.values()]
-
-        # if loops is None:
-        #     pytl_callbacks = [PerBatch()]
-        # elif loops.callbacks is None:
-        #     pytl_callbacks = [PerBatch()]
-        # else:
-        #     pytl_callbacks = [hyu.instantiate(loops.callbacks)]
+    ):      
+        loggers = [hyu.instantiate(logger) for logger in loggers.values()]\
+            if loggers else []        
         pytl_callbacks = [RunCallback()] #TODO: only when moai model is used, should not be used for custom models
-        # pytl_callbacks = [PerBatch() if loops is None or loops.callbacks in None else hyu.instantiate(loops.callbacks)]
         pytl_callbacks.extend(
             [hyu.instantiate(c) for c in callbacks.values()]
             if callbacks is not None
