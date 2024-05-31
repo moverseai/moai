@@ -14,10 +14,10 @@ _moai_:
     _optimizers_:
       initial_torso_fit: 
         <<: *lbfgsls
-        groups: global  # groups: expressive # global
+        _groups_: global  # groups: expressive # global
       fine_fit_stage1:
         <<: *lbfgsls
-        groups: [expressive] # groups: expressive # [global, expressive]
+        _groups_: [expressive] # groups: expressive # [global, expressive]
       # fine_fit_stage1:
       #   <<: *lbfgsls
       #   groups: [global, expressive] # groups: expressive # [global, expressive]

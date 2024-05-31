@@ -1,17 +1,13 @@
-import hydra
 from omegaconf.omegaconf import OmegaConf, DictConfig
-import logging
-import typing
-
 from moai.utils.funcs import select
 from moai.engine import Engine
 from moai.engine.callbacks.model import ModelCallbacks
 from moai.core.execution.constants import Constants as C
 
-log = logging.getLogger(__name__)
+import hydra
+import logging
 
-# def _assign(cfg: omegaconf.DictConfig, attr: str) -> typing.Union[typing.Any,typing.Any]:
-#     return getattr(cfg, attr) if hasattr(cfg, attr) else None
+log = logging.getLogger(__name__)
 
 def _specialize_config(cfg: DictConfig) -> None:
     #TODO: remove unused keys for metrics etc. inside the named collections/flows
@@ -112,32 +108,20 @@ def run(cfg: DictConfig):
         f.write(OmegaConf.to_yaml(cfg, resolve=True, sort_keys=False))
     with open("config.yaml", 'w') as f:
         f.write(OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False))
-    # engine = hydra.utils.instantiate(cfg.engine)
     engine = Engine(cfg.engine.modules) #NOTE: ctor before model/runner
     OmegaConf.set_struct(cfg, False)
     cfg._moai_._action_ = cfg.action
     OmegaConf.set_struct(cfg, True)
-    model = hydra.utils.instantiate(cfg.model,
-        data=cfg.data,
-        # visualization=assign(cfg, "visualization"),
-        # export=assign(cfg, "export"),
-        # monitoring=assign(cfg, "monitoring"), #NOTE: should this be added to `model.` ?
-        # stopping=assign(cfg, "stopping"), #NOTE: should this be added to `model.` ?
-        _moai_=select(cfg, C._MOAI_),
-        _recursive_=False
+    model = hydra.utils.instantiate(cfg.model, data=cfg.data,
+        _moai_=select(cfg, C._MOAI_), _recursive_=False
     )
-    # for name, remodel in (assign(cfg ,"remodel") or {}).items():
-    #     hydra.utils.instantiate(remodel)(model)
-    #NOTE: why do we need to pass model a
-    runner = hydra.utils.instantiate(cfg.engine.runner, 
-        #logging=assign(cfg, "logging"),
+    runner = hydra.utils.instantiate(cfg.engine.runner,         
         model_callbacks=ModelCallbacks(model=model),
         _recursive_=False
     )
     # select the appropriate action to run
     if cfg.action == C._ACTION_TEST_:
         log.info("Evaluation started.")
-        #NOTE: what is the difference between `predict` and `test`?
         ckpt_path = cfg.get('ckpt_path', None)
         #TODO: check how can we have different intialisation for test, train, etc.
         if ckpt_path is None:

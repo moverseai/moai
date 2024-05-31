@@ -115,7 +115,5 @@ _moai_:
         log_results:
           _frequency_: 1
           # _flows_: []
-          _metrics_:
-            - fit_quality
-          _monitors_:
-            - show_mesh_batch
+          _metrics_: [fit_quality]
+          _monitors_: [show_mesh_batch]

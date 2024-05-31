@@ -1,5 +1,13 @@
 
 class Constants(object):
+    
+    # ACTIONS    
+    _ACTION_TEST_ = 'test'
+    _ACTION_VAL_ = 'val'
+    _ACTION_PREDICT_ = 'predict'
+    _ACTION_FIT_ = 'fit'
+    _ACTION_RESUME_ = 'resume'
+
     # MOAI EXECUTION
     _MOAI_: str = '_moai_'
 
@@ -23,10 +31,33 @@ class Constants(object):
     _CRITERIA_COLLECTION_: str = f'{_COLLECTIONS_}._criteria_'
     _OPTIMIZERS_COLLECTION_: str = f'{_COLLECTIONS_}._optimizers_'
     _SCHEDULERS_COLLECTION_: str = f'{_COLLECTIONS_}._schedulers_'
+    _OPTIMIZER_GROUPS_: str = f'_groups_'
     _FLOWS_: str = f'_flows_'
     _MONITORING_: str = f'_monitoring_'
     _SCHEDULE_: str = f'_schedule_'
     _INITIALIZE_: str = f'_initialize_'
+    _STAGE_: str = f'_stage_'
+
+    _PARAMS_: str = f'_params_'
+    _OUT_: str = f'out'
+    _FIT_: str = f'_fit_'
+    _VAL_: str = f'_val_'
+    _TEST_: str = f'_test_'
+    _PREDICT_: str = f'_predict_'
+    _BATCH_: str = f'_batch_'
+    _FREQUENCY_: str = f'_frequency_'
+    _ITERATIONS_: str = f'_iterations_'
+    _REFRESH_OPTIMIZERS_: str = f'_refresh_optimizers_'
+    _LIGHTNING_STEP_: str = f'_lightning_step_'
+    _OBJECTIVE_: str = f'_objective_'
+    _ASSIGN_: str = f'_assign_'
+    _OPTIMIZER_: str = f'_optimizer_'
+    _TERMINATION_: str = f'_termination_'
+    _SETUP_: str = f'_setup_'
+    _BATCH_: str = f'_batch_'
+    _EPOCH_: str = f'_epoch_'
+    _INTERVAL_: str = f'_interval_'
+    _TYPE_: str = f'_type_'
 
     # MODEL
     _MODEL_: str = 'model'
@@ -65,18 +96,3 @@ class Constants(object):
     _VALIDATION_DATA_: str = f'{_DATA_}.val'
     _TEST_DATA_: str = f'{_DATA_}.test'
     _PREDICT_DATA_: str = f'{_DATA_}.predict'
-
-    # CONFIG
-    _PARAMS_: str = f'_params_'
-    _OUT_: str = f'out'
-    _FIT_: str = f'_fit_'
-    _BATCH_: str = f'_batch_'
-    _FREQUENCY_: str = f'_frequency_'
-    _REFRESH_OPTIMIZERS_: str = f'_refresh_optimizers_'
-
-    # ACTIONS    
-    _ACTION_TEST_ = 'test'
-    _ACTION_VAL_ = 'val'
-    _ACTION_PREDICT_ = 'predict'
-    _ACTION_FIT_ = 'fit'
-    _ACTION_RESUME_ = 'resume'
