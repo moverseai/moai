@@ -20,7 +20,7 @@ _moai_:
             - 
               - body.pose
         pkl:
-          params:
+          _params_:
             path: '.'
             keys: 
               - translation
@@ -36,7 +36,7 @@ _moai_:
         mesh:
           vertices: [body.vertices]
           faces: [body.faces]
-          params:
+          _params_:
             color: green
             path: /fit/body/mesh/step
         keypoints:
@@ -45,14 +45,14 @@ _moai_:
           skeleton: [openpose, openpose_gt]
           color: [red, green]
         optimization_losses:
-          params:
+          _params_:
             path: /plots
             keys: [gm_j2d, vposer, shape, bend, total]
       show_image:
         posed_image:
           image: [color]
           pose: [null]
-          params:
+          _params_:
             path: /fit/image
         # mesh3d:
         #   vertices: [body.vertices, body.vertices]
@@ -63,14 +63,14 @@ _moai_:
         mesh:
           vertices: [body.vertices]
           faces: [body.faces]
-          params:
+          _params_:
             color: cyan
             path: /fit/body/mesh/iter
       show_mesh_batch:
         mesh:
           vertices: [translated_vertices] # [body.vertices]
           faces: [body.faces]
-          params:
+          _params_:
             color: red
             path: /fit/body/mesh/batch
     _metrics_:
@@ -81,41 +81,41 @@ _moai_:
           pred: [split_keypoints_body] # [split_joints2d.body] # [joints2d]
           out: [rmse]
   _monitoring_:
-    fit:
-      step:
+    _fit_:
+      _lightning_step_:
         # initialize_translation:
-        #   frequency: 1
-        #   # steps:
+        #   _frequency_: 1
+        #   # _flows_:
         #     # - show_mesh
-        #   tensors:
+        #   _monitors_:
         #     # - save_params
         #     # - show_mesh_step            
         #     - show_image
         initial_torso_fit:
-          tensors: [show_optim_step]
+          _monitors_: [show_optim_step]
         fine_fit_stage1:
-          tensors: [show_optim_step]
-      iter:
+          _monitors_: [show_optim_step]
+      _stage_:
         initialize_torso:
-          tensors: [show_image]
+          _monitors_: [show_image]
         initial_torso_fit:
-          frequency: 1
-        #   # steps:
+          _frequency_: 1
+        #   # _flows_:
         #     # - show_mesh
-          tensors: [show_mesh_iter]
-        #   metrics:
+          _monitors_: [show_mesh_iter]
+        #   _metrics:_
         #     - fit_quality
-        #   termination: [bad_fit, error]
+        #   _termination_: [bad_fit, error]
         fine_fit_stage1:
-          frequency: 1
-          tensors: [show_mesh_iter]
-          metrics: [fit_quality]
-          termination: [bad_fit, error]
-      batch:
+          _frequency_: 1
+          _monitors_: [show_mesh_iter]
+          _metrics_: [fit_quality]
+          _termination_: [bad_fit, error]
+      _batch_:
         log_results:
-          frequency: 1
-          # steps: []
-          metrics:
+          _frequency_: 1
+          # _flows_: []
+          _metrics_:
             - fit_quality
-          tensors:
+          _monitors_:
             - show_mesh_batch

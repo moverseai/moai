@@ -1,4 +1,4 @@
-from moai.core.execution.constants import Constants
+from moai.core.execution.constants import Constants as C
 # from moai.utils.color.colormap import colormap
 
 import torch
@@ -28,9 +28,9 @@ def optimization_losses(
     rr.set_time_sequence("optimization_step", optimization_step)
     for i, key in enumerate(keys):
         if key == 'total':
-            value = tensors.get(Constants._MOAI_LOSSES_TOTAL_)
+            value = tensors.get(C._MOAI_LOSSES_TOTAL_)
         else:
-            value = tensors.get(f"{Constants._MOAI_LOSSES_RAW_}.{key}")
+            value = tensors.get(f"{C._MOAI_LOSSES_RAW_}.{key}")
         if value is not None:
             keypath = f"{path}/{key}"
             # if optimization_step == 1:

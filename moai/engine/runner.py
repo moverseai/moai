@@ -1,4 +1,4 @@
-from moai.core.execution.constants import Constants
+from moai.core.execution.constants import Constants as C
 from moai.utils.funcs import get
 
 import pytorch_lightning as L
@@ -15,9 +15,9 @@ import numpy as np
 import os
 from moai.log.lightning.loggers.tabular import Tabular
 
-from torchmetrics import Metric as TorchMetric
-from moai.validation.metrics.generation.fid import FID
-from moai.validation.metrics.generation.diversity import Diversity
+# from torchmetrics import Metric as TorchMetric
+# from moai.validation.metrics.generation.fid import FID
+# from moai.validation.metrics.generation.diversity import Diversity
 
 log = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class BatchMonitor(L.Callback):
         module.optimization_step = 0
         # call initialize per batch
         module.batch_initializers()
-        if module.process['fit'].get('_refresh_optimizers_', False):
+        if module.process[C._FIT_].get(C._REFRESH_OPTIMIZERS_, False):
             module.reset_optimization()
             trainer.strategy.setup_optimizers(trainer)
     
@@ -61,7 +61,7 @@ class BatchMonitor(L.Callback):
         if module.schedule and module.current_epoch >= module.schedule[0]['epoch']:
             popped = module.schedule.popleft()
             #TODO: add remodel/modifications here as well
-            module.process['fit']['batch'] = popped['process']
+            module.process[C._FIT_][C._BATCH_] = popped['process']#NOTE: rename process?
         
     @torch.no_grad
     def on_predict_epoch_start(self, trainer: L.Trainer, module: L.LightningModule) -> None:
@@ -85,37 +85,37 @@ class BatchMonitor(L.Callback):
         Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
             loss returned from ``training_step``.
         """
-        if Constants._MOAI_LOSSES_ in outputs:
+        if C._MOAI_LOSSES_ in outputs:
             if losses := toolz.merge(
-                outputs[f"{Constants._MOAI_LOSSES_}.weighted"], # outputs['losses']['weighted'], 
-                {'total': outputs[f"{Constants._MOAI_LOSSES_}.total"]}# {'total': outputs['losses']['total']}
+                outputs[f"{C._MOAI_LOSSES_}.weighted"], # outputs['losses']['weighted'], 
+                {'total': outputs[f"{C._MOAI_LOSSES_}.total"]}# {'total': outputs['losses']['total']}
             ):
                 module.log_dict(losses, prog_bar=True, logger=False, on_step=True, on_epoch=False)
                 losses = toolz.keymap(lambda k: f'train/loss/{k}', losses)                    
                 losses['epoch'] = int(trainer.current_epoch)
                 module.log_dict(losses, prog_bar=False, logger=True, on_step=True, on_epoch=False)        
-        monitor_batch = toolz.get_in(["fit", "batch"], module.monitor)
+        monitor_batch = toolz.get_in([C._FIT_, C._BATCH_], module.monitor)
         if monitor_batch is not None:
             for _, monitor_named_batch in monitor_batch.items():
-                is_now = batch_idx % monitor_named_batch['frequency'] == 0
+                is_now = batch_idx % monitor_named_batch[C._FREQUENCY_] == 0
                 if not is_now:
                     continue
                 #NOTE: should detach
-                for step in monitor_named_batch.get('steps', []):
+                for step in monitor_named_batch.get(C._FLOWS_, []):
                     outputs = module.graphs[step](outputs)
-                for monitor_metrics in monitor_named_batch.get('metrics', []):
+                for monitor_metrics in monitor_named_batch.get(C._METRICS_, []):
                     module.named_metrics[monitor_metrics](outputs)
                 extras = {
                     'step': module.global_step, 'epoch': module.current_epoch,
                     'batch_idx': batch_idx,
                 }
-                for monitor_tensors in monitor_named_batch.get('tensors', []):
+                for monitor_tensors in monitor_named_batch.get(C._MONITORS_, []):
                     module.named_monitors[monitor_tensors](outputs, extras)
-        if Constants._MOAI_METRICS_ in outputs:
-            if flattened_metrics := outputs[Constants._MOAI_METRICS_].flatten(separator='/'):            
+        if C._MOAI_METRICS_ in outputs:
+            if flattened_metrics := outputs[C._MOAI_METRICS_].flatten(separator='/'):
                 module.log_dict(flattened_metrics, prog_bar=True, logger=False, on_step=True, on_epoch=False)
                 metrics = toolz.keymap(lambda k: f'train/metric/{k}',  flattened_metrics)
-                # metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+                # metrics = outputs[C._MOAI_METRICS_].flatten(separator='/')
                 # metrics['epoch'] = trainer.current_epoch
                 module.log_dict(metrics, prog_bar=False, logger=True, on_step=True, on_epoch=False)
 
@@ -131,7 +131,7 @@ class BatchMonitor(L.Callback):
     ) -> None:
         datasets = list(module.data.test.iterator.datasets.keys())
         # TODO: move batch tensors to cpu
-        if "metrics" in batch:
+        if "metrics" in batch:#TODO: update !!
             # metrics = toolz.keymap(lambda k: f"test/metric/{k}", batch["metrics"])
             metrics = toolz.keymap(lambda k: f"test/metric/{k}/{datasets[dataloader_idx]}", batch['metrics'])
             # move metrics to cpu numpy before logging
@@ -179,8 +179,8 @@ class BatchMonitor(L.Callback):
             log.warning("No validation data found, validation step will be omitted.")
             return
         datasets = list(module.data.val.iterator.datasets.keys())
-        if Constants._MOAI_METRICS_ in outputs:
-            flattened_metrics = outputs[Constants._MOAI_METRICS_].flatten(separator='/')
+        if C._MOAI_METRICS_ in outputs:
+            flattened_metrics = outputs[C._MOAI_METRICS_].flatten(separator='/')
             scalar_metrics = toolz.keymap( # format: val/metric/named_metric/dataset
                 lambda k: f'val/metric/{k}/{datasets[dataloader_idx]}', 
                 toolz.valfilter(
@@ -264,8 +264,8 @@ class BatchMonitor(L.Callback):
                     all_non_scalar_metrics[dataset][metric_name] = metric_module.compute(*args)
                     log_all_metrics[f"{metric_name}/{dataset}"] = float(all_non_scalar_metrics[dataset][metric_name])
                 all_metrics[dataset] = toolz.merge(all_scalar_metrics[dataset], all_non_scalar_metrics[dataset])\
-                                                                                if len(all_scalar_metrics.keys()) > 0\
-                                                                                else all_non_scalar_metrics[dataset]
+                    if len(all_scalar_metrics.keys()) > 0\
+                    else all_non_scalar_metrics[dataset]
             module.non_scalar_metrics.clear()  # free memory
         for dataset in all_metrics.keys():
             ds = tablib.Dataset(headers=all_metrics[dataset].keys()) \

@@ -2,35 +2,35 @@
 
 _moai_:  
   _initialize_:
-    fit:
-      setup: [vposer1] # [vposer2]
-      batch: [zero_flow_params]
+    _fit_:
+      _setup_: [vposer1] # [vposer2]
+      _batch_: [zero_flow_params]
   _execution_:    
-    fit:
+    _fit_:
       _refresh_optimizers_: true
-      batch:
+      _batch_:
         initialize_torso:
-          steps: # graphs
+          _flows_:
             - preprocess
             - initialize_translation
-          assign:
+          _assign_:
             init_trans: preprocess.translation.value
         initial_torso_fit:
-          iterations: 5
-          optimizer: initial_torso_fit
-          # scheduler: null
-          steps:
+          _iterations_: 5
+          _optimizer_: initial_torso_fit
+          # _scheduler_: null
+          _flows_:
             - preprocess
             - postprocess
-          objective: initial_torso_fit
+          _objective_: initial_torso_fit
         fine_fit_stage1:
-          iterations: 10
-          optimizer: fine_fit_stage1
-          # scheduler: null
-          steps:
+          _iterations_: 10
+          _optimizer_: fine_fit_stage1
+          # _scheduler_: null
+          _flows_:
             - preprocess
             - postprocess
-          objective: fine_fit_stage1          
-    val:
-      batch:
+          _objective_: fine_fit_stage1          
+    _val_:
+      _batch_:
         openpose: 

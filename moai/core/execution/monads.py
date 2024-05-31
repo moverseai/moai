@@ -1,3 +1,5 @@
+from moai.core.execution.constants import Constants as C
+
 import moai.core.execution.common as mic
 import moai.core.execution.expression as mie
 import typing
@@ -50,7 +52,7 @@ class Monads(torch.nn.ModuleDict):
             else:
                 sig = inspect.signature(self[key].forward)
             sig_params = list(filter(lambda p: p in graph_params, sig.parameters))
-            extra_params = set(graph_params.keys()) - set(sig_params) - set(['out'])
+            extra_params = set(graph_params.keys()) - set(sig_params) - set([C._OUT_])
             if extra_params:
                 log.error(f"The parameters [{extra_params}] are not part of the `{key}` monad signature.")
             graph_params = mic._dict_of_lists_to_list_of_dicts(graph_params)
@@ -61,7 +63,11 @@ class Monads(torch.nn.ModuleDict):
                         self.add_module(tmp_key, mie.TreeModule(tmp_key, v))
                         self.execs.append((tmp_key, tmp_key, None))
                         params[k] = tmp_key
-                self.execs.append(('mi' if is_mi else key, params['out'], toolz.dissoc(params, 'out')))
+                self.execs.append((
+                    'mi' if is_mi else key, 
+                     params[C._OUT_], 
+                     toolz.dissoc(params, C._OUT_)
+                ))
 
     def forward(self,
         tensors: typing.Dict[str, torch.Tensor]
