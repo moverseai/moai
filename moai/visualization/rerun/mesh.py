@@ -30,9 +30,9 @@ def mesh3d(
         rr.set_time_sequence("iteration", iteration)
     color = colour.Color(color)
     rr.log(path, rr.Mesh3D(
-        vertex_positions=vertices, 
-        indices=faces, 
-        vertex_colors=np.tile(np.array(color.get_rgb() + (1,)), (vertices.shape[0], 1)) #TODO: memoize
+        vertex_positions=vertices[0], 
+        indices=faces[0], 
+        vertex_colors=np.tile(np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)) #TODO: memoize
     ))
 
 class Mesh(Callable):
@@ -53,7 +53,7 @@ class Mesh(Callable):
         elif iteration is not None:
             rr.set_time_sequence("iteration", iteration)
         rr.log(self.path, rr.Mesh3D(
-            vertex_positions=vertices, 
-            indices=faces, 
-            vertex_colors=np.tile(np.array(self.color.get_rgb() + (1,)), (vertices.shape[0], 1)) #TODO: memoize
+            vertex_positions=vertices[0], 
+            indices=faces[0], 
+            vertex_colors=np.tile(np.array(self.color.get_rgb() + (1,)), (vertices.shape[1], 1)) #TODO: memoize
         ))

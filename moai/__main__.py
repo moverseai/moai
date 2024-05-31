@@ -98,7 +98,7 @@ def moai():
     config = sys.argv.pop(1) if min_args > 1 else f"tools/{mode}.yaml" 
     other_args = ["hydra.job.chdir=True"]
     if min_args > 1 or mode == 'plot':
-        output_dir = "hydra.run.dir=actions/" + action + "/${now:%Y-%m-%d}/${now:%H-%M-%S}-${experiment.name}" 
+        output_dir = "hydra.run.dir=actions/" + action + "/${now:%Y-%m-%d}/${now:%H-%M-%S}-${oc.select:experiment.name,moai-run}" 
         other_args.append(output_dir)
     elif mode == 'resume':
         output_dir =  f"hydra.run.dir={sys.argv.pop(1)}"

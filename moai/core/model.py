@@ -12,7 +12,7 @@ from moai.utils.funcs import (
 )
 from moai.utils.arguments import ensure_string_list
 from moai.core.execution.monads import Monads
-from moai.core.execution.tensors import Tensors
+from moai.core.execution.monitors import Monitors
 from moai.core.execution.criteria import Criteria
 from moai.core.execution.models import Models
 from moai.core.execution.constants import Constants as C
@@ -98,7 +98,7 @@ class MoaiLightningModule(L.LightningModule):
         ## Tensor Monitors
         self.named_monitors = {}
         for k, v in select_dict(_moai_, C._MONITORS_COLLECTION_).items():
-            self.named_monitors[k] = Tensors(
+            self.named_monitors[k] = Monitors(
                 monitors, **v
             )
         ## Termination Criteria
@@ -197,11 +197,10 @@ class MoaiLightningModule(L.LightningModule):
         dataset_idx: int=0,
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
         log.info(f"Predicting batch {batch_idx} ...")
-        batch = benedict.benedict(batch, keyattr_enabled=False)
-        #TODO: Update config keys !!!
-        monitor = toolz.get_in(['predict', 'batch'], self.monitor) or []
-        for stage, proc in self.process['predict']['batch'].items():
-            steps = proc['steps']
+        batch = benedict.benedict(batch, keyattr_enabled=False)        
+        monitor = toolz.get_in([C._PREDICT_, C._BATCH_], self.monitor) or []
+        for stage, proc in self.process[C._PREDICT_][C._BATCH_].items():
+            steps = proc[C._FLOWS_]
             with torch.no_grad(): #TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
                 for step in steps:
@@ -209,10 +208,10 @@ class MoaiLightningModule(L.LightningModule):
                 # predict step does 
                 if monitor:
                     # Metrics monitoring used only for serve
-                    for metric in toolz.get('metrics', monitor, None) or []:
+                    for metric in toolz.get(C._METRICS_, monitor, None) or []: #TODO ADD _metrics_
                         self.named_metrics[metric](batch)
                     # Tensor monitoring for visualization & exporting
-                    tensor_monitors = toolz.get('tensors', monitor, None) or []
+                    tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
                     for tensor_monitor in tensor_monitors:
                         extras = {
                             'stage': 'predict',

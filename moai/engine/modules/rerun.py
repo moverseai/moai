@@ -67,7 +67,7 @@ class Rerun():
             if color is None:
                 color = random_color(True)
             else:
-                color = colour.Color(color)
+                color = colour.Color(color).get_rgb()
             rr.log(keypath, rr.SeriesLine(color=color, name=plot.key), timeless=True)
 
 

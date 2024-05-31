@@ -32,9 +32,9 @@ def posed_image(
         rr.set_time_sequence("lightning_step", lightning_step)
     elif iteration is not None:
         rr.set_time_sequence("iteration", iteration)
-    _, H, W = image.shape
+    _, __, H, W = image.shape
     rr.log(path, rr.Pinhole(focal_length=5000, width=W, height=H))
-    rr.log(path, rr.Image(image.transpose(-2, -1, -3)))
+    rr.log(path, rr.Image(image.transpose(0, -2, -1, -3)))
 
 def keypoints(
     keypoints: np.ndarray,
@@ -53,12 +53,12 @@ def keypoints(
         rr.set_time_sequence("iteration", iteration)
     color = colour.Color(color)
     if skeleton is None:
-        rr.log(path, rr.Points2D(positions=keypoints, 
-            colors=np.tile(np.array(color.get_rgb() + (1,)), (keypoints.shape[0], 1)) #TODO: memoize))
+        rr.log(path, rr.Points2D(positions=keypoints[0], 
+            colors=np.tile(np.array(color.get_rgb() + (1,)), (keypoints.shape[1], 1)) #TODO: memoize))
         ))
     else:
         class_id = Rerun.__LABEL_TO_CLASS_ID__[skeleton]
-        rr.log(path, rr.Points2D(positions=keypoints, class_ids=class_id,
-            labels=skeleton, keypoint_ids=np.arange(keypoints.shape[0]),
-            colors=np.tile(np.array(color.get_rgb() + (1,)), (keypoints.shape[0], 1)) #TODO: memoize))
+        rr.log(path, rr.Points2D(positions=keypoints[0], class_ids=class_id,
+            labels=skeleton, keypoint_ids=np.arange(keypoints.shape[1]),
+            colors=np.tile(np.array(color.get_rgb() + (1,)), (keypoints.shape[1], 1)) #TODO: memoize))
         ))

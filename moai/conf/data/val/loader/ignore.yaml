@@ -1,9 +1,9 @@
 # @package data.val.loader
 
 _target_: moai.data.loader.ignore.Ignore
-batch_size: ${experiment.batch_size}
+batch_size: ${oc.select:experiment.batch_size,1}
 shuffle: false
-num_workers: ${experiment.workers}
+num_workers: ${oc.select:experiment.workers,0}
 pin_memory: true
 drop_last: false
 ignore_keys: ???

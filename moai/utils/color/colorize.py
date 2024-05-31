@@ -1,7 +1,7 @@
 import functools
 import torch
 import numpy as np
-from matplotlib import cm
+from matplotlib import colormaps as cm
 from matplotlib.colors import Colormap
 
 # import moai.utils.color.turbo @NOTE check if colormap turbo works with Matplotlib >= 3.3.0

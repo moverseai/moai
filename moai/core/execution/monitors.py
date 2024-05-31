@@ -8,9 +8,9 @@ import omegaconf.omegaconf
 import hydra.utils as hyu
 import inspect
 
-__all__ = ['Tensors']
+__all__ = ['Monitors']
 
-class Tensors():
+class Monitors():
     def __init__(self, 
         tensors: omegaconf.DictConfig,
         **kwargs: typing.Mapping[str, typing.Any],
