@@ -1,7 +1,0 @@
-# @package model
-
-_target_: moai.networks.lightning.manual.Manual
-# configuration:
-#   mode: inference
-#   io: ???
-#   assign: null

@@ -1,8 +1,0 @@
-# @package _global_
-
-model:
-  configuration:
-    input: color
-    output: [mu, logvar, latent, generated]
-    latent_dim: 256
-    traversal_dim: -1

@@ -1,6 +1,6 @@
 # @package model.modules.head
 
-_target_: moai.modules.lightning.highres.AllBranchesHead
+_target_: moai.modules.highres.AllBranchesHead
 prediction:
   convolution: ${model.configuration.global.convolution}
   kernel_size: 3

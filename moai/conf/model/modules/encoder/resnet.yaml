@@ -1,6 +1,6 @@
 # @package model.modules.encoder
 
-_target_: moai.modules.lightning.encoder.ResNet
+_target_: moai.modules.encoder.ResNet
 configuration:
   in_features: 3
   start_features: 32

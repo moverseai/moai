@@ -1,4 +1,0 @@
-# @package visualization
-
-_target_: moai.visualization.Collection
-batch_interval: 1

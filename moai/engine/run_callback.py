@@ -1,5 +1,5 @@
 from moai.core.execution.constants import Constants as C
-from moai.log.lightning.loggers.tabular import Tabular
+from moai.log.loggers.tabular import Tabular
 from collections import defaultdict
 from toolz.curried import merge_with
 

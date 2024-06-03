@@ -1,3 +1,0 @@
-# @package model.objectives.geodesic
-
-_target_: moai.supervision.losses.object_pose.Geodesic

@@ -1,4 +1,4 @@
 # @package engine.runner.loggers.tabular
 
-_target_: moai.log.lightning.loggers.tabular.Tabular
+_target_: moai.log.loggers.tabular.Tabular
 name: ${experiment.name}

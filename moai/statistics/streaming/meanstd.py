@@ -1,5 +1,4 @@
 from collections.abc import Callable, Iterator
-from moai.monads.execution.cascade import _create_accessor
 
 import numpy as np
 import npstreams
@@ -31,7 +30,6 @@ class MeanStd(Callable):
         self.names = [key] if isinstance(key, str) else list(key)
         self.ddof = ddof
         self.ignore_nan = ignore_nan
-        self.keys = [_create_accessor(k) for k in self.names]    
         self.avg = []
         self.std = []
         
@@ -41,13 +39,13 @@ class MeanStd(Callable):
     ) -> None:
         if not hasattr(self, 'tensors'):
             self.tensors = tensors
-            for name, k, a in zip(self.names, self.keys):
+            for name in self.names:
                 self.avg.append(npstreams.imean(map(lambda d: d.numpy(), 
-                    npstreams.iload(MeanStd.Iter(self), k))),
+                    npstreams.iload(MeanStd.Iter(self), name))),
                     ddof=self.ddof, ignore_nan=self.ignore_nan,
                 )
                 self.std.append(npstreams.istd(map(lambda d: d.numpy(), 
-                        npstreams.iload(MeanStd.Iter(self), k))
+                        npstreams.iload(MeanStd.Iter(self), name))
                     ), ddof=self.ddof, ignore_nan=self.ignore_nan,
                 )
             tensors[f"{name}_mean"] = torch.zeros_like(k(tensors))

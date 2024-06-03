@@ -1,0 +1,3 @@
+# @package engine.modules.anomaly_detection
+
+_target_: moai.engine.modules.anomaly_detection.AnomalyDetection

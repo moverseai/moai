@@ -1,3 +1,0 @@
-# @package model.objectives.projection
-
-_target_: moai.supervision.losses.regression.L2

@@ -5,13 +5,9 @@ import numpy as np
 
 __all__ = ["MoaiMetric"]
 
-#NOTE: should not use hooks /w metrics, they will not be called
 class MoaiMetric(torch.nn.Module, abc.ABC):
     def __init__(self):
         super().__init__()
-
-    # def update(self, **kwargs) -> typing.Union[np.ndarray, typing.Mapping[str, np.ndarray]]:
-    #     return self.forward(**kwargs)
     
     @abc.abstractmethod
     def forward(self, 

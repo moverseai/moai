@@ -1,3 +1,0 @@
-# @package trainer.checkpoint
-
-_target_: moai.checkpoint.lightning.NoOp

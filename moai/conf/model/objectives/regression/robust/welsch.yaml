@@ -1,4 +1,4 @@
 # @package model.objectives.welsch
 
-_target_: moai.supervision.losses.regression.robust.Welsch
+_target_: moai.supervision.objectives.regression.robust.welsch.Welsch
 v: 0.2

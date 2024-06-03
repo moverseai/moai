@@ -1,0 +1,4 @@
+# @package model.objectives.simple_ground_loss
+
+_target_: moai.supervision.objectives.human.body.SimpleGroundLoss
+amp: 1000

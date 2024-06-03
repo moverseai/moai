@@ -1,3 +1,0 @@
-# @package model.objectives.rotation_geodesic
-
-_target_: moai.supervision.losses.geometric.RotationMatrixGeodesic

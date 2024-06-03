@@ -10,18 +10,16 @@ import os
 import functools
 import numpy as np
 import torch
-import torchvision
 import typing
 import logging
 import cv2
-import toolz
 
 __all__ = ["Image2d"]
 
 log = logging.getLogger(__name__)
 
 
-class Image2d(Callable):
+class _Image2d(Callable):
 
     __MODES__ = ["overwrite", "all"]
     __FORMATS__ = ["jpg", "png", "exr"]

@@ -1,3 +1,3 @@
 # @package model.objectives.LogL1
 
-_target_: moai.supervision.losses.regression.LogL1
+_target_: moai.supervision.objectives.regression.LogL1

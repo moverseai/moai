@@ -1,6 +1,6 @@
 # @package model.objectives.berhu
 
-_target_: moai.supervision.losses.regression.robust.Berhu
+_target_: moai.supervision.objectives.regression.robust.berhu.Berhu
 threshold: ???
 adaptive: false
 image_wide: false

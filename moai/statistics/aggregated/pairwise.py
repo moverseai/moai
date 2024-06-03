@@ -1,5 +1,4 @@
 from collections.abc import Callable, Iterator
-from moai.monads.execution.cascade import _create_accessor
 
 import numpy as np
 import npstreams
@@ -19,15 +18,14 @@ class Pairwise(Callable):
         super().__init__()
         self.names = [key] if isinstance(key, str) else list(key)
         self.data = { }
-        self.keys = [_create_accessor(k) for k in self.names]
         self.pairs = pair
         
     def __call__(self, 
         tensors:    typing.Dict[str, torch.Tensor],
         step:       typing.Optional[int]=None,
     ) -> None:
-        for n, k, p in zip(self.names, self.keys, self.pairs):
-            t = k(tensors)
+        for n, p in zip(self.names, self.pairs):
+            t = tensors[n]
             id = f"{n}_{p[0]}-{p[1]}"
             if id not in self.data:
                 self.data[id] = t[:, p]

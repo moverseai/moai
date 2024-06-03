@@ -1,5 +1,5 @@
-# @package engine.modules._name_
+# @package engine.modules.hydra_logging
 
-_target_: moai.engine.modules.HydraLogging
+_target_: moai.engine.modules.hydra_logging.HydraLogging
 # hyu: ${hydra:hydra_logging}
 job: ${hydra:job_logging}

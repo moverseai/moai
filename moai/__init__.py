@@ -1,4 +1,4 @@
-__version__ = '1.0.0'
+__version__ = '0.2.0'
 __author__ = 'Moverse AI Team'
 __author_email__ = 'nick@moverse.ai'
 __license__ = 'Apache-2.0'

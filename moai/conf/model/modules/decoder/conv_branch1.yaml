@@ -1,6 +1,6 @@
 # @package model.modules.branch1
 
-_target_: moai.modules.lightning.decoder.Convolutional
+_target_: moai.modules.decoder.Convolutional
 configuration:
   bottleneck_features: ???
   out_features: ???

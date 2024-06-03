@@ -1,5 +1,5 @@
 # @package engine.modules.manual_seed
 
-_target_: moai.engine.modules.ManualSeed
+_target_: moai.engine.modules.seed.ManualSeed
 seed: 1337
 deterministic: true #TODO: this is not necessary since lightning handles it

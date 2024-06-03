@@ -1,7 +1,0 @@
-# @package _global_
-
-model:
-  validation:
-    rmse:
-      gt: [keypoints]
-      pred: [joints2d]

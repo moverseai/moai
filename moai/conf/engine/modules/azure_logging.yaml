@@ -1,4 +1,4 @@
-# @package engine.modules._name_
+# @package engine.modules.azure_logging
 
-_target_: moai.engine.modules.AzureLogging
+_target_: moai.engine.modules.azure_logging.AzureLogging
 level: ${env:AZURE_LOGGING_LEVEL}

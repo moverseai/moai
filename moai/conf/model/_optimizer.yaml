@@ -1,9 +1,0 @@
-# @package model
-
-_target_: moai.networks.lightning.Optimizer
-configuration:
-  mode: inference
-  io: ???
-  assign: null
-  # optimize_predictions
-  # initialize: 

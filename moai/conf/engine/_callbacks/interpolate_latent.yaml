@@ -1,5 +1,0 @@
-# @package trainer.callbacks._name_
-
-_target_: moai.engine.callbacks.LatentInterp
-interpolate_epoch_interval: 1
-generated: ???

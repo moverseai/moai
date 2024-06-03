@@ -2,13 +2,9 @@ defaults:
   ###### ENGINE
   - engine/runner: lightning
   - engine/modules: [manual_seed, import, clearml] # , clearml]
-
-  
   ###### LOGGERS
   - engine/loggers: [tabular, clearml] # tabular # [tabular, clearml]
-
   - engine/runner/checkpoint: lightning
-
   # ###### DATA
   - data/train/loader: torch
   - data/train/iterator: indexed
@@ -19,7 +15,6 @@ defaults:
   # - data/val/iterator: indexed
   - data/val/augmentation: none
   - data/val/dataset/torchvision: [mnist, mnist_2]
-  
   
   - data/test/loader: torch
   # - data/test/iterator: indexed
@@ -34,17 +29,15 @@ defaults:
   # - data/test/dataset/torchvision: [mnist, mnist_2]
 
   # ###### MODEL
-  - model: moai # manual
+  - model: moai
   - model/modules/classification: mnist
   - model/monads/tensor: argmax
-
   # ###### PARAMETERS
   - model/parameters/initializers: [default, pretrained]
   - model/parameters/optimizers: adam
   # - model/parameters/optimization/scheduling: single
   # - model/parameters/optimization/scheduling/scheduler: step
   - model/parameters/groups: [encoder]
-  # - model/parameters/regularization: none
 
   # ###### SUPERVISION
   - model/objectives/classification: cross_entropy
@@ -54,7 +47,6 @@ defaults:
 
   ###### EXPORTERS
   - model/monitors/exporting/local: [image2d]
-
 
   # ###### EXTRA FILES
   - model

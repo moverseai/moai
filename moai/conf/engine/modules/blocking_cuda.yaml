@@ -1,3 +1,3 @@
-# @package engine.modules._name_
+# @package engine.modules.blocking_cuda
 
-_target_: moai.engine.modules.BlockingCUDA
+_target_: moai.engine.modules.nvidia.BlockingCUDA

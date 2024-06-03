@@ -1,5 +1,5 @@
 # @package engine.modules.import
 
-_target_: moai.engine.modules.Import
+_target_: moai.engine.modules.importer.Import
 run_path: true
 other_paths: []

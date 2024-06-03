@@ -1,6 +1,6 @@
 # @package model.objectives.wing
 
-_target_: moai.supervision.losses.regression.robust.Wing
+_target_: moai.supervision.objectives.regression.robust.wing.Wing
 mode: standard # 'standard', 'adaptive', 'soft'
 omega: 0.05
 epsilon: 1.0

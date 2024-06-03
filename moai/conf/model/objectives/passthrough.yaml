@@ -1,4 +1,4 @@
 # @package model.objectives.passthrough
 
-_target_: moai.supervision.losses.Passthrough
+_target_: moai.supervision.objectives.Passthrough
 mode: minimize # one of [minimize, maximize]

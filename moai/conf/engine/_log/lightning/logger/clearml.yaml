@@ -1,7 +1,0 @@
-# @package engine.runner.loggers.clearml
-
-_target_: moai.log.lightning.loggers.clearml.ClearML
-# project_name: ${engine.modules.clearml.project_name}
-# task_name: ${engine.modules.clearml.task_name}
-# uri: ${engine.modules.clearml.uri}
-# tags: ${engine.modules.clearml.tags}

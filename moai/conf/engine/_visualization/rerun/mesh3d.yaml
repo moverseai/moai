@@ -1,9 +1,0 @@
-# @package visualization.visualizers._name_
-
-_target_: moai.visualization.rerun.Mesh3d
-name: ${experiment.name}
-batch_percentage: 1.0
-vertices: ???
-faces: ???
-color: ???
-path_to_hierarchy: ???

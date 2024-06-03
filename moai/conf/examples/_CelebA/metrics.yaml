@@ -1,7 +1,0 @@
-# @package _global_
-
-model:
-  validation:
-    psnr:
-      gt: [color]
-      pred: [generated]

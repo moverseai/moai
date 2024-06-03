@@ -1,10 +1,9 @@
 from moai import __version__ as miV
 
-from moai.parameters.initialization import Default as NoInit
 from moai.data.datasets.generic import Empty
 from moai.data.iterator import Indexed
-from moai.validation.collection import Metrics as DefaultValidation
-from moai.supervision.weighted import Weighted as DefaultSupervision
+from moai.core.execution.metrics import Metrics
+from moai.core.execution.weighted import Weighted
 from moai.utils.iterators import partition
 from moai.utils.funcs import (
     select, select_dict, select_list, select_conf,
@@ -80,16 +79,12 @@ class MoaiLightningModule(L.LightningModule):
         ## Objectives
         self.named_objectives = torch.nn.ModuleDict()
         for k, v in select_dict(_moai_, C._OBJECTIVES_COLLECTION_).items():
-            self.named_objectives[k] = DefaultSupervision(
-                objectives, **v
-            )
+            self.named_objectives[k] = Weighted(objectives, **v)
         ## Metrics Monitors
         self.named_metrics = torch.nn.ModuleDict()
         self.metric_name_to_module = torch.nn.ModuleDict()
         for k, v in select_dict(_moai_, C._METRICS_COLLECTION_).items():
-            self.named_metrics[k] = DefaultValidation(
-                metrics, **v
-            )
+            self.named_metrics[k] = Metrics(metrics, **v)
             for key, out, _ in self.named_metrics[k].execs:
                 if out in self.metric_name_to_module:
                     log.error(f"Same metric name [{out}] used in multiple definitions, metrics will not compute correctly!")
@@ -177,11 +172,6 @@ class MoaiLightningModule(L.LightningModule):
     def epoch_initializers(self) -> None: # call the initializers at the beginning of each epoch
         for init in self.named_initializers[C._EPOCH_]:
             init(self)
-
-    #TODO: deprecated? to be removed
-    def initialize_parameters(self) -> None:
-        init = hyu.instantiate(self.initializer) if self.initializer else NoInit()
-        init(self)
     
     def _assign_params(self,
         assigners: typing.List[typing.Tuple[str, functools.partial]],
