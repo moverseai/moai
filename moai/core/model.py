@@ -240,7 +240,7 @@ class MoaiLightningModule(L.LightningModule):
                 call._call_lightning_module_hook(self.trainer, "optimizer_zero_grad", self.trainer.current_epoch, index, optimizer)
             call._call_strategy_hook(self.trainer, "backward", loss, optimizer)
             self.optimization_step += 1            
-            if monitor := toolz.get_in([C._FIT_, C._LIGHTNING_STEP_, stage], self.monitor):
+            if monitor := toolz.get_in([C._FIT_, C._OPTIMIZATION_STEP_, stage], self.monitor):
                 should_monitor = self.optimization_step % monitor.get('_frequency_', 1) == 0
                 if (tensor_monitor_steps := get_list(monitor, C._MONITORS_)) and should_monitor:
                     with torch.no_grad():

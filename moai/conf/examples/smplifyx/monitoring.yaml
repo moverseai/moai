@@ -84,7 +84,7 @@ _moai_:
   _execution_:
     _monitoring_:
       _fit_:
-        _lightning_step_:
+        _optimization_step_:
           # initialize_translation:
           #   _frequency_: 1
           #   # _flows_:

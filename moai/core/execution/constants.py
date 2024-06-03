@@ -34,6 +34,8 @@ class Constants(object):
     _INITIALIZE_: str = f'_initialize_'
     _EXECUTION_INITIALIZE_: str = f'{_EXECUTION_}._initialize_'
 
+    _OPTIMIZATION_STEP_: str = f'_optimization_step_'
+
     _COLLECTIONS_: str = f'_collections_'
     _MONITORS_: str = f'_monitors_'
     _METRICS_: str = f'_metrics_'

@@ -63,7 +63,7 @@ URL, CODE_URL, DOCS_URL, \
 DESCRIPTION, KEYWORDS = moai_info()
 
 if __name__ == '__main__':
-    logger.info(f"Installing {PACKAGE_NAME} (v: {VERSION}) ...")
+    logger.info(f"Installing {PACKAGE_NAME} (v{VERSION}) ...")
     setup(
         name=PACKAGE_NAME,
         version=VERSION,
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         long_description=get_readme(),
         long_description_content_type="text/markdown",
         keywords=KEYWORDS,
-        licence_file='LICENCE',
+        licence_file='LICENSE',
         url=URL,
         project_urls={
             'Documentation': DOCS_URL,
