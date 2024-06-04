@@ -1,44 +1,42 @@
-import moai.nn.utils as miu
-
-import torch
 import logging
 import typing
 
+import torch
+
+import moai.nn.utils as miu
+
 log = logging.getLogger(__name__)
 
-__all__ = [
-    "make_downsample"
-]
+__all__ = ["make_downsample"]
 
 __DOWNSAMPLE_FACTORY__ = {
-    "none":                 torch.nn.Identity,
-    "identity":             torch.nn.Identity,
-    "in_block":             torch.nn.Identity, #NOTE: needed for resnet
-    "maxpool2d":            torch.nn.MaxPool2d,
-    "avgpool2d":            torch.nn.AvgPool2d,
+    "none": torch.nn.Identity,
+    "identity": torch.nn.Identity,
+    "in_block": torch.nn.Identity,  # NOTE: needed for resnet
+    "maxpool2d": torch.nn.MaxPool2d,
+    "avgpool2d": torch.nn.AvgPool2d,
 }
-        
+
+
 def _update_downsample_op(name: str, type: typing.Type):
     if name not in __DOWNSAMPLE_FACTORY__.keys():
         __DOWNSAMPLE_FACTORY__.update({name: type})
     else:
-        log.error(f"Trying to add an already existing key {name} in the convolution operation factory.")
+        log.error(
+            f"Trying to add an already existing key {name} in the convolution operation factory."
+        )
+
 
 def make_downsample(
-    downscale_type: str,
-    features: int,
-    kernel_size: int=3,
-    stride: int=2,
-    **kwargs
+    downscale_type: str, features: int, kernel_size: int = 3, stride: int = 2, **kwargs
 ) -> torch.nn.Module:
     if downscale_type in __DOWNSAMPLE_FACTORY__.keys():
-        return miu.instantiate(__DOWNSAMPLE_FACTORY__[downscale_type], 
-        **{
-            **locals(),
-            **kwargs 
-        })
+        return miu.instantiate(
+            __DOWNSAMPLE_FACTORY__[downscale_type], **{**locals(), **kwargs}
+        )
     else:
         log.error(f"Downscale type ({downscale_type}) not found.")
+
 
 import moai.nn.sampling.spatial.downsample.conv as midsc
 

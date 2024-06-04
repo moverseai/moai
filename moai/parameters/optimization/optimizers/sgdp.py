@@ -1,16 +1,18 @@
 import math
-import torch
 import typing
 
-__all__ = ['SGDP']
+import torch
 
-#NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/sgdp.py
+__all__ = ["SGDP"]
+
+# NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/sgdp.py
+
 
 class SGDP(torch.optim.Optimizer):
     r"""Implements SGDP algorithm.
 
     - **Paper**: [Slowing Down the Weight Norm Increase in Momentum-based Optimizers](https://arxiv.org/pdf/2006.08217.pdf)
-    - **Implementation**: [GitHub @ jettify](https://github.com/jettify/pytorch-optimizer)    
+    - **Implementation**: [GitHub @ jettify](https://github.com/jettify/pytorch-optimizer)
 
     Arguments:
         params: iterable of parameters to optimize or dicts defining
@@ -40,33 +42,32 @@ class SGDP(torch.optim.Optimizer):
         Reference code: https://github.com/clovaai/AdamP
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         params: typing.Iterator[torch.nn.Parameter],
-        lr: float=1e-3,
-        momentum: float=0,
-        dampening: float=0,
-        eps: float=1e-8,
-        weight_decay: float=0,
-        delta: float=0.1,
-        wd_ratio: float=0.1,
-        nesterov: bool=False,
+        lr: float = 1e-3,
+        momentum: float = 0,
+        dampening: float = 0,
+        eps: float = 1e-8,
+        weight_decay: float = 0,
+        delta: float = 0.1,
+        wd_ratio: float = 0.1,
+        nesterov: bool = False,
     ) -> None:
         if lr <= 0.0:
-            raise ValueError('Invalid learning rate: {}'.format(lr))
+            raise ValueError("Invalid learning rate: {}".format(lr))
         if eps < 0.0:
-            raise ValueError('Invalid epsilon value: {}'.format(eps))
+            raise ValueError("Invalid epsilon value: {}".format(eps))
         if momentum < 0.0:
-            raise ValueError('Invalid momentum value: {}'.format(momentum))
+            raise ValueError("Invalid momentum value: {}".format(momentum))
         if dampening < 0.0:
-            raise ValueError('Invalid dampening value: {}'.format(dampening))
+            raise ValueError("Invalid dampening value: {}".format(dampening))
         if weight_decay < 0:
-            raise ValueError(
-                'Invalid weight_decay value: {}'.format(weight_decay)
-            )
+            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
         if delta < 0:
-            raise ValueError('Invalid delta value: {}'.format(delta))
+            raise ValueError("Invalid delta value: {}".format(delta))
         if wd_ratio < 0:
-            raise ValueError('Invalid wd_ratio value: {}'.format(wd_ratio))
+            raise ValueError("Invalid wd_ratio value: {}".format(wd_ratio))
 
         defaults = dict(
             lr=lr,
@@ -107,19 +108,17 @@ class SGDP(torch.optim.Optimizer):
             cosine_sim = self._cosine_similarity(grad, p.data, eps, view_func)
 
             if cosine_sim.max() < delta / math.sqrt(view_func(p.data).size(1)):
-                p_n = p.data / view_func(p.data).norm(dim=1).view(
-                    expand_size
-                ).add_(eps)
-                perturb -= p_n * view_func(p_n * perturb).sum(dim=1).view(
-                    expand_size
-                )
+                p_n = p.data / view_func(p.data).norm(dim=1).view(expand_size).add_(eps)
+                perturb -= p_n * view_func(p_n * perturb).sum(dim=1).view(expand_size)
                 wd = wd_ratio
 
                 return perturb, wd
 
         return perturb, wd
 
-    def step(self, closure: typing.Optional[typing.Callable[[], float]]=None) -> typing.Optional[float]:
+    def step(
+        self, closure: typing.Optional[typing.Callable[[], float]] = None
+    ) -> typing.Optional[float]:
         r"""Performs a single optimization step.
 
         Arguments:
@@ -130,12 +129,12 @@ class SGDP(torch.optim.Optimizer):
             loss = closure()
 
         for group in self.param_groups:
-            weight_decay = group['weight_decay']
-            momentum = group['momentum']
-            dampening = group['dampening']
-            nesterov = group['nesterov']
+            weight_decay = group["weight_decay"]
+            momentum = group["momentum"]
+            dampening = group["dampening"]
+            nesterov = group["nesterov"]
 
-            for p in group['params']:
+            for p in group["params"]:
                 if p.grad is None:
                     continue
 
@@ -144,10 +143,10 @@ class SGDP(torch.optim.Optimizer):
 
                 # State initialization
                 if len(state) == 0:
-                    state['momentum'] = torch.zeros_like(p.data)
+                    state["momentum"] = torch.zeros_like(p.data)
 
                 # SGD
-                buf = state['momentum']
+                buf = state["momentum"]
                 buf.mul_(momentum).add_(grad, alpha=1 - dampening)
                 if nesterov:
                     d_p = grad + momentum * buf
@@ -161,22 +160,22 @@ class SGDP(torch.optim.Optimizer):
                         p,
                         grad,
                         d_p,
-                        group['delta'],
-                        group['wd_ratio'],
-                        group['eps'],
+                        group["delta"],
+                        group["wd_ratio"],
+                        group["eps"],
                     )
 
                 # Weight decay
                 if weight_decay != 0:
                     p.data.mul_(
                         1
-                        - group['lr']
-                        * group['weight_decay']
+                        - group["lr"]
+                        * group["weight_decay"]
                         * wd_ratio
                         / (1 - momentum)
                     )
 
                 # Step
-                p.data.add_(d_p, alpha=-group['lr'])
+                p.data.add_(d_p, alpha=-group["lr"])
 
         return loss

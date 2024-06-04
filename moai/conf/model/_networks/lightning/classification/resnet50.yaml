@@ -2,7 +2,7 @@
 
 _target_: moai.networks.lightning.torchvision.Classifier
 configuration:
-  io:  
+  io:
     image: color
     out: prediction
 architecture:

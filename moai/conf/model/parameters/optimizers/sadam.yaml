@@ -11,4 +11,3 @@ transformer: softplus
 grad_transf: square
 smooth: 50
 hist: false
-  

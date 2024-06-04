@@ -1,5 +1,0 @@
-# @package model.parameters.selectors.encoder
-
-_target_: moai.parameters.selectors.ModelParameterSelector
-keys:
-  - encoder

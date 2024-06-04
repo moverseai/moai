@@ -1,18 +1,15 @@
-from collections.abc import Callable
-from moai.utils.arguments import (
-    ensure_path,
-    ensure_choices,
-)
-
-import moai.utils.color.colorize as mic
-
-import os
 import functools
+import logging
+import os
+import typing
+from collections.abc import Callable
+
+import cv2
 import numpy as np
 import torch
-import typing
-import logging
-import cv2
+
+import moai.utils.color.colorize as mic
+from moai.utils.arguments import ensure_choices, ensure_path
 
 __all__ = ["Image2d"]
 

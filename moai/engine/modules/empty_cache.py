@@ -1,13 +1,15 @@
-import torch
 import logging
+
+import torch
 
 log = logging.getLogger(__name__)
 
-__all__ = ['EmptyCache']
+__all__ = ["EmptyCache"]
+
 
 class EmptyCache(object):
-    def __init__(self, 
-
+    def __init__(
+        self,
     ):
-        log.info(f"Emptying PyTorch CUDA cache.")        
+        log.info(f"Emptying PyTorch CUDA cache.")
         torch.cuda.empty_cache()

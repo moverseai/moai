@@ -1,7 +1,8 @@
-import torch
 import typing
-import roma
+
 import numpy as np
+import roma
+import torch
 
 __all__ = ["Rotation3D"]
 
@@ -65,9 +66,11 @@ class Rotation3D(torch.nn.Module):
             matrices.append(Rotation3D.__CONSTRUCTORS__[axis](np.deg2rad(float(euler))))
         self.register_buffer(
             "rotation",
-            roma.rotmat_composition(matrices, normalize=False)
-            if len(matrices) > 1
-            else torch.cat(matrices),
+            (
+                roma.rotmat_composition(matrices, normalize=False)
+                if len(matrices) > 1
+                else torch.cat(matrices)
+            ),
         )
         self.rotation[self.rotation.abs() < epsilon] = 0.0
 

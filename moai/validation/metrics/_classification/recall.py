@@ -1,9 +1,8 @@
-from torchmetrics.classification import MulticlassRecall, MulticlassPrecision
-
+import logging
+import typing
 
 import torch
-import typing
-import logging
+from torchmetrics.classification import MulticlassPrecision, MulticlassRecall
 
 log = logging.getLogger(__name__)
 

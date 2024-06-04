@@ -1,10 +1,13 @@
-import torch
 import logging
-import omegaconf.omegaconf
 import typing
-from moai.modules.lightning.sampler.so3 import S2S2Mean, N0reparameterize
+
+import omegaconf.omegaconf
+import torch
+
+from moai.modules.lightning.sampler.so3 import N0reparameterize, S2S2Mean
 
 log = logging.getLogger(__name__)
+
 
 class Homeomorphic(torch.nn.Module):
     """
@@ -33,13 +36,12 @@ class Homeomorphic(torch.nn.Module):
     ) -> None:
         super(Homeomorphic, self).__init__()
         self.mean_module = S2S2Mean(
-            input_dims=mean_module.input_dims,
-            output_dims=mean_module.output_dims
+            input_dims=mean_module.input_dims, output_dims=mean_module.output_dims
         )
         self.sigma_module = N0reparameterize(
             input_dim=sigma_module.input_dim,
             z_dim=sigma_module.z_dim,
-            fixed_sigma=sigma_module.fixed_sigma
+            fixed_sigma=sigma_module.fixed_sigma,
         )
 
     def forward(

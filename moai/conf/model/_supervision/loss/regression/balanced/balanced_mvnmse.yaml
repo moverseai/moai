@@ -1,6 +1,0 @@
-# @package model.supervision.losses._name_
-
-_target_: moai.supervision.losses.regression.balanced.BalancedMVNMSE
-sigma: ??? # float
-mode: auto
-dim: ??? # int

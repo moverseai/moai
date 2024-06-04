@@ -1,10 +1,11 @@
-from collections.abc import Callable
-import typing
 import logging
-from azure.storage.blob import BlobServiceClient
 import os
-from moai.monads.execution.cascade import _create_accessor
+import typing
+from collections.abc import Callable
 
+from azure.storage.blob import BlobServiceClient
+
+from moai.monads.execution.cascade import _create_accessor
 
 log = logging.getLogger(__name__)
 
@@ -12,8 +13,8 @@ log = logging.getLogger(__name__)
 class AzureBlobInputHandler(Callable):
     def __init__(
         self,
-        connection_string: str, # alias to retrieve connection string from json
-        container_name: str, # name of the container to download data from
+        connection_string: str,  # alias to retrieve connection string from json
+        container_name: str,  # name of the container to download data from
         blob_paths: typing.List[str],  # keys to extract resources from json
         working_dir: str,  # path to working dir
         alias: typing.List[str],  # names of files to be saved
@@ -51,7 +52,9 @@ class AzureBlobInputHandler(Callable):
                 connect_str,
             )
         except Exception as e:
-            log.info(f"An error has occured while connecting to Azure Blob Storage:\n{e}")
+            log.info(
+                f"An error has occured while connecting to Azure Blob Storage:\n{e}"
+            )
         container = json[self.container_name]
         for bl_acc, al in zip(self.blob_acecessors, self.alias):
             blob_name = bl_acc(json)
@@ -76,7 +79,7 @@ class AzureBlobOutputHandler(Callable):
         blob_paths: typing.List[str],  # keys to extract resources from json
         working_dir: str,  # path to working dir
         alias: typing.List[str],  # names of files to be uploaded
-        overwrite: bool = True, # overwrite existing files
+        overwrite: bool = True,  # overwrite existing files
     ):
         """
         Responsible for uploading data to Azure Blob Storage.

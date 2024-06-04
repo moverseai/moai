@@ -1,21 +1,24 @@
+import logging
+import typing
+
 import albumentations
-import torch
 import hydra.utils as hyu
 import omegaconf.omegaconf
-import typing
-import logging
+import torch
 
 log = logging.getLogger(__name__)
 
 __all__ = ["OneOf"]
 
+
 class OneOf(torch.utils.data.Dataset):
-    def __init__(self,
-        dataset:        torch.utils.data.Dataset,
-        inputs:         typing.Sequence[str],
-        outputs:        typing.Sequence[str],
-        augmentations:  omegaconf.DictConfig={},
-        probability:    float=0.5,
+    def __init__(
+        self,
+        dataset: torch.utils.data.Dataset,
+        inputs: typing.Sequence[str],
+        outputs: typing.Sequence[str],
+        augmentations: omegaconf.DictConfig = {},
+        probability: float = 0.5,
     ):
         super(OneOf, self).__init__()
         self.inner, self.inputs, self.outputs = dataset, inputs, outputs
@@ -29,7 +32,9 @@ class OneOf(torch.utils.data.Dataset):
             log.warning("OneOf weights are zero, reverting to a NoOp.")
             self.oneof = albumentations.OneOf([albumentations.NoOp()], p=1.0)
         elif weight_sum != 1.0:
-            log.warning(f"OneOf augmentation weights do not sum up to unity ({weight_sum}), they will be normalized to unity.")
+            log.warning(
+                f"OneOf augmentation weights do not sum up to unity ({weight_sum}), they will be normalized to unity."
+            )
 
     def __len__(self) -> int:
         return len(self.inner)
@@ -37,7 +42,9 @@ class OneOf(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         item = self.inner[index]
         for i, o in zip(self.inputs, self.outputs):
-            data = {"image": item[i].numpy().transpose(1, 2, 0)} # numpy conversion overhead is insignificant
+            data = {
+                "image": item[i].numpy().transpose(1, 2, 0)
+            }  # numpy conversion overhead is insignificant
             augmented = self.oneof(**data)
             item[o] = torch.from_numpy(augmented["image"].transpose(2, 0, 1))
         return item

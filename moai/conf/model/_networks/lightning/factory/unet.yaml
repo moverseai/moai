@@ -17,14 +17,14 @@ configuration:
         kernel_size: 3
         stride: 1
         padding: 1
-    activation: 
+    activation:
       type: relu_bn2d
       params:
         inplace: true
-    downscale: 
+    downscale:
       type: maxpool2d_aa
       # params:
-  bottleneck: 
+  bottleneck:
     blocks: 2
     features: 1024
     convolution:
@@ -33,7 +33,7 @@ configuration:
       kernel_size: 3
       stride: 1
       padding: 1
-    activation: 
+    activation:
       type: relu_bn2d
       params:
         inplace: true
@@ -44,21 +44,21 @@ configuration:
         kernel_size: 3
         stride: 1
         padding: 1
-    activation: 
+    activation:
       type: relu_bn2d
       params:
         inplace: true
     upscale:
       type: upsample2d
       # params:
-  prediction:    
+  prediction:
     convolution:
       type: conv2d
       params:
         kernel_size: 1
         stride: 0
         padding: 0
-    activation: 
+    activation:
       type: relu
       params:
         inplace: true

@@ -1,9 +1,10 @@
 # get the logger instance and change the config
 # Assuming graylog.utc_formatter.UTCFormatter and other necessary modules are already defined
 import logging.config
-from graylog import UTCFormatter
-import colorlog
 import os
+
+import colorlog
+from graylog import UTCFormatter
 
 
 class GraylogLogging(object):

@@ -1,9 +1,11 @@
-import torch
 import typing
 
-__all__ = ['Shampoo']
+import torch
 
-#NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/shampoo.py
+__all__ = ["Shampoo"]
+
+# NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/shampoo.py
+
 
 def _matrix_power(matrix: torch.Tensor, power: float) -> torch.Tensor:
     # use CPU for svd for speed up
@@ -17,7 +19,7 @@ class Shampoo(torch.optim.Optimizer):
     r"""Implements Shampoo Optimizer Algorithm.
 
     - **Paper**: [Shampoo: Preconditioned Stochastic Tensor Optimization](https://arxiv.org/pdf/1802.09568.pdf)
-    - **Implementation**: [GitHub @ jettify](https://github.com/jettify/pytorch-optimizer)    
+    - **Implementation**: [GitHub @ jettify](https://github.com/jettify/pytorch-optimizer)
 
     Arguments:
         params: iterable of parameters to optimize or dicts defining
@@ -42,27 +44,26 @@ class Shampoo(torch.optim.Optimizer):
         Reference code: https://github.com/moskomule/shampoo.pytorch
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         params: typing.Iterator[torch.nn.Parameter],
-        lr: float=1e-1,
-        momentum: float=0.0,
-        weight_decay: float=0.0,
-        epsilon: float=1e-4,
-        update_freq: int=1,
+        lr: float = 1e-1,
+        momentum: float = 0.0,
+        weight_decay: float = 0.0,
+        epsilon: float = 1e-4,
+        update_freq: int = 1,
     ):
 
         if lr <= 0.0:
-            raise ValueError('Invalid learning rate: {}'.format(lr))
+            raise ValueError("Invalid learning rate: {}".format(lr))
         if momentum < 0.0:
-            raise ValueError('Invalid momentum value: {}'.format(momentum))
+            raise ValueError("Invalid momentum value: {}".format(momentum))
         if weight_decay < 0.0:
-            raise ValueError(
-                'Invalid weight_decay value: {}'.format(weight_decay)
-            )
+            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
         if epsilon < 0.0:
-            raise ValueError('Invalid momentum value: {}'.format(momentum))
+            raise ValueError("Invalid momentum value: {}".format(momentum))
         if update_freq < 1:
-            raise ValueError('Invalid momentum value: {}'.format(momentum))
+            raise ValueError("Invalid momentum value: {}".format(momentum))
 
         defaults = dict(
             lr=lr,
@@ -73,7 +74,9 @@ class Shampoo(torch.optim.Optimizer):
         )
         super(Shampoo, self).__init__(params, defaults)
 
-    def step(self, closure: typing.Optional[typing.Callable[[], float]]=None) -> typing.Optional[float]:
+    def step(
+        self, closure: typing.Optional[typing.Callable[[], float]] = None
+    ) -> typing.Optional[float]:
         """Performs a single optimization step.
 
         Arguments:
@@ -84,40 +87,40 @@ class Shampoo(torch.optim.Optimizer):
             loss = closure()
 
         for group in self.param_groups:
-            for p in group['params']:
+            for p in group["params"]:
                 if p.grad is None:
                     continue
                 grad = p.grad.data
                 order = grad.ndimension()
                 original_size = grad.size()
                 state = self.state[p]
-                momentum = group['momentum']
-                weight_decay = group['weight_decay']
+                momentum = group["momentum"]
+                weight_decay = group["weight_decay"]
                 if len(state) == 0:
-                    state['step'] = 0
+                    state["step"] = 0
                     if momentum > 0:
-                        state['momentum_buffer'] = grad.clone()
+                        state["momentum_buffer"] = grad.clone()
                     for dim_id, dim in enumerate(grad.size()):
                         # precondition matrices
-                        state['precond_{}'.format(dim_id)] = group[
-                            'epsilon'
+                        state["precond_{}".format(dim_id)] = group[
+                            "epsilon"
                         ] * torch.eye(dim, out=grad.new(dim, dim))
-                        state[
-                            'inv_precond_{dim_id}'.format(dim_id=dim_id)
-                        ] = grad.new(dim, dim).zero_()
+                        state["inv_precond_{dim_id}".format(dim_id=dim_id)] = grad.new(
+                            dim, dim
+                        ).zero_()
 
                 if momentum > 0:
                     grad.mul_(1 - momentum).add_(
-                        state['momentum_buffer'], alpha=momentum
+                        state["momentum_buffer"], alpha=momentum
                     )
 
                 if weight_decay > 0:
-                    grad.add_(p.data, alpha=group['weight_decay'])
+                    grad.add_(p.data, alpha=group["weight_decay"])
 
                 # See Algorithm 2 for detail
                 for dim_id, dim in enumerate(grad.size()):
-                    precond = state['precond_{}'.format(dim_id)]
-                    inv_precond = state['inv_precond_{}'.format(dim_id)]
+                    precond = state["precond_{}".format(dim_id)]
+                    inv_precond = state["inv_precond_{}".format(dim_id)]
 
                     # mat_{dim_id}(grad)
                     grad = grad.transpose_(0, dim_id).contiguous()
@@ -126,7 +129,7 @@ class Shampoo(torch.optim.Optimizer):
 
                     grad_t = grad.t()
                     precond.add_(grad @ grad_t)
-                    if state['step'] % group['update_freq'] == 0:
+                    if state["step"] % group["update_freq"] == 0:
                         inv_precond.copy_(_matrix_power(precond, -1 / order))
 
                     if dim_id == order - 1:
@@ -140,8 +143,8 @@ class Shampoo(torch.optim.Optimizer):
                         # grad (dim, -1)
                         grad = grad.view(transposed_size)
 
-                state['step'] += 1
-                state['momentum_buffer'] = grad
-                p.data.add_(grad, alpha=-group['lr'])
+                state["step"] += 1
+                state["momentum_buffer"] = grad
+                p.data.add_(grad, alpha=-group["lr"])
 
         return loss

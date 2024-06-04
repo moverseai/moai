@@ -1,15 +1,17 @@
+import omegaconf.omegaconf
 from hydra.core.config_search_path import ConfigSearchPath
 from hydra.plugins.search_path_plugin import SearchPathPlugin
+from lark import Lark
+
 # from hydra.plugins.plugin import Plugin
 # from hydra.plugins.completion_plugin import CompletionPlugin
 # from hydra.plugins.launcher import Launcher
 
-from lark import Lark
-#NOTE: faster parsing: http://blog.erezsh.com/5-lark-features-you-probably-didnt-know-about/#5-lark-cython
 
-import omegaconf.omegaconf
+# NOTE: faster parsing: http://blog.erezsh.com/5-lark-features-you-probably-didnt-know-about/#5-lark-cython
 
-''' EXAMPLE GRAMMAR USED AS BASE
+
+""" EXAMPLE GRAMMAR USED AS BASE
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -19,10 +21,10 @@ unary          → ( "!" | "-" ) unary
                | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
-'''
+"""
 
-#TODO:  bmm, (mod?), 
-#       dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y)), 
+# TODO:  bmm, (mod?),
+#       dot (symbol? ! or # or %? or | or ', or func, i.e. dot(x,y)),
 #       einsum, matrix ops (inverse&transpose)
 #       lin/logspace, (a)range, lerp
 #       full(_like) [maybe obsolete cause of number math], unflatten (tricky),
@@ -135,15 +137,16 @@ __MOAI_GRAMMAR__ = """
     %ignore WS_INLINE
 """
 
+
 class MoaiDSLPlugin(SearchPathPlugin):
     def __init__(self) -> None:
-        self.parser = Lark(__MOAI_GRAMMAR__, parser='earley', start='expr')
-        if not omegaconf.OmegaConf.has_resolver('mi'):
+        self.parser = Lark(__MOAI_GRAMMAR__, parser="earley", start="expr")
+        if not omegaconf.OmegaConf.has_resolver("mi"):
             omegaconf.OmegaConf.register_new_resolver("mi", self._parse_expression)
-    
+
     def _parse_expression(self, *expressions):
-        text = ','.join(expressions)
+        text = ",".join(expressions)
         return self.parser.parse(text)
 
     def manipulate_search_path(self, search_path: ConfigSearchPath) -> None:
-        pass #NOTE: only used to ensure proper resolver registration as searchpath is called first
+        pass  # NOTE: only used to ensure proper resolver registration as searchpath is called first

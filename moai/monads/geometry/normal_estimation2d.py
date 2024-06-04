@@ -1,11 +1,12 @@
-from moai.utils.torch import cross_product
-
 import torch
 
-#TODO: produces an error when using odd batch size, check it out
+from moai.utils.torch import cross_product
+
+
+# TODO: produces an error when using odd batch size, check it out
 class NormalEstimation2d(torch.nn.Module):
-    def __init__(self,
-    
+    def __init__(
+        self,
     ):
         super(NormalEstimation2d, self).__init__()
 
@@ -16,4 +17,3 @@ class NormalEstimation2d(torch.nn.Module):
         dv = v_pad[:, :, :-1, :] - v_pad[:, :, 1:, :]
         normals = cross_product(dv, du, dim=1)
         return torch.nn.functional.normalize(normals)
-

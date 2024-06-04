@@ -1,7 +1,7 @@
 # instantiate hydra logging for torchserve
-import omegaconf.omegaconf
 import logging
 
+import omegaconf.omegaconf
 
 
 class HydraLogging(object):

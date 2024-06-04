@@ -3,13 +3,13 @@
 _target_: moai.modules.lightning.unet.ConvGate
 # blocks: 1
 out_features: 256
-convolution:  
+convolution:
   type: conv2d
   params:
     kernel_size: 1
     stride: 1
     padding: 0
-activation: 
+activation:
   type: relu_bn2d
   params:
     inplace: true

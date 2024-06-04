@@ -1,10 +1,11 @@
-import torch
-import omegaconf.omegaconf
 import logging
 import typing
-import toolz
+
 import hydra.utils as hyu
 import numpy as np
+import omegaconf.omegaconf
+import toolz
+import torch
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ def __merge_func__(x):
         return toolz.merge_with(__merge_func__, x)
     elif isinstance(x, list):
         if isinstance(x[0], torch.Tensor):
-              return torch.stack(x)
+            return torch.stack(x)
         elif isinstance(x[0], np.ndarray):
             return torch.stack([torch.from_numpy(x) for x in x])
         else:
@@ -84,8 +85,11 @@ class Windowed(torch.utils.data.Dataset):
         # return size
         size = 0
         for index in range(len(self.dataset)):
-            last_frame_position = index * self.stride + (self.window_size - 1) * self.internal_stride if self.window_size > 1\
+            last_frame_position = (
+                index * self.stride + (self.window_size - 1) * self.internal_stride
+                if self.window_size > 1
                 else index * self.stride + self.internal_stride
+            )
             if last_frame_position >= len(self.dataset):
                 break
             size += 1
@@ -94,8 +98,14 @@ class Windowed(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
         out = toolz.merge_with(
             __merge_func__,
-            [self.dataset[i * self.internal_stride + index * self.stride] for i in range(0, self.window_size)] if self.window_size > 1\
-             else self.dataset[self.internal_stride + index * self.stride],
+            (
+                [
+                    self.dataset[i * self.internal_stride + index * self.stride]
+                    for i in range(0, self.window_size)
+                ]
+                if self.window_size > 1
+                else self.dataset[self.internal_stride + index * self.stride]
+            ),
         )  # NOTE: Check if it is too slow
 
         return out

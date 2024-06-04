@@ -1,16 +1,18 @@
+import torch
+
 from moai.monads.utils.common import dim_list
 
-import torch
 
 class SqRel(torch.nn.Module):
     def __init__(self):
         super(SqRel, self).__init__()
 
-    def forward(self,
-        gt:         torch.Tensor,
-        pred:       torch.Tensor,
-        weights:    torch.Tensor=None,
-        mask:       torch.Tensor=None,
+    def forward(
+        self,
+        gt: torch.Tensor,
+        pred: torch.Tensor,
+        weights: torch.Tensor = None,
+        mask: torch.Tensor = None,
     ) -> torch.Tensor:
         sqrel = ((gt - pred) ** 2) / gt
         if weights is not None:

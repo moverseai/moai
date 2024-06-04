@@ -1,20 +1,23 @@
-from moai.data.datasets.common import load_txt_file
-
-import torch
 import glob
+import logging
 import os
 import typing
-import logging
+
+import torch
+
+from moai.data.datasets.common import load_txt_file
 
 __all__ = ["Txt"]
 
 log = logging.getLogger(__name__)
 
+
 class Txt(torch.utils.data.Dataset):
-    def __init__(self,
-        root:           str='',
+    def __init__(
+        self,
+        root: str = "",
     ):
-        self.files = glob.glob(os.path.join(root, '*.txt'))
+        self.files = glob.glob(os.path.join(root, "*.txt"))
         log.info(f"Loaded {len(self)} .txt files.")
 
     def __len__(self) -> int:

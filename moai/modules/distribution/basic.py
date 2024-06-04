@@ -1,7 +1,9 @@
-import torch
 import logging
-import omegaconf.omegaconf
 import typing
+
+import omegaconf.omegaconf
+import torch
+
 import moai.nn.linear as mil
 
 log = logging.getLogger(__name__)

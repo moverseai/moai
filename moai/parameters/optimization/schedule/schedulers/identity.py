@@ -2,6 +2,7 @@ import torch
 
 __all__ = ["Identity"]
 
+
 class Identity(torch.optim.lr_scheduler.LambdaLR):
     def __init__(self, optimizer, **kwargs):
         unity = lambda epoch: 1

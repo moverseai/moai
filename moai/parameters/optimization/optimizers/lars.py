@@ -1,7 +1,9 @@
-import torch
 import typing
 
-__all__ = ['LARS']
+import torch
+
+__all__ = ["LARS"]
+
 
 class LARS(torch.optim.Optimizer):
     r"""Implements layer-wise adaptive rate scaling for SGD.
@@ -25,30 +27,35 @@ class LARS(torch.optim.Optimizer):
         >>> loss_fn(model(input), target).backward()
         >>> optimizer.step()
     """
-    def __init__(self, 
+
+    def __init__(
+        self,
         params: typing.Iterator[torch.nn.Parameter],
-        #lr=torch.optim.optimizer.required,
+        # lr=torch.optim.optimizer.required,
         lr=None,
-        momentum: float=0.9,
-        weight_decay: float=.0005,
-        eta: float=0.001,
-        max_epoch: int=200
+        momentum: float = 0.9,
+        weight_decay: float = 0.0005,
+        eta: float = 0.001,
+        max_epoch: int = 200,
     ):
-        #if lr is not torch.optim.optimizer.required and lr < 0.0:
+        # if lr is not torch.optim.optimizer.required and lr < 0.0:
         if lr is not None and lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if momentum < 0.0:
             raise ValueError("Invalid momentum value: {}".format(momentum))
         if weight_decay < 0.0:
-            raise ValueError("Invalid weight_decay value: {}"
-                             .format(weight_decay))
+            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
         if eta < 0.0:
             raise ValueError("Invalid LARS coefficient value: {}".format(eta))
 
         self.epoch = 0
-        defaults = dict(lr=lr, momentum=momentum,
-                        weight_decay=weight_decay,
-                        eta=eta, max_epoch=max_epoch)
+        defaults = dict(
+            lr=lr,
+            momentum=momentum,
+            weight_decay=weight_decay,
+            eta=eta,
+            max_epoch=max_epoch,
+        )
         super(LARS, self).__init__(params, defaults)
 
     def step(self, epoch=None, closure=None):
@@ -69,13 +76,13 @@ class LARS(torch.optim.Optimizer):
             self.epoch += 1
 
         for group in self.param_groups:
-            weight_decay = group['weight_decay']
-            momentum = group['momentum']
-            eta = group['eta']
-            lr = group['lr']
-            max_epoch = group['max_epoch']
+            weight_decay = group["weight_decay"]
+            momentum = group["momentum"]
+            eta = group["eta"]
+            lr = group["lr"]
+            max_epoch = group["max_epoch"]
 
-            for p in group['params']:
+            for p in group["params"]:
                 if p.grad is None:
                     continue
 
@@ -90,17 +97,15 @@ class LARS(torch.optim.Optimizer):
                 global_lr = lr * decay
 
                 # Compute local learning rate for this layer
-                local_lr = eta * weight_norm / \
-                    (grad_norm + weight_decay * weight_norm)
+                local_lr = eta * weight_norm / (grad_norm + weight_decay * weight_norm)
 
                 # Update the momentum term
                 actual_lr = local_lr * global_lr
 
-                if 'momentum_buffer' not in param_state:
-                    buf = param_state['momentum_buffer'] = \
-                            torch.zeros_like(p.data)
+                if "momentum_buffer" not in param_state:
+                    buf = param_state["momentum_buffer"] = torch.zeros_like(p.data)
                 else:
-                    buf = param_state['momentum_buffer']
+                    buf = param_state["momentum_buffer"]
                 buf.mul_(momentum).add_(actual_lr, d_p + weight_decay * p.data)
                 p.data.add_(-buf)
 

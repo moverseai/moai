@@ -1,10 +1,11 @@
-import torch
-
 import logging
+
+import torch
 
 log = logging.getLogger(__name__)
 
 __all__ = ["Default"]
+
 
 class Default(object):
     def __init__(self, **kwargs):
@@ -13,4 +14,3 @@ class Default(object):
     def __call__(self, model: torch.nn.Module) -> None:
         log.info(f"Initializing model with default parameters")
         pass
-        

@@ -3,7 +3,7 @@
 _target_: moai.validation.torchmetric.ClassificationTorchMetric
 type: MulticlassAUROC
 num_classes: 10 #TODO: switch to ???
-average: 'macro'
+average: "macro"
 thresholds: null
-ignore_index: null 
+ignore_index: null
 validate_args: True

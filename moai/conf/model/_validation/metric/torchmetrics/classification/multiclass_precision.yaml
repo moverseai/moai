@@ -1,8 +1,0 @@
-# @package model.validation.metrics.multiclass_precision
-
-_target_: torchmetrics.classification.MulticlassAveragePrecision
-num_classes: 10
-average: 'macro'
-thresholds: null
-ignore_index: null 
-validate_args: True

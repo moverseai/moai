@@ -1,10 +1,11 @@
-import torch
 import numpy as np
+import torch
 
 __all__ = [
-    'VPoser_v2',
-    'VPoser_v1',
+    "VPoser_v2",
+    "VPoser_v1",
 ]
+
 
 def _rotation_matrix_to_quaternion(rotation_matrix, eps=1e-6):
     """Convert 3x4 rotation matrix to 4d quaternion vector
@@ -27,17 +28,22 @@ def _rotation_matrix_to_quaternion(rotation_matrix, eps=1e-6):
         >>> output = tgm.rotation_matrix_to_quaternion(input)  # Nx4
     """
     if not torch.is_tensor(rotation_matrix):
-        raise TypeError("Input type is not a torch.Tensor. Got {}".format(
-            type(rotation_matrix)))
+        raise TypeError(
+            "Input type is not a torch.Tensor. Got {}".format(type(rotation_matrix))
+        )
 
     if len(rotation_matrix.shape) > 3:
         raise ValueError(
             "Input size must be a three dimensional tensor. Got {}".format(
-                rotation_matrix.shape))
+                rotation_matrix.shape
+            )
+        )
     if not rotation_matrix.shape[-2:] == (3, 4):
         raise ValueError(
             "Input size must be a N x 3 x 4  tensor. Got {}".format(
-                rotation_matrix.shape))
+                rotation_matrix.shape
+            )
+        )
 
     rmat_t = torch.transpose(rotation_matrix, 1, 2)
 
@@ -47,27 +53,51 @@ def _rotation_matrix_to_quaternion(rotation_matrix, eps=1e-6):
     mask_d0_nd1 = rmat_t[:, 0, 0] < -rmat_t[:, 1, 1]
 
     t0 = 1 + rmat_t[:, 0, 0] - rmat_t[:, 1, 1] - rmat_t[:, 2, 2]
-    q0 = torch.stack([rmat_t[:, 1, 2] - rmat_t[:, 2, 1],
-                      t0, rmat_t[:, 0, 1] + rmat_t[:, 1, 0],
-                      rmat_t[:, 2, 0] + rmat_t[:, 0, 2]], -1)
+    q0 = torch.stack(
+        [
+            rmat_t[:, 1, 2] - rmat_t[:, 2, 1],
+            t0,
+            rmat_t[:, 0, 1] + rmat_t[:, 1, 0],
+            rmat_t[:, 2, 0] + rmat_t[:, 0, 2],
+        ],
+        -1,
+    )
     t0_rep = t0.repeat(4, 1).t()
 
     t1 = 1 - rmat_t[:, 0, 0] + rmat_t[:, 1, 1] - rmat_t[:, 2, 2]
-    q1 = torch.stack([rmat_t[:, 2, 0] - rmat_t[:, 0, 2],
-                      rmat_t[:, 0, 1] + rmat_t[:, 1, 0],
-                      t1, rmat_t[:, 1, 2] + rmat_t[:, 2, 1]], -1)
+    q1 = torch.stack(
+        [
+            rmat_t[:, 2, 0] - rmat_t[:, 0, 2],
+            rmat_t[:, 0, 1] + rmat_t[:, 1, 0],
+            t1,
+            rmat_t[:, 1, 2] + rmat_t[:, 2, 1],
+        ],
+        -1,
+    )
     t1_rep = t1.repeat(4, 1).t()
 
     t2 = 1 - rmat_t[:, 0, 0] - rmat_t[:, 1, 1] + rmat_t[:, 2, 2]
-    q2 = torch.stack([rmat_t[:, 0, 1] - rmat_t[:, 1, 0],
-                      rmat_t[:, 2, 0] + rmat_t[:, 0, 2],
-                      rmat_t[:, 1, 2] + rmat_t[:, 2, 1], t2], -1)
+    q2 = torch.stack(
+        [
+            rmat_t[:, 0, 1] - rmat_t[:, 1, 0],
+            rmat_t[:, 2, 0] + rmat_t[:, 0, 2],
+            rmat_t[:, 1, 2] + rmat_t[:, 2, 1],
+            t2,
+        ],
+        -1,
+    )
     t2_rep = t2.repeat(4, 1).t()
 
     t3 = 1 + rmat_t[:, 0, 0] + rmat_t[:, 1, 1] + rmat_t[:, 2, 2]
-    q3 = torch.stack([t3, rmat_t[:, 1, 2] - rmat_t[:, 2, 1],
-                      rmat_t[:, 2, 0] - rmat_t[:, 0, 2],
-                      rmat_t[:, 0, 1] - rmat_t[:, 1, 0]], -1)
+    q3 = torch.stack(
+        [
+            t3,
+            rmat_t[:, 1, 2] - rmat_t[:, 2, 1],
+            rmat_t[:, 2, 0] - rmat_t[:, 0, 2],
+            rmat_t[:, 0, 1] - rmat_t[:, 1, 0],
+        ],
+        -1,
+    )
     t3_rep = t3.repeat(4, 1).t()
 
     mask_c0 = mask_d2 * mask_d0_d1
@@ -80,10 +110,15 @@ def _rotation_matrix_to_quaternion(rotation_matrix, eps=1e-6):
     mask_c3 = mask_c3.view(-1, 1).type_as(q3)
 
     q = q0 * mask_c0 + q1 * mask_c1 + q2 * mask_c2 + q3 * mask_c3
-    q /= torch.sqrt(t0_rep * mask_c0 + t1_rep * mask_c1 +  # noqa
-                    t2_rep * mask_c2 + t3_rep * mask_c3)  # noqa
+    q /= torch.sqrt(
+        t0_rep * mask_c0
+        + t1_rep * mask_c1  # noqa
+        + t2_rep * mask_c2
+        + t3_rep * mask_c3
+    )  # noqa
     q *= 0.5
     return q
+
 
 def _quaternion_to_angle_axis(quaternion) -> torch.Tensor:
     """Convert quaternion vector to angle axis of rotation.
@@ -105,12 +140,14 @@ def _quaternion_to_angle_axis(quaternion) -> torch.Tensor:
         >>> angle_axis = tgm.quaternion_to_angle_axis(quaternion)  # Nx3
     """
     if not torch.is_tensor(quaternion):
-        raise TypeError("Input type is not a torch.Tensor. Got {}".format(
-            type(quaternion)))
+        raise TypeError(
+            "Input type is not a torch.Tensor. Got {}".format(type(quaternion))
+        )
 
     if not quaternion.shape[-1] == 4:
-        raise ValueError("Input must be a tensor of shape Nx4 or 4. Got {}"
-                         .format(quaternion.shape))
+        raise ValueError(
+            "Input must be a tensor of shape Nx4 or 4. Got {}".format(quaternion.shape)
+        )
     # unpack input and compute conversion
     q1 = quaternion[..., 1]
     q2 = quaternion[..., 2]
@@ -122,7 +159,8 @@ def _quaternion_to_angle_axis(quaternion) -> torch.Tensor:
     two_theta = 2.0 * torch.where(
         cos_theta < 0.0,
         torch.atan2(-sin_theta, -cos_theta),
-        torch.atan2(sin_theta, cos_theta))
+        torch.atan2(sin_theta, cos_theta),
+    )
 
     k_pos = two_theta / sin_theta
     k_neg = 2.0 * torch.ones_like(sin_theta)
@@ -133,6 +171,7 @@ def _quaternion_to_angle_axis(quaternion) -> torch.Tensor:
     angle_axis[..., 1] += q2 * k
     angle_axis[..., 2] += q3 * k
     return angle_axis
+
 
 def _rotation_matrix_to_angle_axis(rotation_matrix):
     """Convert 3x4 rotation matrix to Rodrigues vector
@@ -155,15 +194,17 @@ def _rotation_matrix_to_angle_axis(rotation_matrix):
     quaternion = _rotation_matrix_to_quaternion(rotation_matrix)
     return _quaternion_to_angle_axis(quaternion)
 
+
 def _matrot2aa(pose_matrot):
-    '''
+    """
     :param pose_matrot: Nx3x3
     :return: Nx3
-    '''
+    """
     bs = pose_matrot.size(0)
-    homogen_matrot = torch.nn.functional.pad(pose_matrot, [0,1])
+    homogen_matrot = torch.nn.functional.pad(pose_matrot, [0, 1])
     pose = _rotation_matrix_to_angle_axis(homogen_matrot)
     return pose
+
 
 class BatchFlatten(torch.nn.Module):
     def __init__(self):
@@ -171,6 +212,7 @@ class BatchFlatten(torch.nn.Module):
 
     def forward(self, x):
         return x.view(x.shape[0], -1)
+
 
 class ContinousRotReprDecoder(torch.nn.Module):
     def __init__(self):
@@ -181,11 +223,11 @@ class ContinousRotReprDecoder(torch.nn.Module):
         b1 = torch.nn.functional.normalize(reshaped_input[:, :, 0], dim=1)
         dot_prod = torch.sum(b1 * reshaped_input[:, :, 1], dim=1, keepdim=True)
         b2 = torch.nn.functional.normalize(
-            reshaped_input[:, :, 1] - dot_prod * b1,
-            dim=-1
+            reshaped_input[:, :, 1] - dot_prod * b1, dim=-1
         )
         b3 = torch.cross(b1, b2, dim=1)
         return torch.stack([b1, b2, b3], dim=-1)
+
 
 class NormalDistDecoder(torch.nn.Module):
     def __init__(self, num_feat_in, latentD):
@@ -195,15 +237,17 @@ class NormalDistDecoder(torch.nn.Module):
 
     def forward(self, Xout):
         return torch.distributions.normal.Normal(
-            self.mu(Xout), 
-            torch.nn.functional.softplus(self.logvar(Xout))
+            self.mu(Xout), torch.nn.functional.softplus(self.logvar(Xout))
         )
-        
+
+
 class VPoser_v2(torch.nn.Module):
     def __init__(self, model_ps):
         super(VPoser_v2, self).__init__()
-        num_neurons, self.latentD = model_ps.model_params.num_neurons,\
-            model_ps.model_params.latentD
+        num_neurons, self.latentD = (
+            model_ps.model_params.num_neurons,
+            model_ps.model_params.latentD,
+        )
         self.num_joints = 21
         n_features = self.num_joints * 3
         self.encoder_net = torch.nn.Sequential(
@@ -215,7 +259,7 @@ class VPoser_v2(torch.nn.Module):
             torch.nn.Dropout(0.1),
             torch.nn.Linear(num_neurons, num_neurons),
             torch.nn.Linear(num_neurons, num_neurons),
-            NormalDistDecoder(num_neurons, self.latentD)
+            NormalDistDecoder(num_neurons, self.latentD),
         )
         self.decoder_net = torch.nn.Sequential(
             torch.nn.Linear(self.latentD, num_neurons),
@@ -228,35 +272,33 @@ class VPoser_v2(torch.nn.Module):
         )
 
     def encode(self, pose_body):
-        '''
+        """
         :param Pin: Nx(numjoints*3)
         :param rep_type: 'matrot'/'aa' for matrix rotations or axis-angle
         :return:
-        '''
+        """
         return self.encoder_net(pose_body)
 
     def decode(self, Zin):
         bs = Zin.shape[0]
         prec = self.decoder_net(Zin)
         return {
-            'pose_body': _matrot2aa(prec.view(-1, 3, 3)).view(bs, -1, 3),
-            'pose_body_matrot': prec.view(bs, -1, 9)
+            "pose_body": _matrot2aa(prec.view(-1, 3, 3)).view(bs, -1, 3),
+            "pose_body_matrot": prec.view(bs, -1, 9),
         }
 
     def forward(self, pose_body):
-        '''
+        """
         :param Pin: aa: Nx1xnum_jointsx3 / matrot: Nx1xnum_jointsx9
         :param input_type: matrot / aa for matrix rotations or axis angles
         :param output_type: matrot / aa
         :return:
-        '''
+        """
         q_z = self.encode(pose_body)
         q_z_sample = q_z.rsample()
         decode_results = self.decode(q_z_sample)
-        decode_results.update({
-            'poZ_body_mean': q_z.mean,
-            'poZ_body_std': q_z.scale,
-            'q_z': q_z}
+        decode_results.update(
+            {"poZ_body_mean": q_z.mean, "poZ_body_std": q_z.scale, "q_z": q_z}
         )
         return decode_results
 
@@ -267,10 +309,13 @@ class VPoser_v2(torch.nn.Module):
         device = some_weight.device
         self.eval()
         with torch.no_grad():
-            Zgen = torch.tensor(np.random.normal(
-                0., 1., size=(num_poses, self.latentD)
-            ), dtype=dtype, device=device)
+            Zgen = torch.tensor(
+                np.random.normal(0.0, 1.0, size=(num_poses, self.latentD)),
+                dtype=dtype,
+                device=device,
+            )
         return self.decode(Zgen)
+
 
 class VPoser_v1(torch.nn.Module):
     def __init__(self, num_neurons, latentD, data_shape, use_cont_repr=True):
@@ -288,7 +333,7 @@ class VPoser_v1(torch.nn.Module):
         self.bodyprior_enc_fc2 = torch.nn.Linear(num_neurons, num_neurons)
         self.bodyprior_enc_mu = torch.nn.Linear(num_neurons, latentD)
         self.bodyprior_enc_logvar = torch.nn.Linear(num_neurons, latentD)
-        self.dropout = torch.nn.Dropout(p=.1, inplace=False)
+        self.dropout = torch.nn.Dropout(p=0.1, inplace=False)
 
         self.bodyprior_dec_fc1 = torch.nn.Linear(latentD, num_neurons)
         self.bodyprior_dec_fc2 = torch.nn.Linear(num_neurons, num_neurons)
@@ -296,33 +341,41 @@ class VPoser_v1(torch.nn.Module):
         if self.use_cont_repr:
             self.rot_decoder = ContinousRotReprDecoder()
 
-        self.bodyprior_dec_out = torch.nn.Linear(num_neurons, self.num_joints* 6)
+        self.bodyprior_dec_out = torch.nn.Linear(num_neurons, self.num_joints * 6)
 
     def encode(self, Pin):
-        '''
+        """
 
         :param Pin: Nx(numjoints*3)
         :param rep_type: 'matrot'/'aa' for matrix rotations or axis-angle
         :return:
-        '''
+        """
         Xout = Pin.view(Pin.size(0), -1)  # flatten input
         Xout = self.bodyprior_enc_bn1(Xout)
 
-        Xout = torch.nn.functional.leaky_relu(self.bodyprior_enc_fc1(Xout), negative_slope=.2)
+        Xout = torch.nn.functional.leaky_relu(
+            self.bodyprior_enc_fc1(Xout), negative_slope=0.2
+        )
         Xout = self.bodyprior_enc_bn2(Xout)
         Xout = self.dropout(Xout)
-        Xout = torch.nn.functional.leaky_relu(self.bodyprior_enc_fc2(Xout), negative_slope=.2)
+        Xout = torch.nn.functional.leaky_relu(
+            self.bodyprior_enc_fc2(Xout), negative_slope=0.2
+        )
         return torch.distributions.normal.Normal(
-            self.bodyprior_enc_mu(Xout), 
-            torch.nn.functional.softplus(self.bodyprior_enc_logvar(Xout))
+            self.bodyprior_enc_mu(Xout),
+            torch.nn.functional.softplus(self.bodyprior_enc_logvar(Xout)),
         )
 
-    def decode(self, Zin, output_type='matrot'):
-        assert output_type in ['matrot', 'aa']
+    def decode(self, Zin, output_type="matrot"):
+        assert output_type in ["matrot", "aa"]
 
-        Xout = torch.nn.functional.leaky_relu(self.bodyprior_dec_fc1(Zin), negative_slope=.2)
+        Xout = torch.nn.functional.leaky_relu(
+            self.bodyprior_dec_fc1(Zin), negative_slope=0.2
+        )
         Xout = self.dropout(Xout)
-        Xout = torch.nn.functional.leaky_relu(self.bodyprior_dec_fc2(Xout), negative_slope=.2)
+        Xout = torch.nn.functional.leaky_relu(
+            self.bodyprior_dec_fc2(Xout), negative_slope=0.2
+        )
         Xout = self.bodyprior_dec_out(Xout)
         if self.use_cont_repr:
             Xout = self.rot_decoder(Xout)
@@ -331,35 +384,40 @@ class VPoser_v1(torch.nn.Module):
 
         Xout = Xout.view([-1, 1, self.num_joints, 9])
         bs = Zin.shape[0]
-        if output_type == 'aa': return _matrot2aa(Xout.view(-1, 3, 3)).view(bs, -1, 3)
+        if output_type == "aa":
+            return _matrot2aa(Xout.view(-1, 3, 3)).view(bs, -1, 3)
         return Xout
 
-    def forward(self, Pin, input_type='matrot', output_type='matrot'):
-        '''
+    def forward(self, Pin, input_type="matrot", output_type="matrot"):
+        """
 
         :param Pin: aa: Nx1xnum_jointsx3 / matrot: Nx1xnum_jointsx9
         :param input_type: matrot / aa for matrix rotations or axis angles
         :param output_type: matrot / aa
         :return:
-        '''
-        assert output_type in ['matrot', 'aa']
+        """
+        assert output_type in ["matrot", "aa"]
         # if input_type == 'aa': Pin = VPoser.aa2matrot(Pin)
         # if Pin.size(3) == 3: Pin = VPoser.aa2matrot(Pin)
         q_z = self.encode(Pin)
         q_z_sample = q_z.rsample()
         Prec = self.decode(q_z_sample)
 
-        results = {'mean':q_z.mean, 'std':q_z.scale}
+        results = {"mean": q_z.mean, "std": q_z.scale}
         bs = Pin.shape[0]
-        if output_type == 'aa': results['pose_aa'] = _matrot2aa(Prec.view(-1, 3, 3)).view(bs, -1, 3)
-        else: results['pose_matrot'] = Prec
+        if output_type == "aa":
+            results["pose_aa"] = _matrot2aa(Prec.view(-1, 3, 3)).view(bs, -1, 3)
+        else:
+            results["pose_matrot"] = Prec
         return results
 
-    def sample_poses(self, num_poses, output_type='aa', seed=None):
+    def sample_poses(self, num_poses, output_type="aa", seed=None):
         np.random.seed(seed)
         dtype = self.bodyprior_dec_fc1.weight.dtype
         device = self.bodyprior_dec_fc1.weight.device
         self.eval()
         with torch.no_grad():
-            Zgen = torch.tensor(np.random.normal(0., 1., size=(num_poses, self.latentD)), dtype=dtype).to(device)
+            Zgen = torch.tensor(
+                np.random.normal(0.0, 1.0, size=(num_poses, self.latentD)), dtype=dtype
+            ).to(device)
         return self.decode(Zgen, output_type=output_type)

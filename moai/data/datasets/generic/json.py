@@ -1,11 +1,12 @@
-from moai.data.datasets.common import load_json_file
-
-import torch
 import glob
+import logging
 import os
 import typing
-import logging
+
 import toolz
+import torch
+
+from moai.data.datasets.common import load_json_file
 
 __all__ = ["Json"]
 

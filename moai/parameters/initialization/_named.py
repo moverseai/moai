@@ -1,35 +1,39 @@
-from moai.parameters.initialization import Cascade
-from moai.utils.torch import get_submodule
+import logging
 
-import torch
 import omegaconf.omegaconf
 import toolz
-import logging
+import torch
+
+from moai.parameters.initialization import Cascade
+from moai.utils.torch import get_submodule
 
 log = logging.getLogger(__name__)
 
 __all__ = ["Named"]
 
+
 class Named(Cascade):
-    def __init__(self,         
-        schemes: omegaconf.DictConfig={},
-        modules: omegaconf.DictConfig={},        
+    def __init__(
+        self,
+        schemes: omegaconf.DictConfig = {},
+        modules: omegaconf.DictConfig = {},
     ):
         super(Named, self).__init__(schemes)
         self.inits = modules
 
-    def __call__(self,
-        module: torch.nn.Module
-    ) -> None:
+    def __call__(self, module: torch.nn.Module) -> None:
         found = []
         for k, v in self.inits.items():
             m = get_submodule(module, k)
             if m is not None:
                 found += [k]
-                log.info(f"Initializing {k} from {v.ckpt} " + ("strictly." if v.strict else "relaxed."))
+                log.info(
+                    f"Initializing {k} from {v.ckpt} "
+                    + ("strictly." if v.strict else "relaxed.")
+                )
                 data = torch.load(v.ckpt, map_location=lambda s, l: s)
                 if v.source:
-                    split = v.source.split('.')
+                    split = v.source.split(".")
                     data = toolz.get_in(split, data) or data
                 if v.replace:
                     for src, tgt in v.replace.items():

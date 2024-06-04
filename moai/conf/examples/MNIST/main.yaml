@@ -15,7 +15,7 @@ defaults:
   # - data/val/iterator: indexed
   - data/val/augmentation: none
   - data/val/dataset/torchvision: [mnist, mnist_2]
-  
+
   - data/test/loader: torch
   # - data/test/iterator: indexed
   - data/test/augmentation: none
@@ -56,6 +56,6 @@ defaults:
   - objective
   - processes_flow
 
-  ###### HYDRA  
+  ###### HYDRA
   - override hydra/hydra_logging: moai # colorlog
   - override hydra/job_logging: moai # colorlog

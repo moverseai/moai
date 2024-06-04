@@ -1,9 +1,6 @@
-from moai.serve.handlers.azure.blob import (
-    AzureBlobInputHandler,
-    AzureBlobOutputHandler,
-)
+from moai.serve.handlers.azure.blob import AzureBlobInputHandler, AzureBlobOutputHandler
 
 __all__ = [
-    'AzureBlobInputHandler',
-    'AzureBlobOutputHandler',
+    "AzureBlobInputHandler",
+    "AzureBlobOutputHandler",
 ]

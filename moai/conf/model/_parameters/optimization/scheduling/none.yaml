@@ -1,3 +1,0 @@
-# @package model.parameters.schedule
-
-_target_: moai.parameters.optimization.schedule.NoOp

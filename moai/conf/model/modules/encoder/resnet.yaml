@@ -8,7 +8,7 @@ preproc:
   block:
     count: 2
     type: conv2d
-  convolution: 
+  convolution:
     type: conv2d
     params:
       kernel_size: [7, 5]

@@ -1,12 +1,16 @@
 from typing import Iterable, Optional
+
 try:
-    from pytorch_soo.quasi_newton import QuasiNewton, QuasiNewtonTrust, TrustRegionSpec
     import pytorch_soo.matrix_free_operators as matrix_ops
     from pytorch_soo.line_search_spec import LineSearchSpec
+    from pytorch_soo.quasi_newton import QuasiNewton, QuasiNewtonTrust, TrustRegionSpec
     from pytorch_soo.solvers import ConjugateResidual
 except ImportError:
-    print("Please install pytorch_soo(https://github.com/pnnl/pytorch_soo) to use this module.")
+    print(
+        "Please install pytorch_soo(https://github.com/pnnl/pytorch_soo) to use this module."
+    )
 import toolz
+
 
 class SymmetricRankOne(QuasiNewton):
     """
@@ -26,11 +30,12 @@ class SymmetricRankOne(QuasiNewton):
         line_search: Optional[LineSearchSpec] = None,
     ):
         if isinstance(toolz.first(params), dict) and len(params) > 1:
-            params = list(toolz.mapcat(lambda g: list(g),
+            params = list(
                 toolz.mapcat(
-                    lambda d: list(v for v in d.values()), 
-                params)
-            ))
+                    lambda g: list(g),
+                    toolz.mapcat(lambda d: list(v for v in d.values()), params),
+                )
+            )
         super().__init__(
             params,
             lr=lr,
@@ -44,6 +49,7 @@ class SymmetricRankOne(QuasiNewton):
         )
         self.mf_op = matrix_ops.SymmetricRankOne(lambda p: p, n=matrix_free_memory)
         self.solver = ConjugateResidual(max_krylov, krylov_tol)
+
 
 class SymmetricRankOneTrust(QuasiNewtonTrust):
     def __init__(

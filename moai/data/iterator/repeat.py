@@ -1,7 +1,8 @@
-import torch
-import omegaconf.omegaconf
-import hydra.utils as hyu
 import logging
+
+import hydra.utils as hyu
+import omegaconf.omegaconf
+import torch
 
 log = logging.getLogger(__name__)
 

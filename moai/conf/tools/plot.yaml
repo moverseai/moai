@@ -1,5 +1,5 @@
 defaults:
-  ###### HYDRA  
+  ###### HYDRA
   - hydra/job_logging: colorlog
   - hydra/hydra_logging: colorlog
 
@@ -10,18 +10,18 @@ hydra:
       handlers: []
     formatters:
       colorlog:
-        format: '[%(purple)sHYDRA%(reset)s] %(message)s'
-  
+        format: "[%(purple)sHYDRA%(reset)s] %(message)s"
+
   job_logging:
     formatters:
       simple:
-        format: '[%(levelname)s] - %(message)s'
+        format: "[%(levelname)s] - %(message)s"
       colorlog:
-        format: '%(log_color)s%(message)s'
+        format: "%(log_color)s%(message)s"
 
 filter:
   date:
-    start: 
+    start:
       day: one week ago # yesterday
       time: null
     end:
@@ -36,7 +36,7 @@ losses: true
 optimizer: true
 
 metrics: true
-metrics_options:   
+metrics_options:
   epoch_mode: range # one of [all, best, range]
   epoch_value: [50, 400] # range of epochs or a single epoch
 
@@ -46,5 +46,3 @@ monads: true
 #     - center_of_mass
 #   value:
 #     isotropic_gaussian: std
-
-    

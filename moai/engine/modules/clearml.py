@@ -8,21 +8,23 @@ __CLEARML_TASK__ = None
 
 try:
     import clearml
+
     __HAS_CLEAR_ML__ = True
 except:
     log.error(f"Please `pip install clearml` to use the ClearML engine module.")
 
-__all__ = ['ClearML']
+__all__ = ["ClearML"]
+
 
 def _init_task(
-    project_name:       str,
-    task_name:          str,
-    uri:                typing.Optional[str]=None,
-    tags:               typing.Optional[typing.Union[str, typing.Sequence[str]]]=None,
-    connect_args:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=True,
-    connect_libs:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=False,
-    connect_res:        typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=True,
-    continue_last_task: typing.Union[bool,str]=False,
+    project_name: str,
+    task_name: str,
+    uri: typing.Optional[str] = None,
+    tags: typing.Optional[typing.Union[str, typing.Sequence[str]]] = None,
+    connect_args: typing.Optional[typing.Union[bool, typing.Dict[str, bool]]] = True,
+    connect_libs: typing.Optional[typing.Union[bool, typing.Dict[str, bool]]] = False,
+    connect_res: typing.Optional[typing.Union[bool, typing.Dict[str, bool]]] = True,
+    continue_last_task: typing.Union[bool, str] = False,
     # connect_logs:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
 ) -> None:
     global __CLEARML_TASK__
@@ -37,57 +39,81 @@ def _init_task(
             auto_connect_arg_parser=connect_args,
             # auto_connect_frameworks=connect_libs,
             auto_connect_frameworks={
-                'matplotlib': False, 'tensorflow': False,
-                'tensorboard': True, 'pytorch': connect_libs,
-                'xgboost': False, 'scikit': False, 'fastai': False,
-                'lightgbm': False, 'hydra': True, 'detect_repository': True,
-                'tfdefines': False, 'joblib': False, 'megengine': False,
-                'catboost': False,
+                "matplotlib": False,
+                "tensorflow": False,
+                "tensorboard": True,
+                "pytorch": connect_libs,
+                "xgboost": False,
+                "scikit": False,
+                "fastai": False,
+                "lightgbm": False,
+                "hydra": True,
+                "detect_repository": True,
+                "tfdefines": False,
+                "joblib": False,
+                "megengine": False,
+                "catboost": False,
             },
             auto_resource_monitoring=connect_res,
             # auto_connect_streams=connect_logs,
             auto_connect_streams={
-                'stdout': False, 'stderr': False, 'logging': True,
+                "stdout": False,
+                "stderr": False,
+                "logging": True,
             },
             deferred_init=False,
         )
         if tags:
             __CLEARML_TASK__.add_tags(list(tags))
-        __CLEARML_TASK__.connect_configuration("config_resolved.yaml", name='hydra')
+        __CLEARML_TASK__.connect_configuration("config_resolved.yaml", name="hydra")
     return __CLEARML_TASK__
 
 
 def _get_project_name() -> str:
     return __CLEARML_TASK__.get_project_name()
 
+
 def _get_task_name() -> str:
     return __CLEARML_TASK__.name
+
 
 def _get_logger() -> clearml.Logger:
     global __CLEARML_TASK__
     if __CLEARML_TASK__ is None:
-        log.error("You are requesting to log " 
-        "results in clearml, but without including clearml in your project!"
-        "\nAdd the following line in your main config: "
-        " \'-engine/modules: clearml\'"
+        log.error(
+            "You are requesting to log "
+            "results in clearml, but without including clearml in your project!"
+            "\nAdd the following line in your main config: "
+            " '-engine/modules: clearml'"
         )
-        #_init_task(project_name, task_name, uri, tags)
+        # _init_task(project_name, task_name, uri, tags)
     return __CLEARML_TASK__.get_logger()
 
+
 class ClearML(object):
-    def __init__(self,
-        project_name:       str,
-        task_name:          str,
-        uri:                typing.Optional[str]=None,
-        tags:               typing.Optional[typing.Union[str, typing.Sequence[str]]]=None,
-        connect_args:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
-        connect_libs:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
-        connect_res:        typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
-        continue_last_task: typing.Union[bool,str]=False,
+    def __init__(
+        self,
+        project_name: str,
+        task_name: str,
+        uri: typing.Optional[str] = None,
+        tags: typing.Optional[typing.Union[str, typing.Sequence[str]]] = None,
+        connect_args: typing.Optional[
+            typing.Union[bool, typing.Dict[str, bool]]
+        ] = None,
+        connect_libs: typing.Optional[
+            typing.Union[bool, typing.Dict[str, bool]]
+        ] = None,
+        connect_res: typing.Optional[typing.Union[bool, typing.Dict[str, bool]]] = None,
+        continue_last_task: typing.Union[bool, str] = False,
         # connect_logs:       typing.Optional[typing.Union[bool, typing.Dict[str, bool]]]=None,
-    ) -> None:       
+    ) -> None:
         _init_task(
-            project_name, task_name, uri, tags, 
-            connect_args, connect_libs, connect_res,
-            continue_last_task
+            project_name,
+            task_name,
+            uri,
+            tags,
+            connect_args,
+            connect_libs,
+            connect_res,
+            continue_last_task,
         )

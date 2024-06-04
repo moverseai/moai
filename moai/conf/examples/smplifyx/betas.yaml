@@ -1,7 +1,7 @@
 # @package model.monads.betas
 
 _target_: moai.monads.generation.tensor.Parameter
-shape: 
+shape:
   - ${data.train.loader.batch_size}
   - ${BETAS}
 init: zeros

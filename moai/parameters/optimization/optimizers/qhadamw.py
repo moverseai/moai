@@ -3,12 +3,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch
 import typing
 
-__all__ = ['QHAdamW']
+import torch
 
-#NOTE: modified from https://github.com/iprally/qhadamw-pytorch
+__all__ = ["QHAdamW"]
+
+# NOTE: modified from https://github.com/iprally/qhadamw-pytorch
+
 
 class QHAdamW(torch.optim.Optimizer):
     r"""Combines the weight decay decoupling from AdamW with QHAdam:
@@ -50,13 +52,14 @@ class QHAdamW(torch.optim.Optimizer):
     .. _`(Loshchilov and Hutter, 2019)`: https://arxiv.org/abs/1711.05101
     """
 
-    def __init__(self, 
-        params: typing.Iterator[torch.nn.Parameter], 
-        lr: float=1e-3, 
-        betas: typing.Tuple[float, float]=(0.995, 0.999), 
-        nus: typing.Tuple[float, float]=(0.7, 1.0), 
-        weight_decay: float=0.0,
-        eps: float=1e-8,
+    def __init__(
+        self,
+        params: typing.Iterator[torch.nn.Parameter],
+        lr: float = 1e-3,
+        betas: typing.Tuple[float, float] = (0.995, 0.999),
+        nus: typing.Tuple[float, float] = (0.7, 1.0),
+        weight_decay: float = 0.0,
+        eps: float = 1e-8,
     ):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
@@ -69,7 +72,13 @@ class QHAdamW(torch.optim.Optimizer):
         if weight_decay < 0.0:
             raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
 
-        defaults = {"lr": lr, "betas": betas, "nus": nus, "weight_decay": weight_decay, "eps": eps}
+        defaults = {
+            "lr": lr,
+            "betas": betas,
+            "nus": nus,
+            "weight_decay": weight_decay,
+            "eps": eps,
+        }
         super(QHAdamW, self).__init__(params, defaults)
 
     def step(self, closure=None):

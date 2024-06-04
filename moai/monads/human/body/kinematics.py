@@ -1,6 +1,6 @@
-import torch
-
 import typing
+
+import torch
 
 
 class FK(torch.nn.Module):

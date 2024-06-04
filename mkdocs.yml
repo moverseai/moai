@@ -5,17 +5,17 @@ site_url: https://github.com/moverseai/moai
 theme:
   name: material
   palette:
-  - scheme: default
-    toggle:
-      icon: material/lightbulb-outline
-      name: Switch to light mode
-  - scheme: slate
-    toggle:
-      icon: material/lightbulb
-      name: Switch to dark mode
+    - scheme: default
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to light mode
+    - scheme: slate
+      toggle:
+        icon: material/lightbulb
+        name: Switch to dark mode
   features:
-  - search.suggest
-  - search.highlight
+    - search.suggest
+    - search.highlight
   icon:
     repo: fontawesome/brands/github-alt
   # logo: img/icon-white.svg
@@ -23,48 +23,48 @@ theme:
   language: en
 repo_name: moverseai/moai
 repo_url: https://github.com/moverseai/moai
-edit_uri: ''
+edit_uri: ""
 google_analytics:
-- UA-147231916-1
-- auto
+  - UA-147231916-1
+  - auto
 
 plugins:
   - search
   - mkdocstrings:
-        default_handler: python
-        handlers:
-            python:
-                selection:
-                    members: true
-                rendering:
-                    show_source: false
-                    show_if_no_docstring: false
-                    heading_level: 3
-                    show_root_heading: false
-                    show_root_toc_entry: false
-                    show_root_full_path: false
-                    show_object_full_path: false
-                    show_category_heading: false
-                    group_by_category: false
-        watch:
-            - moai            
-  
+      default_handler: python
+      handlers:
+        python:
+          selection:
+            members: true
+          rendering:
+            show_source: false
+            show_if_no_docstring: false
+            heading_level: 3
+            show_root_heading: false
+            show_root_toc_entry: false
+            show_root_full_path: false
+            show_object_full_path: false
+            show_category_heading: false
+            group_by_category: false
+      watch:
+        - moai
+
 markdown_extensions:
   - toc:
-      permalink: true
+    permalink: true
   - abbr
   - admonition
   - pymdownx.details
   - pymdownx.superfences
   # - pymdownx.superfences:
-      # custom_fences:
-        # - name: mermaid
-          # class: mermaid
-          # format: !!python/name:pymdownx.superfences.fence_div_format ''
+  # custom_fences:
+  # - name: mermaid
+  # class: mermaid
+  # format: !!python/name:pymdownx.superfences.fence_div_format ''
   - pymdownx.tabbed
   - extra
   - attr_list
-  #- pymdownx.emoji:
+  # - pymdownx.emoji:
   #    emoji_index: !!python/name:materialx.emoji.twemoji
   #    emoji_generator: !!python/name:materialx.emoji.to_svg
   - pymdownx.arithmatex:
@@ -85,19 +85,19 @@ markdown_extensions:
 
 extra:
   social:
-  - icon: fontawesome/brands/github-alt
-    link: https://github.com/moverseai/moai
-  - icon: fontawesome/brands/python
-    link: https://pypi.org/project/moai-mdk/
-      
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/moverseai/moai
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/moai-mdk/
+
 extra_javascript:
   - javascripts/config.js
   - javascripts/keywords.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-  - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js  
+  - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js
   - https://unpkg.com/mermaid@8.4.6/dist/mermaid.min.js
-  
+
 extra_css:
   - stylesheets/keywords.css
   - stylesheets/extra.css

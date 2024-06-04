@@ -1,4 +1,0 @@
-# @package model.validation.metrics._name_
-
-_target_: moai.validation.metrics.RMSLE
-base: ten # natural or ten

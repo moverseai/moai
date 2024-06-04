@@ -1,11 +1,12 @@
+import logging
+import typing
 from collections import UserList
-from pytorch_lightning import Callback
 
 import torch
-import typing
-import logging
+from pytorch_lightning import Callback
 
 log = logging.getLogger(__name__)
+
 
 class ModelCallbacks(UserList):
     def __init__(
@@ -15,4 +16,4 @@ class ModelCallbacks(UserList):
     ):
         super().__init__(list)
         if model:
-            self.data.extend((c for c in model.children() if isinstance(c, Callback)))            
+            self.data.extend((c for c in model.children() if isinstance(c, Callback)))

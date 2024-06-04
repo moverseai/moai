@@ -1,6 +1,6 @@
 # @package _global_
 
-_moai_:  
+_moai_:
   _execution_:
     _initialize_:
       _fit_:
@@ -31,7 +31,7 @@ _moai_:
             _flows_:
               - preprocess
               - postprocess
-            _objective_: fine_fit_stage1          
+            _objective_: fine_fit_stage1
       _val_:
         _batch_:
-          openpose: 
+          openpose:

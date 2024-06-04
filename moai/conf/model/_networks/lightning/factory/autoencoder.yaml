@@ -2,10 +2,9 @@
 
 _target_: moai.networks.lightning.factory.Autoencoder
 configuration:
-  encoder:  
+  encoder:
     in: ???
     out: ???
-  decoder:  
+  decoder:
     in: ???
     out: ???
-

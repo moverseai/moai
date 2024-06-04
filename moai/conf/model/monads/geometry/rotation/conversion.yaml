@@ -1,10 +1,9 @@
 # @package model.monads._name_
 
 _target_: moai.monads.geometry.rotations.ConvertRotation
-src: ??? # from representation 
+src: ??? # from representation
 tgt: ??? # to representation
 backend: ???
-
 # representations use the following alias names:
 #   rotation matrix \in ['R', 'rot', '3x3', 'rotation', 'matrix', 'rotation_matrix', 'rotmat']
 #   quaternion \in ['quat', 'quaternion', 'q', '4']

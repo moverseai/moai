@@ -3,7 +3,7 @@
 _target_: moai.parameters.selectors.model.ModelParameterSelector
 parameters:
   - preprocess.smplx.global_orient
-monads:      
+monads:
   - preprocess.translation
   # - preprocess.betas
   - preprocess.embedding

@@ -1,14 +1,14 @@
-from moai.data.datasets.common import load_color_image
-
-import os
-import torch
 import glob
-import typing
-import logging
 import json
-import numpy as np
+import logging
+import os
+import typing
 from collections import namedtuple
 
+import numpy as np
+import torch
+
+from moai.data.datasets.common import load_color_image
 from moai.utils.arguments.path import assert_path
 
 __all__ = [

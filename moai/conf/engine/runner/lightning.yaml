@@ -37,7 +37,7 @@ gradient_tolerance: 1e-9
 num_nodes: 1 # only for the distributed case / number of GPU nodes for distributed training.
 num_processes: 1
 ### ___gpus___ MUST BE STRING TO OVERCOME HYDRA/LIGHTNING TYPE ISSUES
-### NOTE: see https://pytorch-lightning.readthedocs.io/en/stable/multi_gpu.html#select-gpu-devices 
+### NOTE: see https://pytorch-lightning.readthedocs.io/en/stable/multi_gpu.html#select-gpu-devices
 accelerator: auto
 devices: auto
 gpus: null #"1" # comment out or zero (0) for cpu mode, -1 means all available gpus, otherwise int or list of ints or comma separated string
@@ -61,10 +61,10 @@ detect_anomaly: false #NOTE: @PTL1.5
 flush_logs_every_n_steps: 1 #TODO: remove from config to keep fixed?
 log_every_n_steps: 1 #TODO: remove from config to keep fixed?
 progress_bar_refresh_rate: 1 # How often to refresh progress bar (in steps). Value ``0`` disables progress bar. - NOTE: deprecated show_progress_bar: true # uses tqdm in cli
-# log_gpu_memory: all # requires nvidia-smi in path - NOTE: None, 'min_max', 'all'.  
+# log_gpu_memory: all # requires nvidia-smi in path - NOTE: None, 'min_max', 'all'.
 weights_summary: top # or full / null
 profiler: simple # comment out for passthrough profiler, cannot use advanced one yet
-default_root_dir: ''
+default_root_dir: ""
 
 ################
 ### debug options

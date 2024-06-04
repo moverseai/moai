@@ -1,33 +1,40 @@
-from moai.core.execution.constants import Constants as C
+import inspect
+import logging
+import typing
+
+import lark
+import toolz
+import torch
 
 import moai.core.execution.common as mic
 import moai.core.execution.expression as mie
-import typing
-import torch
-import toolz
-import inspect
-import logging
-import lark
+from moai.core.execution.constants import Constants as C
 
 log = logging.getLogger(__name__)
 
-__all__ = ['Models']
+__all__ = ["Models"]
+
 
 class Models(torch.nn.ModuleDict):
     execs: typing.List[typing.Callable]
 
-    def __init__(self, 
+    def __init__(
+        self,
         models: torch.nn.ModuleDict,
         **kwargs: typing.Mapping[str, typing.Any],
     ):
         super().__init__()
         errors = [k for k in kwargs if k not in models]
         if errors:
-            log.error(f"The following models [{errors}] were not found in the configuration and will be ignored!")
+            log.error(
+                f"The following models [{errors}] were not found in the configuration and will be ignored!"
+            )
         self.execs = []
         for i, key in enumerate(kwargs):
             if key not in models:
-                log.warning("Skipping model '{key}' as it is not found in the configuration. This may lead to downstream errors.")
+                log.warning(
+                    "Skipping model '{key}' as it is not found in the configuration. This may lead to downstream errors."
+                )
                 continue
             module = models[key]
             model_params = kwargs[key]
@@ -35,7 +42,9 @@ class Models(torch.nn.ModuleDict):
             sig_params = list(filter(lambda p: p in model_params, sig.parameters))
             extra_params = set(model_params.keys()) - set(sig_params) - set([C._OUT_])
             if extra_params:
-                log.error(f"The parameters [{extra_params}] are not part of the `{key}` model signature.")
+                log.error(
+                    f"The parameters [{extra_params}] are not part of the `{key}` model signature."
+                )
             model_params = mic._dict_of_lists_to_list_of_dicts(model_params)
             for j, params in enumerate(model_params):
                 for k, v in params.items():
@@ -44,12 +53,12 @@ class Models(torch.nn.ModuleDict):
                         self.add_module(tmp_key, mie.TreeModule(tmp_key, v))
                         self.execs.append((self[tmp_key], tmp_key, None))
                         params[k] = tmp_key
-                self.execs.append((
-                    module, params[C._OUT_], toolz.dissoc(params, C._OUT_)
-                ))
+                self.execs.append(
+                    (module, params[C._OUT_], toolz.dissoc(params, C._OUT_))
+                )
 
-    def forward(self,
-        tensors: typing.Dict[str, torch.Tensor]
+    def forward(
+        self, tensors: typing.Dict[str, torch.Tensor]
     ) -> typing.Dict[str, torch.Tensor]:
         for module, out, kwargs in self.execs:
             if kwargs:

@@ -11,7 +11,7 @@ convolution:
   params:
     kernel_size: 3
     stride: 1
-    padding: 1    
+    padding: 1
   activation:
     type: ${model.configuration.activation_type}
     params:

@@ -1,4 +1,0 @@
-# @package model.parameters.optimization.optimizers._name_
-
-_target_: moai.parameters.optimization.optimizers.SignSGD
-lr: 1.0e-1

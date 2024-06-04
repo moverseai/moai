@@ -1,28 +1,31 @@
+import logging
+import typing
 from collections.abc import Callable, Iterator
 
-import numpy as np
 import npstreams
-import typing
+import numpy as np
 import torch
-import logging
 
 log = logging.getLogger(__name__)
 
-__all__ = ['Pairwise']
+__all__ = ["Pairwise"]
 
-class Pairwise(Callable):        
-    def __init__(self,
-        key:        typing.Union[str, typing.Sequence[str]],
-        pair:      typing.Sequence[typing.Tuple[int, int]],
+
+class Pairwise(Callable):
+    def __init__(
+        self,
+        key: typing.Union[str, typing.Sequence[str]],
+        pair: typing.Sequence[typing.Tuple[int, int]],
     ) -> None:
         super().__init__()
         self.names = [key] if isinstance(key, str) else list(key)
-        self.data = { }
+        self.data = {}
         self.pairs = pair
-        
-    def __call__(self, 
-        tensors:    typing.Dict[str, torch.Tensor],
-        step:       typing.Optional[int]=None,
+
+    def __call__(
+        self,
+        tensors: typing.Dict[str, torch.Tensor],
+        step: typing.Optional[int] = None,
     ) -> None:
         for n, p in zip(self.names, self.pairs):
             t = tensors[n]

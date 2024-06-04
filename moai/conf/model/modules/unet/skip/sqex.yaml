@@ -1,9 +1,9 @@
 # @package model.modules.skip
 
 _target_: moai.modules.lightning.unet.SqueezeExciteSkip
-squeeze:  
+squeeze:
   type: average2d
-excite: 
+excite:
   type: channel
   operation:
     type: linear

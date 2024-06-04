@@ -3,4 +3,4 @@
 _target_: moai.monads.generation.matrix.Intrinsics
 fov: 64.69
 width: 320
-height: 240 
+height: 240

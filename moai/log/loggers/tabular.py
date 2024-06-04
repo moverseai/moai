@@ -1,13 +1,12 @@
+import logging
+import typing
 from collections import defaultdict
 
+import pytorch_lightning
 import tablib
 import toolz
-import pytorch_lightning
-import typing
-from typing_extensions import override
-import logging
 from pytorch_lightning.loggers.logger import DummyExperiment
-
+from typing_extensions import override
 
 log = logging.getLogger(__name__)
 
@@ -52,12 +51,17 @@ class Tabular(pytorch_lightning.loggers.Logger):
         """
         if self._experiment is not None:
             return self._experiment
-        assert pytorch_lightning.loggers.logger.rank_zero_experiment.rank == 0, "tried to init log dirs in non global_rank=0"
+        assert (
+            pytorch_lightning.loggers.logger.rank_zero_experiment.rank == 0
+        ), "tried to init log dirs in non global_rank=0"
 
         return self._experiment
 
-    def _append_train_losses(self,
-        metrics: typing.Dict[str, typing.Any], epoch: int, step: int,
+    def _append_train_losses(
+        self,
+        metrics: typing.Dict[str, typing.Any],
+        epoch: int,
+        step: int,
     ) -> None:
         # loss = metrics["total_loss"]
         # train_metrics = toolz.dissoc(metrics, "train", "epoch", "total_loss")
@@ -70,9 +74,7 @@ class Tabular(pytorch_lightning.loggers.Logger):
                     ]
                 )
             )
-        self.train_logs.append(
-            list(toolz.concat([[epoch, step], metrics.values()]))
-        )
+        self.train_logs.append(list(toolz.concat([[epoch, step], metrics.values()])))
 
     def _append_val_loss(
         self,
@@ -101,7 +103,6 @@ class Tabular(pytorch_lightning.loggers.Logger):
                 )
             )
         )
-
 
     def _append_test_metrics(
         self,
@@ -140,7 +141,7 @@ class Tabular(pytorch_lightning.loggers.Logger):
 
     @override
     def log_metrics(self, metrics: typing.Dict[str, typing.Any], step: int) -> None:
-        #TODO: manually check the rank zero experiment
+        # TODO: manually check the rank zero experiment
         train_metrics = toolz.keymap(
             lambda k: k.replace("train/", ""),
             toolz.keyfilter(lambda k: k.startswith("train/"), metrics),
@@ -159,7 +160,7 @@ class Tabular(pytorch_lightning.loggers.Logger):
         #         (toolz.keyfilter(lambda k: k.startswith('test_'), metrics))
         #     ) if dataloader_index is not None else toolz.keyfilter(lambda k: k.startswith('test_'), metrics)
         # )
-        
+
         if train_metrics:
             self._append_train_losses(
                 # toolz.assoc(train_metrics, "total_loss", metrics["total_loss"]),
@@ -183,8 +184,7 @@ class Tabular(pytorch_lightning.loggers.Logger):
         if val_metrics:
             dataset_val_metrics = toolz.valmap(
                 lambda v: toolz.keymap(
-                    lambda k: k.split("/")[0], #.split("|")[-1], 
-                    dict(v)
+                    lambda k: k.split("/")[0], dict(v)  # .split("|")[-1],
                 ),
                 toolz.groupby(
                     lambda k: toolz.get(1, k[0].split("/"), "metrics"),
@@ -192,8 +192,12 @@ class Tabular(pytorch_lightning.loggers.Logger):
                 ),
             )
             for dataset_name, dataset_metrics in dataset_val_metrics.items():
-                epoch = toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1]
-                self._append_val_loss(dataset_name, dataset_metrics, int(epoch), int(step))
+                epoch = toolz.keyfilter(
+                    lambda k: k.startswith("epoch"), metrics
+                ).popitem()[1]
+                self._append_val_loss(
+                    dataset_name, dataset_metrics, int(epoch), int(step)
+                )
 
     def log_hyperparams(
         self, params: typing.Dict[str, typing.Any]  # TODO or namespace object ?

@@ -1,25 +1,18 @@
 from moai.monads.math.clamp import Clamp
+from moai.monads.math.common import Deg2Rad  # MatrixTranspose,
 from moai.monads.math.common import (
     Abs,
-    Scale,
-    Plus,
-    Minus,
-    Multiply,
-    PlusOne,
-    MinusOne,
-    # MatrixTranspose,
-    Rad2Deg,
-    Deg2Rad,
     Exponential,
+    Minus,
+    MinusOne,
+    Multiply,
+    Plus,
+    PlusOne,
+    Rad2Deg,
+    Scale,
 )
-from moai.monads.math.normalization import (
-    Znorm,
-    MinMaxNorm,
-)
-
-from moai.monads.math.dot import (
-    Dot
-)
+from moai.monads.math.dot import Dot
+from moai.monads.math.normalization import MinMaxNorm, Znorm
 
 __all__ = [
     "Abs",
@@ -29,7 +22,7 @@ __all__ = [
     "Multiply",
     "PlusOne",
     "MinusOne",
-    "Clamp",  
+    "Clamp",
     "Znorm",
     "MinMaxNorm",
     "Dot",

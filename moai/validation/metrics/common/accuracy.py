@@ -2,18 +2,21 @@ from functools import partial
 
 import torch
 
+
 class Accuracy(torch.nn.Module):
-    def __init__(self,
-        topk:       int=1,
+    def __init__(
+        self,
+        topk: int = 1,
     ):
         super(Accuracy, self).__init__()
         self.topk = topk
 
-    def forward(self,
-        gt:         torch.Tensor,
-        pred:       torch.Tensor,
-        weights:    torch.Tensor=None,
-        mask:       torch.Tensor=None,
+    def forward(
+        self,
+        gt: torch.Tensor,
+        pred: torch.Tensor,
+        weights: torch.Tensor = None,
+        mask: torch.Tensor = None,
     ) -> torch.Tensor:
         values, indices = torch.topk(
             pred, k=self.topk, dim=1, largest=True, sorted=True
@@ -28,6 +31,7 @@ class Accuracy(torch.nn.Module):
         if mask is not None:
             correct = correct[mask]
         return correct.mean()
+
 
 TopAccuracy = partial(Accuracy, topk=1)
 Top5Accuracy = partial(Accuracy, topk=5)

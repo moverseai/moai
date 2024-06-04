@@ -1,26 +1,20 @@
-from ts.torch_handler.base_handler import BaseHandler
-from hydra.experimental import (
-    compose,
-    initialize,
-)
-from omegaconf.omegaconf import OmegaConf
+import logging
+import os
+import typing
+import zipfile
 
 import hydra.utils as hyu
-import toolz
-import os
-import torch
-import zipfile
-import yaml
-import logging
-import typing
-
 import numpy as np
-
+import toolz
+import torch
 import tqdm
+import yaml
+from hydra.experimental import compose, initialize
+from omegaconf.omegaconf import OmegaConf
+from toolz import merge_with, valmap
+from ts.torch_handler.base_handler import BaseHandler
 
 from moai.serve.model import _find_all_targets
-from toolz import merge_with, valmap
-
 
 log = logging.getLogger(__name__)
 
@@ -31,12 +25,15 @@ def gather_tensors(dicts):
     """Merges dictionaries by gathering tensors into lists."""
     return merge_with(lambda x: x if isinstance(x, list) else [x], *dicts)
 
+
 def concat_tensors(tensor_list):
     """Concatenates a list of tensors along dimension 0."""
     return torch.cat(tensor_list, dim=0)
 
+
 def recursive_merge(dicts):
     """Recursively merges dictionaries."""
+
     def merge_fn(values):
         if all(isinstance(v, torch.Tensor) for v in values):
             return torch.cat(values, dim=0)
@@ -45,7 +42,9 @@ def recursive_merge(dicts):
         else:
             # Assumes all non-tensor, non-dict values are identical across dicts
             return values[0]
+
     return merge_with(merge_fn, *dicts)
+
 
 class StreamingOptimizerServer(BaseHandler):
     def __init__(self) -> None:
@@ -108,7 +107,16 @@ class StreamingOptimizerServer(BaseHandler):
                     handler_overrides is not None
                     and "preprocess" in handler_overrides.get("handlers", {})
                 ):
-                    cfg = OmegaConf.merge(cfg, {'handlers': {'preprocess': handler_overrides['handlers']['preprocess']}})
+                    cfg = OmegaConf.merge(
+                        cfg,
+                        {
+                            "handlers": {
+                                "preprocess": handler_overrides["handlers"][
+                                    "preprocess"
+                                ]
+                            }
+                        },
+                    )
                     log.debug(f"Merged handler overrides:\n{cfg}")
                 # self.preproc = {
                 #     k: hyu.instantiate(h)
@@ -116,7 +124,12 @@ class StreamingOptimizerServer(BaseHandler):
                 #         toolz.get_in(["handlers", "preprocess"], cfg) or {}
                 #     ).items()
                 # }
-                self.preproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'preprocess'], cfg)).items()}
+                self.preproc = {
+                    k: hyu.instantiate(h)
+                    for k, h in _find_all_targets(
+                        toolz.get_in(["handlers", "preprocess"], cfg)
+                    ).items()
+                }
             with initialize(
                 config_path="conf", job_name=f"{main_conf}_postprocess_handlers"
             ):
@@ -125,7 +138,16 @@ class StreamingOptimizerServer(BaseHandler):
                     handler_overrides is not None
                     and "postprocess" in handler_overrides.get("handlers", {})
                 ):
-                    cfg = OmegaConf.merge(cfg, {'handlers': {'postprocess': handler_overrides['handlers']['postprocess']}})
+                    cfg = OmegaConf.merge(
+                        cfg,
+                        {
+                            "handlers": {
+                                "postprocess": handler_overrides["handlers"][
+                                    "postprocess"
+                                ]
+                            }
+                        },
+                    )
                     log.debug(f"Merged handler overrides:\n{cfg}")
                 # self.postproc = {
                 #     k: hyu.instantiate(h)
@@ -133,7 +155,12 @@ class StreamingOptimizerServer(BaseHandler):
                 #         toolz.get_in(["handlers", "postprocess"], cfg) or {}
                 #     ).items()
                 # }
-                self.postproc = {k: hyu.instantiate(h) for k, h in _find_all_targets(toolz.get_in(['handlers', 'postprocess'], cfg)).items()}
+                self.postproc = {
+                    k: hyu.instantiate(h)
+                    for k, h in _find_all_targets(
+                        toolz.get_in(["handlers", "postprocess"], cfg)
+                    ).items()
+                }
         except Exception as e:
             log.error(f"An error has occured while loading the handlers:\n{e}")
 
@@ -142,8 +169,8 @@ class StreamingOptimizerServer(BaseHandler):
         data: typing.Mapping[str, typing.Any],
     ) -> typing.Dict[str, torch.Tensor]:
         log.debug(f"Preprocessing input:\n{data}")
-        tensors = { '__moai__': { 'json': data } }
-        body = data[0].get('body') or data[0].get('raw')
+        tensors = {"__moai__": {"json": data}}
+        body = data[0].get("body") or data[0].get("raw")
         for k, p in self.preproc.items():
             tensors = toolz.merge(tensors, p(body, self.device))
         log.info(f"Preprocessed tensors:\n{tensors}")
@@ -191,7 +218,7 @@ class StreamingOptimizerServer(BaseHandler):
         data: typing.Mapping[str, torch.Tensor],
     ):
         log.info(f"Data:\n{data}")
-        input_json = data['__moai__']['json'][0]
+        input_json = data["__moai__"]["json"][0]
         # data = OmegaConf.create(data)[0]['body']
         processed_data = []
         data = OmegaConf.create(data)
@@ -302,7 +329,9 @@ class StreamingOptimizerServer(BaseHandler):
                 self.optimizer.optimization_step = 0
             metrics = self.optimizer.validation(data)
             # call postprocess
-            log.info(f"Fitting Metrics: {metrics}") # TODO: why metrics still have gradients?
+            log.info(
+                f"Fitting Metrics: {metrics}"
+            )  # TODO: why metrics still have gradients?
             # data["__moai__"]["batch_index"] = batch_idx
             processed_data.append(data)
             # NOTE: for debugging remove metrics
@@ -323,14 +352,14 @@ class StreamingOptimizerServer(BaseHandler):
         input_json = data[-1]
         # log.info(f"Postprocessing outputs:\n{data}")
         # save file for debugging
-        
+
         # with open("output.json", "w") as f:
         #     f.write(str(data))
         # gathered_dict = gather_tensors(data)
         # concatenated_dict = valmap(concat_tensors, gathered_dict)
         merged_dict = recursive_merge(data[:-1])
         # merge dict with input_json
-        log.info(f'input to postprocess json: {input_json}')
+        log.info(f"input to postprocess json: {input_json}")
         merged_dict = toolz.merge(merged_dict, input_json)
         log.info(f"Postprocessing keys:\n{merged_dict.keys()}")
         for k, p in self.postproc.items():
@@ -348,7 +377,12 @@ class StreamingOptimizerServer(BaseHandler):
         #             for o, r in zip(outs, res):
         #                 o = toolz.merge(o, r)
         # return outs
-        return [{"is_success": True, "message": "Streaming optimisation finished successfully."}]
+        return [
+            {
+                "is_success": True,
+                "message": "Streaming optimisation finished successfully.",
+            }
+        ]
 
     # def handle(self, data, context):
     #     return super(data, context)

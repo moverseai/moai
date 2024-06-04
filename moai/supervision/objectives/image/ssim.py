@@ -1,30 +1,27 @@
-import torch
 import kornia
+import torch
 
 __all__ = ["StructuralDisimilarity"]
 
-#NOTE: check if kornia fixes its implementation https://github.com/kornia/kornia/issues/473 
+# NOTE: check if kornia fixes its implementation https://github.com/kornia/kornia/issues/473
+
 
 class StructuralDisimilarity(kornia.losses.SSIM):
-    def __init__(self,
-        window_size: int=7,        
-        dynamic_range: float=1.0
-    ):
+    def __init__(self, window_size: int = 7, dynamic_range: float = 1.0):
         super(StructuralDisimilarity, self).__init__(
-            window_size=window_size,
-            reduction='none',
-            max_val=dynamic_range
+            window_size=window_size, reduction="none", max_val=dynamic_range
         )
 
-    def forward(self, 
+    def forward(
+        self,
         pred: torch.Tensor,
-        gt: torch.Tensor,        
-        weights: torch.Tensor=None,
-        mask: torch.Tensor=None,
-    ) -> torch.Tensor:                    
+        gt: torch.Tensor,
+        weights: torch.Tensor = None,
+        mask: torch.Tensor = None,
+    ) -> torch.Tensor:
         if mask is not None:
             gt = torch.where(mask, gt, torch.zeros_like(gt))
-            pred = torch.where(mask, pred, torch.zeros_like(gt))            
+            pred = torch.where(mask, pred, torch.zeros_like(gt))
         ssim = super(StructuralDisimilarity, self).forward(gt, pred)
         if weights is not None:
             ssim = ssim * weights

@@ -3,12 +3,12 @@
 # python logging configuration for tasks
 
 version: 1
-filters: 
-  moai: 
-    '()': 'moai.logging.moai_filter.MoaiFilter'
+filters:
+  moai:
+    "()": "moai.logging.moai_filter.MoaiFilter"
 formatters:
   simple:
-    format: '[%(asctime)s][%(name)s][%(levelname)s] - %(message)s'
+    format: "[%(asctime)s][%(name)s][%(levelname)s] - %(message)s"
 handlers:
   file:
     class: logging.FileHandler
@@ -19,7 +19,7 @@ handlers:
   rich_console:
     class: rich.logging.RichHandler
     markup: true
-    filters: ['moai']
+    filters: ["moai"]
 root:
   level: INFO
   handlers: [rich_console, file]

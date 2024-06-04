@@ -1,25 +1,29 @@
-import torch
 import typing
 
-__all__ = ['AdamT']
+import torch
 
-#NOTE: from https://github.com/xuebin-zh/AdamT
-#NOTE: described in https://arxiv.org/pdf/2001.06130.pdf
+__all__ = ["AdamT"]
+
+# NOTE: from https://github.com/xuebin-zh/AdamT
+# NOTE: described in https://arxiv.org/pdf/2001.06130.pdf
+
 
 class AdamT(torch.optim.Optimizer):
     """Implements the AdamT algorithm.
-    
+
     - **Paper**: [ADAMT: A Stochastic Optimization with Trend Correction Scheme](https://arxiv.org/pdf/2001.06130.pdf).
     - **Implementation**: [GitHub @ xuebin-zh](https://github.com/xuebin-zh/AdamT).
 
     """
-    def __init__(self, 
+
+    def __init__(
+        self,
         params: typing.Iterator[torch.nn.Parameter],
-        lr: float=1e-3,
-        betas: typing.Tuple[float, float, float, float]=(0.9, 0.999, 0.9, 0.999),
-        phis: typing.Tuple[float, float]=(1, 1),
-        eps: float=1e-8,
-        weight_decay: float=0
+        lr: float = 1e-3,
+        betas: typing.Tuple[float, float, float, float] = (0.9, 0.999, 0.9, 0.999),
+        phis: typing.Tuple[float, float] = (1, 1),
+        eps: float = 1e-8,
+        weight_decay: float = 0,
     ):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
@@ -37,7 +41,9 @@ class AdamT(torch.optim.Optimizer):
             raise ValueError("Invalid phi parameter at index 0: {}".format(phis[0]))
         if not 0.0 <= phis[1] <= 100.0:
             raise ValueError("Invalid phi parameter at index 1: {}".format(phis[1]))
-        defaults = dict(lr=lr, betas=betas, phis=phis, eps=eps, weight_decay=weight_decay)
+        defaults = dict(
+            lr=lr, betas=betas, phis=phis, eps=eps, weight_decay=weight_decay
+        )
         super(AdamT, self).__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -54,7 +60,9 @@ class AdamT(torch.optim.Optimizer):
                     continue
                 grad = p.grad.data
                 if grad.is_sparse:
-                    raise RuntimeError("Adam does not support sparse gradients, please consider SparseAdam instead")
+                    raise RuntimeError(
+                        "Adam does not support sparse gradients, please consider SparseAdam instead"
+                    )
 
                 state = self.state[p]
 
@@ -81,7 +89,12 @@ class AdamT(torch.optim.Optimizer):
                     state["B_v"] = torch.zeros_like(p.data)
 
                 m, v = state["m"], state["v"]
-                L_m, L_v, B_m, B_v = state["L_m"], state["L_v"], state["B_m"], state["B_v"]
+                L_m, L_v, B_m, B_v = (
+                    state["L_m"],
+                    state["L_v"],
+                    state["B_m"],
+                    state["B_v"],
+                )
                 beta1, beta2, beta3, beta4 = group["betas"]
                 phi1, phi2 = group["phis"]
 
@@ -110,20 +123,37 @@ class AdamT(torch.optim.Optimizer):
                 #         torch.div(phi1 * B_m, (1 - beta3 ** state["step"]))
                 # v_hat = torch.div(L_v, (1 - beta2 ** state["step"])) + \
                 #         torch.div(phi2 * B_v, (1 - beta4 ** state["step"]))
-                m_hat = torch.div(L_m, (1 - beta1 ** state["step"])) + \
-                        torch.div(B_m, ((1 - beta3) * torch.div(1 - (beta3 * phi1) ** state["step"], 1 - beta3 * phi1)))
+                m_hat = torch.div(L_m, (1 - beta1 ** state["step"])) + torch.div(
+                    B_m,
+                    (
+                        (1 - beta3)
+                        * torch.div(
+                            1 - (beta3 * phi1) ** state["step"], 1 - beta3 * phi1
+                        )
+                    ),
+                )
 
-                v_hat = torch.div(L_v, (1 - beta2 ** state["step"])) + \
-                        torch.div(B_v, ((1 - beta4) * torch.div(1 - (beta4 * phi2) ** state["step"], 1 - beta4 * phi2)))
+                v_hat = torch.div(L_v, (1 - beta2 ** state["step"])) + torch.div(
+                    B_v,
+                    (
+                        (1 - beta4)
+                        * torch.div(
+                            1 - (beta4 * phi2) ** state["step"], 1 - beta4 * phi2
+                        )
+                    ),
+                )
                 # Update the parameters
 
                 # if len(torch.nonzero(torch.isnan(torch.div(m_hat, (v_hat.sign() * torch.sqrt(v_hat.abs()) + group["eps"]))))) != 0:
-                    # print(torch.div(m_hat, (v_hat.sign() * torch.sqrt(v_hat.abs()) + group["eps"])))
+                # print(torch.div(m_hat, (v_hat.sign() * torch.sqrt(v_hat.abs()) + group["eps"])))
                 # print(v_hat.sign() * torch.sqrt(v_hat.abs()))
                 # print(torch.div(m_hat, (v_hat.sign() * torch.sqrt(v_hat.abs()) + group["eps"])))
                 # print(torch.div(m_hat, (v_hat.sign() * torch.sqrt(v_hat.abs()) + group["eps"])))
                 # p.data.add_(-group["lr"], torch.div(m_hat, (v_hat.sign() * torch.sqrt(v_hat.abs()) + group["eps"])))
-                p.data.add_(-group["lr"], torch.div(m_hat, (torch.sqrt(v_hat.abs()) + group["eps"])))
+                p.data.add_(
+                    -group["lr"],
+                    torch.div(m_hat, (torch.sqrt(v_hat.abs()) + group["eps"])),
+                )
                 # print(v_hat.sign())
                 # p.data.add_(-group["lr"], torch.div(m_hat, (v_hat.sign() * torch.sqrt(v_hat.abs() + group["eps"]))))
 

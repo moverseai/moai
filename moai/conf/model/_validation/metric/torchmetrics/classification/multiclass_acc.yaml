@@ -1,4 +1,0 @@
-# @package model.validation.metrics.multiclass_acc
-
-_target_: torchmetrics.classification.MulticlassAccuracy
-num_classes: 10

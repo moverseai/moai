@@ -1,11 +1,9 @@
-from kornia.filters import (
-    MedianBlur
-)
+import functools
+import logging
+import typing
 
 import torch
-import logging
-import functools
-import typing
+from kornia.filters import MedianBlur
 
 log = logging.getLogger(__name__)
 
@@ -13,8 +11,9 @@ __all__ = ["Median2d"]
 
 
 class Median2d(MedianBlur):
-    def __init__(self,
-        kernel_size:                typing.Tuple[int, int]=(5, 5),
+    def __init__(
+        self,
+        kernel_size: typing.Tuple[int, int] = (5, 5),
         # border_type:                str='reflect'
     ):
         super(Median2d, self).__init__(

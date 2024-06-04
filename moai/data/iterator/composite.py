@@ -1,13 +1,17 @@
-import torch
 import typing
-import omegaconf.omegaconf
-from moai.data.iterator import Indexed
-from moai.data.iterator import Zipped
-from moai.data.iterator import Concatenated
-from moai.data.iterator import Interleaved
-from moai.data.iterator import Repeated
-from moai.data.iterator import Windowed
 from collections import defaultdict
+
+import omegaconf.omegaconf
+import torch
+
+from moai.data.iterator import (
+    Concatenated,
+    Indexed,
+    Interleaved,
+    Repeated,
+    Windowed,
+    Zipped,
+)
 from moai.data.iterator.zip import Zipper
 
 
@@ -15,12 +19,12 @@ class Composited(torch.utils.data.Dataset):
     # create a map between the iterator value and a python class
     # that will be used to create the iterator
     _iterators = {
-        'indexed': Indexed,
-        'window': Windowed,
-        'zipped': Zipped,
-        'repeat': Repeated,
-        'interleave': Interleaved,
-        'concat': Concatenated,
+        "indexed": Indexed,
+        "window": Windowed,
+        "zipped": Zipped,
+        "repeat": Repeated,
+        "interleave": Interleaved,
+        "concat": Concatenated,
     }
 
     r"""
@@ -31,7 +35,7 @@ class Composited(torch.utils.data.Dataset):
         self,
         iterators: typing.Sequence[torch.utils.data.Dataset],
         datasets: typing.Sequence[torch.utils.data.Dataset],
-        augmentation:   omegaconf.DictConfig=None,
+        augmentation: omegaconf.DictConfig = None,
     ):
         r"""
         Initializes a composite iterator.
@@ -48,19 +52,24 @@ class Composited(torch.utils.data.Dataset):
                 iterator_key = list(iterators[i].keys())[0]
                 # select the iterator class based on the iterator name
                 # and create the iterator
-                iter_ = self._iterators[iterator_key]({dataset: datasets[dataset]}, **iterators[i][iterator_key])
-                d[f'{iterator_key}_{i+1}'] = iter_ # change key to support zipper of similar iterators (e.g. windowed)
+                iter_ = self._iterators[iterator_key](
+                    {dataset: datasets[dataset]}, **iterators[i][iterator_key]
+                )
+                d[f"{iterator_key}_{i+1}"] = (
+                    iter_  # change key to support zipper of similar iterators (e.g. windowed)
+                )
             else:
                 # select the iterator class based on the iterator name
                 # and create the iterator
-                iter_ = self._iterators[iterator]({dataset: datasets[dataset]}, **iterators[iterator])
+                iter_ = self._iterators[iterator](
+                    {dataset: datasets[dataset]}, **iterators[iterator]
+                )
                 # add the iterator to the list of iterators
                 d[iterator] = iter_
-            
+
         # self.dataset = Zipped(iterators)
         self.dataset = Zipper([d_ for d_ in d.values()])
 
-    
     def __len__(self) -> int:
         return len(self.dataset)
 

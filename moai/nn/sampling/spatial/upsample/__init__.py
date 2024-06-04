@@ -1,9 +1,10 @@
-import moai.nn.utils as miu
-
-import torch
 import functools
 import logging
 import typing
+
+import torch
+
+import moai.nn.utils as miu
 
 log = logging.getLogger(__name__)
 
@@ -12,35 +13,34 @@ __all__ = [
 ]
 
 __UPSAMPLE_FACTORY__ = {
-    "none":                 torch.nn.Identity,
+    "none": torch.nn.Identity,
 }
 
-#NOTE: need to implement:
+# NOTE: need to implement:
 #  1) upscale->project,
 #  2) project->upscale,
 #  3) transpose conv with spatial and feature size reduction
+
 
 def _update_upsample_op(name: str, type: typing.Type):
     if name not in __UPSAMPLE_FACTORY__.keys():
         __UPSAMPLE_FACTORY__.update({name: type})
     else:
-        log.error(f"Trying to add an already existing key {name} in the convolution operation factory.")
- 
+        log.error(
+            f"Trying to add an already existing key {name} in the convolution operation factory."
+        )
+
+
 def make_upsample(
-    upscale_type: str,
-    features: int,
-    kernel_size: int=4,
-    stride: int=2,
-    **kwargs
+    upscale_type: str, features: int, kernel_size: int = 4, stride: int = 2, **kwargs
 ) -> torch.nn.Module:
     if upscale_type in __UPSAMPLE_FACTORY__.keys():
-        return miu.instantiate(__UPSAMPLE_FACTORY__[upscale_type], 
-        **{
-            **locals(),
-            **kwargs 
-        })
+        return miu.instantiate(
+            __UPSAMPLE_FACTORY__[upscale_type], **{**locals(), **kwargs}
+        )
     else:
         log.error(f"Upscale type ({upscale_type}) not found.")
+
 
 import moai.nn.sampling.spatial.upsample.deconv as mids
 

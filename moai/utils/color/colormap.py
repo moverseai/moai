@@ -117,7 +117,7 @@ def random_color(rgb=False, maximum=255):
     Returns:
         ndarray: a vector of 3 numbers
     """
-    idx = np.random.randint(0, len(_COLORS) - 1) #NOTE: hack to avoid black
+    idx = np.random.randint(0, len(_COLORS) - 1)  # NOTE: hack to avoid black
     ret = _COLORS[idx] * maximum
     if not rgb:
         ret = ret[::-1]

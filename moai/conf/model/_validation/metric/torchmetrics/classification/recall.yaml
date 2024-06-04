@@ -1,4 +1,0 @@
-# @package model.validation.metrics.recall
-
-_target_: moai.validation.metrics.classification.recall.MultiClassRecall
-num_classes: 10

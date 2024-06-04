@@ -1,3 +1,0 @@
-# @package model.validation.generation
-
-_target_: moai.validation.Indicators

@@ -1,18 +1,20 @@
-import moai.nn.convolution as mic
-
 import torch
+
+import moai.nn.convolution as mic
 
 __all__ = [
     "StridedConv2d",
 ]
 
-class StridedConv2d(torch.nn.Module):  #TODO: Add optional activation as well?
-    def __init__(self,
+
+class StridedConv2d(torch.nn.Module):  # TODO: Add optional activation as well?
+    def __init__(
+        self,
         features: int,
-        kernel_size: int=3,
-        conv_type: str="conv2d",
-        stride: int=2,
-        padding: int=1
+        kernel_size: int = 3,
+        conv_type: str = "conv2d",
+        stride: int = 2,
+        padding: int = 1,
     ):
         super(StridedConv2d, self).__init__()
         self.conv = mic.make_conv_op(
@@ -23,7 +25,7 @@ class StridedConv2d(torch.nn.Module):  #TODO: Add optional activation as well?
             in_channels=features,
             out_channels=features,
             bias=False,
-            stride=2
+            stride=2,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

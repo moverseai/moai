@@ -1,20 +1,35 @@
 import torch
 
-#NOTE: modified code from https://github.com/NVIDIAGameWorks/kaolin/blob/master/kaolin/rep/Mesh.py
+# NOTE: modified code from https://github.com/NVIDIAGameWorks/kaolin/blob/master/kaolin/rep/Mesh.py
 
 __all__ = ["Mesh", "TriangleMesh"]
 
-class Mesh():
-    """ Abstract class to represent 3D polygon meshes. """
 
-    def __init__(self, vertices: torch.Tensor, faces: torch.Tensor,
-                 uvs: torch.Tensor, face_textures: torch.Tensor,
-                 textures: torch.Tensor, edges: torch.Tensor, edge2key: dict, vv: torch.Tensor,
-                 vv_count: torch.Tensor, vf: torch.Tensor, vf_count: torch.Tensor,
-                 ve: torch.Tensor, ve_count: torch.Tensor, ff: torch.Tensor,
-                 ff_count: torch.Tensor, ef: torch.Tensor, ef_count: torch.Tensor,
-                 ee: torch.Tensor, ee_count: torch.Tensor):\
+class Mesh:
+    """Abstract class to represent 3D polygon meshes."""
 
+    def __init__(
+        self,
+        vertices: torch.Tensor,
+        faces: torch.Tensor,
+        uvs: torch.Tensor,
+        face_textures: torch.Tensor,
+        textures: torch.Tensor,
+        edges: torch.Tensor,
+        edge2key: dict,
+        vv: torch.Tensor,
+        vv_count: torch.Tensor,
+        vf: torch.Tensor,
+        vf_count: torch.Tensor,
+        ve: torch.Tensor,
+        ve_count: torch.Tensor,
+        ff: torch.Tensor,
+        ff_count: torch.Tensor,
+        ef: torch.Tensor,
+        ef_count: torch.Tensor,
+        ee: torch.Tensor,
+        ee_count: torch.Tensor,
+    ):
         # Vertices of the mesh
         self.vertices = vertices
         # Faces of the mesh
@@ -56,10 +71,15 @@ class Mesh():
         self.ee_count = ee_count
         # adjacency matrix for verts
         self.adj = None
-    
+
     @classmethod
-    def from_obj(self, filename: str, with_vt: bool = False,
-                 enable_adjacency: bool = False, texture_res=4):
+    def from_obj(
+        self,
+        filename: str,
+        with_vt: bool = False,
+        enable_adjacency: bool = False,
+        texture_res=4,
+    ):
         r"""Loads object in .obj wavefront format.
         Args:
             filename (str) : location of file.
@@ -80,46 +100,52 @@ class Mesh():
         faces = []
         face_textures = []
         uvs = []
-        with open(filename, 'r') as mesh:
+        with open(filename, "r") as mesh:
             for line in mesh:
                 data = line.split()
                 if len(data) == 0:
                     continue
-                if data[0] == 'v':
+                if data[0] == "v":
                     vertices.append(data[1:])
-                elif data[0] == 'vt':
+                elif data[0] == "vt":
                     uvs.append(data[1:3])
-                elif data[0] == 'f':
-                    if '//' in data[1]:
-                        data = [da.split('//') for da in data]
+                elif data[0] == "f":
+                    if "//" in data[1]:
+                        data = [da.split("//") for da in data]
                         faces.append([int(d[0]) for d in data[1:]])
                         face_textures.append([int(d[1]) for d in data[1:]])
-                    elif '/' in data[1]:
-                        data = [da.split('/') for da in data]
+                    elif "/" in data[1]:
+                        data = [da.split("/") for da in data]
                         faces.append([int(d[0]) for d in data[1:]])
                         face_textures.append([int(d[1]) for d in data[1:]])
                     else:
                         faces.append([int(d) for d in data[1:]])
                         continue
-        vertices = torch.FloatTensor([float(el) for sublist in vertices for el in sublist]).view(-1, 3)
+        vertices = torch.FloatTensor(
+            [float(el) for sublist in vertices for el in sublist]
+        ).view(-1, 3)
         faces = torch.LongTensor(faces) - 1
 
         # compute texture info
         textures = None
         if with_vt:
-            with open(filename, 'r') as f:
+            with open(filename, "r") as f:
                 textures = None
                 for line in f:
-                    if line.startswith('mtllib'):
+                    if line.startswith("mtllib"):
                         filename_mtl = os.path.join(
-                            os.path.dirname(filename), line.split()[1])
+                            os.path.dirname(filename), line.split()[1]
+                        )
                         textures = self.load_textures(
-                            filename, filename_mtl, texture_res)
+                            filename, filename_mtl, texture_res
+                        )
 
                 f.close()
 
         if len(uvs) > 0:
-            uvs = torch.FloatTensor([float(el) for sublist in uvs for el in sublist]).view(-1, 2)
+            uvs = torch.FloatTensor(
+                [float(el) for sublist in uvs for el in sublist]
+            ).view(-1, 2)
         else:
             uvs = None
         if len(face_textures) > 0:
@@ -128,34 +154,105 @@ class Mesh():
             face_textures = None
 
         if enable_adjacency:
-            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, ff_count, \
-                ee, ee_count, ef, ef_count = self.compute_adjacency_info(
-                    vertices, faces)
+            (
+                edge2key,
+                edges,
+                vv,
+                vv_count,
+                ve,
+                ve_count,
+                vf,
+                vf_count,
+                ff,
+                ff_count,
+                ee,
+                ee_count,
+                ef,
+                ef_count,
+            ) = self.compute_adjacency_info(vertices, faces)
         else:
-            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, \
-                ff_count, ee, ee_count, ef, ef_count = None, None, None, \
-                None, None, None, None, None, None, None, None, None, None, \
-                None
+            (
+                edge2key,
+                edges,
+                vv,
+                vv_count,
+                ve,
+                ve_count,
+                vf,
+                vf_count,
+                ff,
+                ff_count,
+                ee,
+                ee_count,
+                ef,
+                ef_count,
+            ) = (
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
 
-        output = self(vertices, faces, uvs, face_textures, textures, edges,
-                    edge2key, vv, vv_count, vf, vf_count, ve, ve_count, ff, ff_count,
-                    ef, ef_count, ee, ee_count)
-        
+        output = self(
+            vertices,
+            faces,
+            uvs,
+            face_textures,
+            textures,
+            edges,
+            edge2key,
+            vv,
+            vv_count,
+            vf,
+            vf_count,
+            ve,
+            ve_count,
+            ff,
+            ff_count,
+            ef,
+            ef_count,
+            ee,
+            ee_count,
+        )
+
         return output
 
 
 class TriangleMesh(Mesh):
-    """ Abstract class to represent 3D Trianlge meshes. """
+    """Abstract class to represent 3D Trianlge meshes."""
 
-    def __init__(self, vertices: torch.Tensor, faces: torch.Tensor,
-                 uvs: torch.Tensor, face_textures: torch.Tensor,
-                 textures: torch.Tensor, edges: torch.Tensor, edge2key: dict,
-                 vv: torch.Tensor, vv_count: torch.Tensor,
-                 vf: torch.Tensor, vf_count: torch.Tensor,
-                 ve: torch.Tensor, ve_count: torch.Tensor,
-                 ff: torch.Tensor, ff_count: torch.Tensor,
-                 ef: torch.Tensor, ef_count: torch.Tensor,
-                 ee: torch.Tensor, ee_count: torch.Tensor):
+    def __init__(
+        self,
+        vertices: torch.Tensor,
+        faces: torch.Tensor,
+        uvs: torch.Tensor,
+        face_textures: torch.Tensor,
+        textures: torch.Tensor,
+        edges: torch.Tensor,
+        edge2key: dict,
+        vv: torch.Tensor,
+        vv_count: torch.Tensor,
+        vf: torch.Tensor,
+        vf_count: torch.Tensor,
+        ve: torch.Tensor,
+        ve_count: torch.Tensor,
+        ff: torch.Tensor,
+        ff_count: torch.Tensor,
+        ef: torch.Tensor,
+        ef_count: torch.Tensor,
+        ee: torch.Tensor,
+        ee_count: torch.Tensor,
+    ):
 
         # Vertices of the mesh
         self.vertices = vertices
@@ -198,5 +295,3 @@ class TriangleMesh(Mesh):
         self.ee_count = ee_count
         # adjacency matrix for verts
         self.adj = None
-
-

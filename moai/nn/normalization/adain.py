@@ -1,15 +1,17 @@
 import torch
 
-#NOTE: from https://arxiv.org/pdf/1703.06868.pdf
+# NOTE: from https://arxiv.org/pdf/1703.06868.pdf
 
 __all__ = [
     "AdaIN",
 ]
 
-#TODO: To be tested
+
+# TODO: To be tested
 class AdaIN(torch.nn.Module):
-    def __init__(self,
-        epsilon: float=1e-5, #avoid division by zero.
+    def __init__(
+        self,
+        epsilon: float = 1e-5,  # avoid division by zero.
     ):
         super(AdaIN, self).__init__()
         self.epsilon = epsilon
@@ -24,6 +26,9 @@ class AdaIN(torch.nn.Module):
         x_mean, x_std = self.calc_vector_mean_std(x)
         y_mean, y_std = self.calc_vector_mean_std(y)
 
-        normalized = (x - x_mean.unsqueeze(-1).expand(
-            size)) / x_std.unsqueeze(-1).expand(size)
-        return normalized * y_std.unsqueeze(-1).expand(size) + y_mean.unsqueeze(-1).expand(size)
+        normalized = (x - x_mean.unsqueeze(-1).expand(size)) / x_std.unsqueeze(
+            -1
+        ).expand(size)
+        return normalized * y_std.unsqueeze(-1).expand(size) + y_mean.unsqueeze(
+            -1
+        ).expand(size)

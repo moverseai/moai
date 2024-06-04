@@ -1,5 +1,6 @@
-from pytorch_lightning.callbacks import Callback
 import torch
+from pytorch_lightning.callbacks import Callback
+
 # from pytorch_lightning.utilities.upgrade_checkpoint import KEYS_MAPPING as DEPRECATED_CHECKPOINT_KEYS
 # from pytorch_lightning.utilities import AMPType
 
@@ -8,28 +9,31 @@ try:
 except ImportError:
     amp = None
 
-import typing
-import torch
 import logging
+import typing
+
+import torch
 
 log = logging.getLogger(__name__)
 
 __all__ = ["Continued"]
 
+
 class Continued(Callback):
-    def __init__(self,
-        filename:           str,
+    def __init__(
+        self,
+        filename: str,
     ):
         super(Continued, self).__init__()
         self.filename = filename
-    
+
     def on_fit_start(self, trainer, pl_module):
-        checkpoint = torch.load(self.filename,
-            map_location=lambda storage, loc: storage
+        checkpoint = torch.load(
+            self.filename, map_location=lambda storage, loc: storage
         )
-        if 'optimizer_states' not in checkpoint or 'lr_schedulers' not in checkpoint:
-            error = 'Trying to restore training state but checkpoint contains only the model.'
-            ' This is probably due to `ModelCheckpoint.save_weights_only` being set to `True`.'
+        if "optimizer_states" not in checkpoint or "lr_schedulers" not in checkpoint:
+            error = "Trying to restore training state but checkpoint contains only the model."
+            " This is probably due to `ModelCheckpoint.save_weights_only` being set to `True`."
             # raise KeyError(error)
             log.error(error)
 
@@ -47,11 +51,11 @@ class Continued(Callback):
         # elif trainer.amp_backend == AMPType.APEX and 'amp_scaling_state' in checkpoint:
         #     amp.load_state_dict(checkpoint['amp_scaling_state'])
 
-        trainer.model.load_state_dict(checkpoint['state_dict'], strict=True)
-        trainer.fit_loop.global_step = checkpoint['global_step']
-        trainer.fit_loop.current_epoch = checkpoint['epoch']
-        #trainer.global_step = checkpoint['global_step']
-        #trainer.current_epoch = checkpoint['epoch']
+        trainer.model.load_state_dict(checkpoint["state_dict"], strict=True)
+        trainer.fit_loop.global_step = checkpoint["global_step"]
+        trainer.fit_loop.current_epoch = checkpoint["epoch"]
+        # trainer.global_step = checkpoint['global_step']
+        # trainer.current_epoch = checkpoint['epoch']
 
         # crash if max_epochs is lower then the current epoch from the checkpoint
         if trainer.current_epoch > trainer.max_epochs:
@@ -64,16 +68,25 @@ class Continued(Callback):
 
         # Division deals with global step stepping once per accumulated batch
         # Inequality deals with different global step for odd vs even num_training_batches
-        n_accum = 1 if trainer.accumulate_grad_batches is None else trainer.accumulate_grad_batches
+        n_accum = (
+            1
+            if trainer.accumulate_grad_batches is None
+            else trainer.accumulate_grad_batches
+        )
         expected_steps = trainer.num_training_batches / n_accum
-        if trainer.num_training_batches != 0 and trainer.global_step % expected_steps > 1:
+        if (
+            trainer.num_training_batches != 0
+            and trainer.global_step % expected_steps > 1
+        ):
             msg = "You're resuming from a checkpoint that ended mid-epoch. "
             "This can cause unreliable results if further training is done, "
             "consider using an end of epoch checkpoint. "
             log.warning(msg)
 
-        log.info(f"Loading optimizer state from {self.filename} @ epoch {trainer.current_epoch} & step {trainer.global_step}.")
-        optimizer_states = checkpoint['optimizer_states']
+        log.info(
+            f"Loading optimizer state from {self.filename} @ epoch {trainer.current_epoch} & step {trainer.global_step}."
+        )
+        optimizer_states = checkpoint["optimizer_states"]
         for optimizer, opt_state in zip(trainer.optimizers, optimizer_states):
             optimizer.load_state_dict(opt_state)
 
@@ -84,10 +97,11 @@ class Continued(Callback):
                     for k, v in state.items():
                         if isinstance(v, torch.Tensor):
                             state[k] = v.cuda(trainer.root_gpu)
-            optimizer.param_groups[0]['capturable'] = True #TODO: bug, https://github.com/pytorch/pytorch/issues/80809
-
+            optimizer.param_groups[0][
+                "capturable"
+            ] = True  # TODO: bug, https://github.com/pytorch/pytorch/issues/80809
 
         # restore the lr schedulers
-        lr_schedulers = checkpoint['lr_schedulers']
+        lr_schedulers = checkpoint["lr_schedulers"]
         for scheduler, lrs_state in zip(trainer.lr_schedulers, lr_schedulers):
-            scheduler['scheduler'].load_state_dict(lrs_state)
+            scheduler["scheduler"].load_state_dict(lrs_state)

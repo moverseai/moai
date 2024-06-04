@@ -3,7 +3,7 @@
 _target_: moai.engine.modules.rerun.Rerun
 name: ${experiment.name}
 export: null
-annotations:  
+annotations:
   parents: null #TODO: remove this from here, add a separate annotation context
   labels: null #TODO: remove this from here, add a separate annotation context
   plots: null

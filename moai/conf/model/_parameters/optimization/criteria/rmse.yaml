@@ -1,4 +1,0 @@
-# @package stopping.criteria.rmse
-
-_target_: moai.parameters.optimization.criteria.rmse.rmse
-_partial_: true

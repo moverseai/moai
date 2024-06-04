@@ -4,65 +4,86 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
-import re
 import io
 import logging
+import os
+import re
 
-from setuptools import (
-    setup,
-    find_packages
-)
-from pkg_resources import (
-    DistributionNotFound,
-    get_distribution, 
-    parse_version,
-)
+from pkg_resources import DistributionNotFound, get_distribution, parse_version
+from setuptools import find_packages, setup
 
 logger = logging.getLogger()
-logging.basicConfig(format='%(levelname)s - %(message)s')
+logging.basicConfig(format="%(levelname)s - %(message)s")
+
 
 def get_readme():
     base_dir = os.path.abspath(os.path.dirname(__file__))
     with io.open(os.path.join(base_dir, "README.md"), encoding="utf-8") as f:
         return f.read()
 
+
 def get_requirements():
     base_dir = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(base_dir, "requirements.txt"), encoding="utf-8") as f:
         return [line.strip() for line in f.readlines()]
 
+
 def moai_info():
     current_dir = os.path.abspath(os.path.dirname(__file__))
     version_file = os.path.join(current_dir, "moai", "__init__.py")
     with io.open(version_file, encoding="utf-8") as f:
-        version = re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
+        version = re.search(
+            r'^__version__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M
+        ).group(1)
         f.seek(0)
-        author = re.search(r'^__author__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
+        author = re.search(r'^__author__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(
+            1
+        )
         f.seek(0)
-        email = re.search(r'^__author_email__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
+        email = re.search(
+            r'^__author_email__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M
+        ).group(1)
         f.seek(0)
-        licence = re.search(r'^__license__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
+        licence = re.search(
+            r'^__license__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M
+        ).group(1)
         f.seek(0)
         url = re.search(r'^__homepage__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
         f.seek(0)
-        code_url = re.search(r'^__github_repo__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
+        code_url = re.search(
+            r'^__github_repo__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M
+        ).group(1)
         f.seek(0)
-        docs_url = re.search(r'^__documentation_page__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
+        docs_url = re.search(
+            r'^__documentation_page__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M
+        ).group(1)
         f.seek(0)
-        short_desc = re.search(r'^__docs__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
+        short_desc = re.search(
+            r'^__docs__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M
+        ).group(1)
         f.seek(0)
-        keywords = re.search(r'^__keywords__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
-        return version, author, email, licence, \
-            url, code_url, docs_url, \
-            short_desc, keywords.split(',')
+        keywords = re.search(
+            r'^__keywords__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M
+        ).group(1)
+        return (
+            version,
+            author,
+            email,
+            licence,
+            url,
+            code_url,
+            docs_url,
+            short_desc,
+            keywords.split(","),
+        )
 
-PACKAGE_NAME = 'moai-mdk'
-VERSION, AUTHOR, EMAIL, LICENSE,\
-URL, CODE_URL, DOCS_URL, \
-DESCRIPTION, KEYWORDS = moai_info()
 
-if __name__ == '__main__':
+PACKAGE_NAME = "moai-mdk"
+VERSION, AUTHOR, EMAIL, LICENSE, URL, CODE_URL, DOCS_URL, DESCRIPTION, KEYWORDS = (
+    moai_info()
+)
+
+if __name__ == "__main__":
     logger.info(f"Installing {PACKAGE_NAME} (v{VERSION}) ...")
     setup(
         name=PACKAGE_NAME,
@@ -73,21 +94,21 @@ if __name__ == '__main__':
         long_description=get_readme(),
         long_description_content_type="text/markdown",
         keywords=KEYWORDS,
-        licence_file='LICENSE',
+        licence_file="LICENSE",
         url=URL,
         project_urls={
-            'Documentation': DOCS_URL,
-            'Source': CODE_URL,
+            "Documentation": DOCS_URL,
+            "Source": CODE_URL,
         },
-        packages=find_packages(exclude=('docs', 'outputs', 'actions', 'scripts')),
+        packages=find_packages(exclude=("docs", "outputs", "actions", "scripts")),
         install_requires=get_requirements(),
         include_package_data=True,
-        python_requires='~=3.7',
-        package_dir={'moai': 'moai'},
-        package_data={'moai': ['conf/**/*.yaml']},
+        python_requires="~=3.7",
+        package_dir={"moai": "moai"},
+        package_data={"moai": ["conf/**/*.yaml"]},
         entry_points={
-            'console_scripts': [
-                'moai=moai.__main__:moai',
+            "console_scripts": [
+                "moai=moai.__main__:moai",
                 # 'moai=moai.__main__',
             ],
         },
@@ -101,5 +122,5 @@ if __name__ == '__main__':
             "Topic :: Scientific/Engineering :: Artificial Intelligence",
             "Topic :: Software Development :: Libraries",
             "Topic :: Software Development :: Libraries :: Python Modules",
-        ],    
+        ],
     )

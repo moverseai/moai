@@ -3,8 +3,8 @@ defaults:
   - engine/runner: lightning
   - engine/modules: [manual_seed, rerun]
   - engine/loggers: tabular
-  
-  # ###### DATA  
+
+  # ###### DATA
   - data/train/loader: torch
   - data/train/iterator: indexed
   - data/train/augmentation: none
@@ -20,19 +20,19 @@ defaults:
   - data/val/augmentation: none
   - data/val/dataset/human/pose: openpose
 
-  # ###### MODEL 
+  # ###### MODEL
   - model: moai
   - model/monads/human/body: [initialize_translation, smplx]
   - model/monads/tensor: alias
   - model/monads/human/body/prior: vposer1 # vposer2
-  - model/monads/masking: [binary]  
+  - model/monads/masking: [binary]
   - model/monads/geometry/projection: weak_perspective_camera
   - model/monads/human/pose/openpose: split
 
   - examples/smplifyx/embedding
   - examples/smplifyx/translation
   - examples/smplifyx/betas
-  
+
   - model/modifications: forward_mode
 
   # - model/_parameters/initialization: cascade
@@ -51,7 +51,8 @@ defaults:
   - model/metrics: rmse
 
   - model/monitors/exporting/local: [pkl, append_pkl]
-  - model/monitors/visualization/rerun: [mesh, mesh3d, posed_image, keypoints, optimization_losses]
+  - model/monitors/visualization/rerun:
+      [mesh, mesh3d, posed_image, keypoints, optimization_losses]
 
   - data
   - options
@@ -62,8 +63,9 @@ defaults:
   - optimization
   - _moai_
 
-  ###### HYDRA  
+  ###### HYDRA
   - override hydra/hydra_logging: moai # colorlog
   - override hydra/job_logging: moai # colorlog
-  
+
+
   # _self_

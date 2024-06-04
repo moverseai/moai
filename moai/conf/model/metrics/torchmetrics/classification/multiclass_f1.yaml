@@ -4,7 +4,7 @@ _target_: moai.validation.torchmetric.ClassificationTorchMetric
 type: MulticlassF1Score
 num_classes: 10 #TODO: switch to ???
 top_k: 1 #TODO: switch to ???
-average: 'macro'
+average: "macro"
 multidim_average: global
-ignore_index: null 
+ignore_index: null
 validate_args: True

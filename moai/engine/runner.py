@@ -1,17 +1,20 @@
-from moai.engine.run_callback import RunCallback
+import logging
+import typing
+
+import hydra.utils as hyu
+import pytorch_lightning as L
 from omegaconf.omegaconf import DictConfig
 
-import pytorch_lightning as L
-import hydra.utils as hyu
-import typing
-import logging
+from moai.engine.run_callback import RunCallback
 
 log = logging.getLogger(__name__)
 
 __all__ = ["LightningRunner"]
 
+
 class LightningRunner(L.Trainer):
-    def __init__(self,
+    def __init__(
+        self,
         # logging: omegaconf.DictConfig = None,
         loggers: DictConfig = None,
         checkpoint: DictConfig = None,
@@ -84,10 +87,13 @@ class LightningRunner(L.Trainer):
         relative_tolerance: float = 1e-9,
         gradient_tolerance: float = 1e-9,
         **kwargs,
-    ):      
-        loggers = [hyu.instantiate(logger) for logger in loggers.values()]\
-            if loggers else []        
-        pytl_callbacks = [RunCallback()] #TODO: only when moai model is used, should not be used for custom models
+    ):
+        loggers = (
+            [hyu.instantiate(logger) for logger in loggers.values()] if loggers else []
+        )
+        pytl_callbacks = [
+            RunCallback()
+        ]  # TODO: only when moai model is used, should not be used for custom models
         pytl_callbacks.extend(
             [hyu.instantiate(c) for c in callbacks.values()]
             if callbacks is not None

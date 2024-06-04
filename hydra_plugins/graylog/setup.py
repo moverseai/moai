@@ -28,58 +28,59 @@
 #     ],
 # )
 
-import os
 import io
 import logging
+import os
 
-from setuptools import (
-    setup,
-    find_namespace_packages
-)
+from setuptools import find_namespace_packages, setup
 
 logger = logging.getLogger()
-logging.basicConfig(format='%(levelname)s - %(message)s')
+logging.basicConfig(format="%(levelname)s - %(message)s")
+
 
 def get_readme():
     base_dir = os.path.abspath(os.path.dirname(__file__))
     with io.open(os.path.join(base_dir, "README.md"), encoding="utf-8") as f:
         return f.read()
 
-PACKAGE_NAME = 'graylog'
+
+PACKAGE_NAME = "graylog"
 VERSION = 1.0
-AUTHOR = 'Georgios Albanis'
-EMAIL = 'giorgos@moverse.ai'
+AUTHOR = "Georgios Albanis"
+EMAIL = "giorgos@moverse.ai"
+
 
 def get_requirements():
     base_dir = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(base_dir, "requirements.txt"), encoding="utf-8") as f:
         return [line.strip() for line in f.readlines()]
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     logger.info(f"Installing {PACKAGE_NAME} (v: {VERSION}) ...")
     setup(
         name=PACKAGE_NAME,
         version=VERSION,
         author=AUTHOR,
         author_email=EMAIL,
-        description='the `graylog` package plugin for logging to Graylog',
+        description="the `graylog` package plugin for logging to Graylog",
         long_description=get_readme(),
         long_description_content_type="text/markdown",
         keywords="hydra graylog",
-        licence_file='LICENCE',
-        url='',
+        licence_file="LICENCE",
+        url="",
         project_urls={
-            'Documentation': '',
-            'Source': '',
+            "Documentation": "",
+            "Source": "",
         },
         packages=find_namespace_packages(
             # include=["hydra_plugins.*", "bdtk"],
-            exclude=('docs', 'outputs', 'test_data', 'data', 'scripts', 'tests')
+            exclude=("docs", "outputs", "test_data", "data", "scripts", "tests")
         ),
-        package_data={'graylog': ['conf/**/*.yaml']},
+        package_data={"graylog": ["conf/**/*.yaml"]},
         include_package_data=True,
         install_requires=get_requirements(),
-        python_requires='~=3.7',                
+        python_requires="~=3.7",
         classifiers=[
             "Development Status :: 3 - Alpha",
             "Intended Audience :: Developers",

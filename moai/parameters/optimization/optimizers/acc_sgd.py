@@ -1,10 +1,12 @@
 import copy
-import torch
 import typing
 
-__all__ = ['AccSGD']
+import torch
 
-#NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/accsgd.py
+__all__ = ["AccSGD"]
+
+# NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/accsgd.py
+
 
 class AccSGD(torch.optim.Optimizer):
     r"""Implements AccSGD algorithm.
@@ -36,20 +38,19 @@ class AccSGD(torch.optim.Optimizer):
         Reference code: https://github.com/rahulkidambi/AccSGD
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         params: typing.Iterator[torch.nn.Parameter],
-        lr: float=1e-3,
-        kappa: float=1000.0,
-        xi: float=10.0,
-        small_const: float=0.7,
-        weight_decay: float=0,
+        lr: float = 1e-3,
+        kappa: float = 1000.0,
+        xi: float = 10.0,
+        small_const: float = 0.7,
+        weight_decay: float = 0,
     ) -> None:
         if lr <= 0.0:
-            raise ValueError('Invalid learning rate: {}'.format(lr))
+            raise ValueError("Invalid learning rate: {}".format(lr))
         if weight_decay < 0:
-            raise ValueError(
-                'Invalid weight_decay value: {}'.format(weight_decay)
-            )
+            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
         defaults = dict(
             lr=lr,
             kappa=kappa,
@@ -59,7 +60,9 @@ class AccSGD(torch.optim.Optimizer):
         )
         super(AccSGD, self).__init__(params, defaults)
 
-    def step(self, closure: typing.Optional[typing.Callable[[], float]]=None) -> typing.Optional[float]:
+    def step(
+        self, closure: typing.Optional[typing.Callable[[], float]] = None
+    ) -> typing.Optional[float]:
         r"""Performs a single optimization step.
 
         Arguments:
@@ -70,30 +73,30 @@ class AccSGD(torch.optim.Optimizer):
             loss = closure()
 
         for group in self.param_groups:
-            weight_decay = group['weight_decay']
-            large_lr = (group['lr'] * group['kappa']) / (group['small_const'])
+            weight_decay = group["weight_decay"]
+            large_lr = (group["lr"] * group["kappa"]) / (group["small_const"])
             alpha = 1.0 - (
-                (group['small_const'] * group['small_const'] * group['xi'])
-                / group['kappa']
+                (group["small_const"] * group["small_const"] * group["xi"])
+                / group["kappa"]
             )
             beta = 1.0 - alpha
-            zeta = group['small_const'] / (group['small_const'] + beta)
-            for p in group['params']:
+            zeta = group["small_const"] / (group["small_const"] + beta)
+            for p in group["params"]:
                 if p.grad is None:
                     continue
                 d_p = p.grad.data
                 if weight_decay != 0:
                     d_p.add_(p.data, alpha=weight_decay)
                 param_state = self.state[p]
-                if 'momentum_buffer' not in param_state:
-                    param_state['momentum_buffer'] = copy.deepcopy(p.data)
-                buf = param_state['momentum_buffer']
+                if "momentum_buffer" not in param_state:
+                    param_state["momentum_buffer"] = copy.deepcopy(p.data)
+                buf = param_state["momentum_buffer"]
                 buf.mul_((1.0 / beta) - 1.0)
                 buf.add_(d_p, alpha=-large_lr)
                 buf.add_(p.data)
                 buf.mul_(beta)
 
-                p.data.add_(d_p, alpha=-group['lr'])
+                p.data.add_(d_p, alpha=-group["lr"])
                 p.data.mul_(zeta)
                 p.data.add_(buf, alpha=1.0 - zeta)
 

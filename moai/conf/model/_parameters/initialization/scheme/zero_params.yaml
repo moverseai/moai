@@ -1,4 +1,0 @@
-# @package model.parameters.initialization.schemes.zero_params
-
-_target_: moai.parameters.initialization.schemes.zero_params.ZeroParams
-keys: ???

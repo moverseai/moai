@@ -1,7 +1,7 @@
-from collections.abc import Callable
-import typing
 import logging
 import os
+import typing
+from collections.abc import Callable
 
 log = logging.getLogger(__name__)
 

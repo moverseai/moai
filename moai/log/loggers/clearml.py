@@ -1,18 +1,14 @@
-from moai.engine.modules.clearml import _get_logger
-from moai.engine.modules.clearml import _get_project_name
-from moai.engine.modules.clearml import _get_task_name
-
-
-from typing_extensions import override
-from pytorch_lightning.loggers.logger import DummyExperiment
-
-
-import numpy as np
-import pytorch_lightning
 import logging
 import typing
-import toolz
+
+import numpy as np
 import pandas as pd
+import pytorch_lightning
+import toolz
+from pytorch_lightning.loggers.logger import DummyExperiment
+from typing_extensions import override
+
+from moai.engine.modules.clearml import _get_logger, _get_project_name, _get_task_name
 
 log = logging.getLogger(__name__)
 
@@ -71,7 +67,7 @@ class ClearML(pytorch_lightning.loggers.Logger):
                     "Metrics", "Per Sample", iteration=step, table_plot=df
                 )
         if val_metrics:
-            #TODO: report the average of the metrics
+            # TODO: report the average of the metrics
             dataset_val_metrics = toolz.valmap(
                 lambda v: toolz.keymap(lambda k: k.split("/")[1], dict(v)),
                 toolz.groupby(
@@ -82,8 +78,15 @@ class ClearML(pytorch_lightning.loggers.Logger):
             # dataset = list(val_metrics.items())[0][0].split("/")[2]
             for dataset_name, dataset_metrics in dataset_val_metrics.items():
                 for metric_name, metric_value in dataset_metrics.items():
-                    self.logger.report_scalar(dataset_name, metric_name, metric_value,
-                        int(toolz.keyfilter(lambda k: k.startswith("epoch"), metrics).popitem()[1])
+                    self.logger.report_scalar(
+                        dataset_name,
+                        metric_name,
+                        metric_value,
+                        int(
+                            toolz.keyfilter(
+                                lambda k: k.startswith("epoch"), metrics
+                            ).popitem()[1]
+                        ),
                     )
 
     def log_hyperparams(
@@ -91,7 +94,6 @@ class ClearML(pytorch_lightning.loggers.Logger):
     ) -> None:
         my_params = self.logger.task.connect_configuration(my_params)
 
-    
     def save(self) -> None:
         pass
 

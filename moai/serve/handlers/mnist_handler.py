@@ -1,12 +1,13 @@
-from torchvision import transforms
-import torch
-# from ts.torch_handler.image_classifier import ImageClassifier
-from collections.abc import Callable
-from torch.profiler import ProfilerActivity
 import logging
 
-log = logging.getLogger(__name__)
+# from ts.torch_handler.image_classifier import ImageClassifier
+from collections.abc import Callable
 
+import torch
+from torch.profiler import ProfilerActivity
+from torchvision import transforms
+
+log = logging.getLogger(__name__)
 
 
 class MNISTDigitClassifier(Callable):
@@ -17,19 +18,17 @@ class MNISTDigitClassifier(Callable):
     Here method postprocess() has been overridden while others are reused from parent class.
     """
 
-    image_processing = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))
-    ])
+    image_processing = transforms.Compose(
+        [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+    )
 
-    def __init__(self, input_key: str = 'predicted_label'):
+    def __init__(self, input_key: str = "predicted_label"):
         super(MNISTDigitClassifier, self).__init__()
         self.profiler_args = {
-            "activities" : [ProfilerActivity.CPU],
+            "activities": [ProfilerActivity.CPU],
             "record_shapes": True,
         }
         self.input_key = input_key
-
 
     # def postprocess(self, data):
     #     """The post process of MNIST converts the predicted output response to a label.
@@ -53,6 +52,4 @@ class MNISTDigitClassifier(Callable):
         Returns:
             torch.Tensor: Tensor of preprocessed data
         """
-        return [
-            {'class': int(data[self.input_key])}
-        ]
+        return [{"class": int(data[self.input_key])}]

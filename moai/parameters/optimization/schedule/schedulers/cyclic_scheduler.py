@@ -1,49 +1,57 @@
 # modified from https://github.com/mpyrozhok/adamwr
 
-#NOTE: this is currently not supported
+# NOTE: this is currently not supported
+
+import logging
+import math
+import typing
 
 import torch
 import torch.optim as pto
 import torch.optim.lr_scheduler as ptlrs
-import math
-import typing
-import logging
 
 log = logging.getLogger(__name__)
 
+
 class ReduceMaxLROnRestart:
-    def __init__(self, ratio: float=0.75):
+    def __init__(self, ratio: float = 0.75):
         self.ratio = ratio
 
     def __call__(self, eta_min: int, eta_max: int) -> float:
         return eta_min, eta_max * self.ratio
 
+
 class ExpReduceMaxLROnIteration:
-    def __init__(self, gamma: float=1.0):
+    def __init__(self, gamma: float = 1.0):
         self.gamma = gamma
 
     def __call__(self, eta_min: int, eta_max: int, iterations: int) -> float:
-        return eta_min, eta_max * self.gamma ** iterations
+        return eta_min, eta_max * self.gamma**iterations
+
 
 class CosinePolicy:
     def __call__(self, t_cur: int, restart_period: int) -> float:
-        return 0.5 * (1. + math.cos(math.pi * (t_cur / restart_period)))
+        return 0.5 * (1.0 + math.cos(math.pi * (t_cur / restart_period)))
+
 
 class ArccosinePolicy:
     def __call__(self, t_cur: int, restart_period: int):
-        return (math.acos(max(-1, min(1, 2 * t_cur / restart_period - 1))) / math.pi)
+        return math.acos(max(-1, min(1, 2 * t_cur / restart_period - 1))) / math.pi
+
 
 class TriangularPolicy:
-    def __init__(self, triangular_step: float=0.5):
+    def __init__(self, triangular_step: float = 0.5):
         self.triangular_step = triangular_step
 
     def __call__(self, t_cur: int, restart_period: int):
         inflection_point = self.triangular_step * restart_period
-        point_of_triangle = (t_cur / inflection_point
-                             if t_cur < inflection_point
-                             else 1.0 - (t_cur - inflection_point)
-                             / (restart_period - inflection_point))
+        point_of_triangle = (
+            t_cur / inflection_point
+            if t_cur < inflection_point
+            else 1.0 - (t_cur - inflection_point) / (restart_period - inflection_point)
+        )
         return point_of_triangle
+
 
 class CyclicLRWithRestarts(ptlrs._LRScheduler):
     """Decays learning rate with cosine annealing, normalizes weight decay
@@ -78,46 +86,47 @@ class CyclicLRWithRestarts(ptlrs._LRScheduler):
         >>>     validate(...)
     """
 
-    def __init__(self, 
+    def __init__(
+        self,
         optimizer: pto.Optimizer,
         batch_size: int,
         epoch_size: int,
-        restart_period: int=100,
-        t_mult: int=2, 
-        last_epoch: int=-1,
-        verbose: bool=False,
-        policy: str="cosine", 
-        policy_fn: typing.Callable=None,
-        min_lr: float=1e-7,
-        eta_on_restart_cb: typing.Callable=None,
-        eta_on_iteration_cb: typing.Callable=None,
-        gamma: float=1.0,
-        triangular_step: float=0.5
+        restart_period: int = 100,
+        t_mult: int = 2,
+        last_epoch: int = -1,
+        verbose: bool = False,
+        policy: str = "cosine",
+        policy_fn: typing.Callable = None,
+        min_lr: float = 1e-7,
+        eta_on_restart_cb: typing.Callable = None,
+        eta_on_iteration_cb: typing.Callable = None,
+        gamma: float = 1.0,
+        triangular_step: float = 0.5,
     ):
         if not isinstance(optimizer, pto.Optimizer):
-            raise TypeError('{} is not an Optimizer'.format(
-                type(optimizer).__name__))
+            raise TypeError("{} is not an Optimizer".format(type(optimizer).__name__))
         self.optimizer = optimizer
 
         if last_epoch == -1:
             for group in optimizer.param_groups:
-                group.setdefault('initial_lr', group['lr'])
-                group.setdefault('minimum_lr', min_lr)
+                group.setdefault("initial_lr", group["lr"])
+                group.setdefault("minimum_lr", min_lr)
         else:
             for i, group in enumerate(optimizer.param_groups):
-                if 'initial_lr' not in group:
-                    raise KeyError("param 'initial_lr' is not specified "
-                                   "in param_groups[{}] when resuming an"
-                                   " optimizer".format(i))
+                if "initial_lr" not in group:
+                    raise KeyError(
+                        "param 'initial_lr' is not specified "
+                        "in param_groups[{}] when resuming an"
+                        " optimizer".format(i)
+                    )
 
-        self.base_lrs = [group['initial_lr'] for group
-                         in optimizer.param_groups]
+        self.base_lrs = [group["initial_lr"] for group in optimizer.param_groups]
 
-        self.min_lrs = [group['minimum_lr'] for group
-                        in optimizer.param_groups]
+        self.min_lrs = [group["minimum_lr"] for group in optimizer.param_groups]
 
-        self.base_weight_decays = [group['weight_decay'] for group
-                                   in optimizer.param_groups]
+        self.base_weight_decays = [
+            group["weight_decay"] for group in optimizer.param_groups
+        ]
 
         self.policy = policy
         self.eta_on_restart_cb = eta_on_restart_cb
@@ -160,27 +169,33 @@ class CyclicLRWithRestarts(ptlrs._LRScheduler):
 
     def _on_restart(self):
         if self.eta_on_restart_cb is not None:
-            self.eta_min, self.eta_max = self.eta_on_restart_cb(self.eta_min,
-                                                                self.eta_max)
+            self.eta_min, self.eta_max = self.eta_on_restart_cb(
+                self.eta_min, self.eta_max
+            )
 
     def _on_iteration(self):
         if self.eta_on_iteration_cb is not None:
-            self.eta_min, self.eta_max = self.eta_on_iteration_cb(self.eta_min,
-                                                                  self.eta_max,
-                                                                  self.total_iterations)
+            self.eta_min, self.eta_max = self.eta_on_iteration_cb(
+                self.eta_min, self.eta_max, self.total_iterations
+            )
 
     def get_lr(self, t_cur):
-        eta_t = (self.eta_min + (self.eta_max - self.eta_min)
-                 * self.policy_fn(t_cur, self.restart_period))
+        eta_t = self.eta_min + (self.eta_max - self.eta_min) * self.policy_fn(
+            t_cur, self.restart_period
+        )
 
-        weight_decay_norm_multi = math.sqrt(self.batch_size /
-                                            (self.epoch_size *
-                                             self.restart_period))
+        weight_decay_norm_multi = math.sqrt(
+            self.batch_size / (self.epoch_size * self.restart_period)
+        )
 
-        lrs = [min_lr + (base_lr - min_lr) * eta_t for base_lr, min_lr
-               in zip(self.base_lrs, self.min_lrs)]
-        weight_decays = [base_weight_decay * eta_t * weight_decay_norm_multi
-                         for base_weight_decay in self.base_weight_decays]
+        lrs = [
+            min_lr + (base_lr - min_lr) * eta_t
+            for base_lr, min_lr in zip(self.base_lrs, self.min_lrs)
+        ]
+        weight_decays = [
+            base_weight_decay * eta_t * weight_decay_norm_multi
+            for base_weight_decay in self.base_weight_decays
+        ]
 
         if (self.t_epoch + 1) % self.restart_period < self.t_epoch:
             self.end_of_period = True
@@ -214,12 +229,15 @@ class CyclicLRWithRestarts(ptlrs._LRScheduler):
             self._on_iteration()
             self.iteration += 1
             self.total_iterations += 1
-        except (IndexError):
-            raise StopIteration("Epoch size and batch size used in the "
-                                "training loop and while initializing "
-                                "scheduler should be the same.")
+        except IndexError:
+            raise StopIteration(
+                "Epoch size and batch size used in the "
+                "training loop and while initializing "
+                "scheduler should be the same."
+            )
 
-        for param_group, (lr, weight_decay) in zip(self.optimizer.param_groups,
-                                                   self.get_lr(t_cur)):
-            param_group['lr'] = lr
-            param_group['weight_decay'] = weight_decay
+        for param_group, (lr, weight_decay) in zip(
+            self.optimizer.param_groups, self.get_lr(t_cur)
+        ):
+            param_group["lr"] = lr
+            param_group["weight_decay"] = weight_decay

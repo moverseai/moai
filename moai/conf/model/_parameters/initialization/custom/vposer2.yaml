@@ -1,5 +1,0 @@
-# @package model.parameters.initialization.schemes.vposer2
-
-_target_: moai.parameters.initialization.custom.vposer2.VPoser2
-ckpt: ???
-cache: false

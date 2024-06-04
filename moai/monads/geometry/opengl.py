@@ -1,26 +1,38 @@
-from moai.utils.arguments import assert_positive
-import torch
-import typing
 import logging
+import typing
+
 import numpy as np
+import torch
+
+from moai.utils.arguments import assert_positive
 
 logger = logging.getLogger(__name__)
 
 __all__ = ["Camera"]
 
-class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
-    def __init__(self,
-        focal_length:       typing.Union[float, typing.Tuple[float, float]]=5000.0,
-        principal_point:    typing.Union[float, typing.Tuple[float, float]]=0.5,
-        width:              int=None,
-        height:             int=None,
-        rotation:           torch.Tensor=None,
-        translation:        torch.Tensor=None,
-        persistent:         bool=False,
+
+class Camera(torch.nn.Module):  # NOTE: fixed focal/principal, optimized rot/trans
+    def __init__(
+        self,
+        focal_length: typing.Union[float, typing.Tuple[float, float]] = 5000.0,
+        principal_point: typing.Union[float, typing.Tuple[float, float]] = 0.5,
+        width: int = None,
+        height: int = None,
+        rotation: torch.Tensor = None,
+        translation: torch.Tensor = None,
+        persistent: bool = False,
     ):
         super(Camera, self).__init__()
-        self.focal_length = (focal_length, focal_length) if isinstance(focal_length, float) else focal_length
-        self.principal_point = (principal_point, principal_point) if isinstance(principal_point, float) else principal_point
+        self.focal_length = (
+            (focal_length, focal_length)
+            if isinstance(focal_length, float)
+            else focal_length
+        )
+        self.principal_point = (
+            (principal_point, principal_point)
+            if isinstance(principal_point, float)
+            else principal_point
+        )
         self.resolution = (width, height)
         if principal_point is None:
             assert_positive(logger, "width", width)
@@ -35,49 +47,68 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
         w, h = width, height
         fx, fy = self.focal_length
         px, py = self.principal_point
-        mat = torch.tensor([[
-            [2 * fx / w,                            0,                                  0,                                  0],
-            [-2.0 * sx / w,                    -2.0 * fy / h,                             0,                                  0],
-            [(w - 2.0 * px + 2 * x0) / w,   (h - 2.0 * py + 2.0 * y0) / h,        -(f + n) / (f - n),               -1.0],
-            [0,                                         0,                     -(2.0 * f * n) / (f - n),              0]
-        ]])
+        mat = torch.tensor(
+            [
+                [
+                    [2 * fx / w, 0, 0, 0],
+                    [-2.0 * sx / w, -2.0 * fy / h, 0, 0],
+                    [
+                        (w - 2.0 * px + 2 * x0) / w,
+                        (h - 2.0 * py + 2.0 * y0) / h,
+                        -(f + n) / (f - n),
+                        -1.0,
+                    ],
+                    [0, 0, -(2.0 * f * n) / (f - n), 0],
+                ]
+            ]
+        )
         self.register_buffer("mat", mat, persistent=persistent)
         if rotation is None:
-             rotation = torch.eye(3)[np.newaxis, ...].float()
+            rotation = torch.eye(3)[np.newaxis, ...].float()
         rotation = torch.nn.Parameter(rotation, requires_grad=True)
-        self.register_parameter('rotation', rotation)
+        self.register_parameter("rotation", rotation)
         if translation is None:
             translation = torch.zeros([1, 3]).float()
         translation = torch.nn.Parameter(translation, requires_grad=True)
-        self.register_parameter('translation', translation)
+        self.register_parameter("translation", translation)
 
-    def forward(self, 
-        points:             torch.Tensor,
-        image:              torch.Tensor=None,
-        nominal_image:      torch.Tensor=None,
-        aspect_image:       torch.Tensor=None,
-        rotation:           torch.Tensor=None,
-        translation:        torch.Tensor=None,
-        intrinsics:         torch.Tensor=None,
-        #TODO: update with focal/principal inputs as well        
+    def forward(
+        self,
+        points: torch.Tensor,
+        image: torch.Tensor = None,
+        nominal_image: torch.Tensor = None,
+        aspect_image: torch.Tensor = None,
+        rotation: torch.Tensor = None,
+        translation: torch.Tensor = None,
+        intrinsics: torch.Tensor = None,
+        # TODO: update with focal/principal inputs as well
     ) -> torch.Tensor:
         fx, fy = self.focal_length
         px, py = self.principal_point
         if intrinsics is not None and intrinsics.shape[0] == 1:
             fx, fy = intrinsics[0, 0, 0], intrinsics[0, 1, 1]
             px, py = intrinsics[0, 0, 2], intrinsics[0, 1, 2]
-        if image is not None:            
+        if image is not None:
             w, h = image.shape[-1], image.shape[-2]
             sx = 0.0
             x0, y0 = (0.0, 0.0)
             n, f = (0.1, 50.0)
             px, py = w / 2.0, h / 2.0
-            proj = torch.tensor([[
-                [2 * fx / w,                               0,                                  0,                                  0],
-                [-2.0 * sx / w,                    -2.0 * fy / h,                             0,                                  0],
-                [(w - 2.0 * px + 2 * x0) / w,   (h - 2.0 * py + 2.0 * y0) / h,        -(f + n) / (f - n),               -1.0],
-                [0,                                         0,                     -(2.0 * f * n) / (f - n),              0]
-            ]]).to(points)
+            proj = torch.tensor(
+                [
+                    [
+                        [2 * fx / w, 0, 0, 0],
+                        [-2.0 * sx / w, -2.0 * fy / h, 0, 0],
+                        [
+                            (w - 2.0 * px + 2 * x0) / w,
+                            (h - 2.0 * py + 2.0 * y0) / h,
+                            -(f + n) / (f - n),
+                            -1.0,
+                        ],
+                        [0, 0, -(2.0 * f * n) / (f - n), 0],
+                    ]
+                ]
+            ).to(points)
         elif nominal_image is not None:
             w, h = self.resolution
             ow, oh = nominal_image.shape[-1], nominal_image.shape[-2]
@@ -89,19 +120,28 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
                 px, py = (px / ow) * w, (py / oh) * h
             else:
                 px, py = 0.5 * w, 0.5 * h
-            proj = torch.tensor([[
-                [2 * fx / w,                               0,                                  0,                                  0],
-                [-2.0 * sx / w,                    -2.0 * fy / h,                             0,                                  0],
-                [(w - 2.0 * px + 2 * x0) / w,   (h - 2.0 * py + 2.0 * y0) / h,        -(f + n) / (f - n),               -1.0],
-                [0,                                         0,                     -(2.0 * f * n) / (f - n),              0]
-            ]]).to(points)
+            proj = torch.tensor(
+                [
+                    [
+                        [2 * fx / w, 0, 0, 0],
+                        [-2.0 * sx / w, -2.0 * fy / h, 0, 0],
+                        [
+                            (w - 2.0 * px + 2 * x0) / w,
+                            (h - 2.0 * py + 2.0 * y0) / h,
+                            -(f + n) / (f - n),
+                            -1.0,
+                        ],
+                        [0, 0, -(2.0 * f * n) / (f - n), 0],
+                    ]
+                ]
+            ).to(points)
         elif aspect_image is not None:
             w, h = self.resolution
             ow, oh = aspect_image.shape[-1], aspect_image.shape[-2]
             if oh > ow:
                 fx, fy = fx * (w / ow) / ((h / w) / (oh / ow)), fy * (h / oh)
                 w = ow * (h / oh)
-            else:                
+            else:
                 fx, fy = fx * (w / ow), fy * (h / oh) / ((h / w) / (oh / ow))
                 h = oh * (w / ow)
             sx = 0.0
@@ -111,12 +151,21 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
                 px, py = (px / ow) * w, (py / oh) * h
             else:
                 px, py = 0.5 * w, 0.5 * h
-            proj = torch.tensor([[
-                [2 * fx / w,                               0,                                  0,                                  0],
-                [-2.0 * sx / w,                    -2.0 * fy / h,                             0,                                  0],
-                [(w - 2.0 * px + 2 * x0) / w,   (h - 2.0 * py + 2.0 * y0) / h,        -(f + n) / (f - n),               -1.0],
-                [0,                                         0,                     -(2.0 * f * n) / (f - n),              0]
-            ]]).to(points)
+            proj = torch.tensor(
+                [
+                    [
+                        [2 * fx / w, 0, 0, 0],
+                        [-2.0 * sx / w, -2.0 * fy / h, 0, 0],
+                        [
+                            (w - 2.0 * px + 2 * x0) / w,
+                            (h - 2.0 * py + 2.0 * y0) / h,
+                            -(f + n) / (f - n),
+                            -1.0,
+                        ],
+                        [0, 0, -(2.0 * f * n) / (f - n), 0],
+                    ]
+                ]
+            ).to(points)
         elif intrinsics is not None:
             Ks = []
             for K in intrinsics:
@@ -126,12 +175,21 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
                 n, f = (0.1, 50.0)
                 fx, fy = K[0, 0], K[1, 1]
                 px, py = K[0, 2], K[1, 2]
-                Ks.append(torch.tensor([
-                    [2 * fx / w,                               0,                                  0,                                  0],
-                    [-2.0 * sx / w,                    -2.0 * fy / h,                             0,                                  0],
-                    [(w - 2.0 * px + 2 * x0) / w,   (h - 2.0 * py + 2.0 * y0) / h,        -(f + n) / (f - n),               -1.0],
-                    [0,                                         0,                     -(2.0 * f * n) / (f - n),              0]
-                ]).to(points))
+                Ks.append(
+                    torch.tensor(
+                        [
+                            [2 * fx / w, 0, 0, 0],
+                            [-2.0 * sx / w, -2.0 * fy / h, 0, 0],
+                            [
+                                (w - 2.0 * px + 2 * x0) / w,
+                                (h - 2.0 * py + 2.0 * y0) / h,
+                                -(f + n) / (f - n),
+                                -1.0,
+                            ],
+                            [0, 0, -(2.0 * f * n) / (f - n), 0],
+                        ]
+                    ).to(points)
+                )
             proj = torch.stack(Ks)
         else:
             proj = self.mat
@@ -146,9 +204,11 @@ class Camera(torch.nn.Module): #NOTE: fixed focal/principal, optimized rot/trans
         Rt[:, 3, 2] = 1.0 * t[:, 2]
         Rt[:, 3, 3] = 1.0
         inv_Rt = torch.inverse(Rt)
-        v = torch.nn.functional.pad(
-            points, pad=(0,1), mode='constant', value=1.0
-        ) if points.shape[-1] == 3 else points # [B, V, 4]
-        xf = torch.einsum('bvi,bij->bvj', v, inv_Rt)
-        ndc = torch.einsum('bvi,bij->bvj', xf, proj)
+        v = (
+            torch.nn.functional.pad(points, pad=(0, 1), mode="constant", value=1.0)
+            if points.shape[-1] == 3
+            else points
+        )  # [B, V, 4]
+        xf = torch.einsum("bvi,bij->bvj", v, inv_Rt)
+        ndc = torch.einsum("bvi,bij->bvj", xf, proj)
         return ndc

@@ -1,7 +1,0 @@
-# @package model.parameters.selectors.vae
-
-_target_: moai.parameters.selectors.ModelParameterSelector
-keys:
-  - encoder
-  - decoder
-  - latent_dist_predictor

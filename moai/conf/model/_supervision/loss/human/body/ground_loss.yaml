@@ -1,7 +1,0 @@
-# @package model.supervision.losses._name_
-
-_target_: moai.supervision.losses.human.body.GroundLoss
-out_alpha1: 1
-out_alpha2: 0.15
-in_alpha1: 10
-in_alpha2: 0.15

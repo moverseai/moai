@@ -1,4 +1,4 @@
 defaults:
-  ###### HYDRA  
+  ###### HYDRA
   - hydra/job_logging: colorlog
   - hydra/hydra_logging: colorlog

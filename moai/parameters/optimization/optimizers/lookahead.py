@@ -1,13 +1,15 @@
 import collections
 import itertools
-import torch
 import warnings
 
-__all__ = ['Lookahead']
+import torch
 
-#NOTE: modified from https://github.com/alphadl/lookahead.pytorch
+__all__ = ["Lookahead"]
 
-#TODO: create factory optimizer
+# NOTE: modified from https://github.com/alphadl/lookahead.pytorch
+
+
+# TODO: create factory optimizer
 class Lookahead(torch.optim.Optimizer):
     """Implements the Lookahead algorithm.
 
@@ -15,10 +17,9 @@ class Lookahead(torch.optim.Optimizer):
     - **Implementation**: [GitHub @ alphadl](https://github.com/alphadl/lookahead.pytorch)
 
     """
-    def __init__(self,
-        optimizer: torch.optim.Optimizer,
-        k: int=5,
-        alpha: float=0.5
+
+    def __init__(
+        self, optimizer: torch.optim.Optimizer, k: int = 5, alpha: float = 0.5
     ):
         self.optimizer = optimizer
         self.k = k
@@ -28,7 +29,7 @@ class Lookahead(torch.optim.Optimizer):
         self.fast_state = self.optimizer.state
         for group in self.param_groups:
             group["counter"] = 0
-    
+
     def update(self, group):
         for fast in group["params"]:
             param_state = self.state[fast]
@@ -38,7 +39,7 @@ class Lookahead(torch.optim.Optimizer):
             slow = param_state["slow_param"]
             slow += (fast.data - slow) * self.alpha
             fast.data.copy_(slow)
-    
+
     def update_lookahead(self):
         for group in self.param_groups:
             self.update(group)

@@ -1,16 +1,18 @@
+import torch
+
 from moai.monads.utils.common import dim_list
 
-import torch
 
 class AbsRel(torch.nn.Module):
     def __init__(self):
         super(AbsRel, self).__init__()
 
-    def forward(self,
-        gt:         torch.Tensor,
-        pred:       torch.Tensor,
-        weights:    torch.Tensor=None,
-        mask:       torch.Tensor=None,
+    def forward(
+        self,
+        gt: torch.Tensor,
+        pred: torch.Tensor,
+        weights: torch.Tensor = None,
+        mask: torch.Tensor = None,
     ) -> torch.Tensor:
         absrel = torch.abs((gt - pred) / gt)
         if weights is not None:

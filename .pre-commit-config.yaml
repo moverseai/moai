@@ -1,0 +1,33 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        files: 'hydra/.*'
+        args: [--check-only, --profile, black]
+      - id: isort
+        files: 'moai/.*'
+        args: [--check-only, --profile, black]
+      - id: isort
+        files: 'hydra_plugins/.*'
+        args: [--check-only, --profile, black]
+      - id: isort
+        files: 'tests/.*'
+        args: [--check-only, --profile, black]
+
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        args: [--check]
+
+  # - repo: https://github.com/pycqa/flake8
+  #   rev: 6.0.0
+  #   hooks:
+  #     - id: flake8
+
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint] # [-c=.yamllint, --strict]

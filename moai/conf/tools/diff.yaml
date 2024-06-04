@@ -1,5 +1,5 @@
 defaults:
-  ###### HYDRA  
+  ###### HYDRA
   - hydra/job_logging: colorlog
   - hydra/hydra_logging: colorlog
 
@@ -12,19 +12,19 @@ hydra:
     #  handlers: []
     formatters:
       colorlog:
-        format: '[%(purple)sHYDRA%(reset)s] %(message)s'
-  
+        format: "[%(purple)sHYDRA%(reset)s] %(message)s"
+
   job_logging:
     formatters:
       simple:
-        format: '[%(levelname)s] - %(message)s'
+        format: "[%(levelname)s] - %(message)s"
       colorlog:
-        format: '%(log_color)s%(message)s'
+        format: "%(log_color)s%(message)s"
         log_colors:
-          DEBUG: green   # added
-          INFO: cyan      # action
+          DEBUG: green # added
+          INFO: cyan # action
           WARNING: yellow # value changed
-          ERROR: red      # removed
+          ERROR: red # removed
           CRITICAL: purple # key changed
 
 lhs: ???

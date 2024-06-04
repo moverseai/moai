@@ -9,13 +9,13 @@ _helpers_:
       tolerance_grad: 1e-9
       tolerance_change: 1e-12
 
-_moai_:  
+_moai_:
   _definitions_:
     _collections_:
       _optimizers_:
-        initial_torso_fit: 
+        initial_torso_fit:
           <<: *lbfgsls
-          _groups_: global  # groups: expressive # global
+          _groups_: global # groups: expressive # global
         fine_fit_stage1:
           <<: *lbfgsls
           _groups_: [expressive] # groups: expressive # [global, expressive]

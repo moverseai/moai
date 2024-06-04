@@ -1,13 +1,15 @@
-from moai.parameters.optimization.optimizers.lookahead import Lookahead as Outer
-
-import torch
-import omegaconf.omegaconf
-import hydra.utils as hyu
 import typing
 
-__all__ = ['Lookahead']
+import hydra.utils as hyu
+import omegaconf.omegaconf
+import torch
 
-#NOTE: modified from https://github.com/alphadl/lookahead.pytorch
+from moai.parameters.optimization.optimizers.lookahead import Lookahead as Outer
+
+__all__ = ["Lookahead"]
+
+# NOTE: modified from https://github.com/alphadl/lookahead.pytorch
+
 
 class Lookahead(object):
     """Implements the Lookahead algorithm.
@@ -16,15 +18,16 @@ class Lookahead(object):
     - **Implementation**: [GitHub @ alphadl](https://github.com/alphadl/lookahead.pytorch)
 
     """
-    def __init__(self,
+
+    def __init__(
+        self,
         parameters: typing.Iterator[torch.nn.Parameter],
         optimizers: omegaconf.DictConfig,
-        k: int=5,
-        alpha: float=0.5
+        k: int = 5,
+        alpha: float = 0.5,
     ):
         self.optimizers = [
             Outer(
-                optimizer=hyu.instantiate(optimizers[0], parameters),
-                k=k, alpha=alpha
+                optimizer=hyu.instantiate(optimizers[0], parameters), k=k, alpha=alpha
             )
         ]

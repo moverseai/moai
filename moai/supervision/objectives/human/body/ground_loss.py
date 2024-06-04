@@ -1,7 +1,8 @@
-import torch
-import typing
 import logging
+import typing
+
 import numpy as np
+import torch
 
 log = logging.getLogger(__name__)
 
@@ -53,11 +54,11 @@ class GroundLoss(torch.nn.Module):
         hd_operator_path = hd_mesh_path
         hd_operator = np.load(hd_operator_path)
         self.hd_operator = torch.sparse.FloatTensor(
-            torch.tensor(hd_operator['index_row_col']),
-            torch.tensor(hd_operator['values']),
-            torch.Size(hd_operator['size']))
-    
-    
+            torch.tensor(hd_operator["index_row_col"]),
+            torch.tensor(hd_operator["values"]),
+            torch.Size(hd_operator["size"]),
+        )
+
     @staticmethod
     def sparse_batch_mm(m1, m2):
         """
@@ -71,10 +72,9 @@ class GroundLoss(torch.nn.Module):
         batch_size = m2.shape[0]
         # stack m2 into columns: (B x N x K) -> (N, B, K) -> (N, B * K)
         m2_stack = m2.transpose(0, 1).reshape(m1.shape[1], -1)
-        result = m1.mm(m2_stack).reshape(m1.shape[0], batch_size, -1) \
-            .transpose(1, 0)
+        result = m1.mm(m2_stack).reshape(m1.shape[0], batch_size, -1).transpose(1, 0)
         return result
-        
+
     def _hdfy_mesh(self, vertices):
         """
         Applies a regressor that maps SMPL vertices to uniformly distributed vertices
@@ -124,7 +124,7 @@ class GroundLoss(torch.nn.Module):
         v2v_push = self.b1 * torch.tanh((vertex_height * inside_mask) / self.b2) ** 2
 
         return v2v_pull + v2v_push
-    
+
 
 def ea2rm(x, y, z):
     cos_x, sin_x = torch.cos(x), torch.sin(x)
@@ -132,17 +132,35 @@ def ea2rm(x, y, z):
     cos_z, sin_z = torch.cos(z), torch.sin(z)
 
     R = torch.stack(
-            [torch.cat([cos_y*cos_z, sin_x*sin_y*cos_z - cos_x*sin_z, cos_x*sin_y*cos_z + sin_x*sin_z], dim=1),
-            torch.cat([cos_y*sin_z, sin_x*sin_y*sin_z + cos_x*cos_z, cos_x*sin_y*sin_z - sin_x*cos_z], dim=1),
-            torch.cat([-sin_y, sin_x*cos_y, cos_x*cos_y], dim=1)], dim=1)
+        [
+            torch.cat(
+                [
+                    cos_y * cos_z,
+                    sin_x * sin_y * cos_z - cos_x * sin_z,
+                    cos_x * sin_y * cos_z + sin_x * sin_z,
+                ],
+                dim=1,
+            ),
+            torch.cat(
+                [
+                    cos_y * sin_z,
+                    sin_x * sin_y * sin_z + cos_x * cos_z,
+                    cos_x * sin_y * sin_z - sin_x * cos_z,
+                ],
+                dim=1,
+            ),
+            torch.cat([-sin_y, sin_x * cos_y, cos_x * cos_y], dim=1),
+        ],
+        dim=1,
+    )
     return R
 
 
 if __name__ == "__main__":
-    import pyarrow.parquet as pq
     import os
+
     import open3d as o3d
-    
+    import pyarrow.parquet as pq
 
     # read base smpl mesh to get faces
     smpl_template = o3d.io.read_triangle_mesh(
@@ -153,15 +171,23 @@ if __name__ == "__main__":
     pq_file = r"\\192.168.1.3\Public\Shared\recordings\tofis-various-MB-recordings-Jan-24\b5b68b4e-468b-48e0-9f03-3096a21295a0\bundle_gd.parquet"
     parquet_table = pq.read_table(pq_file).to_pandas()
     gd_loss = GroundLoss(
-        hd_mesh_path = r"D:\repos\selfcontact\selfcontact-essentials\hd_model\smpl\smpl_neutral_hd_vert_regressor_sparse.npz"
+        hd_mesh_path=r"D:\repos\selfcontact\selfcontact-essentials\hd_model\smpl\smpl_neutral_hd_vert_regressor_sparse.npz"
     )
     simple_loss = SimpleGroundLoss()
     # vertices = torch.rand(50, 6890, 3)
     vertices = torch.Tensor(parquet_table["body_vertices"])
     # loss = simple_loss(vertices)
-    R1 = ea2rm(torch.tensor([[np.radians(270)]]), torch.tensor([[np.radians(0)]]),
-                   torch.tensor([[np.radians(0)]])).float().to(vertices.device).expand(vertices.shape[0], 3, 3)
-    pred_vertices_world = torch.einsum('bki,bji->bjk', [R1, vertices])
+    R1 = (
+        ea2rm(
+            torch.tensor([[np.radians(270)]]),
+            torch.tensor([[np.radians(0)]]),
+            torch.tensor([[np.radians(0)]]),
+        )
+        .float()
+        .to(vertices.device)
+        .expand(vertices.shape[0], 3, 3)
+    )
+    pred_vertices_world = torch.einsum("bki,bji->bjk", [R1, vertices])
     # loss = gd_loss(pred_vertices_world)
     loss = gd_loss(vertices)
     print(loss)

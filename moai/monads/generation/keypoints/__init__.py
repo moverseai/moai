@@ -1,5 +1,5 @@
 from moai.monads.generation.keypoints.keypoints import Keypoints
 
-__all__=[
+__all__ = [
     "Keypoints",
 ]

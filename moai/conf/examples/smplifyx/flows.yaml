@@ -26,7 +26,7 @@ _moai_:
           _out_: [body]
       postprocess:
         weak_perspective_camera:
-          points: 
+          points:
             - ${mi:"body.joints + translation"}
           # translation: [translation]
           image: [color]
@@ -35,7 +35,7 @@ _moai_:
         #   tensor: [joints2d, keypoints]
         #   out: [torso_joints2d, torso_keypoints]
         _mi_1: # alias:
-          expression: # tensor: 
+          expression: # tensor:
             - ${mi:"joints2d[:, ${torso_indices}, :]"}
             - ${mi:"keypoints[:, ${torso_indices}, :]"}
           _out_: [torso_joints2d, torso_keypoints]
@@ -46,13 +46,14 @@ _moai_:
         #   joints: [joints2d, keypoints, confidence]
         #   out: [split_joints2d, split_keypoints, split_confidence]
         _mi_openpose_split: #     'coco25':               [25,    21 * 2,     51],
-          expression: 
+          expression:
             - ${mi:"joints2d[:, 0:25, :]"}
             - ${mi:"keypoints[:, 0:25, :]"}
             - ${mi:"confidence[:, 0:25, :]"}
-          _out_: [split_joints2d_body, split_keypoints_body, split_confidence_body]
+          _out_:
+            [split_joints2d_body, split_keypoints_body, split_confidence_body]
         _mi_2: # alias:
-          expression: # tensor: 
+          expression: # tensor:
             - ${mi:"body.vertices + translation"}
             # - ${mi:"joints2d[:, ${torso_indices}]"}
             # - ${mi:"keypoints[:, ${torso_indices}]"}

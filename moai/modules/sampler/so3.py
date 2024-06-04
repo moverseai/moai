@@ -1,5 +1,6 @@
-import torch
 import logging
+
+import torch
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ def map_to_lie_algebra(v):
 def rodrigues(v):
     theta = v.norm(p=2, dim=-1, keepdim=True)
     # normalize K
-    #TODO: what if theta is zero?
+    # TODO: what if theta is zero?
     K = map_to_lie_algebra(v / theta)
     Id = torch.eye(3, device=v.device, dtype=v.dtype)
     R = (

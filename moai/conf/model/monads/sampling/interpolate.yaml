@@ -2,9 +2,9 @@
 
 _target_: moai.monads.sampling.torch.interpolate.Interpolate
 scale: 0.0 # 0 means invalid, either scale or dims need to be set
-width: -1  # -1 means invalid, either scale or dims need to be set
+width: -1 # -1 means invalid, either scale or dims need to be set
 height: -1 # -1 means invalid, either scale or dims need to be set
-mode: bilinear # one of ['nearest', 'linear', 'bilinear', 'area', 'bicubic', 'trilinear']            
-align_corners:  false
+mode: bilinear # one of ['nearest', 'linear', 'bilinear', 'area', 'bicubic', 'trilinear']
+align_corners: false
 recompute_scale_factor: false
 preserve_aspect_ratio: false

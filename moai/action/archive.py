@@ -1,16 +1,16 @@
-import yaml
-import toolz
+import glob
+import logging
+import os
+import shutil
+import subprocess
 import sys
+import typing
+import zipfile
+
 import hydra
 import omegaconf.omegaconf
-import logging
-import subprocess
-import typing
-import glob
-import os
-import zipfile
 import toolz
-import shutil
+import yaml
 
 log = logging.getLogger(__name__)
 

@@ -1,14 +1,15 @@
+import logging
+import typing
 from collections.abc import Callable, Iterator
 
-import numpy as np
 import npstreams
-import typing
+import numpy as np
 import torch
-import logging
 
 log = logging.getLogger(__name__)
 
-__all__ = ['MeanStd']
+__all__ = ["MeanStd"]
+
 
 class MeanStd(Callable):
     class Iter(Iterator):
@@ -20,11 +21,12 @@ class MeanStd(Callable):
 
         def __next__(self) -> typing.Dict[str, torch.Tensor]:
             return self.proxy.tensors
-        
-    def __init__(self,
-        key:        typing.Union[str, typing.Sequence[str]],
-        ddof:       int=0,
-        ignore_nan: bool=False,
+
+    def __init__(
+        self,
+        key: typing.Union[str, typing.Sequence[str]],
+        ddof: int = 0,
+        ignore_nan: bool = False,
     ) -> None:
         super().__init__()
         self.names = [key] if isinstance(key, str) else list(key)
@@ -32,21 +34,34 @@ class MeanStd(Callable):
         self.ignore_nan = ignore_nan
         self.avg = []
         self.std = []
-        
-    def __call__(self, 
-        tensors:    typing.Dict[str, torch.Tensor],
-        step:       typing.Optional[int]=None,    
+
+    def __call__(
+        self,
+        tensors: typing.Dict[str, torch.Tensor],
+        step: typing.Optional[int] = None,
     ) -> None:
-        if not hasattr(self, 'tensors'):
+        if not hasattr(self, "tensors"):
             self.tensors = tensors
             for name in self.names:
-                self.avg.append(npstreams.imean(map(lambda d: d.numpy(), 
-                    npstreams.iload(MeanStd.Iter(self), name))),
-                    ddof=self.ddof, ignore_nan=self.ignore_nan,
+                self.avg.append(
+                    npstreams.imean(
+                        map(
+                            lambda d: d.numpy(),
+                            npstreams.iload(MeanStd.Iter(self), name),
+                        )
+                    ),
+                    ddof=self.ddof,
+                    ignore_nan=self.ignore_nan,
                 )
-                self.std.append(npstreams.istd(map(lambda d: d.numpy(), 
-                        npstreams.iload(MeanStd.Iter(self), name))
-                    ), ddof=self.ddof, ignore_nan=self.ignore_nan,
+                self.std.append(
+                    npstreams.istd(
+                        map(
+                            lambda d: d.numpy(),
+                            npstreams.iload(MeanStd.Iter(self), name),
+                        )
+                    ),
+                    ddof=self.ddof,
+                    ignore_nan=self.ignore_nan,
                 )
             tensors[f"{name}_mean"] = torch.zeros_like(k(tensors))
             tensors[f"{name}_std"] = tensors[f"{name}_mean"]

@@ -2,9 +2,9 @@
 
 _target_: moai.modules.lightning.unet.ResidualSkip
 blocks: 2
-convolution:  
+convolution:
   type: conv2d
-activation: 
+activation:
   type: relu_bn2d
   params:
     inplace: true

@@ -6,10 +6,9 @@ _moai_:
       _monitors_:
         save_params:
           append_pkl:
-            path: ['.', '.hydra']
-            keys: 
-              -
-                - translation
+            path: [".", ".hydra"]
+            keys:
+              - - translation
                 - embedding
                 - body.betas
                 - body.rotation
@@ -18,12 +17,11 @@ _moai_:
                 - body.jaw
                 - body.pose
                 - body.expression
-              - 
-                - body.pose
+              - - body.pose
           pkl:
             _params_:
-              path: '.'
-              keys: 
+              path: "."
+              keys:
                 - translation
                 - embedding
                 - body.betas
@@ -91,7 +89,7 @@ _moai_:
           #     # - show_mesh
           #   _monitors_:
           #     # - save_params
-          #     # - show_mesh_step            
+          #     # - show_mesh_step
           #     - show_image
           initial_torso_fit:
             _monitors_: [show_optim_step]
@@ -102,8 +100,8 @@ _moai_:
             _monitors_: [show_image]
           initial_torso_fit:
             _frequency_: 1
-          #   # _flows_:
-          #     # - show_mesh
+            #   # _flows_:
+            #     # - show_mesh
             _monitors_: [show_mesh_iter]
           #   _metrics:_
           #     - fit_quality

@@ -1,12 +1,12 @@
-from moai.monads.utils import expand_dims
-
-import torch
 import typing
 
+import torch
+
+from moai.monads.utils import expand_dims
+
+
 class Znorm(torch.nn.Module):
-    def __init__(self,
-        dims: typing.Sequence[int]
-    ):
+    def __init__(self, dims: typing.Sequence[int]):
         super(Znorm, self).__init__()
         self.dims = dims
 
@@ -14,11 +14,9 @@ class Znorm(torch.nn.Module):
         std, mean = torch.std_mean(x, self.dims, keepdim=True)
         return (x - mean) / std
 
+
 class MinMaxNorm(torch.nn.Module):
-    def __init__(self,
-        min_value: float=0.0,
-        max_value: float=1.0
-    ):
+    def __init__(self, min_value: float = 0.0, max_value: float = 1.0):
         super(MinMaxNorm, self).__init__()
         self.register_buffer("min", torch.scalar_tensor(self.min).float())
         self.register_buffer("max", torch.scalar_tensor(self.max).float())
@@ -32,7 +30,4 @@ class MinMaxNorm(torch.nn.Module):
         # return x.sub(mins.view(b, 1, 1, 1))\
         #     .mul(scale.view(b, 1, 1, 1))\
         #     .add(self.min)
-        return torch.addcmul(
-            self.min, 
-            x - expand_dims(mins, x), expand_dims(scale, x)
-        )            
+        return torch.addcmul(self.min, x - expand_dims(mins, x), expand_dims(scale, x))

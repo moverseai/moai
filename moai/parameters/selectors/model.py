@@ -1,17 +1,22 @@
+import typing
+
+import toolz
+import torch
+
 from moai.utils.torch import get_submodule
 
-import torch
-import typing
-import toolz
+__all__ = ["ModelParameterSelector"]
 
-__all__ = ['ModelParameterSelector']
 
-class ModelParameterSelector(typing.Callable[[torch.nn.Module], typing.List[torch.Tensor]]):
-    def __init__(self,
-        modules:       typing.Sequence[str]=[],
-        monads:        typing.Sequence[str]=[],
-        parameters:    typing.Sequence[str]=[],
-        force_grad: bool=True,
+class ModelParameterSelector(
+    typing.Callable[[torch.nn.Module], typing.List[torch.Tensor]]
+):
+    def __init__(
+        self,
+        modules: typing.Sequence[str] = [],
+        monads: typing.Sequence[str] = [],
+        parameters: typing.Sequence[str] = [],
+        force_grad: bool = True,
     ):
         self.modules = modules
         self.monads = monads
@@ -28,11 +33,11 @@ class ModelParameterSelector(typing.Callable[[torch.nn.Module], typing.List[torc
             params.append(m.parameters())
         parameters = list(toolz.concat(params))
         for key in self.parameters:
-            keys = key.split('.')
+            keys = key.split(".")
             m = get_submodule(moai_model.named_flows, ".".join(keys[:-1]))
             p = getattr(m, keys[-1])
-            parameters.append(p)        
+            parameters.append(p)
         if self.force_grad:
-            for p in parameters:            
+            for p in parameters:
                 p.requires_grad_(True)
-        return { 'params': parameters }
+        return {"params": parameters}

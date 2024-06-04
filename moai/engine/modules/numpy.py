@@ -1,12 +1,14 @@
-import numpy as np
 import logging
+
+import numpy as np
 from packaging.version import Version
 
 __all__ = [
-    'Numpy',
+    "Numpy",
 ]
 
 log = logging.getLogger(__name__)
+
 
 class Numpy(object):
     def __init__(self):

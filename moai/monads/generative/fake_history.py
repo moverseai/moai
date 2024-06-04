@@ -1,17 +1,20 @@
-import torch
 import random
 
-__all__ = ['FakeHistory']
+import torch
+
+__all__ = ["FakeHistory"]
+
 
 class FakeHistory(torch.nn.Module):
-    def __init__(self,
-        history_size:   int,
-        percentage:     float=0.5,             
+    def __init__(
+        self,
+        history_size: int,
+        percentage: float = 0.5,
     ) -> None:
         super().__init__()
         self.history_size = history_size
         self.percentage = percentage
-        #NOTE: we are not using buffers to store the history
+        # NOTE: we are not using buffers to store the history
         #       as we do not need them to persist
         #       and in order to do that we need the tensor size as input
         self.actual_size = 0
@@ -33,19 +36,20 @@ class FakeHistory(torch.nn.Module):
                     self.history[id] = fake[i].detach().clone()
                     out.append(tmp)
                 else:
-                    out.append(fake[i])        
+                    out.append(fake[i])
         return torch.stack(out)
-    
+
 
 class GradualFakeHistory(torch.nn.Module):
-    def __init__(self,
-        history_size:   int,
-        percentage:     float=0.5,             
+    def __init__(
+        self,
+        history_size: int,
+        percentage: float = 0.5,
     ) -> None:
         super().__init__()
         self.history_size = history_size
         self.percentage = percentage
-        #NOTE: we are not using buffers to store the history
+        # NOTE: we are not using buffers to store the history
         #       as we do not need them to persist
         #       and in order to do that we need the tensor size as input
         self.actual_size = 0
@@ -70,5 +74,5 @@ class GradualFakeHistory(torch.nn.Module):
                     self.history[id] = fake[i].detach().clone()
                     out.append(tmp)
                 else:
-                    out.append(fake[i])        
+                    out.append(fake[i])
         return torch.stack(out)

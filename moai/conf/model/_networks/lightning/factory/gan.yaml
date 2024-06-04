@@ -4,5 +4,5 @@ _target_: moai.networks.lightning.factory.GenerativeAdversarialNetwork
 io:
   generator:
     out: ???
-  discriminator:  
+  discriminator:
     out: ???

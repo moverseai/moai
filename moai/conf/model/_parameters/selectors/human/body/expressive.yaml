@@ -1,6 +1,0 @@
-# @package model.parameters.selectors.expressive
-
-_target_: moai.parameters.selectors.MonadParameterSelector
-keys:
-  - graphs.preprocess.smplx
-  - graphs.preprocess.embedding

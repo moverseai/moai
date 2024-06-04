@@ -1,16 +1,18 @@
-import moai.nn.convolution as mic
-import moai.nn.activation as mia
-
 import torch
+
+import moai.nn.activation as mia
+import moai.nn.convolution as mic
 
 __all__ = [
     "Conv2dBlock",
     "Conv1dBlock",
 ]
 
+
 class Conv2dBlock(torch.nn.Module):
-    def __init__(self,
-        convolution_type:str,
+    def __init__(
+        self,
+        convolution_type: str,
         activation_type: str,
         in_features: int,
         out_features: int,
@@ -23,20 +25,20 @@ class Conv2dBlock(torch.nn.Module):
             convolution_type=convolution_type,
             in_channels=in_features,
             out_channels=out_features,
-            **convolution_params #TODO: either merge kwargs here or in the factory method
+            **convolution_params  # TODO: either merge kwargs here or in the factory method
         )
         self.activation = mia.make_activation(
-            features=out_features,
-            activation_type=activation_type,
-            **activation_params
+            features=out_features, activation_type=activation_type, **activation_params
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.activation(self.conv(x))
-    
+
+
 class Conv1dBlock(torch.nn.Module):
-    def __init__(self,
-        convolution_type:str,
+    def __init__(
+        self,
+        convolution_type: str,
         activation_type: str,
         in_features: int,
         out_features: int,
@@ -49,12 +51,10 @@ class Conv1dBlock(torch.nn.Module):
             convolution_type=convolution_type,
             in_channels=in_features,
             out_channels=out_features,
-            **convolution_params #TODO: either merge kwargs here or in the factory method
+            **convolution_params  # TODO: either merge kwargs here or in the factory method
         )
         self.activation = mia.make_activation(
-            features=out_features,
-            activation_type=activation_type,
-            **activation_params
+            features=out_features, activation_type=activation_type, **activation_params
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

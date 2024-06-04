@@ -1,11 +1,7 @@
-from moai.monads.human.hand.mano import (
-    MANO,
-    RightHandMANO,
-    LeftHandMANO,
-)
+from moai.monads.human.hand.mano import MANO, LeftHandMANO, RightHandMANO
 
 __all__ = [
-    'MANO',
-    'RightHandMANO',
-    'LeftHandMANO',
+    "MANO",
+    "RightHandMANO",
+    "LeftHandMANO",
 ]

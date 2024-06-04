@@ -1,14 +1,16 @@
-import torch
 import typing
 
-__all__ = ['QHM']
+import torch
 
-#NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/qhm.py
+__all__ = ["QHM"]
+
+# NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/qhm.py
+
 
 class QHM(torch.optim.Optimizer):
 
-    GRAD = 'grad'
-    DIRECT = 'direct'
+    GRAD = "grad"
+    DIRECT = "direct"
 
     r"""Implements quasi-hyperbolic momentum (QHM)  optimization algorithm.
 
@@ -43,37 +45,38 @@ class QHM(torch.optim.Optimizer):
         Reference code: https://github.com/facebookresearch/qhoptim
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         params: typing.Iterator[torch.nn.Parameter],
-        lr: float=1e-3,
-        momentum: float=0.0,
-        nu: float=0.7,
-        weight_decay: float=0.0,
-        weight_decay_type: str='grad',
+        lr: float = 1e-3,
+        momentum: float = 0.0,
+        nu: float = 0.7,
+        weight_decay: float = 0.0,
+        weight_decay_type: str = "grad",
     ) -> None:
         if lr <= 0.0:
-            raise ValueError('Invalid learning rate: {}'.format(lr))
+            raise ValueError("Invalid learning rate: {}".format(lr))
         if momentum < 0.0:
-            raise ValueError('Invalid momentum value: {}'.format(momentum))
+            raise ValueError("Invalid momentum value: {}".format(momentum))
         if weight_decay < 0.0:
-            raise ValueError(
-                'Invalid weight_decay value: {}'.format(weight_decay)
-            )
+            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
         if weight_decay_type not in (self.GRAD, self.DIRECT):
             _type = weight_decay_type
-            msg = 'Invalid weight_decay_type value: {}'.format(_type)
+            msg = "Invalid weight_decay_type value: {}".format(_type)
             raise ValueError(msg)
 
         defaults = {
-            'lr': lr,
-            'momentum': momentum,
-            'nu': nu,
-            'weight_decay': weight_decay,
-            'weight_decay_type': weight_decay_type,
+            "lr": lr,
+            "momentum": momentum,
+            "nu": nu,
+            "weight_decay": weight_decay,
+            "weight_decay_type": weight_decay_type,
         }
         super(QHM, self).__init__(params, defaults)
 
-    def step(self, closure: typing.Optional[typing.Callable[[], float]]=None) -> typing.Optional[float]:
+    def step(
+        self, closure: typing.Optional[typing.Callable[[], float]] = None
+    ) -> typing.Optional[float]:
         """Performs a single optimization step.
 
         Arguments:
@@ -84,13 +87,13 @@ class QHM(torch.optim.Optimizer):
             loss = closure()
 
         for group in self.param_groups:
-            lr, nu, momentum = group['lr'], group['nu'], group['momentum']
+            lr, nu, momentum = group["lr"], group["nu"], group["momentum"]
             weight_decay, weight_decay_type = (
-                group['weight_decay'],
-                group['weight_decay_type'],
+                group["weight_decay"],
+                group["weight_decay_type"],
             )
 
-            for p in group['params']:
+            for p in group["params"]:
                 if p.grad is None:
                     continue
                 d_p = p.grad.data
@@ -103,9 +106,9 @@ class QHM(torch.optim.Optimizer):
                         p.data.mul_(1.0 - lr * weight_decay)
 
                 if len(param_state) == 0:
-                    param_state['momentum_buffer'] = torch.zeros_like(p.data)
+                    param_state["momentum_buffer"] = torch.zeros_like(p.data)
 
-                momentum_buffer = param_state['momentum_buffer']
+                momentum_buffer = param_state["momentum_buffer"]
                 momentum_buffer.mul_(momentum).add_(d_p, alpha=1.0 - momentum)
 
                 p.data.add_(momentum_buffer, alpha=-lr * nu)

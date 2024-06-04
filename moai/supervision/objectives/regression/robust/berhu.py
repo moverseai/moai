@@ -1,8 +1,9 @@
-from moai.monads.utils.spatial import expand_spatial_dims
-
 import torch
 
+from moai.monads.utils.spatial import expand_spatial_dims
+
 __all__ = ["Berhu"]
+
 
 class Berhu(torch.nn.Module):
     r"""Implements the (adaptive) berHu error function.
@@ -17,14 +18,14 @@ class Berhu(torch.nn.Module):
         [![Paper](https://img.shields.io/static/v1?label=1606.00373&message=Deeper Depth Prediction with Fully Convolutional Residual Networks&color=1c1ca2&logo=arxiv&style=plastic)](https://arxiv.org/pdf/1606.00373.pdf)
 
         [![Paper](https://img.shields.io/static/v1?label=1207.6868&message=The BerHu penalty and the grouped effect&color=1c1ca2&logo=arxiv&style=plastic)](https://arxiv.org/pdf/1207.6868.pdf)
- 
+
     ???+ example "Configuration"
         === "Main Entry"
             ```yaml
             - model/supervision/losses/regression/robust: berhu
             ```
         === "Parameters"
-            ```yaml            
+            ```yaml
             threshold: 1.0
             adaptive: false # toggle adaptive threshold, ignores given threshold
             image_wide: false # adaptive threshold calculated per batch item (true) or per batch (false)
@@ -49,14 +50,14 @@ class Berhu(torch.nn.Module):
                     pred: [prediction_tensor_name] # the name of the predicted tensor
                     out: [berhu_loss] # optional, will be 'berhu' if omitted
             ```
-       
+
     Arguments:
         threshold (float, optional):
-            Sets the threshold that switches between the L1 and L2 loss.       
+            Sets the threshold that switches between the L1 and L2 loss.
         adaptive (boolean, optional):
             If true, the threshold is calculated dynamically for each batch. **Default value: False.**
-        image_wide (boolean, optional): 
-            If true, the adaptive threshold is calculated for each batch item. **Default value: False.**        
+        image_wide (boolean, optional):
+            If true, the adaptive threshold is calculated for each batch item. **Default value: False.**
 
     !!! important
         Can be helpful when dealing with heavy-tailed distribution of predicted values.
@@ -68,10 +69,12 @@ class Berhu(torch.nn.Module):
     *[berHu]: Reverse Huber
 
     """
-    def __init__(self,
-        threshold:      float,
-        adaptive:       bool=False,
-        image_wide:     bool=False,
+
+    def __init__(
+        self,
+        threshold: float,
+        adaptive: bool = False,
+        image_wide: bool = False,
     ):
         super(Berhu, self).__init__()
         self.threshold = threshold
@@ -88,12 +91,13 @@ class Berhu(torch.nn.Module):
         else:
             return torch.max(error)
 
-    def forward(self, 
-        pred:       torch.Tensor,
-        gt:         torch.Tensor,        
-        weights:    torch.Tensor=None,       # float tensor
-        mask:       torch.Tensor=None,       # byte tensor
-    ) -> torch.Tensor:        
+    def forward(
+        self,
+        pred: torch.Tensor,
+        gt: torch.Tensor,
+        weights: torch.Tensor = None,  # float tensor
+        mask: torch.Tensor = None,  # byte tensor
+    ) -> torch.Tensor:
         L1 = torch.abs(gt - pred)
         if weights is not None:
             L1 = L1 * weights
@@ -103,8 +107,6 @@ class Berhu(torch.nn.Module):
         if len(threshold.shape) > 1:
             L1 = L1.view(*threshold.shape[:2], -1)
         berhu = torch.where(
-            L1 <= threshold,
-            L1,
-            (L1 ** 2 + threshold ** 2) / (2.0 * threshold)
+            L1 <= threshold, L1, (L1**2 + threshold**2) / (2.0 * threshold)
         )
         return berhu.view_as(gt)

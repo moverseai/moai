@@ -1,16 +1,18 @@
 import math
-import torch
 import typing
 
-__all__ = ['AdamP']
+import torch
 
-#NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/adamp.py
+__all__ = ["AdamP"]
+
+# NOTE: from https://github.com/jettify/pytorch-optimizer/blob/master/torch_optimizer/adamp.py
+
 
 class AdamP(torch.optim.Optimizer):
     r"""Implements AdamP algorithm.
 
     - **Paper**: [Slowing Down the Weight Norm Increase in Momentum-based Optimizers](https://arxiv.org/pdf/2006.08217.pdf)
-    - **Implementation**: [GitHub @ jettify](https://github.com/jettify/pytorch-optimizer)    
+    - **Implementation**: [GitHub @ jettify](https://github.com/jettify/pytorch-optimizer)
 
     Arguments:
         params: iterable of parameters to optimize or dicts defining
@@ -40,36 +42,31 @@ class AdamP(torch.optim.Optimizer):
         Reference code: https://github.com/clovaai/AdamP
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         params: typing.Iterator[torch.nn.Parameter],
-        lr: float=1e-3,
-        betas: typing.Tuple[float, float]=(0.9, 0.999),
-        eps: float=1e-8,
-        weight_decay: float=0,
-        delta: float=0.1,
-        wd_ratio: float=0.1,
-        nesterov: bool=False,
+        lr: float = 1e-3,
+        betas: typing.Tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+        weight_decay: float = 0,
+        delta: float = 0.1,
+        wd_ratio: float = 0.1,
+        nesterov: bool = False,
     ) -> None:
         if lr <= 0.0:
-            raise ValueError('Invalid learning rate: {}'.format(lr))
+            raise ValueError("Invalid learning rate: {}".format(lr))
         if eps < 0.0:
-            raise ValueError('Invalid epsilon value: {}'.format(eps))
+            raise ValueError("Invalid epsilon value: {}".format(eps))
         if not 0.0 <= betas[0] < 1.0:
-            raise ValueError(
-                'Invalid beta parameter at index 0: {}'.format(betas[0])
-            )
+            raise ValueError("Invalid beta parameter at index 0: {}".format(betas[0]))
         if not 0.0 <= betas[1] < 1.0:
-            raise ValueError(
-                'Invalid beta parameter at index 1: {}'.format(betas[1])
-            )
+            raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
         if weight_decay < 0:
-            raise ValueError(
-                'Invalid weight_decay value: {}'.format(weight_decay)
-            )
+            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
         if delta < 0:
-            raise ValueError('Invalid delta value: {}'.format(delta))
+            raise ValueError("Invalid delta value: {}".format(delta))
         if wd_ratio < 0:
-            raise ValueError('Invalid wd_ratio value: {}'.format(wd_ratio))
+            raise ValueError("Invalid wd_ratio value: {}".format(wd_ratio))
 
         defaults = dict(
             lr=lr,
@@ -109,19 +106,17 @@ class AdamP(torch.optim.Optimizer):
             cosine_sim = self._cosine_similarity(grad, p.data, eps, view_func)
 
             if cosine_sim.max() < delta / math.sqrt(view_func(p.data).size(1)):
-                p_n = p.data / view_func(p.data).norm(dim=1).view(
-                    expand_size
-                ).add_(eps)
-                perturb -= p_n * view_func(p_n * perturb).sum(dim=1).view(
-                    expand_size
-                )
+                p_n = p.data / view_func(p.data).norm(dim=1).view(expand_size).add_(eps)
+                perturb -= p_n * view_func(p_n * perturb).sum(dim=1).view(expand_size)
                 wd = wd_ratio
 
                 return perturb, wd
 
         return perturb, wd
 
-    def step(self, closure: typing.Optional[typing.Callable[[], float]]=None) -> typing.Optional[float]:
+    def step(
+        self, closure: typing.Optional[typing.Callable[[], float]] = None
+    ) -> typing.Optional[float]:
         r"""Performs a single optimization step.
 
         Arguments:
@@ -132,36 +127,36 @@ class AdamP(torch.optim.Optimizer):
             loss = closure()
 
         for group in self.param_groups:
-            for p in group['params']:
+            for p in group["params"]:
                 if p.grad is None:
                     continue
 
                 grad = p.grad.data
-                beta1, beta2 = group['betas']
-                nesterov = group['nesterov']
+                beta1, beta2 = group["betas"]
+                nesterov = group["nesterov"]
 
                 state = self.state[p]
 
                 # State initialization
                 if len(state) == 0:
-                    state['step'] = 0
-                    state['exp_avg'] = torch.zeros_like(p.data)
-                    state['exp_avg_sq'] = torch.zeros_like(p.data)
+                    state["step"] = 0
+                    state["exp_avg"] = torch.zeros_like(p.data)
+                    state["exp_avg_sq"] = torch.zeros_like(p.data)
 
                 # Adam
-                exp_avg, exp_avg_sq = state['exp_avg'], state['exp_avg_sq']
+                exp_avg, exp_avg_sq = state["exp_avg"], state["exp_avg_sq"]
 
-                state['step'] += 1
-                bias_correction1 = 1 - beta1 ** state['step']
-                bias_correction2 = 1 - beta2 ** state['step']
+                state["step"] += 1
+                bias_correction1 = 1 - beta1 ** state["step"]
+                bias_correction2 = 1 - beta2 ** state["step"]
 
                 exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
                 exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
 
                 denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(
-                    group['eps']
+                    group["eps"]
                 )
-                step_size = group['lr'] / bias_correction1
+                step_size = group["lr"] / bias_correction1
 
                 if nesterov:
                     perturb = (beta1 * exp_avg + (1 - beta1) * grad) / denom
@@ -175,16 +170,14 @@ class AdamP(torch.optim.Optimizer):
                         p,
                         grad,
                         perturb,
-                        group['delta'],
-                        group['wd_ratio'],
-                        group['eps'],
+                        group["delta"],
+                        group["wd_ratio"],
+                        group["eps"],
                     )
 
                 # Weight decay
-                if group['weight_decay'] > 0:
-                    p.data.mul_(
-                        1 - group['lr'] * group['weight_decay'] * wd_ratio
-                    )
+                if group["weight_decay"] > 0:
+                    p.data.mul_(1 - group["lr"] * group["weight_decay"] * wd_ratio)
 
                 # Step
                 p.data.add_(perturb, alpha=-step_size)

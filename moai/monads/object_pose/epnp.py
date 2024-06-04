@@ -1,10 +1,11 @@
-import torch
-import torch.nn.functional as F
 import logging
 import typing
-import kornia as kn
-#initial code taken from https://github.com/facebookresearch/pytorch3d/
 
+import kornia as kn
+import torch
+import torch.nn.functional as F
+
+# initial code taken from https://github.com/facebookresearch/pytorch3d/
 
 
 log = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ class EpnpSolution(typing.NamedTuple):
     T: torch.Tensor
     err_2d: torch.Tensor
     err_3d: torch.Tensor
+
 
 def _wmean(
     x: torch.Tensor,
@@ -70,6 +72,7 @@ def _wmean(
         eps
     )
 
+
 def _define_control_points(x, weight, storage_opts=None):
     """
     Returns control points that define barycentric coordinates
@@ -86,6 +89,7 @@ def _define_control_points(x, weight, storage_opts=None):
     )
     return c_world + x_mean
 
+
 def _compute_alphas(x, c_world):
     """
     Computes barycentric coordinates of x in the frame c_world.
@@ -96,6 +100,7 @@ def _compute_alphas(x, c_world):
     x = F.pad(x, (0, 1), value=1.0)
     c = F.pad(c_world, (0, 1), value=1.0)
     return torch.matmul(x, torch.inverse(c))  # B x N x 4
+
 
 def _build_M(y, alphas, weight):
     """Returns the matrix defining the reprojection equations.
@@ -169,7 +174,7 @@ def _kernel_vec_distances(v):
     # this should produce B x 6 x (D choose 2) tensor
 
     # we should take dot-product of all (i,i)
-    rows_ii = (dv ** 2).sum(dim=-2)
+    rows_ii = (dv**2).sum(dim=-2)
     # this should produce B x 6 x D tensor
 
     return torch.cat((rows_ii, rows_2ij), dim=-1)
@@ -267,9 +272,9 @@ def _compute_norm_sign_scaling_factor(c_cam, alphas, x_world, y, weight, eps=1e-
     return EpnpSolution(x_cam, R, T, err_2d, err_3d)
 
 
-
 def _binary_sign(t):
     return (t >= 0).to(t) * 2.0 - 1.0
+
 
 def _find_null_space_coords_1(kernel_dsts, cw_dst, eps=1e-9):
     """Solves case 1 from the paper [1]; solve for 4 coefficients:
@@ -288,9 +293,9 @@ def _find_null_space_coords_1(kernel_dsts, cw_dst, eps=1e-9):
     beta = _solve_lstsq_subcols(cw_dst, kernel_dsts, [0, 4, 5, 6])
 
     beta = beta * _binary_sign(beta[:, :1, :])
-    
+
     return beta / (beta[:, :1, :] ** 0.5 + eps)
-    #return beta / torch.clamp(beta[:, :1, :] ** 0.5, eps)
+    # return beta / torch.clamp(beta[:, :1, :] ** 0.5, eps)
 
 
 def _find_null_space_coords_2(kernel_dsts, cw_dst):
@@ -337,12 +342,13 @@ def _find_null_space_coords_3(kernel_dsts, cw_dst, eps=1e-9):
     coord_1 = (beta[:, 2:3, :].abs() ** 0.5) * (
         (beta[:, :1, :] >= 0) == (beta[:, 2:3, :] >= 0)
     ).float()
-    #coord_2 = beta[:, 3:4, :] / torch.clamp(coord_0[:, :1, :], eps)
-    coord_2 = beta[:, 3:4, :] / (coord_0[:, :1, :] +  eps)
+    # coord_2 = beta[:, 3:4, :] / torch.clamp(coord_0[:, :1, :], eps)
+    coord_2 = beta[:, 3:4, :] / (coord_0[:, :1, :] + eps)
 
     return torch.cat(
         (coord_0, coord_1, coord_2, torch.zeros_like(beta[:, :1, :])), dim=1
     )
+
 
 def _is_pointclouds(pcl: typing.Union[torch.Tensor, "Pointclouds"]):
     """Checks whether the input `pcl` is an instance of `Pointclouds`
@@ -377,7 +383,7 @@ def _convert_pointclouds_to_tensor(pcl: typing.Union[torch.Tensor, "Pointclouds"
 def _corresponding_points_alignment(
     X: typing.Union[torch.Tensor, "Pointclouds"],
     Y: typing.Union[torch.Tensor, "Pointclouds"],
-    weights: typing.Union[torch.Tensor,typing.List[torch.Tensor], None] = None,
+    weights: typing.Union[torch.Tensor, typing.List[torch.Tensor], None] = None,
     estimate_scale: bool = True,
     allow_reflection: bool = True,
     eps: float = 1e-9,
@@ -477,7 +483,7 @@ def _corresponding_points_alignment(
 
     # compute the covariance XYcov between the point sets Xc, Yc
     XYcov = torch.bmm(Xc.transpose(2, 1), Yc)
-    #XYcov = XYcov / total_weight[:, None, None]
+    # XYcov = XYcov / total_weight[:, None, None]
     XYcov = XYcov / (total_weight[:, None, None] + eps)
 
     # decompose the covariance matrix XYcov
@@ -492,8 +498,8 @@ def _corresponding_points_alignment(
             + "cross-correlation between aligned point clouds. "
             + "corresponding_points_alignment cannot return a unique rotation."
         )
-        #NOTE:DEGUG
-        global RERUN 
+        # NOTE:DEGUG
+        global RERUN
         RERUN = True
     else:
         RERUN = False
@@ -518,7 +524,7 @@ def _corresponding_points_alignment(
         Xcov = (Xc * Xc).sum((1, 2)) / total_weight
 
         # the scaling component
-        #s = trace_ES / torch.clamp(Xcov, eps)
+        # s = trace_ES / torch.clamp(Xcov, eps)
         s = trace_ES / (Xcov + eps)
 
         # translation component
@@ -531,7 +537,6 @@ def _corresponding_points_alignment(
         s = T.new_ones(b)
 
     return SimilarityTransform(R, T, s)
-
 
 
 def _efficient_pnp(
@@ -600,17 +605,16 @@ def _efficient_pnp(
     # find the linear combination of the control points to represent the 3d points
     alphas = _compute_alphas(x, c_world)
 
+    # NOTE:added for avoiding nans
+    while (
+        torch.isneginf(alphas.detach()).any()
+        or torch.isinf(alphas).any()
+        or torch.isnan(alphas).any()
+    ) == True:
 
-    #NOTE:added for avoiding nans
-    while  (torch.isneginf(alphas.detach()).any() \
-            or torch.isinf(alphas).any() \
-            or torch.isnan(alphas).any()) == True:
-
-            alphas = _compute_alphas(x, c_world)    
-    
+        alphas = _compute_alphas(x, c_world)
 
     M = _build_M(y, alphas, weights)
-
 
     # Compute kernel M
     kernel, spectrum = _null_space(M, 4)
@@ -659,34 +663,41 @@ class EPnP(torch.nn.Module):
         self,
         weights: typing.Optional[torch.Tensor] = None,
         skip_quadratic_eq: bool = False,
-        transform_deg: float = 180, #rotate axes if needed for mathcing the gt
+        transform_deg: float = 180,  # rotate axes if needed for mathcing the gt
     ):
-        super(EPnP,self).__init__()
+        super(EPnP, self).__init__()
         self.weights = weights
         self.skip_quadratic_eq = skip_quadratic_eq
-        #TODO: remove this
-        #NOTE: should we make an external operation with params angle, axis?
+        # TODO: remove this
+        # NOTE: should we make an external operation with params angle, axis?
         rads = torch.deg2rad(torch.Tensor([transform_deg]))
-        self.rot = kn.geometry.conversions.angle_axis_to_rotation_matrix(torch.Tensor([[rads,0,0]]))
+        self.rot = kn.geometry.conversions.angle_axis_to_rotation_matrix(
+            torch.Tensor([[rads, 0, 0]])
+        )
 
-
-
-        
     def forward(
         self,
-        keypoints2d: torch.Tensor, #[B, K, 2]
-        keypoints3d: torch.Tensor ,#[B, K, 3]
-    ) -> torch.Tensor: # [B,4,4]
+        keypoints2d: torch.Tensor,  # [B, K, 2]
+        keypoints3d: torch.Tensor,  # [B, K, 3]
+    ) -> torch.Tensor:  # [B,4,4]
 
-        b = keypoints2d.shape[0]        
-        P_6d = torch.zeros((b,4,4))
-        P_6d[:,3,3] = 1
-        epnp_ = _efficient_pnp(keypoints3d,keypoints2d,weights=self.weights,skip_quadratic_eq = self.skip_quadratic_eq)
+        b = keypoints2d.shape[0]
+        P_6d = torch.zeros((b, 4, 4))
+        P_6d[:, 3, 3] = 1
+        epnp_ = _efficient_pnp(
+            keypoints3d,
+            keypoints2d,
+            weights=self.weights,
+            skip_quadratic_eq=self.skip_quadratic_eq,
+        )
         while RERUN:
-            #print("rerun")
-            epnp_ = _efficient_pnp(keypoints3d,keypoints2d,weights=self.weights,skip_quadratic_eq = self.skip_quadratic_eq)
-        P_6d[:,:3,:3] = (epnp_.R @ self.rot.to(keypoints2d)).transpose(2,1)
-        P_6d[:,:3,3] = epnp_.T  @ self.rot.to(keypoints2d)          
+            # print("rerun")
+            epnp_ = _efficient_pnp(
+                keypoints3d,
+                keypoints2d,
+                weights=self.weights,
+                skip_quadratic_eq=self.skip_quadratic_eq,
+            )
+        P_6d[:, :3, :3] = (epnp_.R @ self.rot.to(keypoints2d)).transpose(2, 1)
+        P_6d[:, :3, 3] = epnp_.T @ self.rot.to(keypoints2d)
         return P_6d.to(keypoints2d)
-
-

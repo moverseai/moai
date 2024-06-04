@@ -1,42 +1,40 @@
-
 __SYMBOL_MAP__ = {
     # '!': '%21',
-    '#': '%23',
-    '$': '%24',
-    '%': '%25',
-    '&': '%26',
-    '\'': '%27',
-    '(': '%28',
-    ')': '%29',
-    '*': '%2A',
-    '+': '%2B',
-    ',': '%2C',
-    '/': '%2F',
-    ':': '%3A',
-    ';': '%3B',
-    '=': '%3D',
-    '?': '%3F',
-    '@': '%40',
-    '[': '%5B',
-    ']': '%5D',
-    ' ': '%20',
-
-    '<': '%3C',
-    '>': '%3E',
-    '\\': '%5C',
-    '{': '%7B',
-    '}': '%7D',
+    "#": "%23",
+    "$": "%24",
+    "%": "%25",
+    "&": "%26",
+    "'": "%27",
+    "(": "%28",
+    ")": "%29",
+    "*": "%2A",
+    "+": "%2B",
+    ",": "%2C",
+    "/": "%2F",
+    ":": "%3A",
+    ";": "%3B",
+    "=": "%3D",
+    "?": "%3F",
+    "@": "%40",
+    "[": "%5B",
+    "]": "%5D",
+    " ": "%20",
+    "<": "%3C",
+    ">": "%3E",
+    "\\": "%5C",
+    "{": "%7B",
+    "}": "%7D",
 }
 
 __SIZE_MAP__ = {
-    'large': '%5Clarge',
-    'vlarge': '%5CLarge',
-    'vvlarge': '%5CLARGE',
-    'huge': '%5Chuge',
-    'vhuge': '%5CHuge',
+    "large": "%5Clarge",
+    "vlarge": "%5CLarge",
+    "vvlarge": "%5CLARGE",
+    "huge": "%5Chuge",
+    "vhuge": "%5CHuge",
 }
 
-#NOTE: https://gist.github.com/a-rodin/fef3f543412d6e1ec5b6cf55bf197d7b
+# NOTE: https://gist.github.com/a-rodin/fef3f543412d6e1ec5b6cf55bf197d7b
 
 if __name__ == "__main__":
     wing_loss = r"\begin{equation} wing(x) = \left\{ \begin{array}{ll}w \ln (1 + |x|/\epsilon)  & \text{if } |x| < w \\|x| - C  & \text{otherwise}\end{array}\right.\end{equation}"
@@ -61,12 +59,10 @@ if __name__ == "__main__":
 
     output_string = geodesic_loss
 
-    size = 'huge'
+    size = "huge"
 
     for k, v in __SYMBOL_MAP__.items():
         output_string = output_string.replace(k, v)
 
     url = "https://render.githubusercontent.com/render/math?math="
     print(url + __SIZE_MAP__[size] + output_string)
-
-    

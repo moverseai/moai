@@ -2,22 +2,25 @@ import roma
 import roma.internal
 import torch
 
-__all__ = ['GramSchmidt', 'ExtractSixd']
+__all__ = ["GramSchmidt", "ExtractSixd"]
+
 
 class ExtractSixd(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
     def forward(self, matrix: torch.Tensor) -> torch.Tensor:
-        return matrix[..., :3, :2] # [B, ..., 3, 3] -> [B, ..., 3, 2]
+        return matrix[..., :3, :2]  # [B, ..., 3, 3] -> [B, ..., 3, 2]
+
 
 class GramSchmidt(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
-    def forward(self, 
-        sixd: torch.Tensor, # [..., R, 3, 2]
-    ) -> torch.Tensor: # [..., R, 3, 3]
+    def forward(
+        self,
+        sixd: torch.Tensor,  # [..., R, 3, 2]
+    ) -> torch.Tensor:  # [..., R, 3, 3]
         out_shape = list(sixd.shape)
         out_shape[-1] = 3
         in_dims = len(sixd.shape)

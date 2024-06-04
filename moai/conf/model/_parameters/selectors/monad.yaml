@@ -1,4 +1,0 @@
-# @package model.parameters.selectors._name_
-
-_target_: moai.parameters.selectors.MonadParameterSelector
-keys: ???

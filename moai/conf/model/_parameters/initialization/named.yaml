@@ -1,3 +1,0 @@
-# @package model.parameters.initialization
-
-_target_: moai.parameters.initialization.Named
