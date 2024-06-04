@@ -1,0 +1,27 @@
+# @package hydra.job_logging
+
+# python logging configuration for tasks
+
+version: 1
+filters: 
+  moai: 
+    '()': 'moai.logging.moai_filter.MoaiFilter'
+formatters:
+  simple:
+    format: '[%(asctime)s][%(name)s][%(levelname)s] - %(message)s'
+handlers:
+  file:
+    class: logging.FileHandler
+    formatter: simple
+    # relative to the job log directory
+    filename: ${hydra.runtime.output_dir}/${hydra.job.name}.log
+    filters: []
+  rich_console:
+    class: rich.logging.RichHandler
+    markup: true
+    filters: ['moai']
+root:
+  level: INFO
+  handlers: [rich_console, file]
+
+disable_existing_loggers: false

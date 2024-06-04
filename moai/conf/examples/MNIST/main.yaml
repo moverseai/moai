@@ -57,5 +57,5 @@ defaults:
   - processes_flow
 
   ###### HYDRA  
-  - override hydra/job_logging: colorlog
-  - override hydra/hydra_logging: colorlog
+  - override hydra/hydra_logging: moai # colorlog
+  - override hydra/job_logging: moai # colorlog

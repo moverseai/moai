@@ -63,7 +63,7 @@ defaults:
   - _moai_
 
   ###### HYDRA  
-  - override hydra/hydra_logging: colorlog
-  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: moai # colorlog
+  - override hydra/job_logging: moai # colorlog
   
   # _self_

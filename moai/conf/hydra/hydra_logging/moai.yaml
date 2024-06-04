@@ -1,0 +1,18 @@
+# @package hydra.hydra_logging
+
+# python logging configuration for tasks
+
+version: 1
+filters: 
+  moai: 
+    '()': 'moai.logging.moai_filter.MoaiFilter'
+handlers:
+  rich_console:
+    class: rich.logging.RichHandler
+    filters: ['moai']
+    markup: true
+root:
+  level: INFO
+  handlers: [rich_console]
+
+disable_existing_loggers: false
