@@ -30,22 +30,22 @@ class Weighted(torch.nn.ModuleDict):
         if not len(objectives):
             log.warning("A weighted combination of objectives is being used for supervising the model, but no losses have been assigned.")
         if errors := [k for k in kwargs if k not in objectives]:
-            log.error(f"Some objectives [orange bold blink] [{errors}] [/] were not found in the configuration and will be ignored!")        
+            log.error(f"Some objectives [orange bold strike blink] \[{errors}\] [/] were not found in the configuration and will be ignored!")        
         for i, key in enumerate(kwargs):
             if key not in objectives:
-                log.warning(f"Skipping objective [red bold]`{key}`[/] as it is not found in the configuration :exclamation:")
+                log.warning(f"Skipping objective [red strike bold]`{key}`[/] as it is not found in the configuration :exclamation:")
                 continue
             try:
                 self.add_module(key, hyu.instantiate(objectives[key])) #TODO: stateless objectives can be re-used
             except Exception as e:
-                log.error(f"Could not instantiate the objective '{key}': {e}")
+                log.error(f":excalamation: Could not instantiate the objective '{key}': {e}")
                 continue
             objective_kwargs = kwargs[key]
             objective = self[key]
             sig = inspect.signature(objective.forward)
             sig_params = list(filter(lambda p: p in objective_kwargs, sig.parameters))            
             if extra_params := set(objective_kwargs.keys()) - set(sig_params) - set([C._OUT_, C._WEIGHT_, C._REDUCTION_]):
-                log.error(f"The parameters [{extra_params}] are not part of the `{key}` objective signature.")
+                log.error(f":warning: The parameters [bold yellow strike] \[{extra_params}\] [/] are not part of the `{key}` objective signature.")
             objective_kwargs = mic._dict_of_lists_to_list_of_dicts(objective_kwargs)
             for j, params in enumerate(objective_kwargs):
                 if not (weight := toolz.get(C._WEIGHT_, params, default=None)):
