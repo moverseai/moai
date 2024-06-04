@@ -30,10 +30,10 @@ class Weighted(torch.nn.ModuleDict):
         if not len(objectives):
             log.warning("A weighted combination of objectives is being used for supervising the model, but no losses have been assigned.")
         if errors := [k for k in kwargs if k not in objectives]:
-            log.error(f"Some objectives [{errors}] were not found in the configuration and will be ignored!")        
+            log.error(f"Some objectives [orange bold blink] [{errors}] [/] were not found in the configuration and will be ignored!")        
         for i, key in enumerate(kwargs):
             if key not in objectives:
-                log.warning(f"Skipping objective `{key}` as it is not found in the configuration.")
+                log.warning(f"Skipping objective [red bold]`{key}`[/] as it is not found in the configuration :exclamation:")
                 continue
             try:
                 self.add_module(key, hyu.instantiate(objectives[key])) #TODO: stateless objectives can be re-used
@@ -49,10 +49,10 @@ class Weighted(torch.nn.ModuleDict):
             objective_kwargs = mic._dict_of_lists_to_list_of_dicts(objective_kwargs)
             for j, params in enumerate(objective_kwargs):
                 if not (weight := toolz.get(C._WEIGHT_, params, default=None)):
-                    log.warning(f"Objective `{key}` has no assigned weights, automatically reverting to a weight of one (1.0).")
+                    log.warning(f":warning: Objective [yellow bold]`{key}`[/] has no assigned weights, automatically reverting to a weight of one (1.0).")
                     weight = 1.0
                 if not (reduction := toolz.get(C._REDUCTION_, params, default=None)):
-                    log.warning(f"Objective `{key}` has no assigned reduction, automatically reverting to mean reduction.")
+                    log.warning(f":warning: Objective [yellow bold]`{key}`[/] has no assigned reduction, automatically reverting to mean reduction.")
                     reduction = 'mean'
                 self.execs.append((
                     key, params[C._OUT_], weight, reduction, 

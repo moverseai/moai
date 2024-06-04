@@ -3,43 +3,13 @@
 torso_indices: [9, 12, 2, 5]
 
 model:  
-  # configuration:
-  #   mode: inference
-  #   io: 
-  #     joints2d: keypoints 
-  #     joints3d: body.joints
-  #     out: init_trans
-  #   assign:
-  #     # init_trans: postprocess.weak_perspective_camera.translation
-  #     init_trans: graphs.preprocess.translation.value
-  #   optimize_predictions:
-  #     fine_fit_stage1:
-  #       - init_trans
-
   parameters:
-    # initialization:
-    #   schemes:
-    #     vposer2:
-    #       ckpt: ${SMPLX_ROOT}\V02_05\V02_05\
-    #       cache: true
-    #     zero_params:
-    #       keys:
-    #         - graphs.preprocess.translation.value
-    #         - graphs.preprocess.smplx.global_orient
-    #         - graphs.preprocess.smplx.jaw_pose
-    #         - graphs.preprocess.smplx.leye_pose
-    #         - graphs.preprocess.smplx.reye_pose
-    #         - graphs.preprocess.smplx.expression
-    #         - graphs.preprocess.smplx.left_hand_pose
-    #         - graphs.preprocess.smplx.right_hand_pose
-    #         - graphs.preprocess.smplx.betas          
-    #         - graphs.preprocess.embedding.value
     initializers:
       # vposer2:
       #   ckpt: ${SMPLX_ROOT}\V02_05\V02_05\
       #   cache: true
       vposer1:
-        ckpt: ${SMPLX_ROOT}\vposer\
+        ckpt: ${SMPLX_ROOT}/vposer/
         cache: true
       zero_flow_params:
         keys:
@@ -61,10 +31,8 @@ model:
       use_pose: false
       use_betas: false
       joints_format: openpose_coco25
-      model_path: ${SMPLX_ROOT}\models_smplx_v1_1\models\smplx
+      model_path: ${SMPLX_ROOT}/models_smplx_v1_1/models/smplx
       num_betas: ${BETAS}
-    # index:
-    #   indices: [9, 12, 2, 5]
 
   modifications:
     forward_mode:
