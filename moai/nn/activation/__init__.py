@@ -1,11 +1,6 @@
-import logging
-
-import torch
-
-import moai.nn.utils as miu
-from moai.monads.math import Abs
-from moai.nn.activation.snake import Snake
-from moai.nn.activation.torch import (
+from moai.monads.math import Abs  # isort:skip
+from moai.nn.activation.snake import Snake  # isort:skip
+from moai.nn.activation.torch import (  # isort:skip
     BN2d,
     BN2d_LReLu,
     BN2d_ReLu,
@@ -24,6 +19,12 @@ from moai.nn.activation.torch import (
     ReLu_IN,
     ReLu_IN2d,
 )
+
+import logging
+
+import torch
+
+import moai.nn.utils as miu
 
 log = logging.getLogger(__name__)
 
