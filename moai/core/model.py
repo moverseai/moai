@@ -313,6 +313,10 @@ class MoaiLightningModule(L.LightningModule):
 
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[C._MOAI_METRICS_] = {}
+        # batch[C._MOAI_LOSSES_] = {
+        #     "raw": {},
+        #     "weighted": {},
+        # }
         # TODO: check for refresh optimizers each step
         for stage, proc in self.process[C._FIT_][C._BATCH_].items():
             flows = proc[C._FLOWS_]
