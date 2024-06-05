@@ -1,3 +1,5 @@
+import os
+
 from hydra.core.config_search_path import ConfigSearchPath
 from hydra.plugins.search_path_plugin import SearchPathPlugin
 
@@ -11,3 +13,7 @@ class MoaiSearchPathPlugin(SearchPathPlugin):
         # Remember to verify the config is packaged properly (build sdist and look inside,
         # and verify MANIFEST.in is correct).
         search_path.append(provider="moai-searchpath-plugin", path="pkg://moai/conf")
+        search_path.append(
+            provider="cwd-conf-searchpath-plugin",
+            path=os.path.join(os.getcwd(), "conf"),
+        )
