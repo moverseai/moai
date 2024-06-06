@@ -1,11 +1,11 @@
-from collections.abc import Callable
-
 import logging
 import typing
+from collections.abc import Callable
 
 import torch
 
 log = logging.getLogger(__name__)
+
 
 class GuidLogFilter(logging.Filter):
     def __init__(self, guid: str, *args, **kwargs):
@@ -79,7 +79,7 @@ class ResetLogging(Callable):
         root_logger = logging.getLogger()
         for hdlr in root_logger.handlers[:]:
             root_logger.removeHandler(hdlr)
-        
+
         # Add the new handler to the root logger
         root_logger.addHandler(handler)
         root_logger.propagate = True
