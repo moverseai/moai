@@ -1,7 +1,7 @@
 import roma
 import torch
 
-from moai.supervision.losses.regression.cosine_distance import _acos_safe
+from moai.supervision.objectives.regression.cosine_distance import _acos_safe
 
 __all__ = [
     "RotationMatrixAngle",
