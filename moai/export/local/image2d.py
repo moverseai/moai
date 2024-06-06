@@ -232,7 +232,7 @@ def save_image(
     transform: typing.Union[str, typing.Sequence[str]] = [None],
     colormap: typing.Union[str, typing.Sequence[str]] = [None],
     modality: typing.List[str] = ["color"],
-    step: typing.Optional[int] = None,
+    lightning_step: typing.Optional[int] = None,
     # batch_idx:          typing.Optional[int]=None,
     # optimization_step:  typing.Optional[int]=None,
     # stage:              typing.Optional[str]=None,
@@ -256,6 +256,6 @@ def save_image(
     save_map[modality](
         colorize_map[colormap](transform_map[transform](tensors[key].detach())),
         key,
-        step,
+        lightning_step,
         fmt,
     )

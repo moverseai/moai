@@ -1,9 +1,12 @@
 # _moai_ - Accelerating modern data-driven workflows
 
 [![Documentation Status](https://readthedocs.org/projects/moai/badge/?version=latest)](https://moai.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fmoverseai%2Fmoai%2Fbadge%3Fref%3Dmain&style=popout)](https://actions-badge.atrox.dev/moverseai/moai/goto?ref=main)
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=PyTorch&logoColor=white)
 ![Lightning](https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white)
 ![TorchServe](https://img.shields.io/badge/TorchServe-%23EE4C2C.svg?logo=PyTorch&logoColor=white)
+
+<!-- https://actions-badge.atrox.dev/ & https://github.com/atrox/github-actions-badge?tab=readme-ov-file -->
 
 # Overview
 

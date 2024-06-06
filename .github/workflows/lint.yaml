@@ -1,0 +1,25 @@
+name: Lint
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: psf/black@stable
+        with:
+          options: "--check --verbose --color" # --diff
+          src: "."
+          # jupyter: true
+          version: "24.4.2"
+      - name: notification
+        uses: appleboy/discord-action@4c196125180125310ac20c72034757bb71020383
+        if: ${{ failure() }}
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          color: '#DAA520' # "#48f442"
+          avatar_url: 'https://black.readthedocs.io/en/stable/_static/logo2-readme.png'
+          username: "Black Formatter"
+          message: "The _${{ github.event_name }}_ @ `${{ github.ref_name }}#${{ github.sha }}` needs to be `black` formatted."

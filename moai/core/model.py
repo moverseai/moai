@@ -312,6 +312,10 @@ class MoaiLightningModule(L.LightningModule):
 
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[C._MOAI_METRICS_] = {}
+        batch[C._MOAI_LOSSES_] = {
+            "raw": {},
+            "weighted": {},
+        }
         # TODO: check for refresh optimizers each step
         for stage, proc in self.process[C._FIT_][C._BATCH_].items():
             flows = proc[C._FLOWS_]
@@ -336,10 +340,6 @@ class MoaiLightningModule(L.LightningModule):
                 closure, batch, batch_idx, flows, stage, optimizer, objective
             )
             for iter in range(proc.get(C._ITERATIONS_, 1)):
-                batch[C._MOAI_LOSSES_] = {
-                    "raw": {},
-                    "weighted": {},
-                }
                 if (  # when the strategy handles accumulation, we want to always call the optimizer step
                     not self.trainer.strategy.handles_gradient_accumulation
                     and self.trainer.fit_loop._should_accumulate()
