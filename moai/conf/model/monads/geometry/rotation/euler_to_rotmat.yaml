@@ -1,0 +1,4 @@
+# @package model.monads.euler_to_rotmat
+
+_target_: moai.monads.geometry.rotations.euler.EulerToRotationMatrix
+order: XYZ
