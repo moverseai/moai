@@ -1,0 +1,4 @@
+# @package handlers.preprocess.setup_guid
+
+_target_: moai.serve.handlers.logging_formatter.SetupLogging
+input_key: guid
