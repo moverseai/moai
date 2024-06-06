@@ -1,6 +1,6 @@
 # @package data.test.iterator
 
-_target_: moai.data.iterator.Windowed
+_target_: moai.data.iterator.window.Windowed
 window_size: ???
 stride: 1
 internal_stride: 1

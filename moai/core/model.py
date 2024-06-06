@@ -432,7 +432,9 @@ class MoaiLightningModule(L.LightningModule):
         datasets = list(self.data.test.iterator.datasets.keys())
         monitor = toolz.get_in([C._TEST_, C._BATCH_], self.monitor) or []
         # get graphs for test
-        for stage, proc in self.process[C._TEST_][C._BATCH_].items():
+        for stage, proc in (
+            toolz.get_in([C._TEST_, C._BATCH_], self.process, {}) or {}
+        ).items():
             steps = proc[C._FLOWS_]
             with torch.no_grad():  # TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
@@ -443,9 +445,9 @@ class MoaiLightningModule(L.LightningModule):
                     for metric in toolz.get("metrics", monitor, None) or []:
                         self.named_metrics[metric](batch)
                     # Tensor monitoring for visualization
-                    tensor_monitors = toolz.get("tensors", monitor, None) or []
-                    for tensor_monitor in tensor_monitors:
-                        self.named_monitors[tensor_monitor](batch)
+                    # tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
+                    # for tensor_monitor in tensor_monitors:
+                    #     self.named_monitors[tensor_monitor](batch)
 
     @torch.no_grad
     def validation_step(
@@ -596,7 +598,9 @@ class MoaiLightningModule(L.LightningModule):
             log.info(
                 f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator"
             )
-            test_iterators = [hyu.instantiate(self.data.test.iterator)]
+            test_iterators = [
+                hyu.instantiate(self.data.test.iterator, _recursive_=False)
+            ]
             # test_iterator = hyu.instantiate(self.data.test.iterator)
         else:
             test_iterators = [

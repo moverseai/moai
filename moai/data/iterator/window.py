@@ -59,7 +59,7 @@ class Windowed(torch.utils.data.Dataset):
 
             self.dataset = NoOp(hyu.instantiate(next(iter(datasets.values()))))
         if self.window_size <= 0:
-            log.warning(f"Window size must be > 0. Using window size = 1.")
+            log.warning("Window size must be > 0. Using window size = 1.")
             self.window_size = 1
         if self.window_size > len(self.dataset):
             log.warning(
@@ -67,10 +67,10 @@ class Windowed(torch.utils.data.Dataset):
             )
             self.window_size = len(self.dataset)
         if stride <= 0:
-            log.warning(f"Stride must be > 0. Using stride = 1.")
+            log.warning("Stride must be > 0. Using stride = 1.")
             self.stride = 1
         if internal_stride <= 0:
-            log.warning(f"Internal stride must be > 0. Using internal stride = 1.")
+            log.warning("Internal stride must be > 0. Using internal stride = 1.")
             self.internal_stride = 1
         log.info(
             f"Loaded {len(self)} windows of size {self.window_size} with stride {self.stride} from {len(self.dataset)} samples."
