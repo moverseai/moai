@@ -5,6 +5,7 @@ import hydra.utils as hyu
 import pytorch_lightning as L
 from omegaconf.omegaconf import DictConfig
 
+from moai.engine.progressbar import MoaiProgressBar
 from moai.engine.run_callback import RunCallback
 
 log = logging.getLogger(__name__)
@@ -92,7 +93,8 @@ class LightningRunner(L.Trainer):
             [hyu.instantiate(logger) for logger in loggers.values()] if loggers else []
         )
         pytl_callbacks = [
-            RunCallback()
+            RunCallback(),
+            MoaiProgressBar(),
         ]  # TODO: only when moai model is used, should not be used for custom models
         pytl_callbacks.extend(
             [hyu.instantiate(c) for c in callbacks.values()]
