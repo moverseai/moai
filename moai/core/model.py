@@ -147,10 +147,10 @@ class MoaiLightningModule(L.LightningModule):
             ]
         ## Optimization Process & Monitoring
         self.process = OmegaConf.to_container(
-            select(_moai_, C._EXECUTION_LIGHTNING_STEP_), resolve=True
+            select_conf(_moai_, C._EXECUTION_LIGHTNING_STEP_), resolve=True
         )
         self.monitor = OmegaConf.to_container(
-            select(_moai_, C._EXECUTION_MONITORING_), resolve=True
+            select_conf(_moai_, C._EXECUTION_MONITORING_), resolve=True
         )
         self.schedule = deque(
             sorted(
@@ -313,6 +313,10 @@ class MoaiLightningModule(L.LightningModule):
 
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[C._MOAI_METRICS_] = {}
+        batch[C._MOAI_LOSSES_] = {
+            "raw": {},
+            "weighted": {},
+        }
         # TODO: check for refresh optimizers each step
         for stage, proc in self.process[C._FIT_][C._BATCH_].items():
             flows = proc[C._FLOWS_]
@@ -337,10 +341,6 @@ class MoaiLightningModule(L.LightningModule):
                 closure, batch, batch_idx, flows, stage, optimizer, objective
             )
             for iter in range(proc.get(C._ITERATIONS_, 1)):
-                batch[C._MOAI_LOSSES_] = {
-                    "raw": {},
-                    "weighted": {},
-                }
                 if (  # when the strategy handles accumulation, we want to always call the optimizer step
                     not self.trainer.strategy.handles_gradient_accumulation
                     and self.trainer.fit_loop._should_accumulate()
@@ -431,10 +431,10 @@ class MoaiLightningModule(L.LightningModule):
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[C._MOAI_METRICS_] = {}
         datasets = list(self.data.test.iterator.datasets.keys())
-        monitor = toolz.get_in(["test", "batch"], self.monitor) or []
+        monitor = toolz.get_in([C._TEST_, C._BATCH_], self.monitor) or []
         # get graphs for test
-        for stage, proc in self.process["test"]["batch"].items():
-            steps = proc["steps"]
+        for stage, proc in self.process[C._TEST_][C._BATCH_].items():
+            steps = proc[C._FLOWS_]
             with torch.no_grad():  # TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
                 for step in steps:

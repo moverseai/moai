@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -60,18 +61,49 @@ def dump_handlers(
     handler_config: omegaconf.omegaconf.DictConfig,
 ):
     empty = omegaconf.DictConfig({})
+    # parse nested lists
+    # Use regular expression to extract elements within square brackets
+    pattern = r"\[(.*?)\]"
     with open("pre.yaml", "w") as f:
         data = omegaconf.OmegaConf.to_container(handlers.get("pre") or empty)
-        data = list(
-            map(lambda e: {e.split(":")[0].strip(): e.split(":")[1].strip()}, data)
+        # data = list(
+        #     map(lambda e: {e.split(":")[0].strip(): e.split(":")[1].strip()}, data)
+        # )
+        new_data = []
+        for e in data:
+            key, value = e.split(":")
+            match = re.search(pattern, value)
+            if match:
+                # Extract elements within square brackets
+                data_list = match.group(1).split(",")
+                # Remove leading/trailing spaces from elements
+                data_list = [item.strip() for item in data_list]
+                new_data.append({key.strip(): data_list})
+            else:
+                new_data.append({key.strip(): value.strip()})
+        yaml.dump(
+            {"defaults": new_data}, f, default_style=None, default_flow_style=False
         )
-        yaml.dump({"defaults": data}, f, default_style=None, default_flow_style=False)
     with open("post.yaml", "w") as f:
         data = omegaconf.OmegaConf.to_container(handlers.get("post") or empty)
-        data = list(
-            map(lambda e: {e.split(":")[0].strip(): e.split(":")[1].strip()}, data)
+        # data = list(
+        # map(lambda e: {e.split(":")[0].strip(): e.split(":")[1].strip()}, data)
+        # )
+        new_data = []
+        for e in data:
+            key, value = e.split(":")
+            match = re.search(pattern, value)
+            if match:
+                # Extract elements within square brackets
+                data_list = match.group(1).split(",")
+                # Remove leading/trailing spaces from elements
+                data_list = [item.strip() for item in data_list]
+                new_data.append({key.strip(): data_list})
+            else:
+                new_data.append({key.strip(): value.strip()})
+        yaml.dump(
+            {"defaults": new_data}, f, default_style=None, default_flow_style=False
         )
-        yaml.dump({"defaults": data}, f, default_style=None, default_flow_style=False)
     if handler_config is not None:
         with open("handler_overrides.yaml", "w") as f:
             data = omegaconf.OmegaConf.to_container(handler_config)
