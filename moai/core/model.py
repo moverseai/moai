@@ -5,10 +5,14 @@ from collections import OrderedDict, defaultdict, deque
 
 import benedict
 import hydra.utils as hyu
-import moai.core.execution.common as mic
 import pytorch_lightning as L
 import toolz
 import torch
+from omegaconf.omegaconf import DictConfig, OmegaConf
+from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
+from pytorch_lightning.trainer import call
+
+import moai.core.execution.common as mic
 from moai import __version__ as miV
 from moai.core.execution.constants import Constants as C
 from moai.core.execution.criteria import Criteria
@@ -30,9 +34,6 @@ from moai.utils.funcs import (
     select_list,
 )
 from moai.utils.iterators import partition
-from omegaconf.omegaconf import DictConfig, OmegaConf
-from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
-from pytorch_lightning.trainer import call
 
 log = logging.getLogger(__name__)
 
