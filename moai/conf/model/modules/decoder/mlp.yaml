@@ -1,6 +1,6 @@
 # @package model.modules.decoder
 
-_target_: moai.modules.MLP
+_target_: moai.modules.mlp.MLP
 
 configuration:
   in_features: ???
