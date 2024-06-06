@@ -5,14 +5,10 @@ from collections import OrderedDict, defaultdict, deque
 
 import benedict
 import hydra.utils as hyu
+import moai.core.execution.common as mic
 import pytorch_lightning as L
 import toolz
 import torch
-from omegaconf.omegaconf import DictConfig, OmegaConf
-from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
-from pytorch_lightning.trainer import call
-
-import moai.core.execution.common as mic
 from moai import __version__ as miV
 from moai.core.execution.constants import Constants as C
 from moai.core.execution.criteria import Criteria
@@ -34,6 +30,9 @@ from moai.utils.funcs import (
     select_list,
 )
 from moai.utils.iterators import partition
+from omegaconf.omegaconf import DictConfig, OmegaConf
+from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
+from pytorch_lightning.trainer import call
 
 log = logging.getLogger(__name__)
 
@@ -147,10 +146,10 @@ class MoaiLightningModule(L.LightningModule):
             ]
         ## Optimization Process & Monitoring
         self.process = OmegaConf.to_container(
-            select(_moai_, C._EXECUTION_LIGHTNING_STEP_), resolve=True
+            select_conf(_moai_, C._EXECUTION_LIGHTNING_STEP_), resolve=True
         )
         self.monitor = OmegaConf.to_container(
-            select(_moai_, C._EXECUTION_MONITORING_), resolve=True
+            select_conf(_moai_, C._EXECUTION_MONITORING_), resolve=True
         )
         self.schedule = deque(
             sorted(
@@ -431,10 +430,10 @@ class MoaiLightningModule(L.LightningModule):
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[C._MOAI_METRICS_] = {}
         datasets = list(self.data.test.iterator.datasets.keys())
-        monitor = toolz.get_in(["test", "batch"], self.monitor) or []
+        monitor = toolz.get_in([C._TEST_, C._BATCH_], self.monitor) or []
         # get graphs for test
-        for stage, proc in self.process["test"]["batch"].items():
-            steps = proc["steps"]
+        for stage, proc in self.process[C._TEST_][C._BATCH_].items():
+            steps = proc[C._FLOWS_]
             with torch.no_grad():  # TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
                 for step in steps:
