@@ -1,0 +1,4 @@
+# @package model.monads.forward_kinematics
+
+_target_: moai.monads.human.pose.forward_kinematics.ForwardKinematics
+parents: ??? # int[]
