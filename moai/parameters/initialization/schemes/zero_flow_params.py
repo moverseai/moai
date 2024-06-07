@@ -18,13 +18,16 @@ class ZeroFlowParams(typing.Callable[[torch.nn.Module], None]):
         self.keys = keys
 
     def __call__(self, module: torch.nn.Module) -> None:
+        zeroed_keys = []
         for key in self.keys:
             try:
                 m = get_parameter(module.named_flows, key)
                 if m is not None:
-                    log.info(f"Zeroing out parameter: [cyan italic]{key}[/].")
                     with torch.no_grad():  # TODO: remove this and add in root apply call
                         m.zero_()
                         m.grad = None
+                zeroed_keys.append(key)
             except:
                 break
+        all_zeroed_keys = ",".join(zeroed_keys)
+        log.info(f"Zeroing out parameters: [cyan italic]\[{all_zeroed_keys}][/].")
