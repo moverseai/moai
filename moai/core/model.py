@@ -34,6 +34,7 @@ from moai.utils.funcs import (
     select_list,
 )
 from moai.utils.iterators import partition
+from moai.utils.iterators import partition
 
 log = logging.getLogger(__name__)
 
@@ -441,12 +442,16 @@ class MoaiLightningModule(L.LightningModule):
                     batch = self.named_flows[step](batch)
                 if monitor:
                     # Metrics monitoring
+                    for step in steps:
+                        batch = self.named_flows[step](batch)
+                if monitor:
+                    # Metrics monitoring
                     for metric in toolz.get("metrics", monitor, None) or []:
                         self.named_metrics[metric](batch)
                     # Tensor monitoring for visualization
-                    tensor_monitors = toolz.get("tensors", monitor, None) or []
-                    for tensor_monitor in tensor_monitors:
-                        self.named_monitors[tensor_monitor](batch)
+                    # tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
+                    # for tensor_monitor in tensor_monitors:
+                    #     self.named_monitors[tensor_monitor](batch)
 
     @torch.no_grad
     def validation_step(
@@ -597,8 +602,9 @@ class MoaiLightningModule(L.LightningModule):
             log.info(
                 f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator"
             )
-            test_iterators = [hyu.instantiate(self.data.test.iterator)]
-            # test_iterator = hyu.instantiate(self.data.test.iterator)
+            test_iterators = [
+                hyu.instantiate(self.data.test.iterator, _recursive_=False)
+            ]
         else:
             test_iterators = [
                 Indexed(
