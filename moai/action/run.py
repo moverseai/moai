@@ -3,6 +3,7 @@ import logging
 import hydra
 from omegaconf.omegaconf import DictConfig, OmegaConf
 
+from moai import __version__ as miV
 from moai.core.execution.constants import Constants as C
 from moai.engine import Engine
 from moai.engine.callbacks.model import ModelCallbacks
@@ -106,18 +107,22 @@ def _specialize_config(cfg: DictConfig) -> None:
 
 def run(cfg: DictConfig):
     _specialize_config(cfg)
-    hydra.utils.log.debug(f"Configuration:\n{OmegaConf.to_yaml(cfg, resolve=True)}")
+    resolved_config_yaml = OmegaConf.to_yaml(cfg, resolve=True, sort_keys=False)
+    unresolved_config_yaml = OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False)
+    hydra.utils.log.debug(f"Configuration:\n{resolved_config_yaml}")
     with open("config_resolved.yaml", "w") as f:
-        f.write(OmegaConf.to_yaml(cfg, resolve=True, sort_keys=False))
+        f.write(resolved_config_yaml)
     with open("config.yaml", "w") as f:
-        f.write(OmegaConf.to_yaml(cfg, resolve=False, sort_keys=False))
+        f.write(unresolved_config_yaml)
     engine = Engine(cfg.engine.modules)  # NOTE: ctor before model/runner
     OmegaConf.set_struct(cfg, False)
     cfg._moai_._action_ = cfg.action
+    cfg._moai_._version_ = miV
     OmegaConf.set_struct(cfg, True)
     model = hydra.utils.instantiate(
         cfg.model, data=cfg.data, _moai_=select(cfg, C._MOAI_), _recursive_=False
     )
+    model.hparams.update(OmegaConf.to_container(cfg, resolve=True))
     runner = hydra.utils.instantiate(
         cfg.engine.runner,
         model_callbacks=ModelCallbacks(model=model),
