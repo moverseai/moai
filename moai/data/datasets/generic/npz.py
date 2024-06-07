@@ -44,7 +44,7 @@ class StandaloneNpz(
         filename: str = "",
     ):
         self.file = load_npz_file(filename)
-        log.info(f"Loaded an .npz file producing [{list(self.file.keys())}].")
+        log.info(f"Loaded an .npz file producing {list(self.file.keys())}.")
 
     def __len__(self) -> int:
         return len(self.file[toolz.first(self.file)])
@@ -63,7 +63,7 @@ class RepeatedNpz(
     ):
         self.file = load_npz_file(filename)
         self.length = length
-        log.info(f"Loaded an .npz file producing [{list(self.file.keys())}].")
+        log.info(f"Loaded an .npz file producing {list(self.file.keys())}.")
 
     def __len__(self) -> int:
         return self.length
