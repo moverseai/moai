@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 from azure.storage.blob import BlobServiceClient
 
-from moai.monads.execution.cascade import _create_accessor
+from moai.core.execution.common import _create_accessor
 
 log = logging.getLogger(__name__)
 
