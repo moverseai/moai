@@ -5,7 +5,7 @@ import hydra.utils as hyu
 import omegaconf.omegaconf as omegaconf
 import torch
 
-import moai.modules.lightning as mimod
+import moai.components.lightning as mimod
 import moai.networks.lightning as minet
 import moai.nn.convolution as mic
 import moai.nn.residual as mires

@@ -1,4 +1,0 @@
-# @package model.modules.sampler
-
-_target_: moai.modules.sampler.normal.NormalPrior
-mode: ???

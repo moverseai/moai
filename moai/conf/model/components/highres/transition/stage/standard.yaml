@@ -1,0 +1,10 @@
+# @package model.components.stage_transition
+
+_target_: moai.components.lightning.highres.StageTransition
+branched:
+  convolution: ${model.configuration.global.convolution}
+  activation: ${model.configuration.global.activation}
+  downscale: none # maxpool2d
+  kernel_size: 3
+  stride: 2
+  padding: 1

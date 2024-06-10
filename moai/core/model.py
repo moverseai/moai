@@ -34,7 +34,6 @@ from moai.utils.funcs import (
     select_list,
 )
 from moai.utils.iterators import partition
-from moai.utils.iterators import partition
 
 log = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ def _create_assigner(
 class MoaiLightningModule(L.LightningModule):
     def __init__(
         self,
-        modules: DictConfig = None,
+        components: DictConfig = None,
         monads: DictConfig = None,
         parameters: DictConfig = None,
         objectives: DictConfig = None,
@@ -77,16 +76,18 @@ class MoaiLightningModule(L.LightningModule):
         self.automatic_optimization = False
         self.data = data
         ## Inner modules aka Models
-        self.models = torch.nn.ModuleDict()
-        for k in modules or {}:
-            self.models[k] = hyu.instantiate(modules[k])
+        self.named_components = torch.nn.ModuleDict()
+        for k in components or {}:
+            self.named_components[k] = hyu.instantiate(components[k])
         ## Monad & Module Processing Graphs
         self.named_flows = torch.nn.ModuleDict()
         flows = select_dict(_moai_, C._DEFINED_FLOWS_)
-        monad_flows, model_flows = partition(lambda k: k in self.models, flows or {})
+        monad_flows, model_flows = partition(
+            lambda k: k in self.named_components, flows or {}
+        )
         for model_flow in model_flows:
             self.named_flows[model_flow] = Models(
-                models=self.models, **{model_flow: flows[model_flow]}
+                models=self.named_components, **{model_flow: flows[model_flow]}
             )
         for monad_flow in monad_flows:
             self.named_flows[monad_flow] = Monads(monads=monads, **flows[monad_flow])

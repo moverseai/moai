@@ -1,0 +1,52 @@
+# @package model.components.skip
+
+_target_: moai.components.lightning.unet.AttentionSkip
+gate_features: 256
+intermediate_features: null
+skip_connection:
+  convolution:
+    type: conv2d
+    params:
+      kernel_size: 2
+      stride: 2
+      padding: 0
+      bias: false
+gating:
+  convolution:
+    type: conv2d
+    params:
+      kernel_size: 1
+      stride: 1
+      padding: 0
+      bias: true
+  activation:
+    type: relu
+    params:
+      inplace: true
+upsample:
+  mode: bilinear
+  align_corners: false
+  recompute_scale_factor: false
+attention:
+  convolution:
+    type: conv2d
+    params:
+      kernel_size: 1
+      stride: 1
+      padding: 0
+      bias: true
+  activation:
+    type: sigmoid
+    params:
+      inplace: true
+projection:
+  convolution:
+    type: conv2d
+    params:
+      kernel_size: 1
+      stride: 1
+      padding: 0
+  activation:
+    type: bn2d
+    params:
+      inplace: true

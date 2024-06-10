@@ -1,5 +1,0 @@
-# @package model.modules.sampler
-
-_target_: moai.modules.lightning.sampler.ControlledNormalPrior
-
-mode: ???

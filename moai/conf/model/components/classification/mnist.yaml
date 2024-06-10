@@ -1,0 +1,4 @@
+# @package model.components.encoder
+
+_target_: moai.components.encoder.mnist.LitMNIST
+hidden_size: 64

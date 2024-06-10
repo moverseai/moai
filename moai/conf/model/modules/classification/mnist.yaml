@@ -1,4 +1,0 @@
-# @package model.modules.encoder
-
-_target_: moai.modules.encoder.mnist.LitMNIST
-hidden_size: 64
