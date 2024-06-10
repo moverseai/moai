@@ -30,7 +30,7 @@ defaults:
 
   # ###### MODEL
   - model: moai
-  - model/modules/classification: mnist
+  - model/components/classification: mnist
   - model/monads/tensor: argmax
   # ###### PARAMETERS
   - model/parameters/initializers: [default, pretrained]
