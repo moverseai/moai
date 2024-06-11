@@ -21,8 +21,6 @@ __all__ = [
     "optimization_losses",
 ]
 
-# __COLORS = colormap(True)[:20]
-
 
 def optimization_losses(
     tensors: typing.Dict[str, torch.Tensor],

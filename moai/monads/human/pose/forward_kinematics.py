@@ -1,3 +1,4 @@
+import logging
 import typing
 
 import numpy as np
@@ -6,25 +7,35 @@ import torch
 __all__ = ["ForwardKinematics"]
 
 
+log = logging.getLogger(__name__)
+
+
 class ForwardKinematics(torch.nn.Module):
     def __init__(
-        self, parents
+        self,
+        parents: list,
+        offsets: list = None,
     ):  # TODO: add a col/row major param to adjust offset slicing
         super().__init__()
-        self.parents = parents  # TODO: register buffer from list?
+        self.register_buffer("parents", torch.Tensor(parents).int())
+        if offsets is not None:
+            log.warning("offset not set, should be passed in the forward method")
+            self.register_buffer("offsets", torch.Tensor(offsets))
 
     def forward(
         self,  # TODO: add parents tensor input?
         rotation: torch.Tensor,  # [B, (T), J, 3, 3]
         position: torch.Tensor,  # [B, (T), 3]
-        offset: torch.Tensor,  # [B, (T), J, 3]
+        offset: typing.Optional[torch.Tensor] = None,  # [B, (T), J, 3]
         parents: typing.Optional[torch.Tensor] = None,  # [B, J]
     ) -> typing.Dict[str, torch.Tensor]:  # { [B, (T), J, 3], [B, (T), J, 3, 3] }
         joints = torch.empty(rotation.shape[:-1], device=rotation.device)
         joints[..., 0, :] = position.clone()  # first joint according to global position
-        offset = offset[
-            :, np.newaxis, ..., np.newaxis
-        ]  # NOTE: careful, col vs row major order
+        offset = (
+            offset[:, np.newaxis, ..., np.newaxis]
+            if offset is not None
+            else self.offsets[:, np.newaxis, ..., np.newaxis]
+        )  # NOTE: careful, col vs row major order
         # offset = offset[np.newaxis, :, np.newaxis, :] #NOTE: careful, col vs row major order
         global_rotation = rotation.clone()
         # global_rotation = torch.empty(rotation.shape, device=rotation.device)
@@ -33,7 +44,7 @@ class ForwardKinematics(torch.nn.Module):
         parent_indices = (
             parents[0].detach().cpu()
             if parents is not None
-            else self.parents[0].detach().cpu()
+            else (self.parents[0].detach().cpu())
         )
         if (
             parent_indices.shape[-1] == offset.shape[-3]

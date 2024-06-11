@@ -166,12 +166,17 @@ class Parameter(torch.nn.Module):
         init: str = "zeros",  # one of [zeros, ones, rand, randn],
     ):
         super(Parameter, self).__init__()
-        self.register_parameter(
-            "value",
-            torch.nn.Parameter(
-                getattr(torch, init)(tuple(shape))
-            ),  # TODO: check omegaconf's convert type annotation
-        )
+        if init == "eye":
+            self.register_parameter(
+                "value", torch.nn.Parameter(torch.eye(3).repeat(*shape))
+            )
+        else:
+            self.register_parameter(
+                "value",
+                torch.nn.Parameter(
+                    getattr(torch, init)(tuple(shape))
+                ),  # TODO: check omegaconf's convert type annotation
+            )
 
     def forward(self, void: torch.Tensor) -> torch.nn.parameter.Parameter:
         return self.value
