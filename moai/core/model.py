@@ -34,6 +34,7 @@ from moai.utils.funcs import (
     select_list,
 )
 from moai.utils.iterators import partition
+from moai.utils.iterators import partition
 
 log = logging.getLogger(__name__)
 
