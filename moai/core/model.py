@@ -222,39 +222,30 @@ class MoaiLightningModule(L.LightningModule):
             accessor = mic._create_accessor(i)
             a(self.named_flows, accessor(tensors))
 
-    # def predict_step(
-    #     self,
-    #     batch: typing.Dict[str, torch.Tensor],
-    #     batch_idx: int,
-    #     dataset_idx: int = 0,
-    # ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
-    #     log.info(f"Predicting batch {batch_idx} ...")
-    #     batch = benedict.benedict(batch, keyattr_enabled=False)
-    #     monitor = toolz.get_in([C._PREDICT_, C._BATCH_], self.monitor) or []
-    #     for stage, proc in self.process[C._PREDICT_][C._BATCH_].items():
-    #         steps = proc[C._FLOWS_]
-    #         with torch.no_grad():  # TODO: probably this is not needed
-    #             # for iter in range(iters): #NOTE: is this necessary?
-    #             for step in steps:
-    #                 batch = self.named_flows[step](batch)
-    #             # predict step does
-    #             if monitor:
-    #                 # Metrics monitoring used only for serve
-    #                 for metric in (
-    #                     toolz.get(C._METRICS_, monitor, None) or []
-    #                 ):  # TODO ADD _metrics_
-    #                     self.named_metrics[metric](batch)
-    #                 # Tensor monitoring for visualization & exporting
-    #                 tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
-    #                 for tensor_monitor in tensor_monitors:
-    #                     extras = {
-    #                         "stage": "predict",
-    #                         "lightning_step": self.global_step,
-    #                         "batch_idx": batch_idx,
-    #                         "optimization_step": 0,  # TODO: add this for fitting case
-    #                     }
-    #                     # TODO: What extras should be passed here?
-    #                     self.named_monitors[tensor_monitor](batch, extras)
+    def predict_step(
+        self,
+        batch: typing.Dict[str, torch.Tensor],
+        batch_idx: int,
+        dataset_idx: int = 0,
+    ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
+        log.info(f"Predicting batch {batch_idx} ...")
+        batch = benedict.benedict(batch, keyattr_enabled=False)
+        if (proc := get_dict(self.process, C._PREDICT_)) and (
+            monitor := get_dict(self.monitor, f"{C._PREDICT_}.{C._BATCH_}")
+        ):
+            with torch.no_grad():  # TODO: probably this is not needed
+                for step in get_list(proc, C._FLOWS_):
+                    batch = self.named_flows[step](batch)
+                extras = {
+                    "stage": "predict",
+                    "lightning_step": self.global_step,
+                    "batch_idx": batch_idx,
+                    "optimization_step": 0,  # TODO: add this for fitting case
+                }
+                for metric in get_list(monitor, C._METRICS_):
+                    self.named_metrics[metric](batch)
+                for tensor_monitor in get_list(monitor, C._MONITORS_):
+                    self.named_monitors[tensor_monitor](batch, extras)
 
     def training_step(
         self,

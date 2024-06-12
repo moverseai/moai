@@ -36,9 +36,9 @@ _moai_:
             _flows_: [encoder, postprocess]
       _predict_: # used for torchserve
         # _batch_:
-        _stages_:
-          train_encoder:
-            _flows_: [encoder, postprocess]
+        # _stages_:
+        # train_encoder:
+        _flows_: [encoder, postprocess]
       _val_:
         # _batch_:
         _datasets_:
