@@ -15,6 +15,7 @@ __all__ = [
     "ZerosLike",
     "RandomLike",
     "OnesLike",
+    "TemporalParams",
 ]
 
 
@@ -195,6 +196,37 @@ class Parameters(torch.nn.Module):
                     getattr(torch, param.init or "zeros")(tuple(param.shape))
                 ),  # TODO: check omegaconf's convert type annotation
             )
+
+    def forward(self, void: torch.Tensor) -> torch.nn.parameter.Parameter:
+        return dict(self.named_parameters())
+
+
+class TemporalParams(torch.nn.Module):
+    r"""
+    Base class for temporal parameter generation.
+
+    Args:
+        parameters (omegaconf.DictConfig): parameters for temporal params
+        window_size (int): number of frames to generate params for
+    """
+
+    def __init__(
+        self,
+        parameters: omegaconf.DictConfig,
+        window_size: int,
+    ) -> None:
+        super().__init__()
+        for name, param in parameters.items():
+            # each param should be generated for each frame in the window
+            for i in range(window_size):
+                self.register_parameter(
+                    str(name) + str(i),
+                    torch.nn.Parameter(
+                        getattr(torch, param.init or "zeros")(tuple(param.shape))
+                    ),  # TODO: check omegaconf's convert type annotation
+                )
+
+        self.window_size = window_size
 
     def forward(self, void: torch.Tensor) -> torch.nn.parameter.Parameter:
         return dict(self.named_parameters())
