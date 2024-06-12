@@ -5,10 +5,14 @@ from collections import OrderedDict, defaultdict, deque
 
 import benedict
 import hydra.utils as hyu
-import moai.core.execution.common as mic
 import pytorch_lightning as L
 import toolz
 import torch
+from omegaconf.omegaconf import DictConfig, OmegaConf
+from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
+from pytorch_lightning.trainer import call
+
+import moai.core.execution.common as mic
 from moai import __version__ as miV
 from moai.core.execution.constants import Constants as C
 from moai.core.execution.criteria import Criteria
@@ -30,9 +34,7 @@ from moai.utils.funcs import (
     select_list,
 )
 from moai.utils.iterators import partition
-from omegaconf.omegaconf import DictConfig, OmegaConf
-from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
-from pytorch_lightning.trainer import call
+from moai.utils.iterators import partition
 
 log = logging.getLogger(__name__)
 
@@ -221,39 +223,39 @@ class MoaiLightningModule(L.LightningModule):
             accessor = mic._create_accessor(i)
             a(self.named_flows, accessor(tensors))
 
-    def predict_step(
-        self,
-        batch: typing.Dict[str, torch.Tensor],
-        batch_idx: int,
-        dataset_idx: int = 0,
-    ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
-        log.info(f"Predicting batch {batch_idx} ...")
-        batch = benedict.benedict(batch, keyattr_enabled=False)
-        monitor = toolz.get_in([C._PREDICT_, C._BATCH_], self.monitor) or []
-        for stage, proc in self.process[C._PREDICT_][C._BATCH_].items():
-            steps = proc[C._FLOWS_]
-            with torch.no_grad():  # TODO: probably this is not needed
-                # for iter in range(iters): #NOTE: is this necessary?
-                for step in steps:
-                    batch = self.named_flows[step](batch)
-                # predict step does
-                if monitor:
-                    # Metrics monitoring used only for serve
-                    for metric in (
-                        toolz.get(C._METRICS_, monitor, None) or []
-                    ):  # TODO ADD _metrics_
-                        self.named_metrics[metric](batch)
-                    # Tensor monitoring for visualization & exporting
-                    tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
-                    for tensor_monitor in tensor_monitors:
-                        extras = {
-                            "stage": "predict",
-                            "lightning_step": self.global_step,
-                            "batch_idx": batch_idx,
-                            "optimization_step": 0,  # TODO: add this for fitting case
-                        }
-                        # TODO: What extras should be passed here?
-                        self.named_monitors[tensor_monitor](batch, extras)
+    # def predict_step(
+    #     self,
+    #     batch: typing.Dict[str, torch.Tensor],
+    #     batch_idx: int,
+    #     dataset_idx: int = 0,
+    # ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
+    #     log.info(f"Predicting batch {batch_idx} ...")
+    #     batch = benedict.benedict(batch, keyattr_enabled=False)
+    #     monitor = toolz.get_in([C._PREDICT_, C._BATCH_], self.monitor) or []
+    #     for stage, proc in self.process[C._PREDICT_][C._BATCH_].items():
+    #         steps = proc[C._FLOWS_]
+    #         with torch.no_grad():  # TODO: probably this is not needed
+    #             # for iter in range(iters): #NOTE: is this necessary?
+    #             for step in steps:
+    #                 batch = self.named_flows[step](batch)
+    #             # predict step does
+    #             if monitor:
+    #                 # Metrics monitoring used only for serve
+    #                 for metric in (
+    #                     toolz.get(C._METRICS_, monitor, None) or []
+    #                 ):  # TODO ADD _metrics_
+    #                     self.named_metrics[metric](batch)
+    #                 # Tensor monitoring for visualization & exporting
+    #                 tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
+    #                 for tensor_monitor in tensor_monitors:
+    #                     extras = {
+    #                         "stage": "predict",
+    #                         "lightning_step": self.global_step,
+    #                         "batch_idx": batch_idx,
+    #                         "optimization_step": 0,  # TODO: add this for fitting case
+    #                     }
+    #                     # TODO: What extras should be passed here?
+    #                     self.named_monitors[tensor_monitor](batch, extras)
 
     def training_step(
         self,
@@ -319,7 +321,7 @@ class MoaiLightningModule(L.LightningModule):
             "weighted": {},
         }
         # TODO: check for refresh optimizers each step
-        for stage, proc in self.process[C._FIT_][C._BATCH_].items():
+        for stage, proc in self.process[C._FIT_][C._STAGES_].items():
             flows = proc[C._FLOWS_]
             objective = proc.get(C._OBJECTIVE_, None)
             assign_params = proc.get(C._ASSIGN_, None)
@@ -364,7 +366,7 @@ class MoaiLightningModule(L.LightningModule):
                             for flow in flows:
                                 batch = self.named_flows[flow](batch)
                 if iter_monitor_stage := toolz.get_in(
-                    [C._FIT_, C._STAGE_, stage], self.monitor
+                    [C._FIT_, C._STAGES_, stage], self.monitor
                 ):
                     frequency = toolz.get(C._FREQUENCY_, iter_monitor_stage, 1)
                     should_monitor = iter % frequency == 0
@@ -426,33 +428,40 @@ class MoaiLightningModule(L.LightningModule):
     def test_step(
         self,
         batch: typing.Dict[str, torch.Tensor],
-        batch_nb: int,
+        batch_idx: int,
         dataloader_idx: int = 0,
     ) -> dict:
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[C._MOAI_METRICS_] = {}
         datasets = list(self.data.test.iterator.datasets.keys())
-        monitor = toolz.get_in([C._TEST_, C._BATCH_], self.monitor) or []
-        # get graphs for test
-        for stage, proc in self.process[C._TEST_][C._BATCH_].items():
-            steps = proc[C._FLOWS_]
+        dataset_name = datasets[dataloader_idx]
+        monitor = (
+            toolz.get_in([C._TEST_, C._DATASETS_, dataset_name], self.monitor) or []
+        )
+        if (
+            proc := get_dict(self.process, f"{C._TEST_}.{C._DATASETS_}.{dataset_name}")
+        ) and (
+            monitor := get_dict(
+                self.monitor, f"{C._TEST_}.{C._DATASETS_}.{dataset_name}"
+            )
+        ):
+            extras = {
+                "lightning_step": self.global_step,
+                "epoch": self.current_epoch,
+                "batch_idx": batch_idx,
+            }
             with torch.no_grad():  # TODO: probably this is not needed
                 # for iter in range(iters): #NOTE: is this necessary?
-                for step in steps:
+                for step in get_list(proc, C._FLOWS_):
                     batch = self.named_flows[step](batch)
-                if monitor:
-                    # Metrics monitoring
-                    for step in steps:
-                        batch = self.named_flows[step](batch)
-                    tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
-                    for tensor_monitor in tensor_monitors:
-                        extras = {
-                            "stage": "test",
-                            "lightning_step": self.global_step,
-                            "batch_idx": batch_nb,
-                        }
-                        # TODO: What extras should be passed here?
-                        self.named_monitors[tensor_monitor](batch, extras)
+                for metric in get_list(monitor, C._METRICS_):  # Metrics monitoring
+                    self.named_metrics[metric](batch)
+                    # Tensor monitoring for visualization
+                    # tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
+                    # for tensor_monitor in tensor_monitors:
+                    #     self.named_monitors[tensor_monitor](batch)
+                for tensor_monitor in get_list(monitor, C._MONITORS_):
+                    self.named_monitors[tensor_monitor](batch, extras)
 
     @torch.no_grad
     def validation_step(
@@ -469,20 +478,20 @@ class MoaiLightningModule(L.LightningModule):
             )
             return
         datasets = list(self.data.val.iterator.datasets.keys())
-        monitor = toolz.get_in([C._VAL_, C._BATCH_], self.monitor)
-        for stage, proc in (
-            toolz.get_in(
-                [C._VAL_, C._BATCH_, datasets[dataloader_idx]], self.process, {}
+        dataset_name = datasets[dataloader_idx]
+        if (
+            proc := get_dict(self.process, f"{C._VAL_}.{C._DATASETS_}.{dataset_name}")
+        ) and (
+            monitor := get_dict(
+                self.monitor, f"{C._VAL_}.{C._DATASETS_}.{dataset_name}"
             )
-            or {}
-        ).items():
-            steps = proc[C._FLOWS_]
+        ):
             with torch.no_grad():
-                for step in steps:
+                for step in get_list(proc, C._FLOWS_):
                     batch = self.named_flows[step](batch)
-                for _, monitor_stage in monitor.items():
-                    for metric in toolz.get(C._METRICS_, monitor_stage, None) or []:
-                        self.named_metrics[metric](batch)  # TODO add visualization
+                for metric in get_list(monitor, C._METRICS_):
+                    self.named_metrics[metric](batch)
+                # TODO add monitors/visualization
         return batch
 
     def configure_optimizers(

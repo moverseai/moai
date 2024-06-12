@@ -13,6 +13,15 @@ from toolz.curried import merge_with
 
 from moai.core.execution.constants import Constants as C
 from moai.log.loggers.tabular import Tabular
+from moai.utils.funcs import (
+    get,
+    get_dict,
+    get_list,
+    select,
+    select_conf,
+    select_dict,
+    select_list,
+)
 
 log = logging.getLogger(__name__)
 
@@ -127,21 +136,21 @@ class RunCallback(L.Callback):
                     losses, prog_bar=False, logger=True, on_step=True, on_epoch=False
                 )
         if monitor_batch := toolz.get_in([C._FIT_, C._BATCH_], module.monitor):
-            for _, monitor_named_batch in monitor_batch.items():
-                is_now = batch_idx % monitor_named_batch[C._FREQUENCY_] == 0
-                if not is_now:
-                    continue
+            # for _, monitor_named_batch in monitor_batch.items():
+            if batch_idx % monitor_batch[C._FREQUENCY_] == 0:
+                # if not is_now:
+                # continue
                 # NOTE: should detach
-                for step in monitor_named_batch.get(C._FLOWS_, []):
+                for step in monitor_batch.get(C._FLOWS_, []):
                     outputs = module.graphs[step](outputs)
-                for monitor_metrics in monitor_named_batch.get(C._METRICS_, []):
+                for monitor_metrics in monitor_batch.get(C._METRICS_, []):
                     module.named_metrics[monitor_metrics](outputs)
                 extras = {
                     "lightning_step": module.global_step,
                     "epoch": module.current_epoch,
                     "batch_idx": batch_idx,
                 }
-                for monitor_tensors in monitor_named_batch.get(C._MONITORS_, []):
+                for monitor_tensors in monitor_batch.get(C._MONITORS_, []):
                     module.named_monitors[monitor_tensors](outputs, extras)
         if C._MOAI_METRICS_ in outputs:
             if flattened_metrics := outputs[C._MOAI_METRICS_].flatten(separator="/"):
@@ -168,27 +177,28 @@ class RunCallback(L.Callback):
         dataloader_idx: int = 0,
     ) -> None:
         datasets = list(module.data.test.iterator.datasets.keys())
+        dataset_name = datasets[dataloader_idx]
         # extras = {
-        #     "stage": "test",
+        #     "lightning_step": module.global_step,
+        #     "epoch": module.current_epoch,
         #     "batch_idx": batch_idx,
         # }
-        # # TODO: move batch tensors to cpu
-        # monitor = toolz.get_in([C._TEST_, C._BATCH_], module.monitor) or {}
-        # if monitor:
-        #     tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
-        #     for tensor_monitor in tensor_monitors:
+        # if monitor := get_dict(
+        #     module.monitor, f"{C._TEST_}.{C._DATASETS_}.{dataset_name}"
+        # ):
+        #     for tensor_monitor in get_list(monitor, C._MONITORS_):
         #         module.named_monitors[tensor_monitor](batch, extras)
         # TODO: move batch tensors to cpu
-        # if "metrics" in batch:  # TODO: update !! use C._MOAI_METRICS_
-        #     metrics = toolz.keymap(
-        #         lambda k: f"test/metric/{k}/{datasets[dataloader_idx]}",
-        #         batch["metrics"],
-        #     )
-        #     # move metrics to cpu numpy before logging
-        #     module.log_dict(
-        #         metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False
-        #     )
-        #     module.test_step_outputs[datasets[dataloader_idx]].append(metrics)
+        if metrics := get_dict(batch, C._MOAI_METRICS_):
+            metrics = toolz.keymap(
+                lambda k: f"test/metric/{k}/{dataset_name}",
+                metrics,
+            )
+            # move metrics to cpu numpy before logging
+            module.log_dict(
+                metrics, prog_bar=True, logger=True, on_step=True, on_epoch=False
+            )
+            module.test_step_outputs[dataset_name].append(metrics)
 
     @torch.no_grad
     def on_test_epoch_end(

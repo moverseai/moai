@@ -95,7 +95,7 @@ _moai_:
             _monitors_: [show_optim_step]
           fine_fit_stage1:
             _monitors_: [show_optim_step]
-        _stage_:
+        _stages_:
           initialize_torso:
             _monitors_: [show_image]
           initial_torso_fit:
@@ -112,8 +112,8 @@ _moai_:
             _metrics_: [fit_quality]
             _termination_: [bad_fit, error]
         _batch_:
-          log_results:
-            _frequency_: 1
-            # _flows_: []
-            _metrics_: [fit_quality]
-            _monitors_: [show_mesh_batch]
+          # log_results:
+          _frequency_: 1
+          # _flows_: []
+          _metrics_: [fit_quality]
+          _monitors_: [show_mesh_batch]
