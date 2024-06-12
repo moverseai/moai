@@ -168,17 +168,16 @@ class RunCallback(L.Callback):
         dataloader_idx: int = 0,
     ) -> None:
         datasets = list(module.data.test.iterator.datasets.keys())
-        extras = {
-            "lightning_step": module.global_step,
-            "epoch": module.current_epoch,
-            "batch_idx": batch_idx,
-        }
-        # TODO: move batch tensors to cpu
-        monitor = toolz.get_in([C._TEST_, C._BATCH_], module.monitor) or {}
-        if monitor:
-            tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
-            for tensor_monitor in tensor_monitors:
-                module.named_monitors[tensor_monitor](batch, extras)
+        # extras = {
+        #     "stage": "test",
+        #     "batch_idx": batch_idx,
+        # }
+        # # TODO: move batch tensors to cpu
+        # monitor = toolz.get_in([C._TEST_, C._BATCH_], module.monitor) or {}
+        # if monitor:
+        #     tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
+        #     for tensor_monitor in tensor_monitors:
+        #         module.named_monitors[tensor_monitor](batch, extras)
         # TODO: move batch tensors to cpu
         # if "metrics" in batch:  # TODO: update !! use C._MOAI_METRICS_
         #     metrics = toolz.keymap(

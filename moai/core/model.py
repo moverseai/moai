@@ -5,14 +5,10 @@ from collections import OrderedDict, defaultdict, deque
 
 import benedict
 import hydra.utils as hyu
+import moai.core.execution.common as mic
 import pytorch_lightning as L
 import toolz
 import torch
-from omegaconf.omegaconf import DictConfig, OmegaConf
-from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
-from pytorch_lightning.trainer import call
-
-import moai.core.execution.common as mic
 from moai import __version__ as miV
 from moai.core.execution.constants import Constants as C
 from moai.core.execution.criteria import Criteria
@@ -34,6 +30,9 @@ from moai.utils.funcs import (
     select_list,
 )
 from moai.utils.iterators import partition
+from omegaconf.omegaconf import DictConfig, OmegaConf
+from pytorch_lightning.loops.utilities import _block_parallel_sync_behavior
+from pytorch_lightning.trainer import call
 
 log = logging.getLogger(__name__)
 
@@ -445,14 +444,15 @@ class MoaiLightningModule(L.LightningModule):
                     # Metrics monitoring
                     for step in steps:
                         batch = self.named_flows[step](batch)
-                if monitor:
-                    # Metrics monitoring
-                    for metric in toolz.get("metrics", monitor, None) or []:
-                        self.named_metrics[metric](batch)
-                    # Tensor monitoring for visualization
-                    # tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
-                    # for tensor_monitor in tensor_monitors:
-                    #     self.named_monitors[tensor_monitor](batch)
+                    tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
+                    for tensor_monitor in tensor_monitors:
+                        extras = {
+                            "stage": "test",
+                            "lightning_step": self.global_step,
+                            "batch_idx": batch_nb,
+                        }
+                        # TODO: What extras should be passed here?
+                        self.named_monitors[tensor_monitor](batch, extras)
 
     @torch.no_grad
     def validation_step(
