@@ -59,7 +59,7 @@ def _create_assigner(
 class MoaiLightningModule(L.LightningModule):
     def __init__(
         self,
-        modules: DictConfig = None,
+        components: DictConfig = None,
         monads: DictConfig = None,
         parameters: DictConfig = None,
         objectives: DictConfig = None,
@@ -76,16 +76,18 @@ class MoaiLightningModule(L.LightningModule):
         self.automatic_optimization = False
         self.data = data
         ## Inner modules aka Models
-        self.models = torch.nn.ModuleDict()
-        for k in modules or {}:
-            self.models[k] = hyu.instantiate(modules[k])
+        self.named_components = torch.nn.ModuleDict()
+        for k in components or {}:
+            self.named_components[k] = hyu.instantiate(components[k])
         ## Monad & Module Processing Graphs
         self.named_flows = torch.nn.ModuleDict()
         flows = select_dict(_moai_, C._DEFINED_FLOWS_)
-        monad_flows, model_flows = partition(lambda k: k in self.models, flows or {})
+        monad_flows, model_flows = partition(
+            lambda k: k in self.named_components, flows or {}
+        )
         for model_flow in model_flows:
             self.named_flows[model_flow] = Models(
-                models=self.models, **{model_flow: flows[model_flow]}
+                models=self.named_components, **{model_flow: flows[model_flow]}
             )
         for monad_flow in monad_flows:
             self.named_flows[monad_flow] = Monads(monads=monads, **flows[monad_flow])
@@ -441,12 +443,16 @@ class MoaiLightningModule(L.LightningModule):
                     batch = self.named_flows[step](batch)
                 if monitor:
                     # Metrics monitoring
+                    for step in steps:
+                        batch = self.named_flows[step](batch)
+                if monitor:
+                    # Metrics monitoring
                     for metric in toolz.get("metrics", monitor, None) or []:
                         self.named_metrics[metric](batch)
                     # Tensor monitoring for visualization
-                    tensor_monitors = toolz.get("tensors", monitor, None) or []
-                    for tensor_monitor in tensor_monitors:
-                        self.named_monitors[tensor_monitor](batch)
+                    # tensor_monitors = toolz.get(C._MONITORS_, monitor, None) or []
+                    # for tensor_monitor in tensor_monitors:
+                    #     self.named_monitors[tensor_monitor](batch)
 
     @torch.no_grad
     def validation_step(
@@ -597,8 +603,9 @@ class MoaiLightningModule(L.LightningModule):
             log.info(
                 f"Instantiating ({self.data.test.iterator._target_.split('.')[-1]}) test set data iterator"
             )
-            test_iterators = [hyu.instantiate(self.data.test.iterator)]
-            # test_iterator = hyu.instantiate(self.data.test.iterator)
+            test_iterators = [
+                hyu.instantiate(self.data.test.iterator, _recursive_=False)
+            ]
         else:
             test_iterators = [
                 Indexed(

@@ -1,7 +1,0 @@
-# @package model.modules.initialize_translation
-
-_target_: moai.monads.human.body.init_translation.InitTranslation
-torso_edge_indices:
-  - [5, 12]
-  - [2, 9]
-focal_length: 5000.0

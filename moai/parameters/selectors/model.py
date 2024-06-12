@@ -26,7 +26,7 @@ class ModelParameterSelector(
     def __call__(self, moai_model: torch.nn.Module) -> typing.List[torch.Tensor]:
         params = []
         for key in self.modules:
-            m = get_submodule(moai_model.models, key)
+            m = get_submodule(moai_model.named_components, key)
             params.append(m.parameters())
         for key in self.monads:
             m = get_submodule(moai_model.named_flows, key)

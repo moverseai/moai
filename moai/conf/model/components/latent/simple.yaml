@@ -1,0 +1,13 @@
+# @package model.components.latent_dist_predictor
+
+_target_: moai.components.lightning.factory.vae.Feature2MuStd
+configuration:
+  # repeat_val: 7
+  # traversal_len: 7
+  # traversal_step: 0.25
+  # traversal_dim: -1
+  # traversal_init_value: -0.75
+  linear:
+    type: moai.nn.linear.Linear
+    activation:
+      type: moai.nn.activations.ReLU

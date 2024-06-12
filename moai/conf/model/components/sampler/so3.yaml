@@ -1,0 +1,5 @@
+# @package model.components.sampler
+
+_target_: moai.components.lightning.sampler.SO3Prior
+k: 10
+n_samples: 1

@@ -22,7 +22,8 @@ defaults:
 
   # ###### MODEL
   - model: moai
-  - model/monads/human/body: [initialize_translation, smplx]
+  - model/components/human/body: initialize_translation
+  - model/monads/human/body: smplx
   - model/monads/tensor: alias
   - model/monads/human/body/prior: vposer1 # vposer2
   - model/monads/masking: [binary]
@@ -35,9 +36,6 @@ defaults:
 
   - model/modifications: forward_mode
 
-  # - model/_parameters/initialization: cascade
-  # - model/_parameters/initialization/custom: vposer2
-  # - model/_parameters/initialization/scheme: zero_params
   - model/parameters/initializers: [zero_flow_params, vposer1] # vposer2]
   - model/parameters/optimizers: lbfgsls
   - model/parameters/groups/human/body: [global, expressive]

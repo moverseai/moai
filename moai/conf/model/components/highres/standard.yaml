@@ -1,0 +1,19 @@
+# @package model.components.highres
+
+_target_: moai.components.lightning.highres.HighResolution
+residual:
+  type: preactiv_bottleneck
+  bottleneck_features: 128
+  convolution:
+    type: ${model.configuration.global.convolution}
+  activation:
+    type: ${model.configuration.global.activation}
+fuse:
+  convolution: ${model.configuration.global.convolution}
+  activation:
+    intermediate: relu_bn2d
+    prefusion: bn2d
+    final: relu
+  upscale:
+    type: upsample2d
+    conv_up: true
