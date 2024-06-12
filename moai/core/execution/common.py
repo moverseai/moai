@@ -231,6 +231,6 @@ class TensorsDictOperation:
     def __call__(
         self, tensors: typing.Mapping[str, torch.Tensor], meta: typing.Mapping[str, int]
     ) -> None:
-        kwargs = {k: meta[k] for k in self.kwargs}
+        kwargs = {k: meta[k] for k in self.kwargs if k in meta}
         for args in self.args or [{}]:
             self.func(tensors, **args, **kwargs)
