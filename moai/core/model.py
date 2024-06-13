@@ -231,9 +231,7 @@ class MoaiLightningModule(L.LightningModule):
     ) -> typing.Dict[str, typing.Union[torch.Tensor, typing.Dict[str, torch.Tensor]]]:
         log.info(f"Predicting batch {batch_idx} ...")
         batch = benedict.benedict(batch, keyattr_enabled=False)
-        if (proc := get_dict(self.process, C._PREDICT_)) and (
-            monitor := get_dict(self.monitor, f"{C._PREDICT_}.{C._BATCH_}")
-        ):
+        if proc := get_dict(self.process, C._PREDICT_):
             with torch.no_grad():  # TODO: probably this is not needed
                 for step in get_list(proc, C._FLOWS_):
                     batch = self.named_flows[step](batch)
@@ -243,10 +241,11 @@ class MoaiLightningModule(L.LightningModule):
                     "batch_idx": batch_idx,
                     "optimization_step": 0,  # TODO: add this for fitting case
                 }
-                for metric in get_list(monitor, C._METRICS_):
-                    self.named_metrics[metric](batch)
-                for tensor_monitor in get_list(monitor, C._MONITORS_):
-                    self.named_monitors[tensor_monitor](batch, extras)
+        if monitor := get_dict(self.monitor, f"{C._PREDICT_}.{C._BATCH_}"):
+            for metric in get_list(monitor, C._METRICS_):
+                self.named_metrics[metric](batch)
+            for tensor_monitor in get_list(monitor, C._MONITORS_):
+                self.named_monitors[tensor_monitor](batch, extras)
 
     def training_step(
         self,
