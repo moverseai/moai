@@ -4,5 +4,6 @@ _target_: moai.serve.handlers.azure.AzureBlobInputHandler
 connection_string: StorageAccessToken # ${env:AZURE_STORAGE_CONNECTION_STRING} # retrieve automatically from env
 container_name: StorageContainer # ${env:AZURE_STORAGE_CONTAINER_NAME}
 blob_paths: ???
-working_dir: ???
+working_dir: null
+json_key: 'workspace_run'
 alias: ???
