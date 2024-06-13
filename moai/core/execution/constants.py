@@ -77,6 +77,7 @@ class Constants(object):
 
     _SCHEDULE_FIT_: str = f"_fit_"
     _SCHEDULE_VAL_: str = f"_val_"
+    _SCHEDULE_MODIFICATIONS_: str = f"_modifications_"
 
     # MODEL
     _MODEL_: str = "model"

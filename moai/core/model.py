@@ -34,7 +34,6 @@ from moai.utils.funcs import (
     select_list,
 )
 from moai.utils.iterators import partition
-from moai.utils.iterators import partition
 
 log = logging.getLogger(__name__)
 
@@ -172,7 +171,8 @@ class MoaiLightningModule(L.LightningModule):
         hparams.update({"moai_version": miV})
         self.hparams.update(hparams)
         # remodel
-        for name, remodel in (modifications or {}).items():
+        self.modifications = modifications or {}
+        for name, remodel in self.modifications.items():
             log.info(f"Modifying the model with {name}.")
             hyu.instantiate(remodel)(self)
 

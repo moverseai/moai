@@ -82,9 +82,6 @@ class RunCallback(L.Callback):
         ):
             log.info(f"Updating execution @ epoch {scheduled_epoch}.")
             popped = module.schedule.popleft()
-            # TODO: add remodel/modifications here as well
-            # module.process[C._FIT_][C._BATCH_] = popped[C._SCHEDULE_STEP_]#NOTE: rename process?
-            # module.process[C._VAL_][C._BATCH_] = popped[C._SCHEDULE_STEP_]#NOTE: rename process?
             if new_fit := popped.get(
                 C._SCHEDULE_FIT_, None
             ):  # deep merge from https://github.com/pytoolz/toolz/issues/281
@@ -95,6 +92,16 @@ class RunCallback(L.Callback):
                 module.process[C._VAL_] = merge_with(
                     merge_with(toolz.merge), (module.process[C._VAL_], new_val)
                 )
+            if new_mods := popped.get(C._SCHEDULE_MODIFICATIONS_, None):
+                new_mods = toolz.itemmap(
+                    lambda i: (i[0], toolz.merge(module.modifications[i[0]], i[1])),
+                    new_mods,
+                )
+                for name, remodel in new_mods.items():
+                    log.info(
+                        f"Modifying the model with {name} @ epoch {scheduled_epoch}."
+                    )
+                    hyu.instantiate(remodel)(module)
 
     @torch.no_grad
     def on_predict_epoch_start(
