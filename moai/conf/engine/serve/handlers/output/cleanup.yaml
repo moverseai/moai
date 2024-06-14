@@ -1,4 +1,5 @@
 # @package handlers.postprocess.cleanup
 _target_: moai.serve.handlers.cleanup.CleanUp
-dirs: null
+dirs: ???
+workdir_from_json: True
 json_key: 'workspace_run'

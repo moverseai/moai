@@ -16,7 +16,6 @@ class AzureBlobInputHandler(Callable):
         connection_string: str,  # alias to retrieve connection string from json
         container_name: str,  # name of the container to download data from
         blob_paths: typing.List[str],  # keys to extract resources from json
-        working_dir: str,  # path to working dir
         json_key: str,
         alias: typing.List[str],  # names of files to be saved
     ):
@@ -33,9 +32,9 @@ class AzureBlobInputHandler(Callable):
         # self.blob_service_client = BlobServiceClient.from_connection_string(
         #     connection_string,
         # )
+        self.working_dir = None
         self.connection_string = connection_string
         self.container_name = container_name
-        self.working_dir = working_dir
         self.json_key = json_key
         self.blob_paths = blob_paths
         self.blob_acecessors = [_create_accessor(bl_path) for bl_path in blob_paths]
@@ -47,8 +46,12 @@ class AzureBlobInputHandler(Callable):
     def __call__(
         self, json: typing.Mapping[str, typing.Any], void: typing.Any
     ) -> typing.Any:
-        if self.working_dir is None:
-            self.working_dir = json[self.json_key]
+
+        if self.json_key not in json:
+            log.error(f"json key: {self.json_key}, not found in json request")        
+        self.working_dir = json[self.json_key]
+        assert self.working_dir is not None
+
         # initialize connection to Azure Blob Storage
         connect_str = json[self.connection_string]
         try:
@@ -81,7 +84,6 @@ class AzureBlobOutputHandler(Callable):
         connection_string: str,
         container_name: str,
         blob_paths: typing.List[str],  # keys to extract resources from json
-        working_dir: str,  # path to working dir
         alias: typing.List[str],  # names of files to be uploaded
         json_key: str,
         overwrite: bool = True,  # overwrite existing files
@@ -102,11 +104,11 @@ class AzureBlobOutputHandler(Callable):
         # self.blob_service_client = BlobServiceClient.from_connection_string(
         #     connection_string,
         # )
+        self.working_dir=None
         self.connection_string = connection_string
         self.container_name = container_name
         self.blob_paths = blob_paths
         self.blob_acecessors = [_create_accessor(bl_path) for bl_path in blob_paths]
-        self.working_dir = working_dir
         self.json_key = json_key
         self.alias = alias
         self.overwrite = overwrite
@@ -121,8 +123,12 @@ class AzureBlobOutputHandler(Callable):
         # NOTE: void is the input json response
         # TODO: need to check batched inference
         input_json = void[0].get("body") or void[0].get("raw")
-        if self.working_dir is None:
-            self.working_dir = input_json[self.json_key]
+        
+        if self.json_key not in input_json:
+            log.error(f"json key: {self.json_key}, not found in json request")        
+        self.working_dir = input_json[self.json_key]
+        assert self.working_dir is not None
+
         # initialize connection to Azure Blob Storage
         connect_str = input_json[self.connection_string]
         blob_service_client = BlobServiceClient.from_connection_string(
