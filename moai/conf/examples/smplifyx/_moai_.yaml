@@ -9,7 +9,7 @@ _moai_:
     _lightning_step_:
       _fit_:
         _refresh_optimizers_: true
-        _batch_:
+        _stages_: # _batch_:
           initialize_torso:
             _flows_:
               - preprocess

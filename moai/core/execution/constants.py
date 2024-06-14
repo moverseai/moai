@@ -50,7 +50,7 @@ class Constants(object):
     _SCHEDULERS_COLLECTION_: str = f"{_DEFINITIONS_}.{_COLLECTIONS_}._schedulers_"
     _DEFINED_FLOWS_: str = f"{_DEFINITIONS_}._flows_"
 
-    _STAGE_: str = f"_stage_"
+    # _STAGE_: str = f"_stage_"
 
     _PARAMS_: str = f"_params_"
     _OUT_: str = f"_out_"  # f'out'
@@ -69,13 +69,15 @@ class Constants(object):
     _OPTIMIZER_: str = f"_optimizer_"
     _TERMINATION_: str = f"_termination_"
     _SETUP_: str = f"_setup_"
-    _BATCH_: str = f"_batch_"
+    _STAGES_: str = f"_stages_"
+    _DATASETS_: str = f"_datasets_"
     _EPOCH_: str = f"_epoch_"
     _INTERVAL_: str = f"_interval_"
     _TYPE_: str = f"_type_"
 
     _SCHEDULE_FIT_: str = f"_fit_"
     _SCHEDULE_VAL_: str = f"_val_"
+    _SCHEDULE_MODIFICATIONS_: str = f"_modifications_"
 
     # MODEL
     _MODEL_: str = "model"

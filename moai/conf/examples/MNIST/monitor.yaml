@@ -34,20 +34,25 @@ _moai_:
     _monitoring_:
       _fit_:
         _batch_:
-          train_encoder:
-            _frequency_: 1
-            _flows_: []
+          # _stages_:
+          # train_encoder:
+          _frequency_: 1
+          _flows_: []
       _val_:
-        _batch_:
-          train_encoder:
+        _datasets_: # _batch_:
+          mnist: # train_encoder:
             _metrics_:
               - test_class_acc
+        _key_whatever_: #TODO: rename & implement
       _test_:
-        _batch_:
-          _metrics_:
-            - test_class_acc
+        _datasets_: # _batch_:
+          mnist:
+            _metrics_:
+              - test_class_acc
       _predict_:
         _batch_:
+          # _stages_:
+          # train_encoder:
           _metrics_:
             - predict_class_acc
           _monitors_: # used for visualization & exporting

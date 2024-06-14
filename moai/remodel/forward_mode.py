@@ -85,10 +85,10 @@ class ForwardMode(typing.Callable[[torch.nn.Module], None]):
             # m = toolz.reduce(getattr, split, model)
             m = model.named_components.get_submodule(module)
             m.forward = ForwardMode.__TYPE__[mode](m)(m.forward)
-            log.info(f"Remodeling the forward of {module} to {mode}")
+            log.info(f"Remodeling the forward of the `{module}` module to {mode}")
         for monad, mode in self.monads.items():
             # split = module.split('.')
             # m = toolz.reduce(getattr, split, model)
             m = model.named_flows.get_submodule(monad)
             m.forward = ForwardMode.__TYPE__[mode](m)(m.forward)
-            log.info(f"Remodeling the forward of monad [{monad}] to {mode}")
+            log.info(f"Remodeling the forward of the `{monad}` monad to {mode}")
