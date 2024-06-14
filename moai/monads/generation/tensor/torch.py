@@ -2,6 +2,7 @@ import typing
 
 import numpy as np
 import omegaconf.omegaconf
+import toolz
 import torch
 
 __all__ = [
@@ -216,13 +217,16 @@ class TemporalParams(torch.nn.Module):
         window_size: int,
     ) -> None:
         super().__init__()
+        window_size = int(window_size) if isinstance(window_size, str) else window_size
         for name, param in parameters.items():
             # each param should be generated for each frame in the window
             for i in range(window_size):
                 self.register_parameter(
                     str(name) + str(i),
                     torch.nn.Parameter(
-                        getattr(torch, param.init or "zeros")(tuple(param.shape))
+                        getattr(torch, toolz.get("init", param, "zeros"))(
+                            tuple(param.shape)
+                        )
                     ),  # TODO: check omegaconf's convert type annotation
                 )
 
