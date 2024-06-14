@@ -9,16 +9,28 @@ _moai_:
         _out_: [init_trans]
       preprocess:
         embedding:
-          void: [color]
+          void:
+            - ${mi:"color[0:1, 1:2, :, :]"}
           _out_: [embedding]
         translation:
-          void: [color]
+          void:
+            - ${mi:"sq(color, 0)"}
           _out_: [translation]
         betas:
-          void: [color]
+          void:
+            - ${mi:"flatten(color, 1)"}
           _out_: [betas]
+        _mi_1:
+          expression:
+            - ${mi:"embedding + zeros(embedding)"}
+            - ${mi:"embedding_1 / ones(embedding)"}
+            - ${mi:"flatten(embedding_2, 1)"}
+            - ${mi:"sq(embedding_3, 0)"}
+            - ${mi:"view(embedding_4, 1, 32)"}
+          _out_:
+            [embedding_1, embedding_2, embedding_3, embedding_4, embedding_5]
         vposer1: # vposer2:
-          decode: [embedding]
+          decode: [embedding_5] # [embedding]
           _out_: [decoded]
         smplx:
           pose: [decoded.pose]
