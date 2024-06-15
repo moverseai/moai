@@ -1,10 +1,13 @@
+import logging
 import typing
 
 import colour
 import numpy as np
 import toolz
+from omegaconf.omegaconf import DictConfig
 
 from moai.utils.color.colormap import random_color
+from moai.utils.funcs import get
 
 try:
     import rerun as rr
@@ -14,6 +17,15 @@ except:
     warning_cache.warn(f"Please `pip install rerun-sdk` to use rerun visualisation.")
 
 __all__ = ["Rerun"]
+
+
+class RerunFilter(logging.Filter):
+    def __init__(self) -> None:
+        super().__init__("rerun")
+
+    def filter(self, record):
+        record.msg = record.msg.removeprefix(":moai: ")
+        return record
 
 
 class Rerun:
@@ -39,6 +51,7 @@ class Rerun:
         add_floor: bool = True,
         root: str = "/",
         memory_limit: str = "75%",
+        log: DictConfig = {},
     ) -> None:
         # NOTE: https://github.com/iterative/dvc/issues/9731
         rr.init(name)
@@ -62,6 +75,15 @@ class Rerun:
         if add_floor:
             self._create_floor(root)
         # NOTE: add more global gizmos (e.g. tr-axis)
+        if handler_name := get(log, "handler"):
+            handler = rr.LoggingHandler(handler_name)
+            handler.addFilter(RerunFilter())
+            logging.getLogger().addHandler(handler)
+            if level := get(log, "level"):
+                if isinstance(level, str):
+                    level = level.upper()
+                level = logging.getLevelName(level)
+                logging.getLogger().setLevel(level)
 
     def _create_scalar_plots(self, root: str, plots) -> None:
         for plot in plots:

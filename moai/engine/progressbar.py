@@ -1,4 +1,5 @@
 import rich.progress
+from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import RichProgressBar
 from pytorch_lightning.callbacks.progress.rich_progress import RichProgressBarTheme
 
@@ -39,7 +40,7 @@ class MoaiProgressBar(RichProgressBar):
     #         CustomTimeColumn(style=self.theme.time),
     #         ProcessingSpeedColumn(style=self.theme.processing_speed),
     #     ]
-    def configure_columns(self, trainer: "pl.Trainer") -> list:
+    def configure_columns(self, trainer: Trainer) -> list:
         original = super().configure_columns(trainer)
         moai_column = rich.progress.TextColumn(":moai:")
         spinner_column = rich.progress.SpinnerColumn(spinner_name="dots5")
