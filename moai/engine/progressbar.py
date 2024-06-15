@@ -23,6 +23,8 @@ __all__ = ["MoaiProgressBar"]
 # NOTE: check https://github.com/Textualize/rich/discussions/482
 # NOTE: check https://github.com/facebookresearch/EGG/blob/a139946a73d45553360a7f897626d1ae20759f12/egg/core/callbacks.py#L335
 # NOTE: check https://github.com/Textualize/rich/discussions/921
+
+
 class MoaiProgressBar(RichProgressBar):
     def __init__(self) -> None:
         super().__init__(
