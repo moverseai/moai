@@ -47,9 +47,8 @@ class AzureBlobInputHandler(Callable):
     ) -> typing.Any:
 
         if self.json_key not in json:
-            log.error(f"json key: {self.json_key}, not found in json request")        
+            log.error(f"json key: {self.json_key}, not found in json request")
         working_dir = json[self.json_key]
-
 
         # initialize connection to Azure Blob Storage
         connect_str = json[self.connection_string]
@@ -103,7 +102,7 @@ class AzureBlobOutputHandler(Callable):
         # self.blob_service_client = BlobServiceClient.from_connection_string(
         #     connection_string,
         # )
- 
+
         self.connection_string = connection_string
         self.container_name = container_name
         self.blob_paths = blob_paths
@@ -122,9 +121,9 @@ class AzureBlobOutputHandler(Callable):
         # NOTE: void is the input json response
         # TODO: need to check batched inference
         input_json = void[0].get("body") or void[0].get("raw")
-        
+
         if self.json_key not in input_json:
-            log.error(f"json key: {self.json_key}, not found in json request")        
+            log.error(f"json key: {self.json_key}, not found in json request")
         working_dir = input_json[self.json_key]
 
         # initialize connection to Azure Blob Storage

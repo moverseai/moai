@@ -11,3 +11,6 @@ world_coordinates: RUF
 add_floor: true
 root: /
 memory_limit: 75% #NOTE: can also be absolute, `4GB` for example
+log:
+  handler: moai/logs # null
+  level: ${hydra:hydra_logging.root.level}
