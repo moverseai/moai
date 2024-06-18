@@ -129,7 +129,7 @@ class RunCallback(L.Callback):
         Note: The value ``outputs["loss"]`` here will be the normalized value w.r.t ``accumulate_grad_batches`` of the
             loss returned from ``training_step``.
         """
-        if C._MOAI_LOSSES_ in outputs:
+        if C._MOAI_LOSSES_ in outputs and 'total' in outputs[C._MOAI_LOSSES_]:
             if losses := toolz.merge(
                 outputs[f"{C._MOAI_LOSSES_}.weighted"],
                 {"total": outputs[f"{C._MOAI_LOSSES_}.total"]},
