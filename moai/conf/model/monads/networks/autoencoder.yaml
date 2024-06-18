@@ -1,4 +1,4 @@
 # @package model.monads.autoencoder
 
-_target_: moai.monads.networks.autoencoder.AutoEncoder
+_target_: moai.monads.networks._factory.autoencoder.AutoEncoder
 checkpoint: ???

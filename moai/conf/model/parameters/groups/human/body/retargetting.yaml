@@ -1,0 +1,7 @@
+# @package model.parameters.groups.retargetting
+
+_target_: moai.parameters.selectors.model.ModelParameterSelector
+monads:
+  - main_flow.pose_params
+  - main_flow.translation_params
+force_grad: true
