@@ -1,0 +1,4 @@
+# @package model.monitors.multicam_kpts
+
+_target_: moai.visualization.rerun.image.multicam_keypoints
+_partial_: true

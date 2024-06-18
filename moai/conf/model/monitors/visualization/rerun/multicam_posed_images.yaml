@@ -1,0 +1,4 @@
+# @package model.monitors.multicam_posed_images
+
+_target_: moai.visualization.rerun.image.multicam_posed_image
+_partial_: true
