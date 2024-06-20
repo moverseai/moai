@@ -13,11 +13,12 @@ log = logging.getLogger(__name__)
 class ForwardKinematics(torch.nn.Module):
     def __init__(
         self,
-        parents: list,
-        offsets: list = None,
+        parents: typing.Optional[typing.Sequence[int]] = None,
+        offsets: typing.Optional[typing.Sequence[typing.Sequence[float]]] = None,
     ):  # TODO: add a col/row major param to adjust offset slicing
         super().__init__()
-        self.register_buffer("parents", torch.Tensor(parents).int())
+        if parents is not None:
+            self.register_buffer("parents", torch.Tensor(parents).int())
         if offsets is not None:
             log.warning("offset not set, should be passed in the forward method")
             self.register_buffer("offsets", torch.Tensor(offsets))
