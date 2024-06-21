@@ -35,7 +35,7 @@ class ForwardKinematics(torch.nn.Module):
             if offsets is not None
             else self.offsets[:, np.newaxis, ..., np.newaxis]
         )  # NOTE: careful, col vs row major order
-        transforms = torch.empty(*rotation.shape[:-2], 4, 4, device=rotation.device)
+        transforms = torch.zeros(*rotation.shape[:-2], 4, 4, device=rotation.device)
         transforms[..., :3, :3] = rotation.clone()
         transforms[..., :3, 3] = offsets[..., 0].clone()
         transforms[..., 0, :3, 3] = position.clone()
