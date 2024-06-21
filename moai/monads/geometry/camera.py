@@ -120,7 +120,6 @@ class MVWeakPerspective(torch.nn.Module):
     def forward(
         self,
         points: torch.Tensor,
-        image: torch.Tensor = None,
         rotation: torch.Tensor = None,
         translation: torch.Tensor = None,
         intrinsics: torch.Tensor = None,
@@ -136,8 +135,6 @@ class MVWeakPerspective(torch.nn.Module):
         N is the camera views,
         L is the number of points.
         """
-        if image is not None:
-            h, w = image.shape[-2:]
         # points_cam = torch.einsum('bpi,bvij->bvpj', points, transform[:, :, :3, :3]) + transform[:, :, np.newaxis, :3, 3]
         points_cam = (
             torch.einsum(
