@@ -436,7 +436,7 @@ class MoaiLightningModule(L.LightningModule):
             )
         ):
             extras = {
-                "lightning_step": self.global_step,
+                "lightning_step": self.trainer.test_loop.batch_progress.current.completed, #self.global_step,
                 "epoch": self.current_epoch,
                 "batch_idx": batch_idx,
             }
