@@ -38,6 +38,12 @@ class Rerun:
         "LBD": rr.ViewCoordinates.LEFT_HAND_Z_DOWN,
         "RUF": rr.ViewCoordinates.RUF,
         "RFU": rr.ViewCoordinates.RIGHT_HAND_Z_UP,
+        "RDD": rr.ViewCoordinates.RIGHT_HAND_Y_DOWN,
+        "LDF": rr.ViewCoordinates.LEFT_HAND_Y_DOWN,
+        "RDF": rr.ViewCoordinates.RDF,
+        "RDB": rr.ViewCoordinates.RDB,
+        "LDB": rr.ViewCoordinates.LDB,
+        "RBD": rr.ViewCoordinates.RBD,
     }
 
     __LABEL_TO_CLASS_ID__ = {}
@@ -65,8 +71,8 @@ class Rerun:
             rr.spawn(memory_limit=memory_limit)
         self.world_coordinates = world_coordinates
         rr.log(root, Rerun.__COORD_SYSTEM_MAP__[world_coordinates], timeless=True)
-        parents = annotations.parents
-        labels = annotations.labels
+        parents = annotations.parents if annotations is not None else None
+        labels = annotations.labels if annotations is not None else None
         if parents is not None:
             self._create_annotation_context(root, parents, labels)
         plots = annotations.plots
@@ -119,7 +125,7 @@ class Rerun:
                 [[x, 0, z + 1], [x, 0, z]],  # Left edge (back along Z-axis)
             ]
 
-        if self.world_coordinates[1] == "U":
+        if self.world_coordinates[1] == "U" or self.world_coordinates[1] == "D":
             # y is up axis, floor is in xz plane
             for x in range(-5, 6):  # Create a 10x10 grid of tiles
                 for y in range(-5, 6):
