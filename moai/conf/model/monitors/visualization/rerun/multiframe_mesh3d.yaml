@@ -1,0 +1,4 @@
+# @package model.monitors.multiframe_mesh3d
+
+_target_: moai.visualization.rerun.mesh.multiframe_mesh3d
+_partial_: true
