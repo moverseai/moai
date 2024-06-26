@@ -65,5 +65,5 @@ class ForwardKinematics(torch.nn.Module):
 
         return {
             "positions": joints,
-            "bone_transforms": transforms,
+            "bone_transforms": composed,
         }
