@@ -3,6 +3,24 @@ import typing
 import torch
 
 
+class Transform3D(torch.nn.Module):
+    """
+    returns  tensor of size  [1,V,K,3]
+    """
+
+    def __init__(self) -> None:
+        super(Transform3D, self).__init__()
+
+    def forward(
+        self,
+        transforms: torch.Tensor,  # [B,V,4,4]
+        points: torch.Tensor,  # [B,J,3]
+    ):
+        R = transforms[..., :3, :3]
+        T = torch.unsqueeze(transforms[..., :3, 3], dim=-2)
+        return torch.einsum("bvmn,bjn->bvjm", R, points) + T
+
+
 class Transformation(torch.nn.Module):
     __XYZ_AT__ = ["channel", "row"]
 
