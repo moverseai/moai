@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import os
 import typing
 import zipfile
@@ -213,6 +214,8 @@ class ModelServer(BaseHandler):
         # TODO: need to check batched inference
         body = data[0].get("body") or data[0].get("raw")
         for k, p in self.preproc.items():
+            if isinstance(p, omegaconf.dictconfig.DictConfig):
+                continue
             tensors = toolz.merge(tensors, p(body, self.device))
         log.debug(f"Tensors: {tensors.keys()}")
         return tensors

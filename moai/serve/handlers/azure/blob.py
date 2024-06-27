@@ -9,6 +9,8 @@ from moai.core.execution.common import _create_accessor
 
 log = logging.getLogger(__name__)
 
+__all__ = ["AzureBlobInputHandler", "AzureBlobOutputHandler"]
+
 
 class AzureBlobInputHandler(Callable):
     def __init__(

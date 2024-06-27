@@ -1,0 +1,5 @@
+# @package data.predict.iterator.datasets.repeated_npz
+
+_target_: moai.data.datasets.generic.npz.RepeatedNpz
+filename: ???
+length: ???

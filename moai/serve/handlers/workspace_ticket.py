@@ -24,6 +24,7 @@ class WorkSpaceTicketHandler(Callable):
         if not os.path.isabs(working_dir):
             log.error(f"working_dir ({working_dir}) is not absolute")
         os.makedirs(self.working_dir, exist_ok=True)
+        log.info("Workspace ticket handler initialized")
 
     def __call__(
         self, json: typing.Mapping[str, typing.Any], void: typing.Any
