@@ -18,7 +18,7 @@ class AzureBlobInputHandler(Callable):
         connection_string: str,  # alias to retrieve connection string from json
         container_name: str,  # name of the container to download data from
         blob_paths: typing.List[str],  # keys to extract resources from json
-        json_key: str,
+        json_key: str,  # key to extract working dir from incoming json
         alias: typing.List[str],  # names of files to be saved
     ):
         """
@@ -28,7 +28,7 @@ class AzureBlobInputHandler(Callable):
             connection_string (str): Connection string for Azure Blob Storage (already set as environmental variable).
             container_name (str): Name of the container to download data from.
             blob_paths (typing.List[str]): Keys to extract resources from json.
-            working_dir (str): Path to working dir.
+            json_key (str): Key to extract working dir from incoming json.
             alias (typing.List[str]): Names of files to be saved.
         """
         # self.blob_service_client = BlobServiceClient.from_connection_string(

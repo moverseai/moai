@@ -17,3 +17,11 @@ class ModelCallbacks(UserList):
         super().__init__(list)
         if model:
             self.data.extend((c for c in model.children() if isinstance(c, Callback)))
+            if hasattr(model, "named_monitors"):
+                # search within named monitors
+                # for callbacks
+                for monitor in model.named_monitors.values():
+                    for oper in monitor.operations:
+                        # get functions from operations
+                        if isinstance(oper.func, Callback):
+                            self.data.append(oper.func)

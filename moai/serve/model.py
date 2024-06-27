@@ -15,17 +15,11 @@ from ts.handler_utils.timer import timed
 from ts.metrics.metric_type_enum import MetricTypes
 from ts.torch_handler.base_handler import BaseHandler
 
-from moai.action.run import _specialize_config
 from moai.core.execution.constants import Constants as C
 from moai.engine import Engine
 from moai.utils.funcs import select
 
 log = logging.getLogger(__name__)
-
-# attach debugpy
-# import debugpy
-# debugpy.listen(('0.0.0.0', 6789))
-# debugpy.wait_for_client()
 
 __all__ = ["ModelServer"]
 
@@ -109,18 +103,27 @@ class ModelServer(BaseHandler):
                     overrides=self._get_overrides(),
                     return_hydra_config=True,
                 )
+                # replase base handler based on the model type
+                if cfg.archive.mode == "fit":
+                    action = "fit"
+                elif cfg.archive.mode == "streaming":
+                    action = "fit"  # NOTE: is the same as fit for internal moai usage
+                else:
+                    action = "predict"
                 OmegaConf.set_struct(cfg, False)
-                cfg.action = "predict"
-                cfg._moai_._action_ = "predict"
+                cfg.action = action
+                cfg._moai_._action_ = action
                 OmegaConf.set_struct(cfg, True)
-                # get ckpt if exists
-                # ckpt = omegaconf.OmegaConf.select(cfg, 'archive.ckpt')
-                # self.ckpt = ckpt
                 # drop clearml if exists from engine as not needed in the serve context
                 if hasattr(cfg.engine, "modules") and hasattr(
                     cfg.engine.modules, "clearml"
                 ):
                     del cfg.engine.modules.clearml
+                # drop rerun if exists from engine as not needed in the serve context
+                if hasattr(cfg.engine, "modules") and hasattr(
+                    cfg.engine.modules, "rerun"
+                ):
+                    del cfg.engine.modules.rerun
                 self.engine = Engine(cfg.engine.modules)
                 self.model = hyu.instantiate(
                     cfg.model, _moai_=select(cfg, C._MOAI_), _recursive_=False

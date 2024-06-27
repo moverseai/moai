@@ -1,0 +1,4 @@
+# @package model.monitors.multiframe_multiview_keypoints
+
+_target_: moai.visualization.rerun.image.multiframe_multiview_keypoints
+_partial_: true

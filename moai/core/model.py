@@ -424,7 +424,12 @@ class MoaiLightningModule(L.LightningModule):
         batch = benedict.benedict(batch, keyattr_enabled=False)
         batch[C._MOAI_METRICS_] = {}
         datasets = list(self.data.test.iterator.datasets.keys())
-        dataset_name = datasets[dataloader_idx]
+        # if dataset is zipped we should follow a differet approach
+        dataset_name = (
+            datasets[dataloader_idx]
+            if "Zipped" not in self.data.test.iterator._target_
+            else "zipped"
+        )
         monitor = (
             toolz.get_in([C._TEST_, C._DATASETS_, dataset_name], self.monitor) or []
         )
@@ -436,7 +441,7 @@ class MoaiLightningModule(L.LightningModule):
             )
         ):
             extras = {
-                "lightning_step": self.global_step,
+                "lightning_step": self.trainer.test_loop.batch_progress.current.completed,  # NOTE: self.global_step does not increment correctly
                 "epoch": self.current_epoch,
                 "batch_idx": batch_idx,
             }

@@ -1,6 +1,27 @@
 import torch
 
 
+## Project2D
+class Project2D(torch.nn.Module):
+    """
+    returns tensor of size [1,V,K,2]
+    """
+
+    def __init__(self, epsilon: float = 1e-7) -> None:
+        # ADD EPSILON
+        super(Project2D, self).__init__()
+        self.epsilon = epsilon
+
+    def forward(
+        self, intrisics: torch.Tensor, points: torch.Tensor  # [B,V,3,3]
+    ):  # [B,V,J,3]
+
+        kp_uv = torch.einsum("bvmn,bvjn->bvjm", intrisics, points)
+        kp_uv = kp_uv[..., :2] / (kp_uv[..., -1:] + self.epsilon)
+
+        return kp_uv
+
+
 class Projection(torch.nn.Module):
 
     __XYZ_AT__ = ["channel", "row"]

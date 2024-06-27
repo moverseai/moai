@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.higher_than
 
 _target_: moai.monads.masking.HigherThan
 value: ???
