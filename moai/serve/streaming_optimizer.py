@@ -2,18 +2,17 @@ import logging
 import os
 import time
 import typing
-import zipfile
 
 import hydra.utils as hyu
-import numpy as np
 import toolz
 import torch
-import tqdm
 import yaml
 from hydra.experimental import compose, initialize
 from omegaconf.omegaconf import OmegaConf
-from toolz import merge_with, valmap
+from toolz import merge_with
+from ts.metrics.metric_type_enum import MetricTypes
 
+from moai.core.execution.constants import Constants as C
 from moai.engine.callbacks.model import ModelCallbacks
 
 try:
@@ -58,11 +57,20 @@ class StreamingOptimizerServer(ModelServer):
     def __init__(self) -> None:
         super().__init__()
 
-    def _extract_files(self):
-        with zipfile.ZipFile("conf.zip", "r") as conf_zip:
-            conf_zip.extractall(".")
-        with zipfile.ZipFile("src.zip", "r") as src_zip:
-            src_zip.extractall(".")
+    def __to_device__(self, x):
+        # merge values from dict using toolz
+        if isinstance(x, dict):
+            return toolz.valmap(self.__to_device__, x)
+        elif isinstance(x, list):
+            y = []
+            for i in x:
+                if isinstance(i, torch.Tensor):
+                    y.append(i.to(self.dev))
+                else:
+                    pass
+            return y
+        elif isinstance(x, torch.Tensor):
+            return x.to(self.device)
 
     def _get_overrides(self):
         if os.path.exists("overrides.yaml"):
@@ -107,6 +115,7 @@ class StreamingOptimizerServer(ModelServer):
         Used for streaming fit mode.
         """
         log.info("Streaming optimization handler called.")
+        self.optimization_step = 0
         self.context = context
         start_time = time.time()
 
@@ -114,10 +123,42 @@ class StreamingOptimizerServer(ModelServer):
             self.model
         )  # IMPORTANT: we need to set lightning module to the model
         self.model._trainer = self.trainer
-        # self.model.configure_optimizers()
         self.trainer.strategy._lightning_optimizers = self.model.configure_optimizers()[
             0
         ]
+        # the preprocessing handlers
+        # should return a dataset object to iterate over
+        td = self.preprocess(data)
+        # get the dataloader for returned dict
+        dataloader = td["dataloader"]
+        # iterate over the dataloader
+        for batch, batch_idx in dataloader:
+            # batch should be send to correct device
+            batch = toolz.valmap(self.__to_device__, batch)
+            # call the training step
+            self.trainer.training_step(batch, batch_idx)
+            self.optimization_step += 1
+            # send intermediate response
+            key = 0  # DEBUG
+            batch[key] = (
+                f"Running batch_idx {batch_idx} with completion percentage {batch_idx/len(dataloader)}."
+            )
+            # report metrics
+            for key, val in batch[C._MOAI_METRICS_].items():
+                self.context.metrics.add_metric(
+                    name=key,
+                    value=float(val.detach().cpu().numpy()),
+                    unit="value",
+                    metric_type=MetricTypes.GAUGE,
+                )
+            # report losses
+            for key, val in batch[C._MOAI_LOSSES_]["raw"].items():
+                self.context.metrics.add_metric(
+                    name=key,
+                    value=float(val.detach().cpu().numpy()),
+                    unit="value",
+                    metric_type=MetricTypes.GAUGE,
+                )
 
         # TODO: add post processing handler
         stop_time = time.time()
