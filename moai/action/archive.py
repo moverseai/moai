@@ -49,8 +49,12 @@ def dump_zipfile(
 ):
     with zipfile.ZipFile(filename, "w", zipfile.ZIP_DEFLATED) as z:
         for file in files:
-            arcname = os.path.join(
-                "." if "nt" in os.name else os.getcwd(), file.replace(root, "")
+            arcname = (
+                os.path.join(
+                    "." if "nt" in os.name else os.getcwd(), file.replace(root, "")
+                )
+                if "model.py" not in file
+                else "./model.py"
             )
             log.info(f"Adding file ({file}) with name: {arcname}")
             z.write(file, arcname)
@@ -59,6 +63,7 @@ def dump_zipfile(
 def dump_handlers(
     handlers: omegaconf.omegaconf.DictConfig,
     handler_config: omegaconf.omegaconf.DictConfig,
+    streaming_handler_config: omegaconf.omegaconf.DictConfig = None,
 ):
     empty = omegaconf.DictConfig({})
     # parse nested lists
@@ -110,8 +115,16 @@ def dump_handlers(
             yaml.dump(
                 {"handlers": data}, f, default_style=None, default_flow_style=False
             )
-        return True
-    return False
+    if streaming_handler_config is not None:
+        with open("streaming_handler_overrides.yaml", "w") as f:
+            data = omegaconf.OmegaConf.to_container(streaming_handler_config)
+            yaml.dump(
+                {"streaming_handlers": data},
+                f,
+                default_style=None,
+                default_flow_style=False,
+            )
+    return True
 
 
 def archive(cfg):
@@ -123,26 +136,34 @@ def archive(cfg):
     args += ["torch-model-archiver"]
     args += ["--model-name", cfg.archive.name]
     args += ["--version", str(cfg.archive.version)]
+    extra_files = "conf.zip,src.zip,.hydra/overrides.yaml,pre.yaml,post.yaml"
+    py_files = get_files(cfg.archive.root, cfg.archive.src, "*.py")
     if omegaconf.OmegaConf.select(cfg.archive, "force"):
         args += ["--force"]
     if cfg.archive.mode == "fit":
+        py_files.append(model_server.__file__)
         args += ["--handler", optimizer_server.__file__]
     elif cfg.archive.mode == "streaming":
+        py_files.append(model_server.__file__)
+        # TODO: add model ovverides to streaming
+        # would be the keys of tensors to keep in memory (e.g. embeddings)
         args += ["--handler", streaming_optimizer_server.__file__]
     else:
         args += ["--handler", model_server.__file__]
-    # args += ["--handler", optimizer_server.__file__ if cfg.archive.mode == 'fit' else model_server.__file__]
     args += ["--serialized-file", toolz.get_in(["archive", "ckpt"], cfg) or ""]
     yaml_files = get_files(cfg.archive.root, cfg.archive.conf, "*.yaml")
-    py_files = get_files(cfg.archive.root, cfg.archive.src, "*.py")
     dump_zipfile("conf.zip", cfg.archive.root, yaml_files)
     dump_zipfile("src.zip", cfg.archive.root, py_files)
-    extra_files = "conf.zip,src.zip,.hydra/overrides.yaml,pre.yaml,post.yaml"
     if dump_handlers(
         omegaconf.OmegaConf.select(cfg.archive, "handlers"),
         omegaconf.OmegaConf.select(cfg, "handlers"),
+        omegaconf.OmegaConf.select(cfg, "streaming_handlers"),
     ):
-        extra_files += ",handler_overrides.yaml"
+        extra_files += (
+            ",handler_overrides.yaml"
+            if omegaconf.OmegaConf.select(cfg, "streaming_handlers") is None
+            else ",handler_overrides.yaml,streaming_handler_overrides.yaml"
+        )
     args += [f"--extra-files", extra_files]
     if omegaconf.OmegaConf.select(cfg.archive, "requirements"):
         requirements = (
