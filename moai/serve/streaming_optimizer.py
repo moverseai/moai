@@ -2,18 +2,23 @@ import logging
 import os
 import time
 import typing
+from collections import defaultdict
 
+import benedict
 import hydra.utils as hyu
+import numpy as np
 import toolz
 import torch
 import yaml
-from hydra.experimental import compose, initialize
+from hydra import compose, initialize
 from omegaconf.omegaconf import OmegaConf
+from pytorch_lightning.trainer import call
 from toolz import merge_with
 from ts.metrics.metric_type_enum import MetricTypes
 
 from moai.core.execution.constants import Constants as C
 from moai.engine.callbacks.model import ModelCallbacks
+from moai.utils.funcs import get_dict, get_list
 
 try:
     from model import (
@@ -69,15 +74,23 @@ class StreamingOptimizerServer(ModelServer):
                 else:
                     pass
             return y
+        elif isinstance(x, np.ndarray):
+            return torch.from_numpy(x).to(self.device)
         elif isinstance(x, torch.Tensor):
             return x.to(self.device)
 
     def _get_overrides(self):
+        overrides = []
         if os.path.exists("overrides.yaml"):
             with open("overrides.yaml") as f:
-                return yaml.load(f, Loader=yaml.FullLoader)
-        else:
-            return []
+                overrides.extend(yaml.load(f, Loader=yaml.FullLoader))
+                # return yaml.load(f, Loader=yaml.FullLoader)
+        elif os.path.exists("streaming_handler_overrides.yaml"):
+            with open("streaming_handler_overrides.yaml") as f:
+                overrides.extend(yaml.load(f, Loader=yaml.FullLoader))
+        return overrides
+        # else:
+        # return []
 
     def initialize(self, context):
         # call parent class initialize
@@ -97,6 +110,7 @@ class StreamingOptimizerServer(ModelServer):
                     return_hydra_config=True,
                 )
                 log.info("Loading trainer...")
+                self.keys = toolz.get("keys", cfg.streaming_handlers, None)
                 OmegaConf.set_struct(cfg, False)
                 cfg.engine.runner.devices = [self.device.index]
                 # TODO: check if device is set correctly
@@ -115,6 +129,7 @@ class StreamingOptimizerServer(ModelServer):
         Used for streaming fit mode.
         """
         log.info("Streaming optimization handler called.")
+        result = defaultdict(list)
         self.optimization_step = 0
         self.context = context
         start_time = time.time()
@@ -132,36 +147,67 @@ class StreamingOptimizerServer(ModelServer):
         # get the dataloader for returned dict
         dataloader = td["dataloader"]
         # iterate over the dataloader
-        for batch, batch_idx in dataloader:
+        for batch_idx, batch in enumerate(dataloader):
+            self.model.optimization_step = 0
             # batch should be send to correct device
             batch = toolz.valmap(self.__to_device__, batch)
+            batch = benedict.benedict(batch)
+            # call on train batch start callbacks
+            call._call_callback_hooks(
+                self.trainer, "on_train_batch_start", batch, batch_idx
+            )
             # call the training step
-            self.trainer.training_step(batch, batch_idx)
-            self.optimization_step += 1
+            self.model.training_step(batch, batch_idx)
             # send intermediate response
             key = 0  # DEBUG
             batch[key] = (
-                f"Running batch_idx {batch_idx} with completion percentage {batch_idx/len(dataloader)}."
+                f"Running batch_idx {batch_idx} with completion percentage {float((batch_idx + 1)/len(dataloader) * 100):.2f}%."
             )
-            # report metrics
-            for key, val in batch[C._MOAI_METRICS_].items():
-                self.context.metrics.add_metric(
-                    name=key,
-                    value=float(val.detach().cpu().numpy()),
-                    unit="value",
-                    metric_type=MetricTypes.GAUGE,
-                )
-            # report losses
-            for key, val in batch[C._MOAI_LOSSES_]["raw"].items():
-                self.context.metrics.add_metric(
-                    name=key,
-                    value=float(val.detach().cpu().numpy()),
-                    unit="value",
-                    metric_type=MetricTypes.GAUGE,
-                )
+            print(batch[key])
+            if self.keys:
+                for k in self.keys:
+                    result[k].append(batch[k].detach().cpu().numpy())
+            # calculate metrics on batch end
+            # NOTE: we do not call default on_train_batch_end callback as it includes module logging operations which could cause errors
+            if monitor := get_dict(self.model.monitor, f"{C._FIT_}.{C._BATCH_}"):
+                for metric in get_list(monitor, C._METRICS_):
+                    self.model.named_metrics[metric](batch)
+                for tensor_monitor in get_list(monitor, C._MONITORS_):
+                    extras = {
+                        "stage": "fit",
+                        "lightning_step": self.model.global_step,
+                        "batch_idx": batch_idx,
+                        "optimization_step": self.model.optimization_step,
+                    }
+                    self.model.named_monitors[tensor_monitor](batch, extras)
+            # report metrics on batch end
+            if C._MOAI_METRICS_ in batch:
+                for key, val in batch[C._MOAI_METRICS_].items():
+                    self.context.metrics.add_metric(
+                        name=key,
+                        value=float(val.detach().cpu().numpy()),
+                        unit="value",
+                        metric_type=MetricTypes.GAUGE,
+                    )
+            # report losses on batch end
+            if C._MOAI_LOSSES_ in batch and "total" in batch[C._MOAI_LOSSES_]:
+                for key, val in batch[C._MOAI_LOSSES_]["raw"].items():
+                    self.context.metrics.add_metric(
+                        name=key,
+                        value=float(val.detach().cpu().numpy()),
+                        unit="value",
+                        metric_type=MetricTypes.GAUGE,
+                    )
 
+        # call on epoch end callbacks
+        call._call_callback_hooks(self.trainer, "on_train_epoch_end")
+        result = toolz.valmap(np.vstack, result)
+        # result and original input data should be available in the post processing handler
+        output = self.postprocess(toolz.merge(data, result))
         # TODO: add post processing handler
         stop_time = time.time()
         self.context.metrics.add_time(
             "FittingHandlerTime", round((stop_time - start_time) * 1000, 2), None, "ms"
         )
+
+        return output
