@@ -1,9 +1,9 @@
 # @package handlers.postprocess.azure.blob
 
-_target_: moai.serve.handlers.azure.AzureBlobOutputHandler
+_target_: moai.serve.handlers.azure.blob.AzureBlobOutputHandler
 connection_string: StorageAccessToken # ${env:AZURE_STORAGE_CONNECTION_STRING} # retrieve automatically from env
 container_name: StorageContainer # ${env:AZURE_STORAGE_CONTAINER_NAME}
 blob_paths: ???
-json_key: 'workspace_run'
+json_key: "workspace_run"
 alias: ???
 overwrite: true
