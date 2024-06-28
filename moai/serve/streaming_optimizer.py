@@ -14,6 +14,7 @@ from hydra import compose, initialize
 from omegaconf.omegaconf import OmegaConf
 from pytorch_lightning.trainer import call
 from toolz import merge_with
+from ts.handler_utils.utils import send_intermediate_predict_response
 from ts.metrics.metric_type_enum import MetricTypes
 
 from moai.core.execution.constants import Constants as C
@@ -163,7 +164,14 @@ class StreamingOptimizerServer(ModelServer):
             batch[key] = (
                 f"Running batch_idx {batch_idx} with completion percentage {float((batch_idx + 1)/len(dataloader) * 100):.2f}%."
             )
-            print(batch[key])
+            log.info(batch[key])
+            send_intermediate_predict_response(
+                batch,
+                self.context.request_ids,
+                "Intermediate response from the model.",
+                200,
+                self.context,
+            )
             if self.keys:
                 for k in self.keys:
                     result[k].append(batch[k].detach().cpu().numpy())
