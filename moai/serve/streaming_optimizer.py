@@ -148,7 +148,7 @@ class StreamingOptimizerServer(ModelServer):
         # get the dataloader for returned dict
         dataloader = td["dataloader"]
         # iterate over the dataloader
-        for batch_idx, batch in enumerate(dataloader):
+        for batch_idx, batch in enumerate(torch.utils.data.DataLoader(dataloader)):
             self.model.optimization_step = 0
             # batch should be send to correct device
             batch = toolz.valmap(self.__to_device__, batch)
