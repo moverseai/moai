@@ -135,7 +135,7 @@ def run(cfg: DictConfig):
         # TODO: check how can we have different intialisation for test, train, etc.
         if ckpt_path is None:
             log.warning(
-                "No checkpoint path provided, test will be done with custom initialisation if present."
+                "No checkpoint path provided, test will be done with custom initialization if present."
             )
         runner.test(model, ckpt_path=ckpt_path)
         log.info("Evaluation finished.")
@@ -145,7 +145,7 @@ def run(cfg: DictConfig):
         # TODO: check how can we have different intialisation for test, train, etc.
         if ckpt_path is None:
             log.warning(
-                "No checkpoint path provided, test will be done with custom initialisation if present."
+                "No checkpoint path provided, test will be done with custom initialization if present."
             )
         runner.predict(model, ckpt_path=ckpt_path)
         log.info("Prediction finished.")

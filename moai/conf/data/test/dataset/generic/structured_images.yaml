@@ -1,4 +1,4 @@
-# @package data.test.iterator.datasets._name_
+# @package data.test.iterator.datasets.structured_images
 
 _target_: moai.data.datasets.generic.StructuredImages
 root: ???
