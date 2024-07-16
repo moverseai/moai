@@ -465,7 +465,8 @@ class MoaiLightningModule(L.LightningModule):
     def validation_step(
         self,
         batch: typing.Dict[str, torch.Tensor],
-        batch_nb: int,
+        # batch_nb: int,
+        batch_idx: int,
         dataloader_idx: int = 0,
     ) -> None:
         batch = benedict.benedict(batch, keyattr_enabled=False)
@@ -484,12 +485,18 @@ class MoaiLightningModule(L.LightningModule):
                 self.monitor, f"{C._VAL_}.{C._DATASETS_}.{dataset_name}"
             )
         ):
+            extras = {
+                "lightning_step": self.trainer.test_loop.batch_progress.current.completed,  # NOTE: self.global_step does not increment correctly
+                "epoch": self.current_epoch,
+                "batch_idx": batch_idx,
+            }
             with torch.no_grad():
                 for step in get_list(proc, C._FLOWS_):
                     batch = self.named_flows[step](batch)
                 for metric in get_list(monitor, C._METRICS_):
                     self.named_metrics[metric](batch)
-                # TODO add monitors/visualization
+                for tensor_monitor in get_list(monitor, C._MONITORS_):
+                    self.named_monitors[tensor_monitor](batch, extras)
         return batch
 
     def configure_optimizers(

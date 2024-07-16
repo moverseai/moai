@@ -1,3 +1,3 @@
-# @package model.monads._name_
+# @package model.monads.rad2deg
 
 _target_: moai.monads.math.Rad2Deg
