@@ -88,6 +88,7 @@ def multicam_posed_image(
             rr.Transform3D(
                 translation=poses[i][:3, 3],
                 mat3x3=poses[i][:3, :3],
+                from_parent=True,
             ),
         )
         rr.log(
