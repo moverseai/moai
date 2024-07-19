@@ -691,6 +691,11 @@ class TreeModule(torch.nn.Module, Transformer):
         # self.results.append(f'result{self.index}')
         # self.index += 1
 
+    def repeat(self, key, *dims):
+        key = self.extract(key)
+        dims = list(map(int, dims))
+        self._transform_operation("repeat_interleave", key, dims)
+
     def unsqueeze(self, key, *dims):
         if not isinstance(key, str) or isinstance(key, Token):  # NOTE: is lark.Tree
             key = self.extract(key)
