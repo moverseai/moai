@@ -31,6 +31,7 @@ def multiframe_multiview_posed_image(
     optimization_step: typing.Optional[int] = None,
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
+    jpeg_quality: int = 40,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
@@ -58,9 +59,12 @@ def multiframe_multiview_posed_image(
                 ),
             )
             # log image
+            image = np.ascontiguousarray(
+                images[fr][i].transpose(-2, -1, 0) * 255
+            ).astype(np.uint8)
             rr.log(
                 path + f"/frame_{fr}/cam_{i}",
-                rr.Image(images[fr][i].transpose(-2, -1, 0)),
+                rr.Image(image).compress(jpeg_quality=jpeg_quality),
             )
 
 
@@ -72,6 +76,7 @@ def multicam_posed_image(
     optimization_step: typing.Optional[int] = None,
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
+    jpeg_quality: int = 40,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
@@ -98,9 +103,12 @@ def multicam_posed_image(
             ),
         )
         # log image
+        image = np.ascontiguousarray(images[i].transpose(-2, -1, 0) * 255).astype(
+            np.uint8
+        )
         rr.log(
             path + f"/cam_{i}",
-            rr.Image(images[i].transpose(-2, -1, 0)),
+            rr.Image(image).compress(jpeg_quality=jpeg_quality),
         )
 
 
