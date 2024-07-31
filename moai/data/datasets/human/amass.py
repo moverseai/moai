@@ -28,11 +28,13 @@ class AMASS(torch.utils.data.Dataset):
         downsample_factor: int = 1,
         reconstruct: bool = False,
         model_type: str = "smplx",
+        file_type: str = None,
     ) -> None:
         super().__init__()
         assert_path(log, "AMASS data root path", data_root)
         assert_path(log, "SMPLX data path", smplx_root)
-        file_type = "**_poses.npz" if model_type == "smpl" else "**_stageii.npz"
+        if file_type is None:
+            file_type = "**_poses.npz" if model_type == "smpl" else "**_stageii.npz"
         gendered_shape_fn = "**shape.npz" if model_type == "smpl" else "**_stagei.npz"
         is_all_parts = isinstance(parts, str) and ("all" == parts or "**" == parts)
         parts = os.listdir(data_root) if is_all_parts else parts

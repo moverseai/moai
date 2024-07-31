@@ -357,6 +357,23 @@ class TestDSL:
         x = self._parse_and_run(parser, expression, highdim_tensors)
         assert x.sum() == 300.0
 
+    def test_repeat_interleave(self, parser, highdim_tensors):
+        expression = "repeat_interleave(fourdim, 2, 1)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors["fourdim"].repeat_interleave(2, 1))
+        expression = "repeat_interleave(fourdim, 2, 0)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert torch.equal(x, highdim_tensors["fourdim"].repeat_interleave(2, 0))
+        expression = "repeat_interleave(single, 2, 1)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 3600 * 2  # 3600 is the sum of single and 2 is the repeat
+        expression = "repeat_interleave(fourdim, 2, 0)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert (x[5:] != highdim_tensors["fourdim"]).sum() == 0
+        expression = "repeat_interleave(fourdim, 2, 0) + ones(10, 3, 2, 6)"
+        x = self._parse_and_run(parser, expression, highdim_tensors)
+        assert x.sum() == 120 * 2 + 10 * 3 * 2 * 6
+
     def test_trig(self, parser, trig_tensors):
         expression = "sin(pi2)"
         x = self._parse_and_run(parser, expression, trig_tensors)

@@ -14,7 +14,6 @@ class FID(MoaiMetric):
         self,
         gt: torch.Tensor,
         pred: torch.Tensor,
-        # weights:    torch.Tensor=None,
     ) -> torch.Tensor:
         return {"gt": gt, "pred": pred}
 
@@ -26,6 +25,4 @@ class FID(MoaiMetric):
         c1, c2 = np.cov(gt[:num_samples]), np.cov(pred[:num_samples])
         diff_sq = np.linalg.norm(mu1 - mu2, ord=2, axis=-1, keepdims=False)
         fid = diff_sq + np.trace(c1 + c2 - 2 * np.sqrt(c1 * c2))
-        # if weights is not None:
-        #     fid = fid * weights
         return fid

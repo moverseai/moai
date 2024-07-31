@@ -107,6 +107,7 @@ __MOAI_GRAMMAR__ = """
         | "view" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")"  -> reshape
         | "transpose" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")"  -> transpose
         | "flatten" "(" name "," SIGNED_INT ["," SIGNED_INT] ")"  -> flatten
+        | "repeat_interleave" "(" name "," SIGNED_INT "," SIGNED_INT ")" -> repeat
         | "zeros" "(" name ")"              -> zeros_like
         | "ones" "(" name ")"               -> ones_like
         | "rand" "(" name ")"               -> rand_like

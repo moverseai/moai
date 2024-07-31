@@ -36,6 +36,7 @@ class MANO(smplx.MANO):
         use_pca: bool = True,
         flat_hand_mean: bool = False,
         with_tips: bool = False,
+        batch_size: int = 1,
     ):
         self.with_tips = with_tips
         super(MANO, self).__init__(
@@ -47,7 +48,7 @@ class MANO(smplx.MANO):
             create_transl=use_translation,
             use_pca=use_pca,
             dtype=torch.float32,
-            batch_size=1,
+            batch_size=batch_size,
             num_pca_comps=pca_components,
             num_betas=num_betas,
             flat_hand_mean=flat_hand_mean,

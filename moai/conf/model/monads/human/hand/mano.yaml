@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.mano
 
 _target_: moai.monads.human.hand.MANO
 model_path: ???
@@ -12,3 +12,4 @@ use_pca: true
 pca_components: 12
 num_betas: 10
 flat_hand_mean: false
+batch_size: 1

@@ -361,6 +361,13 @@ class MoaiLightningModule(L.LightningModule):
                     frequency = toolz.get(C._FREQUENCY_, iter_monitor_stage, 1)
                     should_monitor = iter % frequency == 0
                     if (
+                        iter_tensor_metrics := iter_monitor_stage.get(C._METRICS_, None)
+                    ) and should_monitor:
+                        for metric in (
+                            toolz.get(C._METRICS_, iter_monitor_stage, None) or []
+                        ):
+                            self.named_metrics[metric](batch)
+                    if (
                         iter_tensor_monitor := iter_monitor_stage.get(
                             C._MONITORS_, None
                         )
@@ -369,10 +376,6 @@ class MoaiLightningModule(L.LightningModule):
                             toolz.get(C._FLOWS_, iter_monitor_stage, None) or []
                         ):
                             self.named_flows[step](batch)
-                        for metric in (
-                            toolz.get(C._METRICS_, iter_monitor_stage, None) or []
-                        ):
-                            self.named_metrics[metric](batch)
                         extras = {  # TODO: step => 'lightning_step'
                             "lightning_step": self.global_step,
                             "epoch": self.current_epoch,
@@ -462,7 +465,8 @@ class MoaiLightningModule(L.LightningModule):
     def validation_step(
         self,
         batch: typing.Dict[str, torch.Tensor],
-        batch_nb: int,
+        # batch_nb: int,
+        batch_idx: int,
         dataloader_idx: int = 0,
     ) -> None:
         batch = benedict.benedict(batch, keyattr_enabled=False)
@@ -481,12 +485,18 @@ class MoaiLightningModule(L.LightningModule):
                 self.monitor, f"{C._VAL_}.{C._DATASETS_}.{dataset_name}"
             )
         ):
+            extras = {
+                "lightning_step": self.trainer.test_loop.batch_progress.current.completed,  # NOTE: self.global_step does not increment correctly
+                "epoch": self.current_epoch,
+                "batch_idx": batch_idx,
+            }
             with torch.no_grad():
                 for step in get_list(proc, C._FLOWS_):
                     batch = self.named_flows[step](batch)
                 for metric in get_list(monitor, C._METRICS_):
                     self.named_metrics[metric](batch)
-                # TODO add monitors/visualization
+                for tensor_monitor in get_list(monitor, C._MONITORS_):
+                    self.named_monitors[tensor_monitor](batch, extras)
         return batch
 
     def configure_optimizers(
