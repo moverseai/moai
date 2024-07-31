@@ -52,7 +52,7 @@ class Weighted(torch.nn.ModuleDict):
                 )  # TODO: stateless objectives can be re-used
             except Exception as e:
                 log.error(
-                    f":excalamation: Could not instantiate the objective '{key}': {e}"
+                    f":exclamation: Could not instantiate the objective '{key}': {e}"
                 )
                 continue
             objective_kwargs = kwargs[key]
