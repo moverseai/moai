@@ -31,6 +31,7 @@ class SetupLogging(Callable):
         #     datefmt='%Y-%m-%d %H:%M:%S',
         #     )
         self.input_key = input_key
+        log.info(f"GuidLogFilter: {self.input_key}")
 
     def __call__(
         self,
@@ -41,7 +42,9 @@ class SetupLogging(Callable):
         handler = logging.StreamHandler()
         handler.setFormatter(self.formatter)
         # get guid from input request
+        log.info(f"GuidLogFilter: {data}")
         guid = data.get(self.input_key)
+        log.info(f"GuidLogFilter: {guid}")
         # handler.addFilter(logging.Filter(guid))
         # log.addHandler(handler)
         # Add filter to handler
