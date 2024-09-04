@@ -85,6 +85,7 @@ class OptimizerServer(ModelServer):
         self.context = context
 
         batch = self.preprocess(data)
+        log.info("Preprocessing done resulting in batch: ", batch)
         batch_idx = batch.get("batch_idx", 0)
         self.trainer.strategy._lightning_module = (
             self.model
@@ -317,4 +318,10 @@ class OptimizerServer(ModelServer):
                 metric_type=MetricTypes.GAUGE,
             )
         # TODO: call post processing handler
+        # result = toolz.valmap(np.vstack, result)
+        # result and original input data should be available in the post processing handler
+        # output = self.postprocess(toolz.merge(data, batch))
+        log.info(f"batch keys: {batch.keys()} and data keys: {data.keys()}")
+        output = self.postprocess(batch)
+
         return output
