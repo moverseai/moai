@@ -1,4 +1,4 @@
-FROM ghcr.io/moverseai/moai/serve:v1.1.0-pt220-cu118
+FROM ghcr.io/moverseai/moai/serve:v1.1.1-pt220-cu118
 
 USER root
 
