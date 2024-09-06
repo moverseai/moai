@@ -26,12 +26,8 @@ class SetupLogging(Callable):
         self.formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s [%(guid)s]: - %(message)s"
         )
-        #   formatter = logging.Formatter(
-        #     '[%(asctime)s] %(name)-5s %(levelname)s [%(username)s]: %(message)s',
-        #     datefmt='%Y-%m-%d %H:%M:%S',
-        #     )
         self.input_key = input_key
-        log.info(f"GuidLogFilter: {self.input_key}")
+        log.debug(f"GuidLogFilter: {self.input_key}")
 
     def __call__(
         self,
@@ -42,11 +38,8 @@ class SetupLogging(Callable):
         handler = logging.StreamHandler()
         handler.setFormatter(self.formatter)
         # get guid from input request
-        log.info(f"GuidLogFilter: {data}")
+        log.debug(f"GuidLogFilter: {data}")
         guid = data.get(self.input_key)
-        log.info(f"GuidLogFilter: {guid}")
-        # handler.addFilter(logging.Filter(guid))
-        # log.addHandler(handler)
         # Add filter to handler
         handler.addFilter(GuidLogFilter(guid=guid))
         # Get the root logger
@@ -54,7 +47,6 @@ class SetupLogging(Callable):
         root_logger.addHandler(handler)
         # Ensure propagation is enabled
         root_logger.propagate = True
-        # log.handlers[0].addFilter(GuidLogFilter(guid=guid))
         return data
 
 
@@ -86,4 +78,5 @@ class ResetLogging(Callable):
         # Add the new handler to the root logger
         root_logger.addHandler(handler)
         root_logger.propagate = True
-        return data
+
+        return [{"is_success": True, "message": "Guid reset successfully."}]
