@@ -216,9 +216,7 @@ class StreamingOptimizerServer(ModelServer):
                         unit="value",
                         metric_type=MetricTypes.GAUGE,
                     )
-            # DEBUG: break after 10 batches
-            if batch_idx > 10:
-                break
+
         # call on epoch end callbacks
         call._call_callback_hooks(self.trainer, "on_train_epoch_end")
         # result = toolz.valmap(np.vstack, result)
