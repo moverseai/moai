@@ -69,8 +69,8 @@ def multiframe_multiview_posed_image(
 
 
 def multicam_posed_image(
-    images: np.ndarray,  # assumes num_cams x [C, H, W]
     path: str,
+    images: np.ndarray = None,  # assumes num_cams x [C, H, W]
     poses: np.ndarray = None,  # assumes num_cams x [4, 4];
     intrinsics: np.ndarray = None,  # assumes num_cams x [3, 3];
     optimization_step: typing.Optional[int] = None,
@@ -85,8 +85,8 @@ def multicam_posed_image(
     elif iteration is not None:
         rr.set_time_sequence("iteration", iteration)
     # get number of cameras
-    num_cams = images.shape[0]
-    _, __, H, W = images.shape
+    num_cams = intrinsics.shape[0]
+    # _, __, H, W = images.shape
     for i in range(num_cams):
         rr.log(
             path + f"/cam_{i}",
@@ -103,13 +103,14 @@ def multicam_posed_image(
             ),
         )
         # log image
-        image = np.ascontiguousarray(images[i].transpose(-2, -1, 0) * 255).astype(
-            np.uint8
-        )
-        rr.log(
-            path + f"/cam_{i}",
-            rr.Image(image).compress(jpeg_quality=jpeg_quality),
-        )
+        if images is not None:
+            image = np.ascontiguousarray(images[i].transpose(-2, -1, 0) * 255).astype(
+                np.uint8
+            )
+            rr.log(
+                path + f"/cam_{i}",
+                rr.Image(image).compress(jpeg_quality=jpeg_quality),
+            )
 
 
 def posed_image(

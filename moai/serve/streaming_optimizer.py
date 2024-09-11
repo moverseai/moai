@@ -124,6 +124,16 @@ class StreamingOptimizerServer(ModelServer):
         except Exception as e:
             log.error(f"An error has occured while loading the trainer:\n{e}")
 
+    @staticmethod
+    def stack_based_on_dim(arr):
+        """
+        Stacks using vstack for arrays with more than 1 dimension and hstack for 1-dimensional arrays.
+        """
+        if np.ndim(arr[0]) > 1:
+            return np.vstack(arr)
+        else:
+            return np.hstack(arr)
+
     def handle(self, data: typing.Mapping[str, typing.Any], context: typing.Any):
         """
         Handle function responsible for returning an intermediate response.
@@ -206,12 +216,15 @@ class StreamingOptimizerServer(ModelServer):
                         unit="value",
                         metric_type=MetricTypes.GAUGE,
                     )
-
+            # DEBUG: break after 10 batches
+            if batch_idx > 10:
+                break
         # call on epoch end callbacks
         call._call_callback_hooks(self.trainer, "on_train_epoch_end")
-        result = toolz.valmap(np.vstack, result)
+        # result = toolz.valmap(np.vstack, result)
+        result = toolz.valmap(self.stack_based_on_dim, result)
         # result and original input data should be available in the post processing handler
-        output = self.postprocess(toolz.merge(data, result))
+        output = self.postprocess(toolz.merge(td, result))
         # TODO: add post processing handler
         stop_time = time.time()
         self.context.metrics.add_time(
