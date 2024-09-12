@@ -71,6 +71,7 @@ class ModelServer(BaseHandler):
 
     def initialize(self, context):
         properties = context.system_properties
+        self._extract_files()
         # self.map_location = "cuda" if torch.cuda.is_available() and properties.get("gpu_id") is not None else "cpu"
         self.device = torch.device("cpu")
         if torch.cuda.is_available() and not "FORCE_CPU" in os.environ:
@@ -91,7 +92,6 @@ class ModelServer(BaseHandler):
         # NOTE: IMPORTANT!!!! DEBUG WHILE TRAINING ONLY !!!
         main_conf = context.manifest["model"]["modelName"].replace("_", "/")
         log.info(f"Loading the {main_conf} endpoint.")
-        self._extract_files()
         try:
             with initialize(
                 config_path="conf/" + "/".join(main_conf.split("/")[0:-1]),
