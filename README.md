@@ -7,6 +7,8 @@
 ![TorchServe](https://img.shields.io/badge/TorchServe-%23EE4C2C.svg?logo=PyTorch&logoColor=white)
 
 <!-- https://actions-badge.atrox.dev/ & https://github.com/atrox/github-actions-badge?tab=readme-ov-file -->
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![CodeFactor](https://www.codefactor.io/repository/github/moverseai/moai/badge)](https://www.codefactor.io/repository/github/moverseai/moai)
 
 # Overview
 
