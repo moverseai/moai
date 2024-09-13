@@ -2,6 +2,7 @@ import logging
 import os
 import time
 import typing
+import zipfile
 from collections import defaultdict
 
 import benedict
@@ -21,12 +22,26 @@ from moai.core.execution.constants import Constants as C
 from moai.engine.callbacks.model import ModelCallbacks
 from moai.utils.funcs import get_dict, get_list
 
-try:
-    from model import (
-        ModelServer,  # get model from local directory, otherwise configs could not be loaded
-    )
-except ImportError:
-    # needed for running archive correctly
+_EXTRCT_FILES = False
+
+if os.path.exists("conf.zip"):
+    with zipfile.ZipFile("conf.zip", "r") as zip_ref:
+        zip_ref.extractall(".")
+    with zipfile.ZipFile("src.zip", "r") as zip_ref:
+        zip_ref.extractall(".")
+    _EXTRCT_FILES = True
+
+# try:
+#     from model import (
+#         ModelServer,  # get model from local directory, otherwise configs could not be loaded
+#     )
+# except ImportError:
+#     # needed for running archive correctly
+#     from moai.serve.model import ModelServer
+
+if _EXTRCT_FILES:
+    from model import ModelServer
+else:
     from moai.serve.model import ModelServer
 
 log = logging.getLogger(__name__)
@@ -95,7 +110,8 @@ class StreamingOptimizerServer(ModelServer):
 
     def initialize(self, context):
         # call parent class initialize
-        super().initialize(context)
+        print(f"initializing streaming optimizer server with context: {context}")
+        super().initialize(context, extract_files=~_EXTRCT_FILES)
         main_conf = context.manifest["model"]["modelName"].replace("_", "/")
         # set model to training true before calling the training step
         self.model.train()
