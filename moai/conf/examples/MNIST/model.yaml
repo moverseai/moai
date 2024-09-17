@@ -1,6 +1,10 @@
 # @package _global_
 
 model:
+  parameters:
+    initializers:
+      pretrained:
+        filename: ${CKPT}
   monads:
     argmax:
       dim: 1

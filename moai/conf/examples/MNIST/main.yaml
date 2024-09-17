@@ -1,10 +1,12 @@
 defaults:
   ###### ENGINE
   - engine/runner: lightning
-  - engine/modules: [manual_seed, import, clearml] # , clearml]
+  - engine/modules: [manual_seed, import]
+
   ###### LOGGERS
-  - engine/loggers: [tabular, clearml] # tabular # [tabular, clearml]
+  - engine/loggers: tabular
   - engine/runner/checkpoint: lightning
+  
   # ###### DATA
   - data/train/loader: torch
   - data/train/iterator: indexed
@@ -12,32 +14,24 @@ defaults:
   - data/train/dataset/torchvision: mnist
 
   - data/val/loader: torch
-  # - data/val/iterator: indexed
+  - data/val/iterator: indexed
   - data/val/augmentation: none
-  - data/val/dataset/torchvision: [mnist, mnist_2]
+  - data/val/dataset/torchvision: mnist
 
   - data/test/loader: torch
-  # - data/test/iterator: indexed
+  - data/test/iterator: indexed
   - data/test/augmentation: none
   - data/test/dataset/torchvision: mnist
-  # - data/test/dataset/torchvision: [mnist, mnist_2]
-
-  - data/predict/loader: torch
-  # - data/test/iterator: indexed
-  - data/predict/augmentation: none
-  - data/predict/dataset/torchvision: mnist
-  # - data/test/dataset/torchvision: [mnist, mnist_2]
 
   # ###### MODEL
   - model: moai
   - model/components/classification: mnist
   - model/monads/tensor: argmax
+
   # ###### PARAMETERS
   - model/parameters/initializers: [default, pretrained]
   - model/parameters/optimizers: adam
-  # - model/parameters/optimization/scheduling: single
-  # - model/parameters/optimization/scheduling/scheduler: step
-  - model/parameters/groups: [encoder]
+  - model/parameters/groups: encoder
 
   # ###### SUPERVISION
   - model/objectives/classification: cross_entropy
@@ -57,5 +51,5 @@ defaults:
   - processes_flow
 
   ###### HYDRA
-  - override hydra/hydra_logging: moai # colorlog
-  - override hydra/job_logging: moai # colorlog
+  - override hydra/hydra_logging: moai
+  - override hydra/job_logging: moai

@@ -12,14 +12,9 @@ engine:
       run_path: true
     manual_seed:
       seed: 1337
-    clearml:
-      project_name: Dev
-      task_name: MNIST
-      tags: [test]
 
   runner:
     deterministic: false # required for index add ops
-    # gpus: '0'
     devices: 1
     num_sanity_val_steps: 0
     max_epochs: 2
