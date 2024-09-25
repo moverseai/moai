@@ -118,8 +118,9 @@ def varying_shape_tensors():
     return benedict.benedict(
         {
             "onedim": torch.scalar_tensor(np.pi * 0.5),
-            "twodim": torch.randn(2, 6),
-            "threedim": torch.randn(5, 3, 10),
+            "twodim": torch.randn(60, 3),
+            "twodim_b1": torch.randn(1, 10),
+            "threedim": torch.randn(5, 3, 100),
             "threedim_b1": torch.randn(1, 3, 10),
         }
     )

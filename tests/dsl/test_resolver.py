@@ -418,6 +418,6 @@ class TestDSL:
         assert y == np.pi * 0.5
 
     def test_expand_batch_as(self, parser, varying_shape_tensors):
-        expression = "expand_batch_as(threedim_b1, threedim)"
+        expression = "expand_batch_as(twodim_b1, twodim)"
         x = self._parse_and_run(parser, expression, varying_shape_tensors)
-        assert varying_shape_tensors["threedim"].shape == x.shape
+        assert varying_shape_tensors["twodim"].shape[0] == x.shape[0]
