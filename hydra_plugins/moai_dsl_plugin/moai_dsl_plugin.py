@@ -114,6 +114,7 @@ __MOAI_GRAMMAR__ = """
         | "randn" "(" name ")"              -> randn_like
         | "unsq" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")" -> unsqueeze
         | "sq" "(" name ("," SIGNED_INT)* ")" -> squeeze
+        | "expand_batch_as" "(" name "," name ")" -> expand_batch_as
         | name "[" slicing ("," slicing)* "]" -> slicing
         | "(" expr ")"
     

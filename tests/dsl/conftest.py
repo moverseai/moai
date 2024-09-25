@@ -111,3 +111,15 @@ def trig_tensors():
             "mrand": -torch.rand(1),
         }
     )
+
+
+@pytest.fixture
+def varying_shape_tensors():
+    return benedict.benedict(
+        {
+            "onedim": torch.scalar_tensor(np.pi * 0.5),
+            "twodim": torch.randn(2, 6),
+            "threedim": torch.randn(5, 3, 10),
+            "threedim_b1": torch.randn(1, 3, 10),
+        }
+    )

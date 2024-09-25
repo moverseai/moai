@@ -196,6 +196,26 @@ class IndexingOperationTensors(torch.nn.Module):
         tmp[f"result{self.index}"] = self.op(t, self.dim, self.idx)
 
 
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
+class ExpandBatchOperationTensors(torch.nn.Module):
+    lhs: str
+    rhs: str
+    index: int
+
+    def __post_init__(self):
+        super().__init__()
+
+    def __repr__(self):
+        return f"expand_batch_as:{self.lhs},{self.rhs}"
+
+    def forward(self, td, tmp) -> None:
+        lhs = toolz.get_in(self.lhs.split("."), tmp)
+        rhs = toolz.get_in(self.rhs.split("."), tmp)
+        b = rhs.shape[0]
+        assert lhs.shape[0] == 1
+        tmp[f"result{self.index}"] = lhs.expand(b, *lhs.shape[1:])
+
+
 def unary(func):
     def unary_wrapper(self, key):
         return self._unary(func.__name__, key)
@@ -786,3 +806,15 @@ class TreeModule(torch.nn.Module, Transformer):
                 raise RuntimeError(
                     f"Unexpected RULE {a.data} when parsing a `slicing` expression."
                 )
+
+    def expand_batch_as(self, expand_batch, get_batch):
+        if expand_batch is None:
+            expand_batch = self.results.pop()
+        if get_batch is None:
+            get_batch = self.results.pop()
+        expand_batch = self.extract(expand_batch)
+        get_batch = self.extract(get_batch)
+        m = ExpandBatchOperationTensors(expand_batch, get_batch, self.index)
+        self.seq.add_module(f"expand_batch_as{self.index}", m)
+        self.results.append(f"result{self.index}")
+        self.index += 1
