@@ -14,41 +14,28 @@ _moai_:
     _initialize_: # responsible for initializers
       _fit_:
         _setup_: [default] # used only at the beginning of the training process
-        # _batch_: [default] # used at the beginning of each batch
-        # _epoch_: [default] # used at the beginning of each epoch
       _test_:
-        _setup_: pretrained
-      _predict_:
         _setup_: pretrained
     _lightning_step_: # forces execution of the following flows
       _fit_:
-        # _batch_:
         _stages_:
           train_encoder:
             _optimizer_: train_encoder
             _objective_: train_encoder
             _flows_: [encoder]
       _test_:
-        # _batch_:
-        # train_encoder:
         _datasets_:
           mnist:
             _flows_: [encoder, postprocess]
-      _predict_: # used for torchserve
-        # _batch_:
-        # _stages_:
-        # train_encoder:
-        _flows_: [encoder, postprocess]
       _val_:
-        # _batch_:
         _datasets_:
-          mnist: &val_proc # train_encoder:
+          mnist: &val_proc
             _flows_: [encoder, postprocess]
           mnist_2: *val_proc
     _schedule_:
       - _epoch_: 1
         _fit_:
-          _stages_: # _batch_:
+          _stages_:
             train_encoder:
               _optimizer_: train_encoder
               _objective_: train_encoder

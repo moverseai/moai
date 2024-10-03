@@ -12,12 +12,10 @@ _moai_:
             mode: [overwrite] # [all, overwrite]
             key: [color]
             path: .
-            extension: [png] # [png, exr, jpg]
+            extension: [png]
       _metrics_:
         test_class_acc:
           multiclass_acc:
-            # gt: [label]
-            # pred: [predicted_label]
             target: [label]
             preds: [predicted_label]
             _out_: [accuracy]
@@ -25,35 +23,19 @@ _moai_:
             target: [label]
             preds: [predicted_label]
             _out_: [f1]
-        predict_class_acc:
-          multiclass_acc:
-            target: [predicted_label]
-            preds: [predicted_label]
-            _out_: [accuracy2]
   _execution_:
     _monitoring_:
       _fit_:
         _batch_:
-          # _stages_:
-          # train_encoder:
           _frequency_: 1
           _flows_: []
       _val_:
-        _datasets_: # _batch_:
-          mnist: # train_encoder:
-            _metrics_:
-              - test_class_acc
-        _key_whatever_: #TODO: rename & implement
-      _test_:
-        _datasets_: # _batch_:
+        _datasets_:
           mnist:
             _metrics_:
               - test_class_acc
-      _predict_:
-        _batch_:
-          # _stages_:
-          # train_encoder:
-          _metrics_:
-            - predict_class_acc
-          _monitors_: # used for visualization & exporting
-            - save_image_batch
+      _test_:
+        _datasets_:
+          mnist:
+            _metrics_:
+              - test_class_acc
