@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import time
@@ -140,15 +141,25 @@ class StreamingOptimizerServer(ModelServer):
         except Exception as e:
             log.error(f"An error has occured while loading the trainer:\n{e}")
 
+    # @staticmethod
+    # def stack_based_on_dim(arr):
+    #     """
+    #     Stacks using vstack for arrays with more than 1 dimension and hstack for 1-dimensional arrays.
+    #     """
+    #     if np.ndim(arr[0]) > 1:
+    #         return np.vstack(arr)
+    #     else:
+    #         return np.hstack(arr)
+
     @staticmethod
     def stack_based_on_dim(arr):
         """
-        Stacks using vstack for arrays with more than 1 dimension and hstack for 1-dimensional arrays.
+        Stacks using torch.stack for tensors.
         """
-        if np.ndim(arr[0]) > 1:
-            return np.vstack(arr)
+        if arr[0].dim() > 1:
+            return torch.vstack(arr)
         else:
-            return np.hstack(arr)
+            return torch.hstack(arr)
 
     def handle(self, data: typing.Mapping[str, typing.Any], context: typing.Any):
         """
@@ -187,9 +198,12 @@ class StreamingOptimizerServer(ModelServer):
             self.model.training_step(batch, batch_idx)
             # send intermediate response
             key = 0  # DEBUG
-            batch[key] = (
-                f"Running batch_idx {batch_idx} with completion percentage {float((batch_idx + 1)/len(dataloader) * 100):.2f}%."
-            )
+            percent = float((batch_idx + 1) / len(dataloader) * 100)
+            msg = json.dumps({"completed": percent}) + "\n"
+            batch[key] = msg
+            # batch[key] = (
+            #     f"Running batch_idx {batch_idx} with completion percentage {float((batch_idx + 1)/len(dataloader) * 100):.2f}%."
+            # )
             log.info(batch[key])
             send_intermediate_predict_response(
                 batch,
@@ -200,7 +214,7 @@ class StreamingOptimizerServer(ModelServer):
             )
             if self.keys:
                 for k in self.keys:
-                    result[k].append(batch[k].detach().cpu().numpy())
+                    result[k].append(batch[k])
             # calculate metrics on batch end
             # NOTE: we do not call default on_train_batch_end callback as it includes module logging operations which could cause errors
             if monitor := get_dict(self.model.monitor, f"{C._FIT_}.{C._BATCH_}"):

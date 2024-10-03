@@ -17,7 +17,7 @@ defaults:
   - data/val/dataset/torchvision: [mnist, mnist_2]
 
   - data/test/loader: torch
-  # - data/test/iterator: indexed
+  - data/test/iterator: indexed
   - data/test/augmentation: none
   - data/test/dataset/torchvision: mnist
   # - data/test/dataset/torchvision: [mnist, mnist_2]

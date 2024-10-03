@@ -220,7 +220,7 @@ def multicam_keypoints(
                         np.array(color.get_rgb() + (1,)), (keypoints[i].shape[0], 1)
                     ),
                     # colors=plt.colormaps["hot"](confidence[0][i]),
-                    radii=confidence[0][i] * 5,
+                    radii=confidence[i] * 5,
                 ),
             )
 
