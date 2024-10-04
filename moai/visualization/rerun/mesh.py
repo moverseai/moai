@@ -105,6 +105,8 @@ def mesh3d(
     elif iteration is not None:
         rr.set_time_sequence("iteration", iteration)
     color = colour.Color(color)
+    o3d_mesh = trimesh.Trimesh(vertices=vertices[0], faces=faces[0])
+    o3d_mesh.fix_normals()
     rr.log(
         path,
         rr.Mesh3D(
@@ -113,6 +115,7 @@ def mesh3d(
             vertex_colors=np.tile(
                 np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
             ),  # TODO: memoize
+            vertex_normals=np.array(o3d_mesh.vertex_normals),
         ),
     )
 
