@@ -256,6 +256,8 @@ class ModelServer(BaseHandler):
         log.debug(f"Postprocessing outputs:\n{data['__moai__']}")
         outs = []  # TODO: corner case with no postproc crashes, fix it
         for k, p in self.postproc.items():
+            if isinstance(p, omegaconf.dictconfig.DictConfig):
+                continue
             res = p(data, data["__moai__"]["json"])
             if len(outs) == 0:
                 outs = res
