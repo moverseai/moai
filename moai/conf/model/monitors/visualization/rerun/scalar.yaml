@@ -1,0 +1,4 @@
+# @package model.monitors.scalar
+
+_target_: moai.visualization.rerun.scalars.scalar
+_partial_: true

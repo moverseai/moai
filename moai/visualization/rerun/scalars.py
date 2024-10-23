@@ -1,12 +1,11 @@
 import logging
 import typing
 
+import colour
+import numpy as np
 import torch
 
 from moai.core.execution.constants import Constants as C
-
-# from moai.utils.color.colormap import colormap
-
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +18,29 @@ except:
 
 __all__ = [
     "optimization_losses",
+    "scalar",
 ]
+
+
+def scalar(
+    value: np.ndarray,
+    path: str,
+    color: str,
+    optimization_step: typing.Optional[int] = None,
+    lightning_step: typing.Optional[int] = None,
+    iteration: typing.Optional[int] = None,
+):
+    if optimization_step is not None:
+        rr.set_time_sequence("optimization_step", optimization_step)
+    elif lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    elif iteration is not None:
+        rr.set_time_sequence("iteration", iteration)
+    color = colour.Color(color)
+    rr.log(
+        path,
+        rr.Scalar(float(value)),
+    )
 
 
 def optimization_losses(
