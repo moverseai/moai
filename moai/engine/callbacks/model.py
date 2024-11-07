@@ -25,3 +25,8 @@ class ModelCallbacks(UserList):
                         # get functions from operations
                         if isinstance(oper.func, Callback):
                             self.data.append(oper.func)
+            if hasattr(model, "named_objectives"):
+                for stage in model.named_objectives.values():
+                    for obj in stage.values():
+                        if isinstance(obj, Callback):
+                            self.data.append(obj)

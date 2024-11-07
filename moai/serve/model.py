@@ -69,9 +69,9 @@ class ModelServer(BaseHandler):
         else:
             return []
 
-    def initialize(self, context):
+    def initialize(self, context, extract_files=True):
         properties = context.system_properties
-        self._extract_files()
+        self._extract_files() if extract_files else None
         # self.map_location = "cuda" if torch.cuda.is_available() and properties.get("gpu_id") is not None else "cpu"
         self.device = torch.device("cpu")
         if torch.cuda.is_available() and not "FORCE_CPU" in os.environ:

@@ -1,0 +1,8 @@
+# @package model.objectives.ground_loss
+
+_target_: moai.supervision.objectives.human.body.ground_loss.GroundLoss
+out_alpha1: 1 # pull related
+out_alpha2: 0.15 # pull related
+in_alpha1: 10 # push related
+in_alpha2: 0.15 # push related
+use_pull: false

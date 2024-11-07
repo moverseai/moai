@@ -31,7 +31,7 @@ class AxisAngle(torch.nn.Module):
     ):
         super().__init__()
         if to == "mat":
-            self.convert_func = kn.geometry.conversions.angle_axis_to_rotation_matrix
+            self.convert_func = kn.geometry.conversions.axis_angle_to_rotation_matrix
         elif to == "quat":
             # (x, y, z, w) format of quaternion
             self.convert_func = kn.geometry.conversions.angle_axis_to_quaternion
