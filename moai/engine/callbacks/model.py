@@ -16,12 +16,12 @@ class ModelCallbacks(UserList):
     ):
         super().__init__(list)
         if model:
-            self.data.extend((c for c in model.children() if isinstance(c, Callback)))
-            for c in model.children():
-                for k, v in c.items():
-                    if isinstance(v, Callback):
-                        self.data.append(v)
+            # deprecated self.data.extend((c for c in model.children() if isinstance(c, Callback)))
 
+            if hasattr(model, "named_components"):
+                for component in model.named_components.values():
+                    if isinstance(component, Callback):
+                        self.data.append(component)
             if hasattr(model, "named_monitors"):
                 # search within named monitors
                 # for callbacks
