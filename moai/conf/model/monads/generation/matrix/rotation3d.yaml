@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.rotation3d
 
 _target_: moai.monads.generation.matrix.Rotation3D
 rotations: ???

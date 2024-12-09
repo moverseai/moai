@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.mesh_silhouette
 
 _target_: moai.monads.render.nvdiffrast.MeshSilhouette
 width: 512

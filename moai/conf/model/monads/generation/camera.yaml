@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.camera
 
 _target_: moai.monads.generation.camera.Perspective
 fov: 64.69

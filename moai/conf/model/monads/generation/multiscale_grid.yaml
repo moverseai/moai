@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.multiscale_grid
 
 _target_: moai.monads.generation.grid.MultiScaleGrid
 mode: ndc # ndc, coord, norm
