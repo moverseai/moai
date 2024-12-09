@@ -1,4 +1,5 @@
 import inspect
+import logging
 import typing
 
 import hydra.utils as hyu
@@ -11,6 +12,8 @@ from moai.core.execution.constants import Constants as C
 
 __all__ = ["Monitors"]
 
+log = logging.getLogger(__name__)
+
 
 class Monitors:
     def __init__(
@@ -19,10 +22,19 @@ class Monitors:
         **kwargs: typing.Mapping[str, typing.Any],
     ) -> None:
         self.operations = []
+        if (
+            tensors is None
+        ):  # NOTE: corner case, make sure container predicates below dont fail
+            tensors = {}
         for k in kwargs or {}:
             params = kwargs[k]  # NOTE: list args for multi calling
             override_params = params.get(C._PARAMS_, None) or {}
             target = tensors[k]
+            if k in tensors:
+                target = tensors[k]
+            else:
+                log.warning(f"Monitor `{k}` not found, skipping ...")
+                continue
             operation = hyu.instantiate(target, **override_params)
             signature = inspect.signature(operation)
             extras = mic.__PRESET_ARGS__.intersection(signature.parameters.keys())
