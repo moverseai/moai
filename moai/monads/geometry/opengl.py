@@ -83,6 +83,7 @@ class Camera(torch.nn.Module):  # NOTE: fixed focal/principal, optimized rot/tra
         intrinsics: torch.Tensor = None,
         # TODO: update with focal/principal inputs as well
     ) -> torch.Tensor:
+        b = points.shape[0]
         fx, fy = self.focal_length
         px, py = self.principal_point
         if intrinsics is not None and intrinsics.shape[0] == 1:
@@ -167,6 +168,7 @@ class Camera(torch.nn.Module):  # NOTE: fixed focal/principal, optimized rot/tra
                 ]
             ).to(points)
         elif intrinsics is not None:
+            b = intrinsics.shape[0]
             Ks = []
             for K in intrinsics:
                 w, h = self.resolution
@@ -194,7 +196,7 @@ class Camera(torch.nn.Module):  # NOTE: fixed focal/principal, optimized rot/tra
         else:
             proj = self.mat
             w, h = self.resolution
-        b = points.shape[0]
+        # b = points.shape[0]
         Rt = torch.zeros(b, 4, 4).to(points.device)
         t = translation if translation is not None else self.translation.expand(b, 3)
         R = rotation if rotation is not None else self.rotation.expand(b, 3, 3)
@@ -209,6 +211,9 @@ class Camera(torch.nn.Module):  # NOTE: fixed focal/principal, optimized rot/tra
             if points.shape[-1] == 3
             else points
         )  # [B, V, 4]
+        # v[..., 0] = -1.0 * v[..., 0]
+        # v[..., 1] = -1.0 * v[..., 1]
+        # v[..., 2] = -1.0 * v[..., 2]
         xf = torch.einsum("bvi,bij->bvj", v, inv_Rt)
         ndc = torch.einsum("bvi,bij->bvj", xf, proj)
         return ndc
