@@ -35,6 +35,10 @@ class Monads(torch.nn.ModuleDict):
     ):
         super().__init__()
         self.mi = Mi()
+        if (
+            monads is None
+        ):  # NOTE: corner case, make sure container predicates below dont fail
+            monads = {}
         errors = [k for k in kwargs if k not in monads and not k.startswith("_mi_")]
         if errors:
             log.error(
@@ -88,7 +92,11 @@ class Monads(torch.nn.ModuleDict):
     ) -> typing.Dict[str, torch.Tensor]:
         for key, out, kwargs in self.execs:
             if kwargs:
-                tensors[out] = self[key](**toolz.valmap(lambda v: tensors[v], kwargs))
+                tensors[out] = self[key](
+                    **toolz.valmap(
+                        lambda v: tensors[v] if v is not None else None, kwargs
+                    )
+                )
             else:
                 tensors[out] = self[key](tensors)
         return tensors
