@@ -111,7 +111,7 @@ def mesh3d(
         path,
         rr.Mesh3D(
             vertex_positions=vertices[0],
-            indices=faces[0],
+            triangle_indices=faces[0],
             vertex_colors=np.tile(
                 np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
             ),  # TODO: memoize
@@ -143,7 +143,7 @@ class Mesh(Callable):
             self.path,
             rr.Mesh3D(
                 vertex_positions=vertices[0],
-                indices=faces[0],
+                triangle_indices=faces[0],
                 vertex_colors=np.tile(
                     np.array(self.color.get_rgb() + (1,)), (vertices.shape[1], 1)
                 ),  # TODO: memoize
