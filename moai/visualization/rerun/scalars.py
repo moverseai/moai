@@ -48,8 +48,12 @@ def optimization_losses(
     path: str,
     keys: typing.Union[str, typing.Sequence[str]],
     optimization_step: typing.Optional[int] = None,
+    lightning_step: typing.Optional[int] = None,
 ) -> None:
-    rr.set_time_sequence("optimization_step", optimization_step)
+    if lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    if optimization_step is not None:
+        rr.set_time_sequence("optimization_step", optimization_step)
     for i, key in enumerate(keys):
         if key == "total":
             value = tensors.get(C._MOAI_LOSSES_TOTAL_)

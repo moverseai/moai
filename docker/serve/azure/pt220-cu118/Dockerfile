@@ -1,4 +1,7 @@
-FROM ghcr.io/moverseai/moai/serve:v1.1.3-pt220-cu118
+ARG VERSION
+FROM ghcr.io/moverseai/moai/serve:${VERSION}
+
+# FROM ghcr.io/moverseai/moai/serve:v1.1.3-pt220-cu118
 
 USER root
 

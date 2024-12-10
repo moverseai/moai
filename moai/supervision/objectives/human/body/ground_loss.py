@@ -46,6 +46,7 @@ class GroundLoss(torch.nn.Module):
         in_alpha2: float = 0.15,
         hd_mesh_path: str = "smpl",
         use_pull: bool = False,
+        ground_plane_height: float = 0.0,
     ):
         super(GroundLoss, self).__init__()
         self.a1 = out_alpha1
@@ -54,6 +55,7 @@ class GroundLoss(torch.nn.Module):
         self.b2 = in_alpha2
         hd_operator_path = hd_mesh_path
         self.use_pull = use_pull
+        self.ground_plane_height = ground_plane_height
         # hd_operator = np.load(hd_operator_path)
         # self.hd_operator = torch.sparse.FloatTensor(
         #     torch.tensor(hd_operator["index_row_col"]),
@@ -113,7 +115,9 @@ class GroundLoss(torch.nn.Module):
         """
         # get vertices under the ground plane
         # vertices_hd = self._hdfy_mesh(vertices)
-        ground_plane_height = 0.0  # obtained by visualization on the presented pose
+        ground_plane_height = (
+            self.ground_plane_height
+        )  # obtained by visualization on the presented pose
         # vertex_height = (
         #     vertices_hd[:, :, 1]
         #     - ground_plane_height  # assuming vertices are aligned along y axis

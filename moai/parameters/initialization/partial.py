@@ -88,7 +88,7 @@ class Partial(object):
                     log.error(
                         f"Checkpoint file `[ul cyan]{ckpt}[/]` does not exist :exclamation:"
                     )
-                if strict := select(init_config, "strict") is None:
+                if (strict := select(init_config, "strict")) is None:
                     strict = True
                 log.info(
                     f"Initializing [italic cyan]{component_name}[/] "

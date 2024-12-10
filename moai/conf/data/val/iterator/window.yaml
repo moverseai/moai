@@ -1,0 +1,6 @@
+# @package data.val.iterator
+
+_target_: moai.data.iterator.Windowed
+window_size: ???
+stride: 1
+internal_stride: 1

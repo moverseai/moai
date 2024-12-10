@@ -141,6 +141,11 @@ class StreamingOptimizerServer(ModelServer):
         except Exception as e:
             log.error(f"An error has occured while loading the trainer:\n{e}")
 
+        # NOTE:
+        # remove run & rich callbacks as they are causing issues
+        # self.trainer.callbacks.pop(0)
+        # self.trainer.callbacks.pop(0)
+
     # @staticmethod
     # def stack_based_on_dim(arr):
     #     """
@@ -246,6 +251,29 @@ class StreamingOptimizerServer(ModelServer):
                         unit="value",
                         metric_type=MetricTypes.GAUGE,
                     )
+            # call on train batch end callbacks
+            # call._call_callback_hooks(
+            #     self.trainer,
+            #     "on_train_batch_end",
+            #     batch=batch,
+            #     batch_idx=batch_idx,
+            #     outputs=batch,
+            # )
+            call._call_callback_hooks(
+                self.trainer,
+                "on_train_batch_end",
+                batch={
+                    k: v
+                    for k, v in batch.items()
+                    if k not in {C._MOAI_LOSSES_, C._MOAI_METRICS_}
+                },
+                batch_idx=batch_idx,
+                outputs={
+                    k: v
+                    for k, v in batch.items()
+                    if k not in {C._MOAI_LOSSES_, C._MOAI_METRICS_}
+                },
+            )
 
         # call on epoch end callbacks
         call._call_callback_hooks(self.trainer, "on_train_epoch_end")

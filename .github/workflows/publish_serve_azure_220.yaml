@@ -3,6 +3,10 @@ name: Build and publish torchserve 2.2.0 azure image
 on:
   workflow_dispatch:
     inputs:
+      base_version:
+        description: 'Version of the base moai image to build on'
+        required: true
+        default: 'v1.0.0'
       version:
         description: 'Version of the azure image to build and publish'
         required: true
@@ -48,6 +52,8 @@ jobs:
           context: .
           file: docker/serve/azure/pt220-cu118/Dockerfile
           push: true
+          build-args: |
+            VERSION=${{ github.event.inputs.base_version }}
           tags: ${{ steps.meta.outputs.tags }}
           # labels: ${{ steps.meta.outputs.labels }}
           labels: | #  strip down labels: https://stackoverflow.com/questions/76472989/how-to-access-a-subset-of-keys-among-the-labels-in-the-json-object-returned-by-d
