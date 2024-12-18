@@ -17,7 +17,7 @@ import trimesh
 
 log = logging.getLogger(__name__)
 
-__all__ = ["Mesh", "mesh3d", "multiframe_mesh3d"]
+__all__ = ["Mesh", "mesh3d", "multiframe_mesh3d", "triangle_mesh3d"]
 
 
 def multiframe_mesh3d(
@@ -116,6 +116,36 @@ def mesh3d(
                 np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
             ),  # TODO: memoize
             vertex_normals=np.array(o3d_mesh.vertex_normals),
+        ),
+    )
+
+
+def triangle_mesh3d(
+    vertices: np.ndarray,
+    normals: np.ndarray,
+    faces: np.ndarray,
+    path: str,
+    color: str,
+    optimization_step: typing.Optional[int] = None,
+    lightning_step: typing.Optional[int] = None,
+    iteration: typing.Optional[int] = None,
+) -> None:
+    if optimization_step is not None:
+        rr.set_time_sequence("optimization_step", optimization_step)
+    elif lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    elif iteration is not None:
+        rr.set_time_sequence("iteration", iteration)
+    color = colour.Color(color)
+    rr.log(
+        path,
+        rr.Mesh3D(
+            vertex_positions=vertices[0],
+            triangle_indices=faces[0],
+            vertex_colors=np.tile(
+                np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
+            ),  # TODO: memoize
+            vertex_normals=np.array(normals[0]),
         ),
     )
 

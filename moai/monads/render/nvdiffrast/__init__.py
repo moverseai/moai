@@ -3,7 +3,7 @@ import logging
 log = logging.getLogger(__name__)
 
 CONTEXT = None
-
+# TODO: move to engine.module and add log level
 try:
     import nvdiffrast.torch as dr
 

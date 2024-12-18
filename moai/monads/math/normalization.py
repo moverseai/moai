@@ -18,8 +18,8 @@ class Znorm(torch.nn.Module):
 class MinMaxNorm(torch.nn.Module):
     def __init__(self, min_value: float = 0.0, max_value: float = 1.0):
         super(MinMaxNorm, self).__init__()
-        self.register_buffer("min", torch.scalar_tensor(self.min).float())
-        self.register_buffer("max", torch.scalar_tensor(self.max).float())
+        self.register_buffer("min", torch.scalar_tensor(min_value).float())
+        self.register_buffer("max", torch.scalar_tensor(max_value).float())
         self.register_buffer("range", torch.scalar_tensor(self.max - self.min).float())
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

@@ -1,0 +1,8 @@
+# @package model.components.tcnn_encoding_fully_fused_mlp
+
+_target_: moai.components.tcnn.modules.EncodingFullyFusedMLP
+input_dims: ???
+output_dims: ???
+encoding_config: ???
+network_config: ???
+seed: ${oc.select:engine.modules.manual_seed.seed,1337}

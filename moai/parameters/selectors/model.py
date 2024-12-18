@@ -18,9 +18,9 @@ class ModelParameterSelector(
         parameters: typing.Sequence[str] = [],
         force_grad: bool = True,
     ):
-        self.modules = modules
-        self.monads = monads
-        self.parameters = parameters
+        self.modules = modules or []
+        self.monads = monads or []
+        self.parameters = parameters or []
         self.force_grad = force_grad
 
     def __call__(self, moai_model: torch.nn.Module) -> typing.List[torch.Tensor]:

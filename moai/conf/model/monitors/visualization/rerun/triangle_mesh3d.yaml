@@ -1,0 +1,4 @@
+# @package model.monitors.triangle_mesh3d
+
+_target_: moai.visualization.rerun.mesh.triangle_mesh3d
+_partial_: true

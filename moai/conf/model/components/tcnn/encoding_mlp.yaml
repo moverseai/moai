@@ -1,0 +1,7 @@
+# @package model.components.tcnn_encoding_mlp
+
+_target_: moai.components.tcnn.modules.EncodingMLP
+input_dims: ???
+output_dims: ???
+encoding_config: ???
+seed: ${oc.select:engine.modules.manual_seed.seed,1337}

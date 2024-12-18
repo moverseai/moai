@@ -1,0 +1,4 @@
+# @package model.monads.antialias
+
+_target_: moai.monads.render.nvdiffrast.render.Antialias
+position_gradient_scale: 1.0

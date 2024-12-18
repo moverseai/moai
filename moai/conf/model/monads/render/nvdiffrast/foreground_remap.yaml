@@ -1,0 +1,3 @@
+# @package model.monads.foreground_remap
+
+_target_: moai.monads.render.nvdiffrast.render.ForegroundRemap

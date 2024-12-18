@@ -1,0 +1,5 @@
+# @package model.monads.minmax_normalization
+
+_target_: moai.monads.math.MinMaxNorm
+min_value: ???
+max_value: ???
