@@ -6,3 +6,4 @@ out_alpha2: 0.15 # pull related
 in_alpha1: 10 # push related
 in_alpha2: 0.15 # push related
 use_pull: false
+ground_plane_height: 0.0

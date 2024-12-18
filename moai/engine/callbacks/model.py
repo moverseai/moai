@@ -16,7 +16,11 @@ class ModelCallbacks(UserList):
     ):
         super().__init__(list)
         if model:
-            # deprecated self.data.extend((c for c in model.children() if isinstance(c, Callback)))
+            if hasattr(model, "named_flows"):  # check for monads in the model
+                for flow in model.named_flows.values():
+                    for module in flow.values():
+                        if isinstance(module, Callback):
+                            self.data.append(module)
 
             if hasattr(model, "named_components"):
                 for component in model.named_components.values():
