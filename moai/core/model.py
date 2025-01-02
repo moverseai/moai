@@ -203,10 +203,10 @@ class MoaiLightningModule(L.LightningModule):
             init(self)
 
     def batch_initializers(
-        self,
+        self, batch, batch_idx
     ) -> None:  # call the initializers at the beginning of each batch
         for init in self.named_initializers[C._BATCH_]:
-            init(self)
+            init(self, batch, batch_idx)
 
     def epoch_initializers(
         self,

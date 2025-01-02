@@ -17,7 +17,7 @@ class ZeroFlowParams(typing.Callable[[torch.nn.Module], None]):
     ):
         self.keys = keys
 
-    def __call__(self, module: torch.nn.Module) -> None:
+    def __call__(self, module: torch.nn.Module, batch, batch_idx) -> None:
         zeroed_keys = []
         for key in self.keys:
             try:

@@ -77,12 +77,6 @@ class Windowed(torch.utils.data.Dataset):
         )
 
     def __len__(self) -> int:
-        # size = 0
-        # for i in range(0, len(self.dataset), self.stride):
-        #     if i + self.window_size > len(self.dataset):
-        #         break
-        #     size += 1
-        # return size
         size = 0
         for index in range(len(self.dataset)):
             last_frame_position = (
