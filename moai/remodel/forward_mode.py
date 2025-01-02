@@ -73,7 +73,7 @@ class ForwardMode(typing.Callable[[torch.nn.Module], None]):
 
     def __init__(
         self,
-        modules: typing.Mapping[str, str] = None,
+        modules: typing.Mapping[str, str] = None,  # TODO: rename to `components`
         monads: typing.Mapping[str, str] = None,
     ):
         self.modules = modules or {}
