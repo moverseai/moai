@@ -44,7 +44,7 @@ class RunCallback(L.Callback):
     ) -> None:
         """Called when the train batch begins."""
         module.optimization_step = 0
-        module.batch_initializers()  # call initialize per batch
+        module.batch_initializers(batch, batch_idx)  # call initialize per batch
         if module.process[C._FIT_].get(C._REFRESH_OPTIMIZERS_, False):
             module.reset_optimization()
             trainer.strategy.setup_optimizers(trainer)
@@ -58,7 +58,7 @@ class RunCallback(L.Callback):
         batch_idx: int,
         dataloader_idx: int = 0,
     ) -> None:
-        module.batch_initializers()
+        module.batch_initializers(batch, batch_idx)
 
     @torch.no_grad
     def on_test_batch_start(
@@ -69,7 +69,7 @@ class RunCallback(L.Callback):
         batch_idx: int,
         dataloader_idx: int = 0,
     ) -> None:
-        module.batch_initializers()
+        module.batch_initializers(batch, batch_idx)
 
     @torch.no_grad
     def on_train_epoch_start(
