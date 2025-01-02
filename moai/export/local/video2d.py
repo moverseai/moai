@@ -34,7 +34,9 @@ def _create_video_writer(path: str, overwrite: bool, fps: float = 60.0):
         #     # 'hwaccel': 'cuvid',
         #     # 'c:v': 'h264_cuvid',
         # },
+        # NOTE: forced lossless coding params and x265
         sp_kwargs={"c:v": "libx265", "qp": "0", "x265-params": "lossless=1"},
+        # TODO: make such  profiles selectable, e.g. lossless gray8, lossy rgb8, etc.
     )
     _internal_video_id_ += 1
     return vid
