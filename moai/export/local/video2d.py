@@ -1,16 +1,13 @@
 import functools
 import logging
-import os
 import typing
 from collections import defaultdict
-from collections.abc import Callable
 
 import ffmpegio
 import numpy as np
 import torch
 from pytorch_lightning.callbacks import Callback
 
-import moai.utils.color.colorize as mic
 from moai.utils.arguments import ensure_choices, ensure_path
 
 __all__ = ["Video2d"]
@@ -83,11 +80,15 @@ class MultiviewVideo2d(
     def __call__(
         self,
         images: np.ndarray,  # TODO: add fps
+        fps: np.ndarray,
         batch_idx: typing.Optional[int] = None,
     ) -> None:
         if batch_idx == 0:
             self.video_writer_lambda = functools.partial(
-                _create_video_writer, path=self.path, overwrite=self.overwrite
+                _create_video_writer,
+                path=self.path,
+                overwrite=self.overwrite,
+                fps=float(np.ceil(fps.squeeze())),
             )
             self.video_writers = defaultdict(self.video_writer_lambda)
         for i, color in enumerate(images):
