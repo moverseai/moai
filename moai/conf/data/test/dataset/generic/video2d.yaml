@@ -1,0 +1,4 @@
+# @package data.test.iterator.datasets.video2d
+
+_target_: moai.data.datasets.generic.video2d.Video2d
+path: ???
