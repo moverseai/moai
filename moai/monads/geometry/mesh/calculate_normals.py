@@ -16,14 +16,15 @@ class MeshVertexNormals(torch.nn.Module):
         vertices_faces = vertices[:, faces]
 
         faces_normals = torch.cross(
-            vertices_faces[..., 1] - vertices_faces[..., 0],
-            vertices_faces[..., 2] - vertices_faces[..., 0],
+            vertices_faces[..., 1, :] - vertices_faces[..., 0, :],
+            vertices_faces[..., 2, :] - vertices_faces[..., 1, :],
             dim=-1,
         )
+        # faces_normals = torch.nn.functional.normalize(faces_normals, dim=-1, eps=1e-8)
 
-        verts_normals.index_add_(-2, faces[..., 0], faces_normals)
-        verts_normals.index_add_(-2, faces[..., 1], faces_normals)
-        verts_normals.index_add_(-2, faces[..., 2], faces_normals)
+        verts_normals.index_add_(1, faces[..., 0], faces_normals)
+        verts_normals.index_add_(1, faces[..., 1], faces_normals)
+        verts_normals.index_add_(1, faces[..., 2], faces_normals)
 
         # verts_normals.index_add_(-2, faces[..., 0], faces_normals)
 
@@ -56,11 +57,11 @@ class MeshFaceNormals(torch.nn.Module):
 
         faces_normals = torch.cross(
             vertices_faces[..., 1] - vertices_faces[..., 0],
-            vertices_faces[..., 2] - vertices_faces[..., 0],
+            vertices_faces[..., 2] - vertices_faces[..., 1],
             dim=-1,
         )
         face_areas = faces_normals * 0.5
         return {
-            "normals": torch.nn.functional.normalize(verts_normals, eps=1e-6, dim=-1),
+            "normals": torch.nn.functional.normalize(faces_normals, eps=1e-6, dim=-1),
             "areas": face_areas,
         }

@@ -1,0 +1,3 @@
+# @package engine.modules.ffmpeg
+
+_target_: moai.engine.modules.ffmpeg.FFMPEG

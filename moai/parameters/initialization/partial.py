@@ -90,6 +90,10 @@ class Partial(object):
                     )
                 if (strict := select(init_config, "strict")) is None:
                     strict = True
+                if (weights_only := select(init_config, "weights_only")) is None:
+                    weights_only = False
+                if (mmap := select(init_config, "mmap")) is None:
+                    mmap = False
                 log.info(
                     f"Initializing [italic cyan]{component_name}[/] "
                     + (
@@ -99,8 +103,13 @@ class Partial(object):
                     )
                     + f" from [ul]{ckpt}[/]."
                 )
-                data = torch.load(ckpt, map_location=lambda s, l: s)
-                state_dict = data["state_dict"]
+                data = torch.load(
+                    ckpt,
+                    map_location=lambda s, l: s,
+                    weights_only=weights_only,
+                    mmap=mmap,
+                )
+                state_dict = data["state_dict"] if "state_dict" in data else data
                 selected_keys = []
                 for key in select_list(init_config, "keys"):
                     pattern = __glob_to_re__(key)

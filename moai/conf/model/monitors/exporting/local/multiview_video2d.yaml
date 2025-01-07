@@ -1,0 +1,6 @@
+# @package model.monitors.multiview_video2d
+
+_target_: moai.export.local.video2d.MultiviewVideo2d
+path: ???
+extension: mp4
+overwrite: False
