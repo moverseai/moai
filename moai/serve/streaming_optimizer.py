@@ -87,14 +87,25 @@ class StreamingOptimizerServer(ModelServer):
             y = []
             for i in x:
                 if isinstance(i, torch.Tensor):
-                    y.append(i.to(self.dev))
+                    if i.dtype == torch.float32:
+                        y.append(i.to(self.dev, dtype=self.model.dtype))
+                    else:
+                        y.append(i.to(self.dev))
                 else:
                     pass
             return y
         elif isinstance(x, np.ndarray):
-            return torch.from_numpy(x).to(self.device)
+            if x.dtype == np.float32:
+                return torch.from_numpy(x).to(
+                    device=self.device, dtype=self.model.dtype
+                )
+            else:
+                return torch.from_numpy(x).to(self.device)
         elif isinstance(x, torch.Tensor):
-            return x.to(self.device)
+            if x.dtype == torch.float32:
+                return x.to(device=self.device, dtype=self.model.dtype)
+            else:
+                return x.to(self.device)
 
     def _get_overrides(self):
         overrides = []
@@ -116,6 +127,8 @@ class StreamingOptimizerServer(ModelServer):
         main_conf = context.manifest["model"]["modelName"].replace("_", "/")
         # set model to training true before calling the training step
         self.model.train()
+        # TODO: model ignores the precision set in the config
+        self.model.double()
         try:
             with initialize(
                 config_path="conf/" + "/".join(main_conf.split("/")[0:-1]),
@@ -174,6 +187,7 @@ class StreamingOptimizerServer(ModelServer):
         log.info("Streaming optimization handler called.")
         result = defaultdict(list)
         self.optimization_step = 0
+        self.trainer.serve_context = context
         self.context = context
         start_time = time.time()
 
@@ -189,6 +203,7 @@ class StreamingOptimizerServer(ModelServer):
         td = self.preprocess(data)
         # get the dataloader for returned dict
         dataloader = td["dataloader"]
+        self.trainer.dataloader_length = len(dataloader)
         # iterate over the dataloader
         for batch_idx, batch in enumerate(torch.utils.data.DataLoader(dataloader)):
             self.model.optimization_step = 0
@@ -209,14 +224,14 @@ class StreamingOptimizerServer(ModelServer):
             # batch[key] = (
             #     f"Running batch_idx {batch_idx} with completion percentage {float((batch_idx + 1)/len(dataloader) * 100):.2f}%."
             # )
-            log.info(batch[key])
-            send_intermediate_predict_response(
-                batch,
-                self.context.request_ids,
-                "Intermediate response from the model.",
-                200,
-                self.context,
-            )
+            # log.info(batch[key])
+            # send_intermediate_predict_response(
+            #     batch,
+            #     self.context.request_ids,
+            #     "Intermediate response from the model.",
+            #     200,
+            #     self.context,
+            # )
             if self.keys:
                 for k in self.keys:
                     result[k].append(batch[k])
