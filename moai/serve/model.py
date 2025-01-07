@@ -137,6 +137,10 @@ class ModelServer(BaseHandler):
             log.error(f"An error has occured while loading the model:\n{e}")
         self.model = self.model.to(self.device)
         self.model.eval()
+        if hasattr(cfg, "archive") and hasattr(cfg.archive, "model_precision"):
+            if cfg.archive.model_precision == "double":
+                log.info("Setting model to double precision.")
+                self.model.double()
         self.initialized = True
         log.info(
             f"Model ({type(self.model.model if hasattr(self.model, 'model') else self.model)}) loaded successfully."

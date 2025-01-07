@@ -128,7 +128,7 @@ class StreamingOptimizerServer(ModelServer):
         # set model to training true before calling the training step
         self.model.train()
         # TODO: model ignores the precision set in the config
-        self.model.double()
+        # self.model.double()
         try:
             with initialize(
                 config_path="conf/" + "/".join(main_conf.split("/")[0:-1]),
@@ -187,6 +187,8 @@ class StreamingOptimizerServer(ModelServer):
         log.info("Streaming optimization handler called.")
         result = defaultdict(list)
         self.optimization_step = 0
+        if hasattr(self.trainer, "serve_context") and self.trainer.serve_context:
+            self.trainer.serve_context = None
         self.trainer.serve_context = context
         self.context = context
         start_time = time.time()
