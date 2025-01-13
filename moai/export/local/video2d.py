@@ -1,5 +1,6 @@
 import functools
 import logging
+import os
 import typing
 from collections import defaultdict
 
@@ -20,7 +21,7 @@ _internal_video_id_ = 0
 def _create_video_writer(path: str, overwrite: bool, fps: float = 60.0):
     global _internal_video_id_
     vid = ffmpegio.open(
-        f"{path}/{_internal_video_id_}.mp4",
+        f"{path}/{_internal_video_id_}.mp4" if os.path.isdir(path) else path,
         "wv",
         fps,
         overwrite=overwrite,
@@ -57,7 +58,9 @@ class MultiviewVideo2d(
         extension: str = "mp4",
         overwrite: bool = False,
     ):
-        self.path = ensure_path(log, "output folder", path)
+        self.path = (
+            ensure_path(log, "output folder", path) if os.path.isdir(path) else path
+        )
         self.format = ensure_choices(
             log, "output format", extension, MultiviewVideo2d.__FORMATS__
         )
