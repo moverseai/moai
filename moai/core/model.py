@@ -401,13 +401,12 @@ class MoaiLightningModule(L.LightningModule):
                     C._FREQUENCY_, 1
                 )  # default to each batch end
                 assigners = []
-                if batch_idx == 0:  # get initializers only in the first batch
-                    for i, o in assign_params.items():
-                        if (
-                            i == C._FREQUENCY_
-                        ):  # NOTE: refactor this, keys should be not coupled like this
-                            continue
-                        assigners.append((i, _create_assigner(o)))
+                for i, o in assign_params.items():
+                    if (
+                        i == C._FREQUENCY_
+                    ):  # NOTE: refactor this, keys should be not coupled like this
+                        continue
+                    assigners.append((i, _create_assigner(o)))
                 with torch.no_grad():  # use torch no grad as most params are leaf tensors and assign is an inplace operation
                     if frequency == 0:  # if frequency is 0 call only once
                         if batch_idx == 0:
