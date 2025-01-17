@@ -18,10 +18,21 @@ log = logging.getLogger(__name__)
 _internal_video_id_ = 0
 
 
-def _create_video_writer(path: str, overwrite: bool, fps: float = 60.0):
+def _create_video_writer(
+    path: str, overwrite: bool, prefix: str, suffix: str, lossy: bool, fps: float = 60.0
+):
     global _internal_video_id_
+    sp_kwargs = (
+        {"c:v": "libx264"}
+        if lossy
+        else {"c:v": "libx265", "qp": "0", "x265-params": "lossless=1"}
+    )
     vid = ffmpegio.open(
-        f"{path}/{_internal_video_id_}.mp4" if os.path.isdir(path) else path,
+        (
+            os.path.join(path, f"{prefix}{_internal_video_id_}{suffix}.mp4")
+            if os.path.isdir(path)
+            else path
+        ),
         "wv",
         fps,
         overwrite=overwrite,
@@ -36,7 +47,8 @@ def _create_video_writer(path: str, overwrite: bool, fps: float = 60.0):
         #     # 'c:v': 'h264_cuvid',
         # },
         # NOTE: forced lossless coding params and x265
-        sp_kwargs={"c:v": "libx265", "qp": "0", "x265-params": "lossless=1"},
+        # sp_kwargs={"c:v": "libx265", "qp": "0", "x265-params": "lossless=1"},
+        sp_kwargs=sp_kwargs,
         # TODO: make such  profiles selectable, e.g. lossless gray8, lossy rgb8, etc.
     )
     _internal_video_id_ += 1
@@ -57,6 +69,9 @@ class MultiviewVideo2d(
         path: str,
         extension: str = "mp4",
         overwrite: bool = False,
+        prefix: str = "",
+        suffix: str = "",
+        lossy: bool = False,
     ):
         self.path = (
             ensure_path(log, "output folder", path) if os.path.isdir(path) else path
@@ -65,6 +80,9 @@ class MultiviewVideo2d(
             log, "output format", extension, MultiviewVideo2d.__FORMATS__
         )
         self.overwrite = overwrite
+        self.prefix = prefix
+        self.suffix = suffix
+        self.lossy = lossy
 
     def on_predict_epoch_end(self, *args):
         self.close()
@@ -93,6 +111,9 @@ class MultiviewVideo2d(
                 _create_video_writer,
                 path=self.path,
                 overwrite=self.overwrite,
+                prefix=self.prefix,
+                suffix=self.suffix,
+                lossy=self.lossy,
                 fps=float(np.ceil(fps.squeeze())),
             )
             self.video_writers = defaultdict(self.video_writer_lambda)

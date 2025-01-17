@@ -4,3 +4,6 @@ _target_: moai.export.local.video2d.MultiviewVideo2d
 path: ???
 extension: mp4
 overwrite: False
+prefix: ''
+suffix: ''
+lossy: false
