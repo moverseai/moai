@@ -1,0 +1,6 @@
+# @package model.monitors.mesh
+
+_target_: moai.export.local.mesh.Mesh
+path: ???
+extension: ply
+overwrite: false

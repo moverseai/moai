@@ -69,7 +69,7 @@ class Weighted(torch.nn.ModuleDict):
                 )
             objective_kwargs = mic._dict_of_lists_to_list_of_dicts(objective_kwargs)
             for j, params in enumerate(objective_kwargs):
-                if not (weight := toolz.get(C._WEIGHT_, params, default=None)):
+                if (weight := toolz.get(C._WEIGHT_, params, default=None)) is None:
                     log.warning(
                         f":warning: Objective [yellow bold]`{key}`[/] has no assigned weights, automatically reverting to a weight of one (1.0)."
                     )

@@ -1,4 +1,4 @@
-# @package data.test.iterator
+# @package data.train.iterator
 
 _target_: moai.data.iterator.SubsetZipped
 end: ???

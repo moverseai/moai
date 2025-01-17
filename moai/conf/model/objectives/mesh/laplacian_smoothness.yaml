@@ -1,0 +1,4 @@
+# @package model.objectives.laplacian_smoothness
+
+_target_: moai.supervision.objectives.mesh.laplacian.MeshLaplacianSmoothless
+method: "uniform" # one of ['uniform', 'cot', 'cotcurv']

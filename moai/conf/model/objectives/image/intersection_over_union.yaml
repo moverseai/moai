@@ -1,0 +1,4 @@
+# @package model.objectives.intersection_over_union
+
+_target_: moai.supervision.objectives.image.iou.IoU
+reduce: false

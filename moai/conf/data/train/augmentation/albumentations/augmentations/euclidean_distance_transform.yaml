@@ -1,0 +1,7 @@
+# @package data.train.iterator.augmentation.augmentations.euclidean_distance_transform
+
+_target_: moai.data.augmentation.albumentations.augmentations.edt.EDT
+scale_outer: 1.0
+scale_inner: 1.0
+symmetric: true
+inverse: true

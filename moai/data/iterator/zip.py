@@ -64,15 +64,20 @@ class Zipped(torch.utils.data.Dataset):
 class SubsetZipped(Zipped):
     def __init__(
         self,
-        length: int,
+        end: int,
         datasets: omegaconf.DictConfig,
+        start: typing.Optional[int] = None,
+        step: typing.Optional[int] = None,
         augmentation: omegaconf.DictConfig = None,
     ):
         super().__init__(datasets, augmentation)
-        self.length = length
+        self.start = start or 0
+        self.step = step or 1
+        self.end = end
+        self.indices = list(range(self.start, self.end, self.step))
 
     def __len__(self) -> int:
-        return min(self.length, len(self.dataset))
+        return min(len(self.indices), len(self.dataset))
 
     def __getitem__(self, index: int) -> typing.Dict[str, torch.Tensor]:
-        return self.dataset[index]
+        return self.dataset[self.indices[index]]

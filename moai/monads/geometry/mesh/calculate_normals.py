@@ -42,7 +42,10 @@ class MeshVertexNormals(torch.nn.Module):
         # )
         # verts_normals.index_add_(-2, faces[:, 2], faces_normals)
 
-        return torch.nn.functional.normalize(verts_normals, eps=1e-6, dim=-1)
+        return {
+            "vectors": torch.nn.functional.normalize(verts_normals, eps=1e-6, dim=-1),
+            "areas": torch.abs(torch.linalg.norm(faces_normals, ord=2, dim=-1) * 0.5),
+        }
 
 
 class MeshFaceNormals(torch.nn.Module):
@@ -51,7 +54,7 @@ class MeshFaceNormals(torch.nn.Module):
 
     def forward(self, vertices: torch.Tensor, faces: torch.Tensor) -> torch.Tensor:
         # NOTE: only tested w/ shared faces tensor
-        verts_normals = torch.zeros_like(vertices)
+        # verts_normals = torch.zeros_like(vertices)
         faces = faces.squeeze()
         vertices_faces = vertices[:, faces]
 
@@ -60,8 +63,8 @@ class MeshFaceNormals(torch.nn.Module):
             vertices_faces[..., 2] - vertices_faces[..., 1],
             dim=-1,
         )
-        face_areas = faces_normals * 0.5
+        face_areas = torch.linalg.norm(faces_normals, ord=2, dim=-1) * 0.5
         return {
             "normals": torch.nn.functional.normalize(faces_normals, eps=1e-6, dim=-1),
-            "areas": face_areas,
+            "areas": face_areas.abs(),
         }
