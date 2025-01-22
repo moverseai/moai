@@ -1,0 +1,7 @@
+# @package model.parameters.groups.model1
+
+_target_: moai.parameters.selectors.model.ModelParameterSelector
+modules: null # optional
+monads: null # optional
+parameters: null # optional
+force_grad: true

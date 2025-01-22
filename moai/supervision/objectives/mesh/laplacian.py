@@ -89,6 +89,7 @@ class MeshLaplacianSmoothless(torch.nn.Module):
         super().__init__()
         self.method = method
 
+    @torch.amp.custom_fwd(device_type="cuda", cast_inputs=torch.float32)
     def forward(
         self,
         vertices: torch.Tensor,  # [B, V, 3]
@@ -109,9 +110,9 @@ class MeshLaplacianSmoothless(torch.nn.Module):
             # We don't want to backprop through the computation of the Laplacian;
             # just treat it as a magic constant matrix that is used to transform
             # verts into normals
-            with torch.no_grad():
+            with torch.no_grad(), torch.amp.autocast(device_type="cuda", enabled=False):
                 if self.method == "uniform":
-                    L = laplacian(verts_packed, faces_packed)
+                    L = laplacian(verts_packed.float(), faces_packed)
                 elif self.method in ["cot", "cotcurv"]:
                     L, inv_areas = cot_laplacian(verts_packed, faces_packed)
                     if self.method == "cot":
