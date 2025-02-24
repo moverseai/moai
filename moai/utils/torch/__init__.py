@@ -6,6 +6,7 @@ import torch
 __all__ = [
     "get_submodule",
     "cross_product",
+    "inverse_sigmoid",
 ]
 
 
@@ -45,3 +46,7 @@ if (int(v[0]), int(v[1])) >= (1, 12):
     cross_product = torch.linalg.cross
 else:
     cross_product = torch.cross
+
+
+def inverse_sigmoid(x: torch.Tensor) -> torch.Tensor:
+    return torch.log(x / (1 - x))

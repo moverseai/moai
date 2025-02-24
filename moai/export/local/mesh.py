@@ -28,6 +28,7 @@ class Mesh(
         path: str,
         extension: str = "ply",
         overwrite: bool = False,
+        save_last: bool = False,
     ):
         self.path = (
             ensure_path(log, "output folder", path) if os.path.isdir(path) else path

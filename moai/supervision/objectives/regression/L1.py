@@ -35,7 +35,7 @@ class L1(torch.nn.Module):
         weights: torch.Tensor = None,  # float tensor
         mask: torch.Tensor = None,  # byte tensor
     ) -> torch.Tensor:
-        l1 = torch.abs(gt - pred)
+        l1 = torch.abs(gt - pred if gt is not None else pred)
         if weights is not None:
             l1 = l1 * weights
         if mask is not None:

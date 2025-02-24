@@ -30,3 +30,12 @@ class TorchMetric(torch.nn.Module):
 
 
 ClassificationTorchMetric = functools.partial(TorchMetric, module="classification")
+ImageTorchMetric = functools.partial(TorchMetric, module="image")
+
+
+class LPIPS(TorchMetric):
+    def __init__(self, type, **kwargs):
+        super().__init__(module="image", type=type, **kwargs)
+
+    def forward(self, preds: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        return self.torchmetric(img1=preds, img2=target)

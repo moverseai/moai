@@ -92,8 +92,12 @@ __MOAI_GRAMMAR__ = """
         | "asin" "(" expr ")"               -> asin
         | "tan" "(" name ")"                -> tan
         | "tan" "(" expr ")"                -> tan
+        | "tanh" "(" name ")"               -> tanh
+        | "tanh" "(" expr ")"               -> tanh
         | "atan" "(" name ")"               -> atan
         | "atan" "(" expr ")"               -> atan
+        | "sqrt" "(" name ")"               -> sqrt
+        | "sqrt" "(" expr ")"               -> sqrt
         | "deg" "(" name ")"                -> rad2deg
         | "deg" "(" expr ")"                -> rad2deg
         | "rad" "(" name ")"                -> deg2rad
@@ -108,6 +112,7 @@ __MOAI_GRAMMAR__ = """
         | "transpose" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")"  -> transpose
         | "flatten" "(" name "," SIGNED_INT ["," SIGNED_INT] ")"  -> flatten
         | "repeat_interleave" "(" name "," SIGNED_INT "," SIGNED_INT ")" -> repeat
+        | "roll" "(" name "," SIGNED_INT "," SIGNED_INT ")" -> roll
         | "zeros" "(" name ")"              -> zeros_like
         | "ones" "(" name ")"               -> ones_like
         | "rand" "(" name ")"               -> rand_like

@@ -6,3 +6,7 @@ shuffle: false
 num_workers: ${oc.select:experiment.workers,0}
 pin_memory: false
 drop_last: false
+prefetch_factor: 0
+persistent_workers: false
+pin_memory_device: ""
+# in_order: true

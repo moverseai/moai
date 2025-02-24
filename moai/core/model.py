@@ -177,7 +177,7 @@ class MoaiLightningModule(L.LightningModule):
             hyu.instantiate(remodel)(self)
 
     def reset_optimization(self) -> None:
-        ## Optimizers
+        ## Optimizers #TODO: used Constants keys
         for k, v in self.optimization_config["_optimizers_collection_"].items():
             groups = [
                 self.optimization_config["_groups_"][g]
@@ -185,7 +185,16 @@ class MoaiLightningModule(L.LightningModule):
             ]
             optimizer = self.optimization_config["_optimizers_"][get(v, C._TYPE_)]
             config = OmegaConf.merge(optimizer, get_dict(v, C._PARAMS_))
-            selected_params = list(hyu.instantiate(g)(self) for g in groups)
+            # selected_params = list(hyu.instantiate(g)(self) for g in groups)
+            selected_params = []
+            for g in groups:
+                p = hyu.instantiate(g)(self)
+                if isinstance(p, dict):
+                    selected_params.append(p)
+                elif isinstance(p, list):  # NOTE: assumes dict inside
+                    selected_params.extend(p)
+                else:
+                    log.warning(f"Incompatible parameter group selection in `{k}`.")
             self.named_optimizers[k] = hyu.instantiate(config, selected_params)
         ## Schedulers
         for k, v in self.optimization_config["_schedulers_collection_"].items():

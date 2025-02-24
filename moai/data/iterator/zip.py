@@ -73,7 +73,7 @@ class SubsetZipped(Zipped):
         super().__init__(datasets, augmentation)
         self.start = start or 0
         self.step = step or 1
-        self.end = end
+        self.end = min(end, len(self.dataset))
         self.indices = list(range(self.start, self.end, self.step))
 
     def __len__(self) -> int:

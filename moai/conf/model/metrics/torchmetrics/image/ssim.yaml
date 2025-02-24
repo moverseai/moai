@@ -1,0 +1,11 @@
+# @package model.metrics.structural_similarity_index_measure
+
+_target_: moai.validation.torchmetric.ImageTorchMetric
+type: StructuralSimilarityIndexMeasure
+gaussian_kernel: true
+sigma: 1.5
+kernel_size: 11
+reduction: elementwise_mean # sum, none
+data_range: 1.0
+k1: 0.01
+k2: 0.03

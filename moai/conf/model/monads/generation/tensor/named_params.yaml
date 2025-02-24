@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.named_params
 
 _target_: moai.monads.generation.tensor.Parameters
 parameters: ???

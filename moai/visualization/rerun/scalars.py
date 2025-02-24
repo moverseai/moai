@@ -47,6 +47,7 @@ def optimization_losses(
     tensors: typing.Dict[str, torch.Tensor],
     path: str,
     keys: typing.Union[str, typing.Sequence[str]],
+    mode: str = "raw",
     optimization_step: typing.Optional[int] = None,
     lightning_step: typing.Optional[int] = None,
 ) -> None:
@@ -62,7 +63,7 @@ def optimization_losses(
         if key == "total":
             value = tensors.get(C._MOAI_LOSSES_TOTAL_)
         else:
-            value = tensors.get(f"{C._MOAI_LOSSES_RAW_}.{key}")
+            value = tensors.get(f"{C._MOAI_LOSSES_}.{mode}.{key}")
         if value is not None:
             keypath = f"{path}/{key}"
             # if optimization_step == 1:

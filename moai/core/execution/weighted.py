@@ -65,7 +65,7 @@ class Weighted(torch.nn.ModuleDict):
                 - set([C._OUT_, C._WEIGHT_, C._REDUCTION_])
             ):
                 log.error(
-                    f":warning: The parameters [bold yellow strike] \[{extra_params}\] [/] are not part of the `{key}` objective signature."
+                    f":warning: The parameters [bold yellow strike] \[{extra_params}\] [/] are not part of the `{key}` objective signature ({list(sig.parameters.keys())})."
                 )
             objective_kwargs = mic._dict_of_lists_to_list_of_dicts(objective_kwargs)
             for j, params in enumerate(objective_kwargs):

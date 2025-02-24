@@ -45,6 +45,7 @@ class MeshVertexNormals(torch.nn.Module):
         return {
             "vectors": torch.nn.functional.normalize(verts_normals, eps=1e-6, dim=-1),
             "areas": torch.abs(torch.linalg.norm(faces_normals, ord=2, dim=-1) * 0.5),
+            # "areas": torch.abs(torch.linalg.norm(verts_normals, ord=2, dim=-1) * 0.5),
         }
 
 

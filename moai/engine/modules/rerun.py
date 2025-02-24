@@ -1,5 +1,6 @@
 import logging
 import typing
+from uuid import uuid4
 
 import colour
 import numpy as np
@@ -52,6 +53,7 @@ class Rerun:
         self,
         name: str,
         export: typing.Optional[typing.Union[bool, str]] = None,
+        recording_id: typing.Optional[str] = None,
         annotations: typing.Mapping[str, typing.Any] = None,
         world_coordinates: str = "RUF",
         add_floor: bool = True,
@@ -60,7 +62,7 @@ class Rerun:
         log: DictConfig = {},
     ) -> None:
         # NOTE: https://github.com/iterative/dvc/issues/9731
-        rr.init(name)
+        rr.init(name, recording_id=recording_id or uuid4())
         if export is not None:
             if isinstance(export, bool) and export:
                 export_path = "."

@@ -23,7 +23,9 @@ class ModelParameterSelector(
         self.parameters = parameters or []
         self.force_grad = force_grad
 
-    def __call__(self, moai_model: torch.nn.Module) -> typing.List[torch.Tensor]:
+    def __call__(
+        self, moai_model: torch.nn.Module
+    ) -> typing.Dict[str, typing.List[torch.Tensor]]:
         params = []
         for key in self.modules:
             m = get_submodule(moai_model.named_components, key)

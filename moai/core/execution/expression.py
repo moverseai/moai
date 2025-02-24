@@ -1,4 +1,5 @@
 import dataclasses
+import numbers
 import typing
 
 import benedict
@@ -74,21 +75,27 @@ class UnaryOperationTensors(torch.nn.Module):
 @dataclasses.dataclass(repr=False, unsafe_hash=True)
 class BinaryOperationScalar(torch.nn.Module):
     operation: str
-    lhs: str
-    rhs: typing.Union[float, int]
+    lhs: typing.Union[float, int, str]
+    rhs: typing.Union[float, int, str]
     index: int
 
     def __post_init__(self):
         super().__init__()
         self.op = getattr(torch, self.operation)
+        self.is_lhs_scalar = isinstance(self.lhs, numbers.Number)
 
     def __repr__(self):
         return f"{self.operation}:{self.lhs},{self.rhs}"
 
     def forward(self, td, tmp) -> None:
-        tmp[f"result{self.index}"] = self.op(
-            toolz.get_in(self.lhs.split("."), tmp), self.rhs
-        )
+        if self.is_lhs_scalar:
+            tmp[f"result{self.index}"] = self.op(
+                -toolz.get_in(self.rhs.split("."), tmp), -self.lhs
+            )
+        else:
+            tmp[f"result{self.index}"] = self.op(
+                toolz.get_in(self.lhs.split("."), tmp), self.rhs
+            )
 
 
 @dataclasses.dataclass(repr=False, unsafe_hash=True)
@@ -283,7 +290,7 @@ class TreeModule(torch.nn.Module, Transformer):
         if rhs is None:
             rhs = self.results.pop()
         if not isinstance(lhs, str):
-            m = BinaryOperationScalar(name, rhs, lhs, self.index)
+            m = BinaryOperationScalar(name, lhs, rhs, self.index)
         elif not isinstance(rhs, str):
             m = BinaryOperationScalar(name, lhs, rhs, self.index)
         else:
@@ -573,6 +580,10 @@ class TreeModule(torch.nn.Module, Transformer):
         pass
 
     @unary
+    def tanh(self, key):
+        pass
+
+    @unary
     def atan(self, key):
         pass
 
@@ -581,7 +592,7 @@ class TreeModule(torch.nn.Module, Transformer):
         pass
 
     @unary
-    def abs(self, key):
+    def sqrt(self, key):
         pass
 
     @unary
@@ -715,6 +726,10 @@ class TreeModule(torch.nn.Module, Transformer):
         key = self.extract(key)
         dims = list(map(int, dims))
         self._transform_operation("repeat_interleave", key, dims)
+
+    def roll(self, key, shift, dim):
+        key = self.extract(key)  # NOTE: only supports single shift/dim
+        self._transform_operation("roll", key, [int(shift), int(dim)])
 
     def unsqueeze(self, key, *dims):
         if not isinstance(key, str) or isinstance(key, Token):  # NOTE: is lark.Tree
