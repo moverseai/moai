@@ -10,9 +10,10 @@ from moai.monads.math.common import (
     PlusOne,
     Rad2Deg,
     Scale,
+    Sigmoid,
 )
 from moai.monads.math.dot import Dot
-from moai.monads.math.normalization import MinMaxNorm, Znorm
+from moai.monads.math.normalization import MinMaxNorm, Normalize, Znorm
 
 __all__ = [
     "Abs",
@@ -30,4 +31,6 @@ __all__ = [
     "Rad2Deg",
     "Deg2Rad",
     "Exponential",
+    "Normalization",
+    "Sigmoid",
 ]

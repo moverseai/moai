@@ -453,6 +453,8 @@ class MoaiLightningModule(L.LightningModule):
         if monitor := get_dict(
             self.monitor, f"{C._TEST_}.{C._DATASETS_}.{dataset_name}"
         ):
+            for step in toolz.get(C._FLOWS_, monitor, None) or []:
+                self.named_flows[step](batch)
             for metric in get_list(monitor, C._METRICS_):  # Metrics monitoring
                 self.named_metrics[metric](batch)
             for tensor_monitor in get_list(monitor, C._MONITORS_):
