@@ -1,0 +1,5 @@
+# @package model.objectives.structural_dissimilarity
+
+_target_: moai.supervision.objectives.image.ssim.StructuralDissimilarity
+window_size: 7
+dynamic_range: 1.0

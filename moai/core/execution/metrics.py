@@ -62,7 +62,7 @@ class Metrics(torch.nn.ModuleDict):
             extra_params = set(metric_kwargs.keys()) - set(sig_params) - set([C._OUT_])
             if extra_params:
                 log.error(
-                    f"The parameters [{extra_params}] are not part of the `{key}` metric signature."
+                    f"The parameters [{extra_params}] are not part of the `{key}` metric signature ({list(sig.parameters.keys())})."
                 )
             metric_kwargs = mic._dict_of_lists_to_list_of_dicts(metric_kwargs)
             for j, params in enumerate(metric_kwargs):

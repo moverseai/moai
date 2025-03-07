@@ -12,6 +12,7 @@ __all__ = [
     "Rad2Deg",
     "Deg2Rad",
     "Exponential",
+    "Sigmoid",
 ]
 
 
@@ -104,3 +105,11 @@ class Exponential(torch.nn.Module):
 
     def forward(self, tensor: torch.Tensor) -> torch.Tensor:
         return torch.exp(tensor)
+
+
+class Sigmoid(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return torch.sigmoid(tensor)

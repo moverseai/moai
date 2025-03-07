@@ -1,0 +1,4 @@
+# @package model.monads.quaternion_composition
+
+_target_: moai.monads.geometry.rotations.quaternion.QuaternionComposition
+normalize: false

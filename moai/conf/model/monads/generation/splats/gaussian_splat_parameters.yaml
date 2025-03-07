@@ -1,0 +1,9 @@
+# @package model.monads.gaussian_splat_parameters
+
+_target_: moai.monads.generation.splats.gaussian_parameters.GaussianSplattingParameters
+num_splats: ???
+num_sets: 1
+skip_positions: false
+scale: 1.0
+opacity: null
+sh_degree: 0

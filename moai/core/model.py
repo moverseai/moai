@@ -177,7 +177,7 @@ class MoaiLightningModule(L.LightningModule):
             hyu.instantiate(remodel)(self)
 
     def reset_optimization(self) -> None:
-        ## Optimizers
+        ## Optimizers #TODO: used Constants keys
         for k, v in self.optimization_config["_optimizers_collection_"].items():
             groups = [
                 self.optimization_config["_groups_"][g]
@@ -185,7 +185,16 @@ class MoaiLightningModule(L.LightningModule):
             ]
             optimizer = self.optimization_config["_optimizers_"][get(v, C._TYPE_)]
             config = OmegaConf.merge(optimizer, get_dict(v, C._PARAMS_))
-            selected_params = list(hyu.instantiate(g)(self) for g in groups)
+            # selected_params = list(hyu.instantiate(g)(self) for g in groups)
+            selected_params = []
+            for g in groups:
+                p = hyu.instantiate(g)(self)
+                if isinstance(p, dict):
+                    selected_params.append(p)
+                elif isinstance(p, list):  # NOTE: assumes dict inside
+                    selected_params.extend(p)
+                else:
+                    log.warning(f"Incompatible parameter group selection in `{k}`.")
             self.named_optimizers[k] = hyu.instantiate(config, selected_params)
         ## Schedulers
         for k, v in self.optimization_config["_schedulers_collection_"].items():
@@ -280,6 +289,7 @@ class MoaiLightningModule(L.LightningModule):
                     optimizer,
                 )
             call._call_strategy_hook(self.trainer, "backward", loss, optimizer)
+            # NOTE: https://pytorch.org/docs/main/generated/torch.optim.Optimizer.zero_grad.html#torch.optim.Optimizer.zero_grad
             self.optimization_step += 1
             if monitor := toolz.get_in(
                 [C._FIT_, C._OPTIMIZATION_STEP_, stage], self.monitor
@@ -444,6 +454,8 @@ class MoaiLightningModule(L.LightningModule):
         if monitor := get_dict(
             self.monitor, f"{C._TEST_}.{C._DATASETS_}.{dataset_name}"
         ):
+            for step in toolz.get(C._FLOWS_, monitor, None) or []:
+                self.named_flows[step](batch)
             for metric in get_list(monitor, C._METRICS_):  # Metrics monitoring
                 self.named_metrics[metric](batch)
             for tensor_monitor in get_list(monitor, C._MONITORS_):

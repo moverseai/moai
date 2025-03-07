@@ -1,0 +1,3 @@
+# @package model.monads.float32
+
+_target_: moai.monads.tensor.cast.Float32

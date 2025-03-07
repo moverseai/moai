@@ -1,0 +1,5 @@
+# @package model.objectives.long_and_thin_penalty
+
+_target_: moai.supervision.objectives.splats.scaling.LongAndThinPenalty
+max_scale: 0.008
+scale_ratio: 10.0

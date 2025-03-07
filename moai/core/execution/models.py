@@ -43,7 +43,7 @@ class Models(torch.nn.ModuleDict):
             extra_params = set(model_params.keys()) - set(sig_params) - set([C._OUT_])
             if extra_params:
                 log.error(
-                    f"The parameters [{extra_params}] are not part of the `{key}` model signature."
+                    f"The parameters [{extra_params}] are not part of the `{key}` model signature ({list(sig.parameters.keys())})."
                 )
             model_params = mic._dict_of_lists_to_list_of_dicts(model_params)
             for j, params in enumerate(model_params):

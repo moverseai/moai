@@ -31,3 +31,16 @@ class MinMaxNorm(torch.nn.Module):
         #     .mul(scale.view(b, 1, 1, 1))\
         #     .add(self.min)
         return torch.addcmul(self.min, x - expand_dims(mins, x), expand_dims(scale, x))
+
+
+class Normalize(torch.nn.Module):
+    def __init__(self, order: int = 2, dim: int = -1, epsilon: float = 1e-12):
+        super().__init__()
+        self.order = order
+        self.dim = dim
+        self.eps = epsilon
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return torch.nn.functional.normalize(
+            tensor, p=self.order, dim=self.dim, eps=self.eps
+        )

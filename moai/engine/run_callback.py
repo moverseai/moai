@@ -85,9 +85,14 @@ class RunCallback(L.Callback):
             if new_fit := popped.get(
                 C._SCHEDULE_FIT_, None
             ):  # deep merge from https://github.com/pytoolz/toolz/issues/281
-                module.process[C._FIT_] = merge_with(
-                    merge_with(toolz.merge), (module.process[C._FIT_], new_fit)
+                extras = toolz.valfilter(
+                    lambda x: not isinstance(x, dict), module.process[C._FIT_]
                 )
+                module.process[C._FIT_] = merge_with(
+                    merge_with(toolz.merge),
+                    (toolz.dissoc(module.process[C._FIT_], *extras.keys()), new_fit),
+                )
+                module.process[C._FIT_].update(extras)
             if new_val := popped.get(C._SCHEDULE_VAL_, None):
                 module.process[C._VAL_] = merge_with(
                     merge_with(toolz.merge), (module.process[C._VAL_], new_val)
@@ -149,7 +154,7 @@ class RunCallback(L.Callback):
                 # continue
                 # NOTE: should detach
                 for step in monitor_batch.get(C._FLOWS_, []):
-                    outputs = module.graphs[step](outputs)
+                    outputs = module.named_flows[step](outputs)
                 for monitor_metrics in monitor_batch.get(C._METRICS_, []):
                     module.named_metrics[monitor_metrics](outputs)
                 extras = {

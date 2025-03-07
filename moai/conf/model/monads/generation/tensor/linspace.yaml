@@ -1,0 +1,6 @@
+# @package model.monads.linspace
+
+_target_: moai.monads.generation.tensor.torch.LinSpace
+start: 0.0
+end: 1.0
+steps: ???

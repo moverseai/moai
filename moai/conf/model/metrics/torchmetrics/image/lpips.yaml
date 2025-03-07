@@ -1,0 +1,7 @@
+# @package model.metrics.learned_perceptual_image_patch_similarity
+
+_target_: moai.validation.torchmetric.LPIPS
+type: LearnedPerceptualImagePatchSimilarity
+net_type: alex # vgg, squeeze
+normalize: false
+reduction: mean # sum, none

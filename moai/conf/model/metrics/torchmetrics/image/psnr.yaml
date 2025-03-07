@@ -1,0 +1,8 @@
+# @package model.metrics.peak_signal_noise_ratio
+
+_target_: moai.validation.torchmetric.ImageTorchMetric
+type: PeakSignalNoiseRatio
+data_range: 1.0
+base: 10.0
+reduction: elementwise_mean # sum, none
+dim: null

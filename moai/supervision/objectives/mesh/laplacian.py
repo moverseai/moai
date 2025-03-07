@@ -83,6 +83,8 @@ and curvature flow", SIGGRAPH 1999.
 [2] Nealan et al, "Laplacian Mesh Optimization", Graphite 2006.
 """
 
+# TODO: see https://github.com/nmwsharp/robust-laplacians-py
+
 
 class MeshLaplacianSmoothless(torch.nn.Module):
     def __init__(self, method: str = "uniform"):

@@ -1,0 +1,4 @@
+# @package model.monitors.config
+
+_target_: moai.visualization.rerun.config.Config
+path: '/config'

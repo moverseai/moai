@@ -1,0 +1,9 @@
+# @package model.monads.gaussian_splat_rasterizer
+
+_target_: moai.monads.render.splats.rasterize_slothfulxtx.GaussianSplatRasterizer
+prefiltered: false
+debug: false
+scale_modifier: 1.0
+width: null
+height: null
+background_color: black

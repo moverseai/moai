@@ -1,4 +1,4 @@
-# @package model.monads._name_
+# @package model.monads.ones
 
 _target_: moai.monads.generation.tensor.Ones
 shape: ???

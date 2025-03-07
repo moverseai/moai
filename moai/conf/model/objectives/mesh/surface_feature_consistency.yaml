@@ -1,0 +1,4 @@
+# @package model.objectives.surface_feature_consistency
+
+_target_: moai.supervision.objectives.mesh.consistency.SurfaceFeatureConsistency
+order: 2

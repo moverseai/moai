@@ -1,0 +1,12 @@
+# @package model.parameters.groups.model_groups2
+
+_target_: moai.parameters.selectors.model_groups.ModelGroupParameterSelector
+groups: ???
+# each group (key-dict pair) contains
+  # modules: null # optional
+  # monads: null # optional
+  # parameters: null # optional
+  # force_grad: true
+# and extra optimizer relaed params
+  # lr: float
+  # etc.

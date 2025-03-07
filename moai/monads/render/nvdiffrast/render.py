@@ -5,12 +5,15 @@ import nvdiffrast.torch as dr
 import torch
 
 from moai.monads.render.nvdiffrast import CONTEXT
+from moai.utils.decorators.torch import ensure_contiguous
 
 __all__ = ["Rasterize", "AttributeInterpolation"]
 
 log = logging.getLogger(__name__)
 
 
+# NOTE: Check for hash caching: https://github.com/gmh14/tssplat/blob/main/renderers/mesh_rasterizer.py#L20
+# also rasterizes alpha/silhouette w/o attribute interpolation
 class Rasterize(torch.nn.Module):
     def __init__(
         self,
@@ -57,8 +60,10 @@ class RasterizedForeground(torch.nn.Module):
         triangle_ids: torch.Tensor,
         barycentric: typing.Optional[torch.Tensor] = None,
         normalized_depth: typing.Optional[torch.Tensor] = None,
+        attributes: typing.Optional[torch.Tensor] = None,
     ) -> typing.Dict[str, torch.Tensor]:
         nz_indices = torch.nonzero(triangle_ids[..., -1], as_tuple=True)
+        # NOTE: reconsider nonzero as it seems to be a blocking call
         out = {
             "indices": dict((str(i), t) for i, t in enumerate(nz_indices)),
             "triangles": {"id": triangle_ids[nz_indices]},
@@ -67,6 +72,8 @@ class RasterizedForeground(torch.nn.Module):
             out["triangles"]["barycentric"] = barycentric[nz_indices]
         if normalized_depth is not None:
             out["normalized_depth"] = normalized_depth[nz_indices]
+        if attributes is not None:
+            out["attributes"] = attributes[nz_indices]
         return out
 
 
@@ -99,6 +106,8 @@ class AttributeInterpolation(torch.nn.Module):
         indices: torch.Tensor,
         derivatives: typing.Optional[torch.Tensor] = None,
     ) -> typing.Dict[str, torch.Tensor]:
+        # if not attributes.is_contiguous(): #TODO: decorator?
+        #     attributes = attributes.contiguous()
         attributes, derivatives = dr.interpolate(
             attributes, rasterized, indices, derivatives, "all"
         )

@@ -1,3 +1,3 @@
-# @package model.monads._name_
+# @package model.monads.sigmoid
 
-_target_: torch.nn.Sigmoid
+_target_: moai.monads.math.Sigmoid

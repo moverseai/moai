@@ -17,6 +17,7 @@ __all__ = [
     "RandomLike",
     "OnesLike",
     "TemporalParams",
+    "LinSpace",
 ]
 
 
@@ -234,3 +235,17 @@ class TemporalParams(torch.nn.Module):
 
     def forward(self, void: torch.Tensor) -> torch.nn.parameter.Parameter:
         return dict(self.named_parameters())
+
+
+class LinSpace(torch.nn.Module):
+    def __init__(self, start: float, end: float, steps: int) -> None:
+        super().__init__()
+        self.register_buffer(
+            "spaced", torch.linspace(start, end, steps)[np.newaxis, :, np.newaxis]
+        )
+
+    def forward(
+        self,
+        tensor: torch.Tensor,
+    ) -> torch.Tensor:
+        return self.spaced.expand(tensor.shape[0], -1, 1)
