@@ -27,6 +27,7 @@ class Conv2dBlock(torch.nn.Module):
             out_channels=out_features,
             **convolution_params  # TODO: either merge kwargs here or in the factory method
         )
+        # https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html#disable-bias-for-convolutions-directly-followed-by-a-batch-norm
         self.activation = mia.make_activation(
             features=out_features, activation_type=activation_type, **activation_params
         )

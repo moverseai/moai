@@ -289,6 +289,7 @@ class MoaiLightningModule(L.LightningModule):
                     optimizer,
                 )
             call._call_strategy_hook(self.trainer, "backward", loss, optimizer)
+            # NOTE: https://pytorch.org/docs/main/generated/torch.optim.Optimizer.zero_grad.html#torch.optim.Optimizer.zero_grad
             self.optimization_step += 1
             if monitor := toolz.get_in(
                 [C._FIT_, C._OPTIMIZATION_STEP_, stage], self.monitor

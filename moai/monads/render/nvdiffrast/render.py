@@ -64,6 +64,7 @@ class RasterizedForeground(torch.nn.Module):
         attributes: typing.Optional[torch.Tensor] = None,
     ) -> typing.Dict[str, torch.Tensor]:
         nz_indices = torch.nonzero(triangle_ids[..., -1], as_tuple=True)
+        # NOTE: reconsider nonzero as it seems to be a blocking call
         out = {
             "indices": dict((str(i), t) for i, t in enumerate(nz_indices)),
             "triangles": {"id": triangle_ids[nz_indices]},
