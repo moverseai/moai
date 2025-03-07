@@ -143,7 +143,10 @@ class StreamingOptimizerServer(ModelServer):
                 log.info("Loading trainer...")
                 self.keys = toolz.get("keys", cfg.streaming_handlers, None)
                 OmegaConf.set_struct(cfg, False)
-                cfg.engine.runner.devices = [self.device.index]
+                if self.device.index is not None:
+                    cfg.engine.runner.devices = [self.device.index]
+                else:
+                    cfg.engine.runner.devices = "auto"
                 # TODO: check if device is set correctly
                 OmegaConf.set_struct(cfg, True)
                 self.trainer = hyu.instantiate(
