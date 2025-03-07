@@ -6,6 +6,8 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
+from moai.engine.modules.rerun import Rerun
+
 try:
     import rerun as rr
 except:
