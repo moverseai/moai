@@ -4,8 +4,6 @@ import typing
 import colour
 import numpy as np
 
-from moai.engine.modules.rerun import Rerun
-
 log = logging.getLogger(__name__)
 
 try:
@@ -32,6 +30,7 @@ def multiframe_multiview_posed_image(
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
     jpeg_quality: int = 40,
+    denormalize: bool = True,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
@@ -59,9 +58,13 @@ def multiframe_multiview_posed_image(
                 ),
             )
             # log image
-            image = np.ascontiguousarray(
-                images[fr][i].transpose(-2, -1, 0) * 255
-            ).astype(np.uint8)
+            image = (
+                np.ascontiguousarray(images[fr][i].transpose(-2, -1, 0) * 255).astype(
+                    np.uint8
+                )
+                if denormalize
+                else np.ascontiguousarray(images[fr][i].transpose(-2, -1, 0))
+            )
             rr.log(
                 path + f"/frame_{fr}/cam_{i}",
                 rr.Image(image).compress(jpeg_quality=jpeg_quality),
@@ -77,6 +80,7 @@ def multicam_posed_image(
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
     jpeg_quality: int = 40,
+    denormalize: bool = True,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
@@ -104,8 +108,12 @@ def multicam_posed_image(
         )
         # log image
         if images is not None:
-            image = np.ascontiguousarray(images[i].transpose(-2, -1, 0) * 255).astype(
-                np.uint8
+            image = (
+                np.ascontiguousarray(images[i].transpose(-2, -1, 0) * 255).astype(
+                    np.uint8
+                )
+                if denormalize
+                else np.ascontiguousarray(images[i].transpose(-2, -1, 0))
             )
             rr.log(
                 path + f"/cam_{i}",
