@@ -350,7 +350,13 @@ class AzureZipOutputHandler(AzureBlobOutputHandler):
         self.alias = new_alias
         # call parent class to upload zip file
         log.info(f"Calling parent class with alias: {self.alias}")
-        super().__call__(json, void)
+        try:
+            super().__call__(json, void)
+        except Exception as e:
+            log.error(f"An error has occured while uploading zip file:\n{e}")
+            log.info(f"Reverting back to original alias: {original_alias}")
+            self.alias = original_alias
+
         # revert back to original alias
         log.info(f"Reverting back to original alias: {original_alias}")
         self.alias = original_alias
