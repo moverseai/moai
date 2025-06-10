@@ -120,6 +120,7 @@ __MOAI_GRAMMAR__ = """
         | "unsq" "(" name "," SIGNED_INT ("," SIGNED_INT)* ")" -> unsqueeze
         | "sq" "(" name ("," SIGNED_INT)* ")" -> squeeze
         | "expand_batch_as" "(" name "," name ")" -> expand_batch_as
+        | "reshape_as" "(" name "," name ")" -> reshape_as
         | name "[" slicing ("," slicing)* "]" -> slicing
         | "(" expr ")"
     

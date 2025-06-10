@@ -1,0 +1,4 @@
+# @package model.monitors.multi_actor_mesh3d
+
+_target_: moai.visualization.rerun.mesh.multi_actor_mesh3d
+_partial_: true

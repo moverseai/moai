@@ -342,8 +342,8 @@ class AzureZipOutputHandler(AzureBlobOutputHandler):
                 new_alias.append(al)
         else:
             # update suffix of alias
+            new_alias = []
             for al in self.alias:
-                new_alias = []
                 # add suffix to al
                 al = f"{al}.{suffix}"  # TODO: support different suffixes for each of local files
                 new_alias.append(al)
