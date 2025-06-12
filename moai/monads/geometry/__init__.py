@@ -1,4 +1,5 @@
 from moai.monads.geometry.camera import MVWeakPerspective as MVWeakPerspective
+from moai.monads.geometry.camera import MVWeakPerspectiveMultiActor
 from moai.monads.geometry.camera import WeakPerspective as WeakPerspectiveCamera
 from moai.monads.geometry.decompose import DecomposeMatrix
 from moai.monads.geometry.deproject import Deprojection
@@ -18,6 +19,7 @@ __all__ = [
     "Inverse",
     "Transpose",
     "WeakPerspectiveCamera",
+    "MVWeakPerspectiveMultiActor",
     "Rotate",
     "CameraOpenGL",
     "DepthFromStereo",

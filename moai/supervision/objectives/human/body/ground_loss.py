@@ -123,7 +123,7 @@ class GroundLoss(torch.nn.Module):
         #     - ground_plane_height  # assuming vertices are aligned along y axis
         # )
         vertex_height = (
-            vertices[:, :, 1]
+            vertices[..., 1]
             - ground_plane_height  # assuming vertices are aligned along y axis
         )
         inside_mask = vertex_height < 0.00
