@@ -208,7 +208,9 @@ class BlobOutputHandler(Callable):
                 local_file = os.path.join(working_dir, al)
                 # assert local file exists
                 if not os.path.isfile(local_file):
-                    log.error(f"Local file {local_file} does not exist.")
+                    log.warning(
+                        f"Local file {local_file} does not exist, and will not be uploaded."
+                    )
                     return [
                         {
                             "is_success": False,
@@ -330,6 +332,13 @@ class BlobZipInputHandler(Callable):
                 with path_manager.open(uri, "rb") as blob_file:
                     with open(download_file_path, "wb") as local_file:
                         local_file.write(blob_file.read())
+                # check if download file is .zip or not and extract if it is
+                if download_file_path.endswith(".zip"):
+                    # get filename without extension
+                    folder_name = os.path.splitext(download_file_path)[0]
+                    log.info(f"Extracting zip file to {folder_name}")
+                    with zipfile.ZipFile(download_file_path, "r") as zip_ref:
+                        zip_ref.extractall(os.path.join(working_dir, folder_name))
                 log.info(f"Download blob {blob_name} to {download_file_path}")
 
         return {"is_success": True, "message": "Data downloaded successfully."}
