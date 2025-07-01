@@ -62,7 +62,11 @@ class Models(torch.nn.ModuleDict):
     ) -> typing.Dict[str, torch.Tensor]:
         for module, out, kwargs in self.execs:
             if kwargs:
-                tensors[out] = module(**toolz.valmap(lambda v: tensors[v], kwargs))
+                tensors[out] = module(
+                    **toolz.valmap(
+                        lambda v: tensors[v] if v is not None else None, kwargs
+                    )
+                )
             else:
                 tensors[out] = module(tensors)
         return tensors
