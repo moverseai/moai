@@ -1,4 +1,4 @@
-# @package data.test.iterator.augmentation.augmentations._name_
+# @package data.test.iterator.augmentation.augmentations.resize
 
 _target_: albumentations.augmentations.geometric.resize.Resize
 height: 512

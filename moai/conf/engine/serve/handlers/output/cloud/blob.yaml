@@ -1,0 +1,9 @@
+# @package handlers.postprocess.cloud.blob
+
+_target_: moai.serve.handlers.blobs.BlobOutputHandler
+connection_string: StorageAccessToken
+container_name: StorageContainer
+blob_paths: ???
+json_key: "workspace_run"
+alias: ???
+overwrite: true

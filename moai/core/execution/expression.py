@@ -223,6 +223,24 @@ class ExpandBatchOperationTensors(torch.nn.Module):
         tmp[f"result{self.index}"] = lhs.expand(b, *lhs.shape[1:])
 
 
+@dataclasses.dataclass(repr=False, unsafe_hash=True)
+class ReshapeAsOperationTensors(torch.nn.Module):
+    lhs: str
+    rhs: str
+    index: int
+
+    def __post_init__(self):
+        super().__init__()
+
+    def __repr__(self):
+        return f"reshape_as:{self.lhs},{self.rhs}"
+
+    def forward(self, td, tmp) -> None:
+        lhs = toolz.get_in(self.lhs.split("."), tmp)
+        rhs = toolz.get_in(self.rhs.split("."), tmp)
+        tmp[f"result{self.index}"] = lhs.reshape_as(rhs)
+
+
 def unary(func):
     def unary_wrapper(self, key):
         return self._unary(func.__name__, key)
@@ -831,5 +849,17 @@ class TreeModule(torch.nn.Module, Transformer):
         get_batch = self.extract(get_batch)
         m = ExpandBatchOperationTensors(expand_batch, get_batch, self.index)
         self.seq.add_module(f"expand_batch_as{self.index}", m)
+        self.results.append(f"result{self.index}")
+        self.index += 1
+
+    def reshape_as(self, reshape_tensor, get_tensor):
+        if reshape_tensor is None:
+            reshape_tensor = self.results.pop()
+        if get_tensor is None:
+            get_tensor = self.results.pop()
+        reshape_tensor = self.extract(reshape_tensor)
+        get_tensor = self.extract(get_tensor)
+        m = ReshapeAsOperationTensors(reshape_tensor, get_tensor, self.index)
+        self.seq.add_module(f"reshape_as{self.index}", m)
         self.results.append(f"result{self.index}")
         self.index += 1

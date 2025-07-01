@@ -4,9 +4,9 @@ import typing
 import colour
 import numpy as np
 
-from moai.engine.modules.rerun import Rerun
-
 log = logging.getLogger(__name__)
+
+from moai.engine.modules.rerun import Rerun
 
 try:
     import rerun as rr
@@ -32,6 +32,7 @@ def multiframe_multiview_posed_image(
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
     jpeg_quality: int = 40,
+    denormalize: bool = True,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
@@ -59,9 +60,13 @@ def multiframe_multiview_posed_image(
                 ),
             )
             # log image
-            image = np.ascontiguousarray(
-                images[fr][i].transpose(-2, -1, 0) * 255
-            ).astype(np.uint8)
+            image = (
+                np.ascontiguousarray(images[fr][i].transpose(-2, -1, 0) * 255).astype(
+                    np.uint8
+                )
+                if denormalize
+                else np.ascontiguousarray(images[fr][i].transpose(-2, -1, 0))
+            )
             rr.log(
                 path + f"/frame_{fr}/cam_{i}",
                 rr.Image(image).compress(jpeg_quality=jpeg_quality),
@@ -77,6 +82,7 @@ def multicam_posed_image(
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
     jpeg_quality: int = 40,
+    denormalize: bool = True,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
@@ -104,8 +110,12 @@ def multicam_posed_image(
         )
         # log image
         if images is not None:
-            image = np.ascontiguousarray(images[i].transpose(-2, -1, 0) * 255).astype(
-                np.uint8
+            image = (
+                np.ascontiguousarray(images[i].transpose(-2, -1, 0) * 255).astype(
+                    np.uint8
+                )
+                if denormalize
+                else np.ascontiguousarray(images[i].transpose(-2, -1, 0))
             )
             rr.log(
                 path + f"/cam_{i}",
@@ -192,7 +202,7 @@ def multicam_keypoints(
     path: str,
     color: str,
     confidence: np.ndarray,
-    skeleton: typing.Optional[str] = None,
+    parents: typing.Optional[str] = None,
     optimization_step: typing.Optional[int] = None,
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
@@ -205,24 +215,63 @@ def multicam_keypoints(
         rr.set_time_sequence("iteration", iteration)
     # use confidence to get
     color = colour.Color(color)
-    num_cams = keypoints.shape[0]
-    for i in range(num_cams):
-        path_parts = path.split("/")
-        path_parts.insert(-1, f"cam_{i}")
-        fp = "/".join(path_parts)
-        if skeleton is None:
-            rr.log(
-                # path + f"/cam_{i}",
-                fp,
-                rr.Points2D(
-                    positions=keypoints[i],
-                    colors=np.tile(
-                        np.array(color.get_rgb() + (1,)), (keypoints[i].shape[0], 1)
+    # debug
+    keypoints = keypoints[np.newaxis, ...] if keypoints.ndim == 3 else keypoints
+    confidence = confidence[np.newaxis, ...] if confidence.ndim == 3 else confidence
+    # debug
+    num_actors = keypoints.shape[0]
+    num_cams = keypoints.shape[1]
+    if parents is not None:
+        tree = []
+        for i, parent in enumerate(parents):
+            if parent != -1:
+                tree.append([i, parent])
+    for actor in range(num_actors):
+        for i in range(num_cams):
+            path_parts = path.split("/")
+            path_parts.insert(-1, f"cam_{i}")
+            path_parts.insert(-1, f"actor_{actor}")
+            fp = "/".join(path_parts)
+            if parents is None:
+                rr.log(
+                    # path + f"/cam_{i}",
+                    fp,
+                    rr.Points2D(
+                        positions=keypoints[actor, i],
+                        colors=np.tile(
+                            np.array(color.get_rgb() + (1,)),
+                            (keypoints[actor, i].shape[0], 1),
+                        ),
+                        # colors=plt.colormaps["hot"](confidence[0][i]),
+                        radii=confidence[actor, i] * 5,
                     ),
-                    # colors=plt.colormaps["hot"](confidence[0][i]),
-                    radii=confidence[i] * 5,
-                ),
-            )
+                )
+            else:
+                edges = []
+                for j, parent in tree:
+                    edges.append([keypoints[actor, i, j], keypoints[actor, i, parent]])
+                rr.log(
+                    f"{fp}/keypoints",
+                    rr.Points2D(
+                        positions=keypoints[actor, i],
+                        colors=np.tile(
+                            np.array(color.get_rgb() + (1,)),
+                            (keypoints[actor, i].shape[0], 1),
+                        ),
+                        # colors=plt.colormaps["hot"](confidence[0][i]),
+                        radii=confidence[actor, i] * 5,
+                    ),
+                )
+                rr.log(
+                    f"{fp}/skeleton",
+                    rr.LineStrips2D(
+                        edges,
+                        colors=np.tile(
+                            np.array(color.get_rgb() + (1,)),
+                            (keypoints[actor, i].shape[0], 1),
+                        ),
+                    ),
+                )
 
 
 def keypoints(

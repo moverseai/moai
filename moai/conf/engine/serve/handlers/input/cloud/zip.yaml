@@ -1,0 +1,8 @@
+# @package handlers.preprocess.cloud.zip
+
+_target_: moai.serve.handlers.blobs.BlobZipInputHandler
+connection_string: StorageAccessToken # ${env:AZURE_STORAGE_CONNECTION_STRING} # retrieve automatically from env
+container_name: StorageContainer # ${env:AZURE_STORAGE_CONTAINER_NAME}
+blob_paths: ???
+json_key: "workspace_run"
+alias: ???

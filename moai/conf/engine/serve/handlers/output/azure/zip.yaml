@@ -1,0 +1,11 @@
+# @package handlers.postprocess.azure.zip
+
+_target_: moai.serve.handlers.azure.blob.AzureZipOutputHandler
+connection_string: StorageAccessToken # ${env:AZURE_STORAGE_CONNECTION_STRING} # retrieve automatically from env
+container_name: StorageContainer # ${env:AZURE_STORAGE_CONTAINER_NAME}
+blob_paths: ???
+json_key: "workspace_run"
+alias: ???
+multi_actors: ??? # key to extract actors from input JSON
+suffix_key: ??? # key to extract suffix from input JSON
+overwrite: true

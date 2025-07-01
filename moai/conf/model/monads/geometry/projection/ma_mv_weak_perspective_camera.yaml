@@ -1,0 +1,10 @@
+# @package model.monads.ma_mv_weak_perspective_camera
+
+_target_: moai.monads.geometry.MVWeakPerspectiveMultiActor
+# focal_length: 5000.0
+# principal_point: 0.5
+# width: null
+# height: null
+# rotation: null
+# translation: null
+# persistent: false

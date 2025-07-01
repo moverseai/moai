@@ -142,20 +142,64 @@ class MVWeakPerspective(torch.nn.Module):
             ).transpose(2, 1)
             + transform[..., None, :3, 3]
         )
-        # projected_points = torch.div(
-        #     points_cam[:, :, :, :2],
-        #     points_cam[:, :, :, 2].unsqueeze(dim=-1)
-        # )
-        # x = points_cam[:,:,:,0]
-        # y = points_cam[:,:,:,1]
-        # z = points_cam[:,:,:,2] + 1e-7
-        # x_h = x / z
-        # y_h = y / z
-        # ones = torch.ones_like(z)
-        # homo_points = torch.stack([x_h, y_h, ones], dim=3)
         homo_points = points_cam / (points_cam[..., 2:3] + 1e-7)
         return torch.einsum("bvpi,bvji->bvpj", homo_points, intrinsics)[..., :2]
 
-        # return torch.einsum('bvij,bvlc->bvlc', intrinsics, homo_points)[:,:,:,:2]
-        # R = rotation if rotation is not None else self.rotation.expand(points.shape[0], 3, 3)
-        # t = translation if translation is not None else self.translation.expand(points.shape[0], 3)
+
+class MVWeakPerspectiveMultiActor(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(
+        self,
+        points: torch.Tensor,
+        rotation: torch.Tensor = None,
+        translation: torch.Tensor = None,
+        intrinsics: torch.Tensor = None,
+        transform: torch.Tensor = None,
+    ) -> torch.Tensor:
+        """
+        Multi-view weak perspective projection.
+
+        Expects tensors of shape e.g. [B,A,L,3] where:
+        B is batch size,
+        A is the number of actors,
+        L is the number of points.
+        """
+        # # 1. Rotate points
+        # # points[..., None, :]  # gives [B, A, L, 1, 3]
+        # # transform[..., :3, :3]  # gives [B, V, 3, 3]
+        # # einsum output target: [B, A, V, L, 3] (for rotated points)
+        rotated_points = torch.einsum(
+            "baloj,bvij->bavli",
+            points[..., None, :],  # b a l o j_coord
+            transform[..., :3, :3],  # b v j_coord i_coord
+        )  # Output shape: [B, A, V, L, 3] (b a v l i_coord)
+
+        # 2. Add translation
+        # translation_vector has shape [B, V, 3]
+        translation_vector = transform[..., :3, 3]
+        # Expand for broadcasting to [B, 1, V, 1, 3] to match [B, A, V, L, 3]
+        # This adds a dimension for A (actors) and L (landmarks)
+        translation_to_add = translation_vector[:, None, :, None, :]
+
+        points_cam = rotated_points + translation_to_add  # Shape: [B, A, V, L, 3]
+
+        # Convert to homogeneous coordinates by dividing by z
+        homo_points = points_cam / (
+            points_cam[..., 2:3] + 1e-7
+        )  # Shape: [B, A, V, L, 3]
+
+        # Project to image coordinates
+        # intrinsics shape: [B, V, 3, 3]
+        # homo_points shape: [B, A, V, L, 3]
+        # Target uv_points shape: [B, A, V, L, 2]
+        # We need to broadcast intrinsics over the A dimension or align dimensions carefully.
+        # intrinsics[:, None, ...] gives [B, 1, V, 3, 3]
+        uv_points = torch.einsum(
+            "bavli,bavji->bavlj",  # contract i (coords)
+            homo_points,
+            intrinsics[:, None, ...],  # b (1) v j i -> effectively b a_broadcast v j i
+        )[..., :2]
+
+        return uv_points

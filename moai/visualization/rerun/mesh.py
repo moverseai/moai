@@ -89,6 +89,39 @@ def multiframe_points3d(
         )
 
 
+def multi_actor_mesh3d(
+    vertices: np.ndarray,
+    faces: np.ndarray,
+    path: str,
+    color: str,
+    optimization_step: typing.Optional[int] = None,
+    lightning_step: typing.Optional[int] = None,
+    iteration: typing.Optional[int] = None,
+) -> None:
+    if optimization_step is not None:
+        rr.set_time_sequence("optimization_step", optimization_step)
+    elif lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    elif iteration is not None:
+        rr.set_time_sequence("iteration", iteration)
+    color = colour.Color(color)
+    num_actors = vertices.shape[0]
+    for actor in range(num_actors):
+        o3d_mesh = trimesh.Trimesh(vertices=vertices[actor], faces=faces[actor])
+        o3d_mesh.fix_normals()
+        rr.log(
+            f"{path}/actor_{actor}",
+            rr.Mesh3D(
+                vertex_positions=vertices[actor],
+                triangle_indices=faces[actor],
+                vertex_colors=np.tile(
+                    np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
+                ),  # TODO: memoize
+                vertex_normals=np.array(o3d_mesh.vertex_normals),
+            ),
+        )
+
+
 def mesh3d(
     vertices: np.ndarray,
     faces: np.ndarray,

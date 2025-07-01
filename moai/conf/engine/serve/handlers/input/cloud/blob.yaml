@@ -1,0 +1,8 @@
+# @package handlers.preprocess.cloud.blob
+
+_target_: moai.serve.handlers.blobs.BlobInputHandler
+connection_string: StorageAccessToken
+container_name: StorageContainer
+blob_paths: ???
+json_key: 'workspace_run'
+alias: ???

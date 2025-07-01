@@ -5,7 +5,7 @@ import nvdiffrast.torch as dr
 import torch
 
 from moai.monads.render.nvdiffrast import CONTEXT
-from moai.utils.decorators.torch import ensure_contiguous
+from moai.utils.decorators.torch import adaptive_custom_fwd, ensure_contiguous
 
 __all__ = ["Rasterize", "AttributeInterpolation"]
 
@@ -25,8 +25,7 @@ class Rasterize(torch.nn.Module):
         self.resolution = [height, width]
         self.decomposed = decomposed
 
-    @ensure_contiguous
-    @torch.amp.custom_fwd(device_type="cuda", cast_inputs=torch.float32)
+    @adaptive_custom_fwd(device_type="cuda", cast_inputs=torch.float32)
     def forward(
         self,
         ndc_vertices: torch.Tensor,
@@ -99,8 +98,7 @@ class AttributeInterpolation(torch.nn.Module):
     ):
         super().__init__()
 
-    @ensure_contiguous
-    @torch.amp.custom_fwd(device_type="cuda", cast_inputs=torch.float32)
+    @adaptive_custom_fwd(device_type="cuda", cast_inputs=torch.float32)
     def forward(
         self,
         attributes: torch.Tensor,
@@ -127,7 +125,7 @@ class Antialias(torch.nn.Module):
         super().__init__()
         self.pos_grad_boost = position_gradient_scale
 
-    @torch.amp.custom_fwd(device_type="cuda", cast_inputs=torch.float32)
+    @adaptive_custom_fwd(device_type="cuda", cast_inputs=torch.float32)
     def forward(
         self,
         attributes: torch.Tensor,
