@@ -203,3 +203,78 @@ class MVWeakPerspectiveMultiActor(torch.nn.Module):
         )[..., :2]
 
         return uv_points
+
+
+class MVWeakPerspectiveMultiActorImageSpace(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(
+        self,
+        points: torch.Tensor,
+        rotation: torch.Tensor = None,
+        translation: torch.Tensor = None,
+        intrinsics: torch.Tensor = None,
+        transform: torch.Tensor = None,
+        width: int = None,
+        height: int = None,
+    ) -> torch.Tensor:
+        """
+        Multi-view weak perspective projection with image space coordinates.
+
+        Expects tensors of shape e.g. [B,A,L,3] where:
+        B is batch size,
+        A is the number of actors,
+        L is the number of points.
+
+        Returns:
+            v (torch.Tensor): vertex positions. The first two components are the projected vertex's
+                location (x, y) on the image plane. The coordinates of the top left corner are
+                (-0.5, -0.5), and the coordinates of the bottom right corner are
+                (width - 0.5, height - 0.5). The z component is expected to be in the camera space
+                coordinate frame (before projection).
+        """
+        # 1. Rotate points
+        rotated_points = torch.einsum(
+            "baloj,bvij->bavli",
+            points[..., None, :],  # b a l o j_coord
+            transform[..., :3, :3],  # b v j_coord i_coord
+        )  # Output shape: [B, A, V, L, 3] (b a v l i_coord)
+
+        # 2. Add translation
+        translation_vector = transform[..., :3, 3]
+        translation_to_add = translation_vector[:, None, :, None, :]
+        points_cam = rotated_points + translation_to_add  # Shape: [B, A, V, L, 3]
+
+        # Convert to homogeneous coordinates by dividing by z
+        homo_points = points_cam / (
+            points_cam[..., 2:3] + 1e-7
+        )  # Shape: [B, A, V, L, 3]
+
+        # Project to image coordinates
+        uv_points = torch.einsum(
+            "bavli,bavji->bavlj",  # contract i (coords)
+            homo_points,
+            intrinsics[:, None, ...],  # b (1) v j i -> effectively b a_broadcast v j i
+        )[..., :2]
+
+        # Convert to image space coordinates
+        # Transform from pixel coordinates to image space coordinates
+        # where top-left is (-0.5, -0.5) and bottom-right is (width-0.5, height-0.5)
+        if width is not None and height is not None:
+            # Convert from pixel coordinates (0,0 at top-left) to image space
+            # Image space: top-left (-0.5, -0.5), bottom-right (width-0.5, height-0.5)
+            uv_points[..., 0] = (
+                uv_points[..., 0] - 0.5
+            )  # x: 0->width becomes -0.5->width-0.5
+            uv_points[..., 1] = (
+                uv_points[..., 1] - 0.5
+            )  # y: 0->height becomes -0.5->height-0.5
+
+        # Combine xy coordinates with z from camera space
+        z_cam = points_cam[..., 2:3]  # Keep z in camera space
+        vertex_positions = torch.cat(
+            [uv_points, z_cam], dim=-1
+        )  # Shape: [B, A, V, L, 3]
+
+        return vertex_positions
