@@ -212,12 +212,12 @@ class MVWeakPerspectiveMultiActorImageSpace(torch.nn.Module):
     def forward(
         self,
         points: torch.Tensor,
-        rotation: torch.Tensor = None,
-        translation: torch.Tensor = None,
+        # rotation: torch.Tensor = None,
+        # translation: torch.Tensor = None,
         intrinsics: torch.Tensor = None,
         transform: torch.Tensor = None,
-        width: int = None,
-        height: int = None,
+        # width: int = None,
+        # height: int = None,
     ) -> torch.Tensor:
         """
         Multi-view weak perspective projection with image space coordinates.
@@ -261,15 +261,14 @@ class MVWeakPerspectiveMultiActorImageSpace(torch.nn.Module):
         # Convert to image space coordinates
         # Transform from pixel coordinates to image space coordinates
         # where top-left is (-0.5, -0.5) and bottom-right is (width-0.5, height-0.5)
-        if width is not None and height is not None:
-            # Convert from pixel coordinates (0,0 at top-left) to image space
-            # Image space: top-left (-0.5, -0.5), bottom-right (width-0.5, height-0.5)
-            uv_points[..., 0] = (
-                uv_points[..., 0] - 0.5
-            )  # x: 0->width becomes -0.5->width-0.5
-            uv_points[..., 1] = (
-                uv_points[..., 1] - 0.5
-            )  # y: 0->height becomes -0.5->height-0.5
+        # Convert from pixel coordinates (0,0 at top-left) to image space
+        # Image space: top-left (-0.5, -0.5), bottom-right (width-0.5, height-0.5)
+        uv_points[..., 0] = (
+            uv_points[..., 0] - 0.5
+        )  # x: 0->width becomes -0.5->width-0.5
+        uv_points[..., 1] = (
+            uv_points[..., 1] - 0.5
+        )  # y: 0->height becomes -0.5->height-0.5
 
         # Combine xy coordinates with z from camera space
         z_cam = points_cam[..., 2:3]  # Keep z in camera space

@@ -1,0 +1,6 @@
+# @package model.monads.rasterize
+
+_target_: moai.monads.render.drtk.rasterize.Rasterize
+width: 512
+height: 256
+wireframe: false # if true rasterises lines instead of triangles
