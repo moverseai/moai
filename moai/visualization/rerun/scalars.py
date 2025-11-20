@@ -37,10 +37,18 @@ def scalar(
     elif iteration is not None:
         rr.set_time_sequence("iteration", iteration)
     color = colour.Color(color)
-    rr.log(
-        path,
-        rr.Scalar(float(value)),
-    )
+    if isinstance(value, np.ndarray):
+        for i in range(value.shape[0]):
+            rr.log(
+                f"{path}/actor/{i}",
+                rr.Scalars(float(value[i])),
+                color=color.get_rgb() + (1,),
+            )
+    else:
+        rr.log(
+            path,
+            rr.Scalar(float(value)),
+        )
 
 
 def optimization_losses(
@@ -68,4 +76,4 @@ def optimization_losses(
             keypath = f"{path}/{key}"
             # if optimization_step == 1:
             #     rr.log(keypath, rr.SeriesLine(color=__COLORS[i], name=key), timeless=True)
-            rr.log(keypath, rr.Scalar(float(value)))
+            rr.log(keypath, rr.Scalars(float(value)))

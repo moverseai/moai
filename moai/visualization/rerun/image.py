@@ -73,6 +73,55 @@ def multiframe_multiview_posed_image(
             )
 
 
+def multiframe_multiview_posed_masks(
+    images: np.ndarray,  # assumes num_frames x num_cams x [H, W]
+    path: str,
+    poses: np.ndarray,  # assumes num_frames x num_cams x [4, 4]
+    intrinsics: np.ndarray,  # num_frames x assumes num_cams x [3, 3]
+    optimization_step: typing.Optional[int] = None,
+    lightning_step: typing.Optional[int] = None,
+    iteration: typing.Optional[int] = None,
+    jpeg_quality: int = 40,
+    denormalize: bool = True,
+) -> None:
+    if optimization_step is not None:
+        rr.set_time_sequence("optimization_step", optimization_step)
+    elif lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    elif iteration is not None:
+        rr.set_time_sequence("iteration", iteration)
+    num_frames, num_actors, num_cams, H, W = images.shape
+    images = images.squeeze(1)  # remove actor dim
+    # iterate over frames
+    for fr in range(num_frames):
+        # iterate over cameras
+        for i in range(num_cams):
+            rr.log(
+                path + f"/frame_{fr}/cam_{i}",
+                rr.Transform3D(
+                    translation=poses[fr][i][:3, 3],
+                    mat3x3=poses[fr][i][:3, :3],
+                    from_parent=True,
+                ),
+            )
+            rr.log(
+                path + f"/frame_{fr}/cam_{i}",
+                rr.Pinhole(
+                    image_from_camera=intrinsics[fr][i],
+                ),
+            )
+            # log image
+            image = (
+                np.ascontiguousarray(images[fr][i] * 255).astype(np.uint8)
+                if denormalize
+                else np.ascontiguousarray(images[fr][i])
+            )
+            rr.log(
+                path + f"/frame_{fr}/cam_{i}",
+                rr.Image(image).compress(jpeg_quality=jpeg_quality),
+            )
+
+
 def multicam_posed_image(
     path: str,
     images: np.ndarray = None,  # assumes num_cams x [C, H, W]

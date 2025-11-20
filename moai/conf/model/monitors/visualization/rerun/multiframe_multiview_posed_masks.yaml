@@ -1,0 +1,4 @@
+# @package model.monitors.multiframe_multiview_posed_masks
+
+_target_: moai.visualization.rerun.image.multiframe_multiview_posed_masks
+_partial_: true

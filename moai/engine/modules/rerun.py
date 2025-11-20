@@ -72,7 +72,7 @@ class Rerun:
         else:
             rr.spawn(memory_limit=memory_limit)
         self.world_coordinates = world_coordinates
-        rr.log(root, Rerun.__COORD_SYSTEM_MAP__[world_coordinates], timeless=True)
+        rr.log(root, Rerun.__COORD_SYSTEM_MAP__[world_coordinates], static=True)
         parents = annotations.parents if annotations is not None else None
         labels = annotations.labels if annotations is not None else None
         if parents is not None:
@@ -103,7 +103,7 @@ class Rerun:
                 color = random_color(True)
             else:
                 color = colour.Color(color).get_rgb()
-            rr.log(keypath, rr.SeriesLine(color=color, name=plot.key), timeless=True)
+            rr.log(keypath, rr.SeriesLines(colors=color, names=plot.key), static=True)
 
     def _create_floor(self, root: str):
         line_segments = []  # Initialize an empty list to hold all line segments
@@ -144,7 +144,7 @@ class Rerun:
             rr.LineStrips3D(
                 np.array(line_segments), colors=[128, 128, 128]  # grey color
             ),
-            timeless=True,
+            static=True,
         )
 
     def _create_annotation_context(self, root, parents, labels):

@@ -29,6 +29,7 @@ def multiframe_mesh3d(
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
     log_seperate_frames: bool = False,
+    sample_frames: typing.Optional[int] = None,
 ) -> None:
     if optimization_step is not None:
         rr.set_time_sequence("optimization_step", optimization_step)
@@ -38,6 +39,11 @@ def multiframe_mesh3d(
         rr.set_time_sequence("iteration", iteration)
     color = colour.Color(color)
     num_frames, _, __ = vertices.shape
+    if sample_frames is not None and num_frames > sample_frames:
+        step = num_frames // sample_frames
+        vertices = vertices[::step]
+        faces = faces[::step]
+        num_frames = vertices.shape[0]
     if num_frames != faces.shape[0]:
         faces = np.repeat(np.expand_dims(faces, 0), num_frames, axis=0)
     for fr in range(num_frames):
