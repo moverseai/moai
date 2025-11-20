@@ -35,12 +35,16 @@ class Rasterize(torch.nn.Module):
         self.width = width
         self.height = height
         self.wireframe = wireframe
+        self.tensor = []
         self.rasterizer = functools.partial(
             drtk.rasterize,
             width=self.width,
             height=self.height,
             wireframe=self.wireframe,
         )
+
+    def save_tensor(self, x: torch.Tensor) -> None:
+        self.tensor.append(x)
 
     def forward(self, vertices: torch.Tensor, faces: torch.Tensor) -> torch.Tensor:
         # faces should be int32
@@ -53,8 +57,29 @@ class Rasterize(torch.nn.Module):
         # index_img = self.rasterizer(vertices, faces)
         # masks = index_img >= 0
         for a in range(vertices.shape[1]):
+            masks_per_actor = []
             for c in range(vertices.shape[2]):
                 index_img = self.rasterizer(vertices[:, a, c], faces[:, a])
                 masks = index_img >= 0
-                masks_all.append(masks)
-        return masks
+                depth_img, bary_img = drtk.render(
+                    vertices[:, a, c], faces[:, a], index_img
+                )
+                image = (index_img != -1).float()
+                if True:  # image.requires_grad:
+                    image_differentiable = drtk.edge_grad_estimator(
+                        vertices[:, a, c],
+                        faces[:, a],
+                        bary_img,
+                        image[:, None],
+                        index_img,
+                        v_pix_img_hook=self.save_tensor,
+                    )
+
+                    masks_per_actor.append(
+                        image_differentiable.squeeze(1)
+                    )  # remove channel dim
+                else:
+                    masks_per_actor.append(masks)
+            masks_all.append(torch.stack(masks_per_actor, dim=1))
+        # return masks
+        return torch.stack(masks_all, dim=1).to(vertices)  # .to(torch.float32)
