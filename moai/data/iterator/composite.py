@@ -6,6 +6,7 @@ import torch
 
 from moai.data.iterator import (
     Concatenated,
+    DynamicWindowed,
     Indexed,
     Interleaved,
     Repeated,
@@ -21,6 +22,7 @@ class Composited(torch.utils.data.Dataset):
     _iterators = {
         "indexed": Indexed,
         "window": Windowed,
+        "dynamic_window": DynamicWindowed,
         "zipped": Zipped,
         "repeat": Repeated,
         "interleave": Interleaved,
