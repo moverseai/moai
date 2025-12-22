@@ -1,0 +1,17 @@
+# @package model.monads.gsplat_gaussian_splat_rasterizer
+
+_target_: moai.monads.render.splats.gs.GaussianSplatRasterizer
+model_type: 2dgs # 3dgs
+near_plane: 0.01
+far_plane: 1e10
+radius_clip: 0.0
+eps2d: 0.3
+packed: false
+tile_size: 16
+sh_degree: 0 #null
+backgrounds: null
+render_mode: RGB
+sparse_grad: false
+absgrad: false
+distloss: false
+depth_mode: expected
