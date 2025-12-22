@@ -154,6 +154,7 @@ class SMPLH(torch.nn.Module):
             "vertex_ids": cur_vertex_ids,
         }
         self.bm = smplx.SMPLH(model_path, **kwargs)
+        self.faces_tensor = torch.from_numpy(self.bm.faces.astype(np.int32))
 
     def forward(
         self,
@@ -163,10 +164,12 @@ class SMPLH(torch.nn.Module):
         translation: torch.Tensor = None,
     ) -> typing.Mapping[str, torch.Tensor]:
         body_output = self.bm(
-            betas=shape.expand(
-                pose.shape[0], shape.shape[1]
-            ),  # betas -> [1, 10] # v_shaped -> [1, 10475, 3]
-            body_pose=pose,  # body_pose -> [1, 63] # joints -> [1, 118, 3]
+            betas=shape,  # betas -> [1, 10] # v_shaped -> [1, 10475, 3]
+            body_pose=pose[:, :63],  # body_pose -> [1, 63] # joints -> [1, 118, 3]
+            left_hand_pose=pose[:, 63 : 63 + 15 * 3] if pose is not None else None,
+            right_hand_pose=(
+                pose[:, 63 + 15 * 3 : 63 + 30 * 3] if pose is not None else None
+            ),
             global_orient=rotation,  # global_orient -> [1, 3]
             transl=translation,  # transl -> [1, 3]
             pose2rot=True,
@@ -184,6 +187,6 @@ class SMPLH(torch.nn.Module):
                 "betas": body_output["betas"],
                 "shape": body_output["v_shaped"],
                 "joints": body_output["joints"],
-                # 'faces':        self.faces_tensor.expand(b, -1, -1),          #TODO: expand?
+                "faces": self.faces_tensor.expand(b, -1, -1),  # TODO: expand?
             },
         )

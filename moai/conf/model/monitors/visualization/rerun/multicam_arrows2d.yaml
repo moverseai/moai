@@ -1,0 +1,4 @@
+# @package model.monitors.multicam_arrows2d
+
+_target_: moai.visualization.rerun.image.multicam_arrows2d
+_partial_: true

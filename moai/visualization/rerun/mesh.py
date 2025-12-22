@@ -37,24 +37,31 @@ def multiframe_mesh3d(
     elif iteration is not None:
         rr.set_time_sequence("iteration", iteration)
     color = colour.Color(color)
-    num_frames, _, __ = vertices.shape
+    num_frames, nr_of_actors, _, __ = vertices.shape
     if num_frames != faces.shape[0]:
         faces = np.repeat(np.expand_dims(faces, 0), num_frames, axis=0)
     for fr in range(num_frames):
         rr.set_time_sequence("frame", fr)
-        o3d_mesh = trimesh.Trimesh(vertices=vertices[fr], faces=faces[fr])
-        o3d_mesh.fix_normals()
-        rr.log(
-            path + f"/frame_{fr}" if log_seperate_frames else path,
-            rr.Mesh3D(
-                vertex_positions=vertices[fr],
-                triangle_indices=faces[fr],
-                vertex_colors=np.tile(
-                    np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
+        for actor in range(nr_of_actors):
+            o3d_mesh = trimesh.Trimesh(
+                vertices=vertices[fr, actor], faces=faces[fr, actor]
+            )
+            o3d_mesh.fix_normals()
+            rr.log(
+                (
+                    f"{path}/actor/{actor}" + f"/frame_{fr}"
+                    if log_seperate_frames
+                    else f"{path}/actor/{actor}"
                 ),
-                vertex_normals=np.array(o3d_mesh.vertex_normals),
-            ),
-        )
+                rr.Mesh3D(
+                    vertex_positions=vertices[fr, actor],
+                    triangle_indices=faces[fr, actor],
+                    vertex_colors=np.tile(
+                        np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
+                    ),
+                    vertex_normals=np.array(o3d_mesh.vertex_normals),
+                ),
+            )
 
 
 def multiframe_points3d(
@@ -108,15 +115,25 @@ def multi_actor_mesh3d(
     num_actors = vertices.shape[0]
     for actor in range(num_actors):
         o3d_mesh = trimesh.Trimesh(vertices=vertices[actor], faces=faces[actor])
+        # decimate mesh to speed up visualization
+        # o3d_mesh = o3d_mesh.simplify_quadratic_decimation(
+        #     max(1000, int(len(o3d_mesh.faces) * 0.25))
+        # )
         o3d_mesh.fix_normals()
         rr.log(
             f"{path}/actor_{actor}",
             rr.Mesh3D(
-                vertex_positions=vertices[actor],
-                triangle_indices=faces[actor],
+                # vertex_positions=vertices[actor],
+                # triangle_indices=faces[actor],
+                vertex_positions=np.array(o3d_mesh.vertices),
+                triangle_indices=np.array(o3d_mesh.faces),
+                # vertex_colors=np.tile(
+                #     np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
+                # ),  # TODO: memoize
                 vertex_colors=np.tile(
-                    np.array(color.get_rgb() + (1,)), (vertices.shape[1], 1)
-                ),  # TODO: memoize
+                    np.array(color.get_rgb() + (1,)),
+                    (len(o3d_mesh.vertices), 1),
+                ),
                 vertex_normals=np.array(o3d_mesh.vertex_normals),
             ),
         )
