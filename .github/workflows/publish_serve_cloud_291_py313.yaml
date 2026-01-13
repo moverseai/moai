@@ -1,0 +1,58 @@
+name: Build and publish torchserve 2.9.1 py313 generic cloud image
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_version:
+        description: 'Version of the base moai image to build on'
+        required: true
+        default: 'v1.0.0'
+      version:
+        description: 'Version of the cloud image to build and publish'
+        required: true
+        default: 'v1.0.0'
+      tags:
+        description: 'Some tags' 
+
+env:
+  REGISTRY: ghcr.io
+  NAME: serve/cloud
+  VERSION: ${{ github.event.inputs.version }}
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/moverseai/moai/${{ env.NAME }}
+          tags: |
+            type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ env.VERSION }}-pt291-py313
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: docker/serve/cloud/pt291-py313/Dockerfile
+          push: true
+          build-args: |
+            VERSION=${{ github.event.inputs.base_version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.version=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            com.github.moverseai.moai.sha=${{ github.sha }}
+            com.github.moverseai.moai.branch=${{ github.ref_name }}
