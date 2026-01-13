@@ -246,6 +246,46 @@ def multiframe_multiview_keypoints(
                 )
 
 
+def multicam_arrows2d(
+    origins: np.ndarray,
+    directions: np.ndarray,
+    path: str,
+    color: str,
+    optimization_step: typing.Optional[int] = None,
+    lightning_step: typing.Optional[int] = None,
+    iteration: typing.Optional[int] = None,
+):
+    if optimization_step is not None:
+        rr.set_time_sequence("optimization_step", optimization_step)
+    elif lightning_step is not None:
+        rr.set_time_sequence("lightning_step", lightning_step)
+    elif iteration is not None:
+        rr.set_time_sequence("iteration", iteration)
+    # use confidence to get
+    color = colour.Color(color)
+    num_actors = origins.shape[0]
+    num_cams = origins.shape[1]
+    for actor in range(num_actors):
+        for i in range(num_cams):
+            path_parts = path.split("/")
+            path_parts.insert(-1, f"cam_{i}")
+            path_parts.insert(-1, f"actor_{actor}")
+            fp = "/".join(path_parts)
+            rr.log(
+                fp,
+                rr.Arrows2D(
+                    origins=origins[actor, i],
+                    vectors=directions[actor, i],
+                    colors=np.tile(
+                        np.array(color.get_rgb() + (1,)),
+                        (origins[actor, i].shape[0], 1),
+                    ),
+                    radii=0.2,
+                    # lengths=0.05,
+                ),
+            )
+
+
 def multicam_keypoints(
     keypoints: np.ndarray,
     path: str,
@@ -284,7 +324,7 @@ def multicam_keypoints(
             if parents is None:
                 rr.log(
                     # path + f"/cam_{i}",
-                    fp,
+                    f"{fp}/arrows",
                     rr.Points2D(
                         positions=keypoints[actor, i],
                         colors=np.tile(
@@ -308,7 +348,7 @@ def multicam_keypoints(
                             (keypoints[actor, i].shape[0], 1),
                         ),
                         # colors=plt.colormaps["hot"](confidence[0][i]),
-                        radii=confidence[actor, i] * 5,
+                        radii=confidence[actor, i] * 1,
                     ),
                 )
                 rr.log(

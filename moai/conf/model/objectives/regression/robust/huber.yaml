@@ -1,0 +1,4 @@
+# @package model.objectives.huber
+
+_target_: moai.supervision.objectives.regression.robust.huber.Huber
+delta: 6.0

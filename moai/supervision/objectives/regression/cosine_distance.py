@@ -56,6 +56,8 @@ class CosineDistance(torch.nn.CosineSimilarity):
             if self.normalized
             else super(CosineDistance, self).forward(pred, gt)
         )
+        if weights is not None:
+            dot = dot * weights
         # return torch.acos(dot) / np.pi #NOTE: (eps) clamping should also fix the nan grad issue (traditional [-1, 1] clamping does not)
         # return torch.acos(torch.clamp(dot, min=-1.0 + self.epsilon, max=1.0 - self.epsilon)) / np.pi
         # return _acos_safe(dot, eps=self.epsilon) / np.pi
