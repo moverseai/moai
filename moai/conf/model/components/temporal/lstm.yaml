@@ -1,0 +1,13 @@
+# @package model.components.temporal
+
+_target_: moai.components.lstm.LSTM
+
+configuration:
+  in_features: ??? # number of input features
+  hidden_features: ??? # number of hidden features
+  blocks: ??? # number of LSTM blocks
+  bias: true # use bias
+  batch_first: false # batch first
+  dropout: 0.0 # dropout
+  bidirectional: false # bidirectional
+  proj_size: 0 # projection size
