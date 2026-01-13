@@ -1,7 +1,6 @@
 import typing
 
 import numpy as np
-import omegaconf.omegaconf
 import toolz
 import torch
 
@@ -169,16 +168,22 @@ class Parameter(torch.nn.Module):
         init: str = "zeros",  # one of [zeros, ones, rand, randn],
     ):
         super(Parameter, self).__init__()
-        if init == "eye":
-            self.register_parameter(
-                "value", torch.nn.Parameter(torch.eye(3).repeat(*shape))
-            )
+        if isinstance(init, str):
+            if init == "eye":
+                self.register_parameter(
+                    "value", torch.nn.Parameter(torch.eye(3).repeat(*shape))
+                )
+            else:
+                self.register_parameter(
+                    "value",
+                    torch.nn.Parameter(
+                        getattr(torch, init)(tuple(shape))
+                    ),  # TODO: check omegaconf's convert type annotation
+                )
         else:
+            init_value = torch.tensor(init, dtype=torch.float32)
             self.register_parameter(
-                "value",
-                torch.nn.Parameter(
-                    getattr(torch, init)(tuple(shape))
-                ),  # TODO: check omegaconf's convert type annotation
+                "value", torch.nn.Parameter(init_value.reshape(tuple(shape)))
             )
 
     def forward(self, void: torch.Tensor) -> torch.nn.parameter.Parameter:
