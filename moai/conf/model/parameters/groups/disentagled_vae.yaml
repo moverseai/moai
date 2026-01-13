@@ -1,0 +1,14 @@
+# @package model.parameters.groups.disentagled_vae
+
+_target_: moai.parameters.selectors.model.ModelParameterSelector
+modules:
+  - arm_encoder
+  - leg_encoder
+  - trunk_encoder
+  # - latent_dist_predictor
+  - arm_latent_dist_predictor
+  - leg_latent_dist_predictor
+  - trunk_latent_dist_predictor
+  - arm_decoder
+  - leg_decoder
+  - trunk_decoder

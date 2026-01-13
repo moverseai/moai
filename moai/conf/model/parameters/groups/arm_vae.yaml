@@ -1,0 +1,7 @@
+# @package model.parameters.groups.arm_vae
+
+_target_: moai.parameters.selectors.model.ModelParameterSelector
+modules:
+  - arm_encoder
+  - arm_latent_dist_predictor
+  - arm_decoder

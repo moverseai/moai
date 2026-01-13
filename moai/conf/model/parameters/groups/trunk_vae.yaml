@@ -1,0 +1,7 @@
+# @package model.parameters.groups.trunk_vae
+
+_target_: moai.parameters.selectors.model.ModelParameterSelector
+modules:
+  - trunk_encoder
+  - trunk_latent_dist_predictor
+  - trunk_decoder

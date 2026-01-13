@@ -1,0 +1,7 @@
+# @package model.parameters.groups.leg_vae
+
+_target_: moai.parameters.selectors.model.ModelParameterSelector
+modules:
+  - leg_encoder
+  - leg_latent_dist_predictor
+  - leg_decoder
