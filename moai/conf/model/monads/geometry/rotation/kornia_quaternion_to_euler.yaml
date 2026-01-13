@@ -1,0 +1,3 @@
+# @package model.monads.kornia_quaternion_to_euler
+
+_target_: moai.monads.geometry.rotations.KorniaRotationMatrix2RotationVector
