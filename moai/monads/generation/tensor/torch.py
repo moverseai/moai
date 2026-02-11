@@ -1,6 +1,7 @@
 import typing
 
 import numpy as np
+import omegaconf.omegaconf
 import toolz
 import torch
 
