@@ -1,4 +1,4 @@
-# @package data.train.iterator.datasets._name_
+# @package data.train.iterator.datasets.npz
 
 _target_: moai.data.datasets.generic.Npz
 root: ???

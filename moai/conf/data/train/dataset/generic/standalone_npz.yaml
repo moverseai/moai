@@ -1,4 +1,5 @@
-# @package data.train.iterator.datasets._name_
+# @package data.train.iterator.datasets.standalone_npz
 
 _target_: moai.data.datasets.generic.StandaloneNpz
 filename: ???
+keys: null
