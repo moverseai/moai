@@ -31,7 +31,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 #       sigmoid, softmax, mean, std, var,
 #       cartesian product, cdist, covariance, cum(sum/prod),
 #       flip, normalize, roll, multi_dot, norm,
-#       angles/fused math/clamp/floor/ceil
+#       angles/fused math/floor/ceil
 
 __MOAI_GRAMMAR__ = """
 
@@ -113,6 +113,8 @@ __MOAI_GRAMMAR__ = """
         | "flatten" "(" name "," SIGNED_INT ["," SIGNED_INT] ")"  -> flatten
         | "repeat_interleave" "(" name "," SIGNED_INT "," SIGNED_INT ")" -> repeat
         | "roll" "(" name "," SIGNED_INT "," SIGNED_INT ")" -> roll
+        | "clamp" "(" name "," NUMBER "," NUMBER ")"        -> clamp
+        | "clamp" "(" expr "," NUMBER "," NUMBER ")"        -> clamp
         | "zeros" "(" name ")"              -> zeros_like
         | "ones" "(" name ")"               -> ones_like
         | "rand" "(" name ")"               -> rand_like
