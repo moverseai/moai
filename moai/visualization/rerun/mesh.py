@@ -32,17 +32,17 @@ def multiframe_mesh3d(
     sample_frames: typing.Optional[int] = None,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     color = colour.Color(color)
     num_frames, nr_of_actors, _, __ = vertices.shape
     if num_frames != faces.shape[0]:
         faces = np.repeat(np.expand_dims(faces, 0), num_frames, axis=0)
     for fr in range(num_frames):
-        rr.set_time_sequence("frame", fr)
+        rr.set_time("frame", sequence=fr)
         for actor in range(nr_of_actors):
             o3d_mesh = trimesh.Trimesh(
                 vertices=vertices[fr, actor], faces=faces[fr, actor]
@@ -76,15 +76,15 @@ def multiframe_points3d(
     radii: float = 0.02,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     color = colour.Color(color)
     num_frames, _, __ = points.shape
     for fr in range(num_frames):
-        rr.set_time_sequence("frame", fr)
+        rr.set_time("frame", sequence=fr)
         rr.log(
             path + f"/frame_{fr}" if log_seperate_frames else path,
             rr.Points3D(
@@ -107,11 +107,11 @@ def multi_actor_mesh3d(
     iteration: typing.Optional[int] = None,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     color = colour.Color(color)
     num_actors = vertices.shape[0]
     for actor in range(num_actors):
@@ -150,11 +150,11 @@ def mesh3d(
     iteration: typing.Optional[int] = None,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     color = colour.Color(color)
     o3d_mesh = trimesh.Trimesh(vertices=vertices[0], faces=faces[0])
     o3d_mesh.fix_normals()
@@ -182,11 +182,11 @@ def triangle_mesh3d(
     iteration: typing.Optional[int] = None,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     color = colour.Color(color)
     rr.log(
         path,
@@ -215,11 +215,11 @@ class Mesh(Callable):
         iteration: typing.Optional[int] = None,
     ) -> None:
         if optimization_step is not None:
-            rr.set_time_sequence("optimization_step", optimization_step)
+            rr.set_time("optimization_step", sequence=optimization_step)
         elif lightning_step is not None:
-            rr.set_time_sequence("lightning_step", lightning_step)
+            rr.set_time("lightning_step", sequence=lightning_step)
         elif iteration is not None:
-            rr.set_time_sequence("iteration", iteration)
+            rr.set_time("iteration", sequence=iteration)
         rr.log(
             self.path,
             rr.Mesh3D(

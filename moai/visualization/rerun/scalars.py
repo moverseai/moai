@@ -31,11 +31,11 @@ def scalar(
     iteration: typing.Optional[int] = None,
 ):
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     color = colour.Color(color)
     if isinstance(value, np.ndarray):
         for i in range(value.shape[0]):
@@ -60,9 +60,9 @@ def optimization_losses(
     lightning_step: typing.Optional[int] = None,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     else:
         raise RuntimeError(
             "Trying to visualize losses using an unsupported mode. Currently only `optimization_step` and `lightning_step` are supported."

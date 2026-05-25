@@ -35,11 +35,11 @@ def multiframe_multiview_posed_image(
     denormalize: bool = True,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     num_frames, num_cams, _, H, W = images.shape
     # iterate over frames
     for fr in range(num_frames):
@@ -85,11 +85,11 @@ def multiframe_multiview_posed_masks(
     denormalize: bool = True,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     num_frames, num_actors, num_cams, H, W = images.shape
     images = images.squeeze(1)  # remove actor dim
     # iterate over frames
@@ -134,11 +134,11 @@ def multicam_posed_image(
     denormalize: bool = True,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     # get number of cameras
     num_cams = intrinsics.shape[0]
     # _, __, H, W = images.shape
@@ -181,11 +181,11 @@ def posed_image(
     iteration: typing.Optional[int] = None,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     _, __, H, W = image.shape
     rr.log(path, rr.Pinhole(focal_length=5000, width=W, height=H))
     rr.log(path, rr.Image(image.transpose(0, -2, -1, -3)))
@@ -202,11 +202,11 @@ def multiframe_multiview_keypoints(
     iteration: typing.Optional[int] = None,
 ):
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     color = colour.Color(color)
     num_frames, num_cams, num_keypoints, _ = keypoints.shape
     for fr in range(num_frames):
@@ -256,11 +256,11 @@ def multicam_arrows2d(
     iteration: typing.Optional[int] = None,
 ):
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     # use confidence to get
     color = colour.Color(color)
     num_actors = origins.shape[0]
@@ -297,11 +297,11 @@ def multicam_keypoints(
     iteration: typing.Optional[int] = None,
 ):
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     # use confidence to get
     color = colour.Color(color)
     # debug
@@ -373,11 +373,11 @@ def keypoints(
     iteration: typing.Optional[int] = None,
 ) -> None:
     if optimization_step is not None:
-        rr.set_time_sequence("optimization_step", optimization_step)
+        rr.set_time("optimization_step", sequence=optimization_step)
     elif lightning_step is not None:
-        rr.set_time_sequence("lightning_step", lightning_step)
+        rr.set_time("lightning_step", sequence=lightning_step)
     elif iteration is not None:
-        rr.set_time_sequence("iteration", iteration)
+        rr.set_time("iteration", sequence=iteration)
     color = colour.Color(color)
     if skeleton is None:
         rr.log(
