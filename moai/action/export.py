@@ -95,6 +95,10 @@ def export(cfg):
             input_dict[in_name] = torch.randn(
                 tuple(cfg.export.input_tensor[in_name])
             ).to(device, dtype=torch.float16)
+        elif cfg.export.precision == "unit8":
+            input_dict[in_name] = torch.randint(
+                0, 256, tuple(cfg.export.input_tensor[in_name])
+            ).to(device, dtype=torch.uint8)
         else:
             input_dict[in_name] = (
                 torch.randn(tuple(cfg.export.input_tensor[in_name])).to(device).float()
