@@ -38,7 +38,7 @@ class Weighted(torch.nn.ModuleDict):
             )
         if errors := [k for k in kwargs if k not in objectives]:
             log.error(
-                f"Some objectives [orange bold strike blink] \[{errors}\] [/] were not found in the configuration and will be ignored!"
+                f"Some objectives [orange bold strike blink] [{errors}] [/] were not found in the configuration and will be ignored!"
             )
         for i, key in enumerate(kwargs):
             if key not in objectives:
@@ -65,7 +65,7 @@ class Weighted(torch.nn.ModuleDict):
                 - set([C._OUT_, C._WEIGHT_, C._REDUCTION_])
             ):
                 log.error(
-                    f":warning: The parameters [bold yellow strike] \[{extra_params}\] [/] are not part of the `{key}` objective signature ({list(sig.parameters.keys())})."
+                    f":warning: The parameters [bold yellow strike] [{extra_params}] [/] are not part of the `{key}` objective signature ({list(sig.parameters.keys())})."
                 )
             objective_kwargs = mic._dict_of_lists_to_list_of_dicts(objective_kwargs)
             for j, params in enumerate(objective_kwargs):
