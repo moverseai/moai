@@ -749,6 +749,13 @@ class TreeModule(torch.nn.Module, Transformer):
         key = self.extract(key)  # NOTE: only supports single shift/dim
         self._transform_operation("roll", key, [int(shift), int(dim)])
 
+    def clamp(self, key, min_val, max_val):
+        if not isinstance(key, str):
+            key = self.results.pop()
+        else:
+            key = self.extract(key)
+        self._transform_operation("clamp", key, [float(min_val), float(max_val)])
+
     def unsqueeze(self, key, *dims):
         if not isinstance(key, str) or isinstance(key, Token):  # NOTE: is lark.Tree
             key = self.extract(key)
