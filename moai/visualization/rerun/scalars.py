@@ -47,7 +47,7 @@ def scalar(
     else:
         rr.log(
             path,
-            rr.Scalar(float(value)),
+            rr.Scalars(float(value)),
         )
 
 
