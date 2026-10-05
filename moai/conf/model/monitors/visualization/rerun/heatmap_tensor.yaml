@@ -1,0 +1,4 @@
+# @package model.monitors.heatmap_tensor
+
+_target_: moai.visualization.rerun.heatmap.heatmap_tensor
+_partial_: true

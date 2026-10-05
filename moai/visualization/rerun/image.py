@@ -295,6 +295,7 @@ def multicam_keypoints(
     optimization_step: typing.Optional[int] = None,
     lightning_step: typing.Optional[int] = None,
     iteration: typing.Optional[int] = None,
+    labels: typing.Optional[typing.Sequence[str]] = None,
 ):
     if optimization_step is not None:
         rr.set_time("optimization_step", sequence=optimization_step)
@@ -321,19 +322,21 @@ def multicam_keypoints(
             path_parts.insert(-1, f"cam_{i}")
             path_parts.insert(-1, f"actor_{actor}")
             fp = "/".join(path_parts)
+            points = dict(
+                positions=keypoints[actor, i],
+                colors=np.tile(
+                    np.array(color.get_rgb() + (1,)),
+                    (keypoints[actor, i].shape[0], 1),
+                ),
+                radii=confidence[actor, i] * (5 if parents is None else 1),
+            )
+            if labels is not None:
+                points["labels"] = labels
             if parents is None:
                 rr.log(
                     # path + f"/cam_{i}",
                     f"{fp}/arrows",
-                    rr.Points2D(
-                        positions=keypoints[actor, i],
-                        colors=np.tile(
-                            np.array(color.get_rgb() + (1,)),
-                            (keypoints[actor, i].shape[0], 1),
-                        ),
-                        # colors=plt.colormaps["hot"](confidence[0][i]),
-                        radii=confidence[actor, i] * 5,
-                    ),
+                    rr.Points2D(**points),
                 )
             else:
                 edges = []
@@ -341,15 +344,7 @@ def multicam_keypoints(
                     edges.append([keypoints[actor, i, j], keypoints[actor, i, parent]])
                 rr.log(
                     f"{fp}/keypoints",
-                    rr.Points2D(
-                        positions=keypoints[actor, i],
-                        colors=np.tile(
-                            np.array(color.get_rgb() + (1,)),
-                            (keypoints[actor, i].shape[0], 1),
-                        ),
-                        # colors=plt.colormaps["hot"](confidence[0][i]),
-                        radii=confidence[actor, i] * 1,
-                    ),
+                    rr.Points2D(**points),
                 )
                 rr.log(
                     f"{fp}/skeleton",

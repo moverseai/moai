@@ -1,0 +1,5 @@
+# @package model.metrics.error_confidence_correlation
+
+_target_: moai.validation.metrics.distribution.error_correlation.ErrorConfidenceCorrelation
+mode: pearson # or spearman
+eps: 1e-8

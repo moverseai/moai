@@ -1,0 +1,4 @@
+# @package model.metrics.pck
+
+_target_: moai.validation.metrics.distribution.pck.PercentageCorrectKeypoints
+threshold: 0.05

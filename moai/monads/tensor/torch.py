@@ -146,6 +146,18 @@ class Unsqueeze(torch.nn.Module):
         return tensor.unsqueeze(dim=self.dim)
 
 
+class GlobalAvgPool(torch.nn.Module):
+    """Spatial global-average pool: (B, C, H, W) -> (B, C). Minimal pooling monad for branches
+    (e.g. an uncertainty/confidence MLP head) that need a single pooled feature vector rather
+    than a spatial feature map."""
+
+    def __init__(self) -> None:
+        super(GlobalAvgPool, self).__init__()
+
+    def forward(self, tensor: torch.Tensor) -> torch.Tensor:
+        return tensor.mean(dim=(-2, -1))
+
+
 class Identity(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()

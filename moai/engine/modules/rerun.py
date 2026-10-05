@@ -63,21 +63,21 @@ class Rerun:
     ) -> None:
         # NOTE: https://github.com/iterative/dvc/issues/9731
         rr.init(name, recording_id=recording_id or uuid4())
-        if export is not None:
-            if isinstance(export, bool) and export:
-                export_path = "."
-            elif isinstance(export, str):
-                export_path = export
+        if export:
+            export_path = "." if isinstance(export, bool) else export
             rr.save(export_path)
         else:
             rr.spawn(memory_limit=memory_limit)
         self.world_coordinates = world_coordinates
         rr.log(root, Rerun.__COORD_SYSTEM_MAP__[world_coordinates], static=True)
+        annotations = (
+            annotations if annotations and not isinstance(annotations, bool) else None
+        )
         parents = annotations.parents if annotations is not None else None
         labels = annotations.labels if annotations is not None else None
         if parents is not None:
             self._create_annotation_context(root, parents, labels)
-        plots = annotations.plots
+        plots = annotations.plots if annotations is not None else None
         if plots is not None:
             self._create_scalar_plots(root, plots)
         if add_floor:

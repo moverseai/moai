@@ -1,0 +1,4 @@
+# @package model.monitors.jet_heatmap
+
+_target_: moai.visualization.rerun.heatmap.jet_heatmap
+_partial_: true

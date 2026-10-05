@@ -1,3 +1,5 @@
+import typing
+
 import roma
 import torch
 
@@ -21,6 +23,7 @@ class RotationMatrixAngle(torch.nn.Module):
         self,
         pred: torch.Tensor,
         gt: torch.Tensor,
+        weights: typing.Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         if self.safe:
             R = pred.transpose(-1, -2) @ gt
