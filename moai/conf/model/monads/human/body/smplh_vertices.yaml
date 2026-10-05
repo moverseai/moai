@@ -1,0 +1,6 @@
+# @package model.monads._name_
+
+_target_: moai.monads.human.body.smplh_vertices.SMPLHVertices
+model_path: ???
+vertex_subset: ???  # list[int], SMPL-H vertex ids, in the order the consuming flow's targets use
+n_betas: 16
