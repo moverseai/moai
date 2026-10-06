@@ -23,9 +23,31 @@ from moai.utils.funcs import (
     select_list,
 )
 
+try:
+    import rerun as rr
+except ImportError:
+    rr = None
+
 log = logging.getLogger(__name__)
 
 __all__ = ["RunCallback"]
+
+
+def _log_metrics_to_rerun(metrics: typing.Mapping[str, float], epoch: int) -> None:
+    r"""Mirrors epoch-level validation metrics to rerun, if it is installed and initialized.
+
+    Visualization must never break validation, so any failure is swallowed.
+    """
+    if rr is None or not metrics:
+        return
+    try:
+        if rr.get_global_data_recording() is None:  # rerun module not enabled
+            return
+        rr.set_time("epoch", sequence=int(epoch))
+        for key, value in metrics.items():
+            rr.log(f"val/metric/{key}", rr.Scalars(float(value)))
+    except Exception as e:
+        log.debug(f"Could not log validation metrics to rerun: {e}")
 
 
 class RunCallback(L.Callback):
@@ -387,6 +409,7 @@ class RunCallback(L.Callback):
         module.log_dict(
             log_all_metrics, prog_bar=True, logger=False, on_epoch=True, sync_dist=True
         )
+        _log_metrics_to_rerun(log_all_metrics, module.current_epoch)
         log_all_metrics = toolz.keymap(lambda k: f"val/metric/{k}", log_all_metrics)
         module.log_dict(
             log_all_metrics, prog_bar=False, logger=True, on_epoch=True, sync_dist=True
